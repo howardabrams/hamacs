@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: document-property-header
+# key: topprop
+# --
+#+PROPERTY: header-args${1::emacs-lisp} :${2:results} ${3:silent}

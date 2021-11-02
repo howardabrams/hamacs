@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: fullstatus
+# uuid:
+# key: fullstatus
+# condition: t
+# --
+   - *Sprint:*
+     - $1
+   - *Crossway:*
+     - $2
+   - *Onboarding:*
+     - $3
+   - *Other:*
+     - $0

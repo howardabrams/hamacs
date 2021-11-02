@@ -1,0 +1,24 @@
+# -*- mode: snippet -*-
+# name: __mythic_rpg_resolution
+# key: mythic-rpg-resolution
+# --
+#+TITLE:  ${1:`(replace-regexp-in-string "-" " " (capitalize (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))`}
+#+AUTHOR: `(user-full-name)`
+#+EMAIL:  `user-mail-address`
+#+DATE:   `(format-time-string "%Y-%m-%d %B")`
+#+TAGS:   mythic rpg resolution chart
+
+${0:Summary Description}
+
+*Acting Rank:* $2
+
+*Difficulty Rank:* $3
+
+*Modifiers:*
+  - $4
+
+*Results:*
+  | Yes             | |
+  | No              | |
+  | Exceptional Yes | |
+  | Exceptional No  | |

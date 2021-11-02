@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# contributor: Howard Abrams <howard.abrams@gmail.com>
+# name: object-diagram
+# key: object
+# condition: (ha/org-nested-in-plantuml-block)
+# group: plantuml
+# --
+' See details at https://plantuml.com/object-diagram
+object Extends
+object Extension
+object Composes
+object Composition
+object Aggregates
+object Aggregation
+object Relates
+object Relation
+
+Extends <|-- Extension
+Composes *-- Composition
+Aggregates o-- "4" Aggregation
+Relates .. Relation : some labels

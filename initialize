@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+HAMACS_DIR=$(cd "$(dirname "$0")"; pwd)
+HAMACS_DEST=$HOME/.emacs.hamacs    # A symlink to ~/.emacs.d
+
+mkdir -p $HAMACS_DEST
+mkdir -p $HAMACS_DEST/elisp
+
+cat > $HAMACS_DEST/init.el <<EOF
+;;; init.el --- Hamacs Init -*- lexical-binding: t; -*-
+;;
+;;; Commentary:
+;;
+;; This is my Emacs Bootloader. Simply put, I initialize the package management
+;; system, and then tangle my literate files. This simple idea came from
+;; https://github.com/susamn/dotfiles
+;;
+;;; Code:
+
+;; We'll be using straight. So, we don't want duplicated package loading:
+(setq package-enable-at-startup nil)
+
+;; Configure package.el to include MELPA.
+;;  (require 'package)
+;;  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
+;;  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;;  (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;;  (package-initialize)
+
+;; Ensure that use-package is installed.
+;;
+;; If use-package isn't already installed, it's extremely likely that this is a
+;; fresh installation! So we'll want to update the package repository and
+;; install use-package before loading the literate configuration.
+;; (when (not (package-installed-p 'use-package))
+;;   (package-refresh-contents)
+;;   (package-install 'use-package))
+
+(defvar hamacs-source-dir "$HAMACS_DIR" "Where we be.")
+
+;; Let's rock:
+(org-babel-load-file "$HAMACS_DIR/bootstrap.org")
+
+(provide 'init.el)
+;;; init ends here
+EOF
+
+echo Created $HAMACS_DEST/init.el

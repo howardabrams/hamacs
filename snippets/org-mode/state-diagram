@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# contributor: Howard Abrams <howard.abrams@gmail.com>
+# name: state-diagram
+# key: state
+# condition: (ha/org-nested-in-plantuml-block)
+# group: plantuml
+# --
+' See details at https://plantuml.com/state-diagram
+[*] --> State1
+State1 --> [*]
+State1 : this is a string
+State1 : this is another string
+
+State1 -> State2
+State2 --> [*]

@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# contributor: Howard Abrams <howard.abrams@gmail.com>
+# name: use-case-diagram
+# key: use-case
+# condition: (ha/org-nested-in-plantuml-block)
+# group: plantuml
+# --
+' See details at https://plantuml.com/use-case-diagram
+User -> (Start)
+User --> (Use the application) : A small label
+
+:Main Admin: ---> (Use the application) : This is\nyet another\nlabel

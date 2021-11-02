@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: npc
+# key: npc
+# --
+(defun rpgdm-npc--${1:$(replace-regexp-in-string " " "-" yas-text)} ()
+  "Return string from a random $1."
+  (let ((roll (rpgdm--roll-die $2)))
+    (cond
+     ((<= roll $3) $4)
+     ((<= roll $5) $6)))

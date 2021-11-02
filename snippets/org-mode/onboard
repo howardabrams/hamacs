@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: onboard
+# key: onboard
+# --
+** TODO $1
+
+Status:
+  - Waiting to fill out Requirements Document
+
+Summary:
+  - Initial meeting on `(format-time-string "<%Y-%m-%d %a>")`
+
+Personnel:
+  - $2

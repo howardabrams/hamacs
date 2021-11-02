@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Rubocop disable comment
+# key: rd
+# --
+# rubocop:disable ${1:Lint/MethodLength}

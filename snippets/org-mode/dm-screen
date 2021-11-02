@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: dm-screen
+# key: __dm
+# --
+#+TITLE:  ${1:`(->> (buffer-file-name)
+                    (file-name-base)
+                    (s-split-words)
+                    (--map (s-capitalize it))
+                    (s-join " "))`}
+#+AUTHOR: Howard X. Abrams
+#+EMAIL:  howard.abrams@gmail.com
+#+FILETAGS: :rpg:5e:dm-screen:

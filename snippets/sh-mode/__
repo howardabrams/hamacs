@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: shell-init
+# key: __
+# --
+#!/usr/bin/env `(if (equal (file-name-extension buffer-file-name) "zsh") "zsh" "bash")`
+# ----------------------------------------------------------------------
+#  `(upcase (file-name-nondirectory (file-name-sans-extension (buffer-file-name))))`: $0
+# ----------------------------------------------------------------------
+
+set -euo pipefail
+
+$0

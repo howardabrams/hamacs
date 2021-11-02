@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: shell-script-code
+# key: <ss
+# --
+#+BEGIN_SRC sh
+$0
+#+END_SRC

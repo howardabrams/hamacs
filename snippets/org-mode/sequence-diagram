@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# contributor: Howard Abrams <howard.abrams@gmail.com>
+# name: sequence-diagram
+# key: sequence
+# condition: (ha/org-nested-in-plantuml-block)
+# group: plantuml
+# --
+' See details at https://plantuml.com/sequence-diagram
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: Another authentication Response

@@ -1,0 +1,31 @@
+# -*- mode: snippet -*-
+# contributor: Howard Abrams <howard.abrams@gmail.com>
+# name: deployment-diagram
+# key: deployment
+# condition: (ha/org-nested-in-plantuml-block)
+# group: plantuml
+# --
+' See details at https://plantuml.com/deployment-diagram
+agent agent
+artifact artifact
+boundary boundary
+card card
+circle circle
+cloud cloud
+collections collections
+component component
+control control
+database database
+entity entity
+file file
+folder folder
+frame frame
+interface interface
+label label
+node node
+package package
+queue queue
+stack stack
+rectangle rectangle
+storage storage
+usecase usecase

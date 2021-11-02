@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: emacs-lisp-init
+# key: __
+# --
+;;; `(file-name-base (buffer-file-name)))`.el --- $1 -*- lexical-binding: t; -*-
+;;
+;; Copyright (C) `(format-time-string "%Y")` `user-full-name`
+;;
+;; Author: `user-full-name` <http://gitlab.com/howardabrams>
+;; Maintainer: `user-full-name` <`user-mail-address`>
+;; Created: `(format-time-string "%B %e, %Y")`
+;;
+;; This file is not part of GNU Emacs.
+;;
+;;
+;;; Code:
+
+$0
+
+(provide '`(file-name-base (buffer-file-name)))`)
+;;; `(file-name-base (buffer-file-name)))`.el ends here

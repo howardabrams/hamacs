@@ -1,0 +1,26 @@
+# -*- mode: snippet -*-
+# name: __mythic_rpg_scaling
+# key: mythic-rpg-scaling
+# --
+#+TITLE:  ${1:`(replace-regexp-in-string "-" " " (capitalize (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))`}
+#+AUTHOR: `(user-full-name)`
+#+EMAIL:  `user-mail-address`
+#+DATE:   `(format-time-string "%Y-%m-%d %B")`
+#+TAGS:   mythic rpg scaling skill box
+
+${0:Example of...}
+
+  | Description | Mythic Rank   |
+  |-------------+---------------|
+  |             |               |
+  |             | Miniscule     |
+  |             | Weak          |
+  |             | Low           |
+  |             | Below Average |
+  | $2          | Average       |
+  |             | Above Average |
+  |             | High          |
+  |             | Exceptional   |
+  |             | Incredible    |
+  |             | Awesome       |
+  |             |               |

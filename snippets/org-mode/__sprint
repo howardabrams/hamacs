@@ -1,0 +1,61 @@
+# -*- mode: snippet -*-
+# name: sprint
+# key: __sprint
+# --
+#+TITLE:  `(sprint-current-name)`
+#+AUTHOR: `user-full-name`
+#+EMAIL:  `user-mail-address`
+#+DATE:   `(sprint-date-range)`
+#+CATEGORY: sprint
+#+FILETAGS: :work:
+
+* Work Issues
+
+$0
+
+* Onboarding Work
+
+See [[file:Onboarding-Work.org][Onboard-Work]] for all details.
+
+* Distractions and Support
+
+Anything that doesn't fit the above goes here.
+
+* Meeting Notes                                                     :meeting:
+* Scrum Status                                                       :status:
+
+* Sprint Demonstration
+SCHEDULED: <`(sprint-date-from-start 12)`> DEADLINE: <`(sprint-date-from-start 13)`>
+
+* Sprint Retrospective
+SCHEDULED: <`(sprint-date-from-start 14)`>
+
+* Notes for Next Sprint
+
+** Support Section
+
+We should always allow the display of this file for a demonstration.
+
+#+BEGIN_SRC elisp :results silent
+  (use-package demo-it
+    :load-path "~/Other/demo-it"
+    :config
+    (demo-it-create :advanced-mode :single-window
+                    (demo-it-presentation (buffer-file-name) 3 :both "Sprint Demonstration")
+                    (osx-browse-url-forwork "https://...")
+                    (demo-it-load-fancy-file "~/work/wpc4/wpc/dashboards/wpc4/hypervisor.yml"
+                                             :line 116 133)
+                    (demo-it-presentation-return-noadvance)
+                    ;; ...
+    ))
+#+END_SRC
+
+Have fun and start the show: =demo-it-start= and hit ~F5~ (or the ~Num~ key on Keyboardio).
+
+#+DESCRIPTION: Notes taken during Sprint #`(sprint-number)`
+#+PROPERTY:    header-args: :results drawer :tangle no  :eval no-export :comments org
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil skip:nil author:nil email:nil creator:nil timestamp:nil ^:nil
+
+# Local Variables:
+# eval: (org-content 2)
+# End:

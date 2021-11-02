@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: usage
+# key: usage
+# --
+
+function usage {
+  print >&2 "Usage: \$0 ${1:[-s] [-d seplist] file ...}"
+  $0exit 1
+}

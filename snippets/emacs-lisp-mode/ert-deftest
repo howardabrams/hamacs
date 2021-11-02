@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ert-deftest
+# key: edt
+# --
+(ert-deftest $1-test ()
+  (should (= $0)))
