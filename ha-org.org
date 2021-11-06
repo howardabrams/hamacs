@@ -241,10 +241,24 @@ Of course, I need an 'undo' feature when the meeting is over...
 Whenever I edit Emacs Lisp blocks from my tangle-able configuration files, I get a lot of superfluous warnings. Let's turn them off.
 
 #+BEGIN_SRC emacs-lisp
-(defun disable-fylcheck-in-org-src-block ()
+(defun disable-flycheck-in-org-src-block ()
   (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 
-(add-hook 'org-src-mode-hook 'disable-fylcheck-in-org-src-block)
+(add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
+#+END_SRC
+And turn on ALL the languages:
+#+BEGIN_SRC emacs-lisp
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((shell      . t)
+                                 (js         . t)
+                                 (emacs-lisp . t)
+                                 (clojure    . t)
+                                 (python     . t)
+                                 (ruby       . t)
+                                 (dot        . t)
+                                 (css        . t)
+                                 (plantuml   . t)))
+
 #+END_SRC
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:

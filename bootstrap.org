@@ -57,6 +57,10 @@ The following packages come with Emacs, but seems like they still need loading:
 #+BEGIN_SRC emacs-lisp
 (require 'subr-x)
 #+END_SRC
+Ugh. Why am I getting this error?
+#+BEGIN_SRC emacs-lisp
+  (defun first (elt) (car elt))
+#+END_SRC
 While most libraries will take care of their dependencies, I want to install /my dependent libraries/. Especially, [[https://github.com/magnars/.emacs.d/][Magnar Sveen]]'s Clojure-inspired [[https://github.com/magnars/dash.el][dash.el]] project:
 #+BEGIN_SRC emacs-lisp
 (use-package dash)
@@ -78,31 +82,54 @@ Much of my more complicated code comes from my website essays and other projects
 #+END_SRC
 
 Hopefully, this will tie me over while I transition.
+** Emacs Server Control
+Sure the Emacs application will almost always have the =server-start= going, however, I need to control it just a bit (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
+
+#+BEGIN_SRC emacs-lisp
+(defun ha-emacs-for-work? ()
+  "Return non-nil when the Emacs application's location matches as one for work.
+Currently, this is the `emacs-plus' app that I have built with
+the native-comp model, but I reserve the right to change this."
+  (->> Info-default-directory-list
+    (first)
+    (s-split "/")
+    (--filter (s-starts-with? "emacs-plus" it))
+    (first)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(if (ha-emacs-for-work?)
+    (setq server-name "work")
+  (setq server-name "personal"))
+
+(server-start)
+#+END_SRC
 * Load the Rest
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
 #+BEGIN_SRC emacs-lisp
-(dolist (file '("ha-config.org"
-                "ha-display.org"
-                "ha-org.org"
-                "ha-org-word-processor.org"
-                ;; "org-clipboard.org"
-                ;; "org-journaling.org"
-                ;; "org-publishing.org"
-                ;; "org-sprint.org"
-                ;; "capturing-notes.org"
-                ;; "general-programming.org"
-                ;; "ha-agendas.org"
-                ;; "ha-email.org"
-                ;; "ha-irc.org"
-                ;; "ha-passwords.org"
-                ;; "ha-remoting.org"
-                ;; "my-feeds.org"
-                ))
-  (org-babel-load-file (f-join hamacs-source-dir file)))
+  (dolist (file `("ha-config.org"
+                  "ha-display.org"
+                  "ha-org.org"
+                  "ha-org-word-processor.org"
+                  "ha-org-clipboard.org"
+                  ;; "org-journaling.org"
+                  ;; "org-publishing.org"
+                  "ha-org-sprint.org"
+                  ;; "capturing-notes.org"
+                  ;; "general-programming.org"
+                  ;; "ha-agendas.org"
+                  ;; "ha-email.org"
+                  ;; "ha-irc.org"
+                  ;; "ha-passwords.org"
+                  ;; "ha-remoting.org"
+                  ;; "my-feeds.org"
+                  ,(when (ha-emacs-for-work?)
+                     "ha-work.org")))
+    (org-babel-load-file (f-join hamacs-source-dir file)))
 #+END_SRC
 We can test/debug any individual file, via:
-#+BEGIN_SRC emacs-lisp
-  (org-babel-load-file (f-join hamacs-source-dir "ha-config.org"))
+#+BEGIN_SRC emacs-lisp :tangle no
+  (org-babel-load-file (f-join hamacs-source-dir "ha-org-word-processor.org"))
 #+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
