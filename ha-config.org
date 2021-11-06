@@ -53,10 +53,27 @@ More settings:
       auto-save-default t)
 #+END_SRC
 
+And some Mac-specific settings:
+#+BEGIN_SRC emacs-lisp
+(when (equal system-type 'darwin)
+  (setq mac-option-modifier 'meta)
+  (setq mac-command-modifier 'super)
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)))
+#+END_SRC
+
 Finally, we need to make sure that the =/usr/local/bin= path is available to Emacs. Normally, we get this value from =PATH= environment variable, but I have one Emacs installation that refuses to, so... here we are.
 
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'exec-path "/usr/local/bin/")
+#+END_SRC
+** Customization Section
+
+While I would rather program my configurations, sometimes the Emacs menu system is “good enough”, but I want it in its own file:
+#+BEGIN_SRC emacs-lisp
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
 #+END_SRC
 * Support Packages
 ** Piper
@@ -155,7 +172,7 @@ My only issue with using Vertico with =find-file= is that I really like having t
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
                 ("RET" . vertico-directory-enter)
-                ("DEL" . vertico-directory-delete-word)
+                ; ("DEL" . vertico-directory-delete-word)
                 ("M-RET" . minibuffer-force-complete-and-exit)
                 ("M-TAB" . minibuffer-complete))
     ;; Tidy shadowed file names
@@ -286,28 +303,25 @@ The one thing that both Spacemacs and Doom taught me, is how much I like the /ke
 I'm not trying an experiment where specially-placed function keys on my fancy ergodox keyboard can kick these off using [[https://github.com/noctuid/general.el][General Leader]] project. Essentially, I want a set of leader keys for Evil's /normal state/ as well as a global leader in all modes.
 
 #+BEGIN_SRC emacs-lisp
-(use-package general
-  :config
-  (general-evil-setup t)
-  (general-create-definer ha-leader
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "<f13>")
-
-  (general-create-definer ha-local-leader
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC m"
-    :global-prefix "<f12>"))
+  (use-package general
+    :config
+    (general-evil-setup t)
+    (general-create-definer ha-leader
+      :keymaps 'normal
+      :prefix "SPC"
+      :non-normal-prefix "M-SPC"
+      :global-prefix "<f13>"))
 #+END_SRC
 *** Top-Level Operations
 Let's try this out with
 #+BEGIN_SRC emacs-lisp
   (ha-leader
     "SPC" '("M-x" . execute-extended-command)
-    "." '("repeat" . repeat)
-    "X" 'org-capture
-    "L" 'org-store-link
-    "RET" 'bookmark-jump)
+    "."   '("repeat" . repeat)
+    "X"   'org-capture
+    "L"   'org-store-link
+    "RET" 'bookmark-jump
+    "m"   '(:ignore t :which-key "mode"))
 #+END_SRC
 And ways to stop the system:
 #+BEGIN_SRC emacs-lisp
@@ -771,47 +785,53 @@ Granted, this list is essentially a list of projects that I'm currently developi
 Given a list of information about project-workspaces, can we just create them all?
 
 #+BEGIN_SRC emacs-lisp
-(defun ha-workspace-initialize (&optional projects)
-  "Precreate workspace projects from a PROJECTS list.
-Each entry in the list is a list containing:
-  - name (as a string)
-  - project root directory
-  - a optional list of files to display"
-  (interactive)
-  (unless projects
-    (setq projects ha-workspace-projects-personal))
+  (defun ha-persp-exists? (name)
+    "Return non-nill is a perspective of NAME has been created."
+    (seq-contains (hash-table-keys (perspectives-hash)) name))
 
-  (dolist (project projects)
-    (-let (((name root files) project))
-      (message "Creating workspace: %s (from %s)" name root)
-      (ha-project-persp root name files))))
+  (defun ha-workspace-initialize (&optional projects)
+    "Precreate workspace projects from a PROJECTS list.
+    Each entry in the list is a list containing:
+      - name (as a string)
+      - project root directory
+      - a optional list of files to display"
+    (interactive)
+    (unless projects
+      (setq projects ha-workspace-projects-personal))
+
+    (dolist (project projects)
+      (-let (((name root files) project))
+        (unless (ha-persp-exists? name)
+          (message "Creating workspace: %s (from %s)" name root)
+          (ha-project-persp root name files)))))
 #+END_SRC
 Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Projectile keeps state of a "project" based on the current file loaded, so we /combine/ the two projects by first choosing from a list of /known projects/ and then creating a perspective based on the name. To pin the perspective to a project, we just need to load a file from it, e.g. Like a README or something.
 
 #+BEGIN_SRC emacs-lisp
-(defun ha-project-persp (project &optional name files)
-  "Create a new perspective, and then switch to the PROJECT using projectile.
-If NAME is not given, then figure it out based on the name of the
-PROJECT. If FILES aren't specified, then see if there is a
-README. Otherwise, pull up a dired."
-  (interactive (list (projectile-completing-read "Project: " projectile-known-projects)))
-  (when (f-directory-p project)
-    (unless name
-      (setq name (f-filename project)))
-    (persp-switch name)
+  (defun ha-project-persp (project &optional name files)
+    "Create a new perspective, and then switch to the PROJECT using projectile.
+  If NAME is not given, then figure it out based on the name of the
+  PROJECT. If FILES aren't specified, then see if there is a
+  README. Otherwise, pull up a dired."
+    (interactive (list (projectile-completing-read "Project: " projectile-known-projects)))
+    (when (f-directory-p project)
+      (unless name
+        (setq name (f-filename project)))
+      (persp-switch name)
 
-    ;; Unclear if the following is actually necessary.
-    (ignore-errors
-      (projectile-add-known-project root)
-      (projectile-switch-project-by-name root))
+      ;; Unclear if the following is actually necessary.
+      (ignore-errors
+        (projectile-add-known-project root)
+        (let ((projectile-switch-project-action nil))
+          (projectile-switch-project-by-name root)))
 
-    ;; To pin a project in projectile to the perspective, we need to load a file
-    ;; from that project. The README will do, or at least, the dired of it.
-    (if files
-        (ha--project-show-files project files)
-      (if-let ((readme (f-join project "README*")))
-          (find-file readme t)
-        (dired project)))))
+      ;; To pin a project in projectile to the perspective, we need to load a file
+      ;; from that project. The README will do, or at least, the dired of it.
+      (if files
+          (ha--project-show-files project files)
+        (if-let ((readme (f-join project "README*")))
+            (find-file readme t)
+          (dired project)))))
 #+END_SRC
 Displaying a few files? Well, when /starting/ I am only showing one or two files (maybe three), so we will split the window horizontally for each file.
 
@@ -904,7 +924,7 @@ The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project 
   (ha-leader "g t" '("git timemachine" . git-timemachine)))
 #+END_SRC
 
-Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on either [[https://gist.github.com/][Github]]:
+Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
 #+BEGIN_SRC emacs-lisp
    (use-package gist
      :config
