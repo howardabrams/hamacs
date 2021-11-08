@@ -237,7 +237,7 @@ And it appears that my PM for this year, is a week number behind.
 each sprint is two weeks long, starting on Thursday."
   (interactive)
   (let ((num (sprint-week-num date)))
-    (if (oddp num)
+    (if (cl-oddp num)
         (- num 2)
       (- num 1))))
 #+END_SRC

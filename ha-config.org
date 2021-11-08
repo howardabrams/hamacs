@@ -856,6 +856,9 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
 #+BEGIN_SRC emacs-lisp
   (use-package magit
     :config
+    ;; The following code re-instates my General Leader key in Magit.
+    (general-unbind magit-mode-map "SPC")
+
     (ha-leader
       "g" '(:ignore t :which-key "git")
       "g /" '("Magit dispatch"             . magit-dispatch)

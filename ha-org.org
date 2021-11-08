@@ -291,7 +291,7 @@ To make the snippets more context aware, this predicate
 #+END_SRC
 ** Keybindings
 Ugh
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (ha-leader :keymaps 'org-mode-map
    "m l" 'org-insert-link)
 #+END_SRC
