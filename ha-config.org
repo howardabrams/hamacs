@@ -249,6 +249,21 @@ To begin my binding changes, let's turn on [[https://github.com/justbur/emacs-wh
   :init   (setq which-key-popup-type 'minibuffer)
   :config (which-key-mode))
 #+END_SRC
+*** Undo-Fu
+Configure the Evil session to use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]], as this project is now maintained.
+#+BEGIN_SRC emacs-lisp
+(use-package undo-fu
+  :config
+  (global-unset-key (kbd "s-z"))
+  (global-set-key (kbd "s-z")   'undo-fu-only-undo)
+  (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
+#+END_SRC
+*** Expand Region
+Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ repeatedly, having the selection grow by syntactical units.
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :bind ("C-=" . er/expand-region))
+#+END_SRC
 ** Evil-Specific Keybindings
 Can we change Evil at this point? Some tips:
  - [[https://github.com/noctuid/evil-guide]]
@@ -257,7 +272,8 @@ Can we change Evil at this point? Some tips:
 #+BEGIN_SRC emacs-lisp
 (use-package evil
   :init
-  (setq evil-disable-insert-state-bindings t
+  (setq evil-undo-system 'undo-fu
+        evil-disable-insert-state-bindings t
         evil-want-keybinding nil
         evil-want-integration t
         evil-escape-key-sequence "fd"
@@ -630,11 +646,19 @@ It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ 
 I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent:
 
 #+BEGIN_SRC emacs-lisp
-(dolist (state '(normal motion operator visual))
-  (evil-define-key state evil-surround-mode-map "z" 'evil-surround-edit)
-  (evil-define-key state evil-surround-mode-map "Z" 'evil-Surround-edit))
+  (use-package evil-surround
+    :config
+    (dolist (state '(normal motion operator visual))
+      (evil-define-key state evil-surround-mode-map "z" 'evil-surround-edit)
+      (evil-define-key state evil-surround-mode-map "Z" 'evil-Surround-edit))
+    (global-evil-surround-mode 1))
 #+END_SRC
-
+Notes:
+  - ~cz'"~ :: to convert surrounding single quote string to double quotes.
+  - ~dz"~ :: to delete the surrounding double quotes.
+  - ~yze"~ :: puts single quotes around the next word.
+  - ~yZ$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
+  - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
 ** Jump, Jump, Jump!
 
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use.
