@@ -20,5 +20,6 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-org-clipboard.org][ha-org-clipboard.org]] :: automatically converting HTML from a clipboard into Org-formatted content.
   - [[file:ha-org-sprint.org][ha-org-sprint.org]] :: functions for working with the my Org-focused sprint files.
   - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-capturing-notes.org][ha-capturing-notes.org]] :: my engineering notebook.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.

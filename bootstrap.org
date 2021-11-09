@@ -115,7 +115,7 @@ The following loads the rest of my org-mode literate files. I add them as they a
                   ;; "org-journaling.org"
                   ;; "org-publishing.org"
                   "ha-org-sprint.org"
-                  ;; "capturing-notes.org"
+                  "ha-capturing-notes.org"
                   "ha-programming.org"
                   ;; "ha-agendas.org"
                   ;; "ha-email.org"

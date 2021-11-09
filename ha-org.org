@@ -290,12 +290,18 @@ To make the snippets more context aware, this predicate
          (plist-get (cadr (org-element-at-point)) :language)))
 #+END_SRC
 ** Keybindings
-Keybindings specific to org files:
-#+BEGIN_SRC emacs-lisp :tangle no
+Bindings specific to org files:
+#+BEGIN_SRC emacs-lisp
   (general-evil-define-key 'normal org-mode-map
     :prefix "SPC m"
-      "e" 'org-export-dispatch
-      "y" 'org-insert-link)
+      "e" '("exports" . org-export-dispatch)
+      "y" '("insert link" . org-insert-link)
+
+      "n"  '(:ignore t :which-key "narrow")
+      "n s" '("subtree" . org-narrow-to-subtree)
+      "n b" '("block" . org-narrow-to-block)
+      "n e" '("element" . org-narrow-to-element)
+      "n w" '("widen" . widen))
 #+END_SRC
 * Supporting Packages
 At this point, we assume that the =use-package= for org is complete, so we can close it and allow other projects to be loaded:
@@ -304,11 +310,13 @@ At this point, we assume that the =use-package= for org is complete, so we can c
 #+END_SRC
 ** Exporters
 Need a few extra exporters:
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ox-md)
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-md
+    :straight nil)
 
-(use-package ox-confluence
-  :load-path "~/.doom.d/elisp")
+  (use-package ox-confluence
+    :straight nil
+    :load-path "~/.doom.d/elisp")
 #+END_SRC
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
