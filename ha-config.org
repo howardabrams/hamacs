@@ -80,12 +80,13 @@ While I would rather program my configurations, sometimes the Emacs menu system 
 
 Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabrams/emacs-piper][emacs-piper project]], and this code spills into my configuration code, so let's load it now:
 
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package piper
-  :load-path "~/other/emacs-piper/"
-  :commands shell-command-to-list    ; I use this function quite a bit
-  :bind (:map evil-normal-state-map
-         ("|" . piper-user-interface)))
+#+BEGIN_SRC emacs-lisp
+  (use-package piper
+    :straight nil
+    :load-path "~/other/emacs-piper/"
+    :commands shell-command-to-list    ; I use this function quite a bit
+    :bind (:map evil-normal-state-map
+           ("|" . piper-user-interface)))
 #+END_SRC
 ** Yet Another Snippet System (YASnippets)
 Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:

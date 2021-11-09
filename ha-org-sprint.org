@@ -185,7 +185,7 @@ Emacs have an internal rep of a time.
 (defun get-date-time (date)
   "Many functions can't deal with dates as string, so this will
 parse DATE if it is a string, or return the value given otherwise."
-  (if (stringp date)
+  (if (and data (stringp date))
       (->> date                 ; Shame that encode-time
            parse-time-string    ; can't take a string, as
            (-take 6)            ; this seems excessive...
