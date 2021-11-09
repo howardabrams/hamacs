@@ -33,27 +33,27 @@ Functions to help convert content from the operating system's clipboard into org
 Each operating system as a different way of working with the clipboard, so let's create an operating-system abstraction:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/get-clipboard ()
+(defun ha-get-clipboard ()
   "Returns a list where the first entry is the content type,
 either :html or :text, and the second is the clipboard contents."
   (if (eq system-type 'darwin)
-      (ha/get-mac-clipboard)
-    (ha/get-linux-clipboard)))
+      (ha-get-mac-clipboard)
+    (ha-get-linux-clipboard)))
 #+END_SRC
 
 Let's define the clipboard for a Mac. The challenge here is that we need to binary unpack the data from a call to Applescript.
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/get-mac-clipboard ()
+(defun ha-get-mac-clipboard ()
   "Returns a list where the first entry is the content type,
 either :html or :text, and the second is the clipboard contents."
   (destructuring-bind (exit-code contents)
       (shell-command-with-exit-code "osascript" "-e" "the clipboard as \"HTML\"")
     (if (= 0 exit-code)
-        (list :html (ha/convert-applescript-to-html contents))
+        (list :html (ha-convert-applescript-to-html contents))
       (list :text (shell-command-to-string "osascript -e 'the clipboard'")))))
 
-(defun ha/convert-applescript-to-html (packed-contents)
+(defun ha-convert-applescript-to-html (packed-contents)
   "Applescript's clipboard returns the contents in a packed array.
 Convert and return this encoding into a UTF-8 string."
   (cl-flet ((hex-pack-bytes (tuple) (string-to-number (apply 'string tuple) 16)))
@@ -70,8 +70,8 @@ Convert and return this encoding into a UTF-8 string."
 And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (that really should go into the piper project).
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/get-linux-clipboard ()
-  "Return the clipbaard for a Unix-based system. See `ha/get-clipboard'."
+(defun ha-get-linux-clipboard ()
+  "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."
   (destructuring-bind (exit-code contents)
       (shell-command-with-exit-code "xclip" "-o" "-t" "text/html")
     (if (= 0 exit-code)
@@ -90,7 +90,7 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
 We can assume that most non-HTML text could be Slack-like:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/slack-to-markdown-buffer ()
+(defun ha-slack-to-markdown-buffer ()
   "Odd function that converts Slack’s version of Markdown (where
 code is delimited with triple backticks) into a more formal
 four-space indent markdown style."
@@ -123,29 +123,29 @@ four-space indent markdown style."
 Let's work top-down at this point with the interactive function that inserts the clipboard into the current buffer:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/org-yank-clipboard ()
+(defun ha-org-yank-clipboard ()
   "Yanks (pastes) the contents of the Apple Mac clipboard in an
 org-mode-compatible format."
   (interactive)
-  (insert (ha/org-clipboard)))
+  (insert (ha-org-clipboard)))
 #+END_SRC
 
 The heavy lifting, however is done by this function. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/org-clipboard ()
+(defun ha-org-clipboard ()
   "Return the contents of the clipboard in org-mode format."
-  (seq-let (type contents) (ha/get-clipboard)
+  (seq-let (type contents) (ha-get-clipboard)
     (with-temp-buffer
       (insert contents)
       (if (eq :html type)
           (shell-command-on-region (point-min) (point-max) "pandoc -f html -t org" t t)
-        (ha/slack-to-markdown-buffer)
+        (ha-slack-to-markdown-buffer)
         (shell-command-on-region (point-min) (point-max) "pandoc -f markdown -t org" t t))
-      (ha/html-paste-touchup)
+      (ha-html-paste-touchup)
       (buffer-substring-no-properties (point-min) (point-max)))))
 
-(defun ha/html-paste-touchup ()
+(defun ha-html-paste-touchup ()
   "Attempts to fix the org produced by `pandoc'' that seems to plague us."
   (interactive)
   (dolist (combo '((" (edited) " " ")   ; Slack appends this phrase that is never needed
@@ -164,11 +164,11 @@ The heavy lifting, however is done by this function. Note that I will need anoth
 #+END_SRC
 
 * Keybinding to Paste into Org Files
-We
+We just need to bind it to the /local/ mode key sequence:
 #+BEGIN_SRC emacs-lisp
 (general-evil-define-key 'normal org-mode-map
   :prefix "SPC m"
-    "y" 'ha/org-yank-clipboard)
+    "y" 'ha-org-yank-clipboard)
 #+END_SRC
 
 * Technical Artifacts                                :noexport:

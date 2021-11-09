@@ -290,10 +290,12 @@ To make the snippets more context aware, this predicate
          (plist-get (cadr (org-element-at-point)) :language)))
 #+END_SRC
 ** Keybindings
-Ugh
+Keybindings specific to org files:
 #+BEGIN_SRC emacs-lisp :tangle no
-(ha-leader :keymaps 'org-mode-map
-   "m l" 'org-insert-link)
+  (general-evil-define-key 'normal org-mode-map
+    :prefix "SPC m"
+      "e" 'org-export-dispatch
+      "y" 'org-insert-link)
 #+END_SRC
 * Supporting Packages
 At this point, we assume that the =use-package= for org is complete, so we can close it and allow other projects to be loaded:

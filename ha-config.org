@@ -705,9 +705,10 @@ To do this, we need a way to generate a string of the perspectives in alphabetic
   number and NAMES is a list of strings."
     (when names
       (concat
-       (format "  %d: %s"      ; Shame that the following doesn't work:
+       (format "  %d: %s%s"    ; Shame that the following doesn't work:
                num             ; (propertize (number-to-string num) :foreground "#00a0")
-               (car names))    ; Nor does surrounding the number with underbars.
+               (car names)     ; Nor does surrounding the number with underbars.
+               (if (equal (car names) (projectile-project-name)) "*" ""))
        (ha--persp-label (1+ num) (cdr names)))))
 
   (defun ha-persp-labels ()
@@ -730,9 +731,9 @@ Build the hydra as well as configure the =perspective= project.
     Workspaces- %s(ha-persp-labels)
     _n_: new project  _r_: rename    _a_: add buffer     _l_: load worksp
     _]_: next worksp  _d_: delete    _b_: goto buffer    _s_: save worksp
-    _[_: previous     _W_: init all  _k_: remove buffer
-    "
+    _[_: previous     _W_: init all  _k_: remove buffer  _`_: to last worksp "
       ("TAB" persp-switch)
+      ("`" persp-switch-last)
       ("1" (persp-switch-by-number 1))
       ("2" (persp-switch-by-number 2))
       ("3" (persp-switch-by-number 3))
@@ -889,8 +890,8 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g o" '(:ignore t :which-key "open")
 
       "g c" '(:ignore t :which-key "create")
-      "g c r" '("Initialize repo"          . magit-init)
-      "g c R" '("Clone repo"               . magit-clone)
+      "g c R" '("Initialize repo"          . magit-init)
+      "g c C" '("Clone repo"               . magit-clone)
       "g c c" '("Commit"                   . magit-commit-create)
       "g c f" '("Fixup"                    . magit-commit-fixup)
       "g c b" '("Branch"                   . magit-branch-and-checkout)))
