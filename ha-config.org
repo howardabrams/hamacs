@@ -551,15 +551,42 @@ _l_: right  _v_: v-split  _o_: choose by number (also 0-9)
 (ha-leader "w" '("windows" . hydra-window-resize/body))
 #+END_SRC
 *** Search Operations
-Ways to search for information goes under the ~s~ key. This primarily depends on the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system.
-#+BEGIN_SRC emacs-lisp
-(use-package rg
-  :config
-  (ha-leader
-     "s"  '(:ignore t :which-key "search")
-     "s p" 'projectile-ripgrep))
-#+END_SRC
+Ways to search for information goes under the ~s~ key. This primarily depends on the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.
 
+#+BEGIN_SRC emacs-lisp
+  (use-package rg
+    :config
+    (ha-leader
+       "s"  '(:ignore t :which-key "search")
+       "s r" '("dwim" . rg-dwim)
+       "s s" '("search" . rg)
+       "s S" '("literal" . rg-literal)
+       "s p" '("project" . rg-project) ; or projectile-ripgrep
+       "s d" '("directory" . rg-dwim-project-dir)
+       "s f" '("file only" . rg-dwim-current-file)
+       "s j" '("next results" . ha-rg-go-next-results)
+       "s k" '("prev results" . ha-rg-go-previous-results)
+       "s b" '("results buffer" . ha-rg-go-results-buffer))
+
+    (defun ha-rg-go-results-buffer ()
+      "Pop to the `*rg*' buffer that `rg' creates."
+      (interactive)
+      (pop-to-buffer "*rg*")))
+
+    (defun ha-rg-go-next-results ()
+      "Bring the next file results into view."
+      (interactive)
+      (ha-rg-go-results-buffer)
+      (next-error-no-select)
+      (compile-goto-error))
+
+    (defun ha-rg-go-previous-results ()
+      "Bring the previous file results into view."
+      (interactive)
+      (ha-rg-go-results-buffer)
+      (previous-error-no-select)
+      (compile-goto-error)))
+#+END_SRC
 *** Text Operations
 Stealing much of this from Spacemacs.
 #+BEGIN_SRC emacs-lisp
@@ -572,10 +599,12 @@ While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
 #+BEGIN_SRC emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
+    "h e" '("errors" . view-echo-area-messages)
     "h f" '("function" . describe-function)
     "h v" '("variable" . describe-variable)
     "h k" '("key binding" . describe-key)
-    "h B" '("embark" . embark-bindings))
+    "h B" '("embark" . embark-bindings)
+    "h i" '("info" . Info))
 #+END_SRC
 
 *** Consult Enhancements
