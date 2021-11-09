@@ -39,9 +39,11 @@ Farm off commands into /virtual environments/:
 ** Function Call Notifications
 As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.
 
-#+BEGIN_SRC emacs-lisp
-(use-package beep
-  :straight nil)
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package alert)
+
+  (use-package beep
+    :straight nil)
 #+END_SRC
 While that code /advices/ the publishing and compile commands, I may want to add more.
 ** iEdit
