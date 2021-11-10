@@ -1019,14 +1019,13 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
     :config
     (define-key eww-mode-map (kbd "L") #'eww-list-bookmarks)
     (define-key eww-buffers-mode-map (kbd "q") #'eww-bookmark-kill)
-    (define-key eww-bookmark-mode-map (kbd "q") #'eww-bookmark-kill)
-
-    (use-package ace-link
-      :config
-      (ace-link-setup-default)))
+    (define-key eww-bookmark-mode-map (kbd "q") #'eww-bookmark-kill))
 #+END_SRC
+And let's get [[https://github.com/abo-abo/ace-link][ace-link]] to work with EWW and Info pages:
 #+BEGIN_SRC emacs-lisp
+  (use-package ace-link
     :config
+    (ace-link-setup-default))
 #+END_SRC
 ** VTerm
 

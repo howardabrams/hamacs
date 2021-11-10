@@ -285,13 +285,18 @@ Bindings specific to org files:
   (general-evil-define-key 'normal org-mode-map
     :prefix "SPC m"
       "e" '("exports" . org-export-dispatch)
-      "y" '("insert link" . org-insert-link)
+      "l" '("insert link" . org-insert-link)
+      "o" '("goto link" . ace-link-org)
 
       "n"  '(:ignore t :which-key "narrow")
       "n s" '("subtree" . org-narrow-to-subtree)
       "n b" '("block" . org-narrow-to-block)
       "n e" '("element" . org-narrow-to-element)
       "n w" '("widen" . widen))
+#+END_SRC
+Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly jumping:
+#+BEGIN_SRC emacs-lisp
+(define-key org-mode-map (kbd "M-o") 'ace-link-org)
 #+END_SRC
 * Supporting Packages
 At this point, we assume that the =use-package= for org is complete, so we can close it and allow other projects to be loaded:
