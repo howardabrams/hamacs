@@ -364,6 +364,12 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
     (after-save . executable-make-buffer-file-executable-if-script-p))
 #+END_SRC
 *Note:* we make the script /executable/ by default. See [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this essay]] for details, but it appears that the executable bit is only turned on if the script has a shebang at the top of the file.
+** Fish Shell
+#+BEGIN_SRC emacs-lisp
+(use-package fish-mode
+  :mode (rx ".fish" eol)
+  :hook (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
+#+END_SRC
 * Technical Artifacts                                :noexport:
 Provide a name in order to =require= this code.
 

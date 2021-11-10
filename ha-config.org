@@ -1083,12 +1083,6 @@ The advantage of running terminals in Emacs is the ability to copy text without 
 *Note:* To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
 
 Hrm. Seems that I might want a function to copy the output of the last command to a register, or even an org-capture...
-** Fish Shell
-#+BEGIN_SRC emacs-lisp
-(use-package fish-mode
-  :mode ("\\.fish" .  fish-mode)
-  :hook (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
-#+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
 
