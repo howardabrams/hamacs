@@ -18,8 +18,11 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-org.org][ha-org.org]] :: configures the basics for org-mode formatted files. Specific features, however, come from their own files, however.
   - [[file:ha-org-word-processor.org][ha-org-word-processor.org]] :: attempts to make Org files /visually/ look like what one might see in a word processor, including turning off the colors for headers, and instead increasing their size.
   - [[file:ha-org-clipboard.org][ha-org-clipboard.org]] :: automatically converting HTML from a clipboard into Org-formatted content.
+  - [[file:ha-org-journaling.org][ha-org-journaling.org]] :: for writing journal entries and tasks.
   - [[file:ha-org-sprint.org][ha-org-sprint.org]] :: functions for working with the my Org-focused sprint files.
-  - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-remoting.org][ha-remoting.org]] :: my interface to systems using SSH and Vterm.
+  - [[file:ha-feed-reader.org][ha-feed-reader.org]] :: configuration of elfeed as well as my RSS feeds.
   - [[file:ha-capturing-notes.org][ha-capturing-notes.org]] :: my engineering notebook.
+  - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.

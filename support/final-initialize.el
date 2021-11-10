@@ -61,15 +61,8 @@ non-tangled files."
     (make-directory hamacs-private-code-dir))
 
   (ha/install-code-from-essays)
-  (ha/install-code-from-hamacs)
+  ;; (ha/install-code-from-hamacs)
 
-  ;; Link some source-controlled directories into ~/.doom.d ...
-  ;; This used to be a longer list. ;-)
-  (dolist (something '("snippets"))
-    (let ((dir (f-join user-emacs-directory something))
-	  (src (f-join default-directory something)))
-	(unless (f-symlink? dir)
-          (f-symlink src dir)))))
 
 (ha/install-configuration)
 (provide 'final-initialize)

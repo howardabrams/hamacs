@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
+# ----------------------------------------------------------------------
+#  INITIALIZE the HAMACS SYSTEM
+# ----------------------------------------------------------------------
 
 HAMACS_DIR=$(cd "$(dirname "$0")"; pwd)
 HAMACS_DEST=$HOME/.emacs.hamacs    # A symlink to ~/.emacs.d
 
 mkdir -p $HAMACS_DEST
-mkdir -p $HAMACS_DEST/elisp
+
+for LINK in snippets templates elisp
+do
+    rm -rf $HAMACS_DEST/$LINK
+    ln -s --force $HAMACS_DIR/$LINK $HAMACS_DEST
+done
 
 cat > $HAMACS_DEST/init.el <<EOF
 ;;; init.el --- Hamacs Init -*- lexical-binding: t; -*-

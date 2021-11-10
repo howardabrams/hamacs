@@ -80,8 +80,43 @@ Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert template
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet
     :config
-    (add-to-list 'yas-snippet-dirs "~/.emacs.d/snippets")
+    (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
     (yas-global-mode +1))
+#+END_SRC
+** Auto Insert Templates
+The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but maybe simpler?
+#+BEGIN_SRC emacs-lisp
+(use-package autoinsert
+  :init
+  (setq auto-insert-directory (expand-file-name "templates" user-emacs-directory))
+  ;; Don't want to be prompted before insertion:
+  (setq auto-insert-query nil)
+
+  (add-hook 'find-file-hook 'auto-insert)
+  (auto-insert-mode t))
+#+END_SRC
+However, auto insertion requires entering data for particular fields, and for that Yasnippet is better, so in this case, we combine them:
+#+BEGIN_SRC emacs-lisp
+(defun ha-autoinsert-yas-expand()
+  "Replace text in yasnippet template."
+  (yas-expand-snippet (buffer-string) (point-min) (point-max)))
+#+END_SRC
+
+And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-auto-insert-file (filename-re snippet-name)
+    "Autofill file buffer matching FILENAME-RE regular expression.
+    The contents inserted from the YAS SNIPPET-NAME."
+    ;; The define-auto-insert takes a regular expression and an ACTION:
+    ;; ACTION may also be a vector containing several successive single
+    ;; actions as described above, e.g. ["header.insert" author-update].
+    (define-auto-insert filename-re
+      (vector snippet-name 'ha-autoinsert-yas-expand)))
+#+END_SRC
+
+As an example of its use, any Org files loaded in /this project/ should insert my config file:
+#+BEGIN_SRC emacs-lisp
+  (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
 #+END_SRC
 ** Request System
 The above code (and other stuff) needs the [[https://github.com/tkf/emacs-request][request]] package:

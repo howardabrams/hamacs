@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: journal
+# key: journal
+# --
+#+TITLE: Journal Entry- `(ha-journal-file-datestamp)`
+
+$0
