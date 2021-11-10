@@ -31,8 +31,9 @@ cat > $HAMACS_DEST/init.el <<EOF
 ;; condition where I need to set this so that Emacs can pull our my
 ;; compiled files.
 
-(add-to-list 'exec-path "/usr/local/bin/")
+(add-to-list 'exec-path "/usr/local/bin")
 
+(setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
 (defvar hamacs-source-dir "$HAMACS_DIR" "Where we be.")
 
 ;; Let's rock:

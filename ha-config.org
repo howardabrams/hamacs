@@ -571,7 +571,7 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
     (defun ha-rg-go-results-buffer ()
       "Pop to the `*rg*' buffer that `rg' creates."
       (interactive)
-      (pop-to-buffer "*rg*")))
+      (pop-to-buffer "*rg*"))
 
     (defun ha-rg-go-next-results ()
       "Bring the next file results into view."
@@ -604,7 +604,7 @@ While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
     "h v" '("variable" . describe-variable)
     "h k" '("key binding" . describe-key)
     "h B" '("embark" . embark-bindings)
-    "h i" '("info" . Info))
+    "h i" '("info" . info))
 #+END_SRC
 
 *** Consult Enhancements

@@ -107,29 +107,40 @@ the native-comp model, but I reserve the right to change this."
 * Load the Rest
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
 #+BEGIN_SRC emacs-lisp
-  (dolist (file `("ha-config.org"
-                  "ha-display.org"
-                  "ha-org.org"
-                  "ha-org-word-processor.org"
-                  "ha-org-clipboard.org"
-                  ;; "org-journaling.org"
-                  ;; "org-publishing.org"
-                  "ha-org-sprint.org"
-                  "ha-capturing-notes.org"
-                  "ha-programming.org"
-                  ;; "ha-agendas.org"
-                  ;; "ha-email.org"
-                  ;; "ha-irc.org"
-                  ;; "ha-passwords.org"
-                  ;; "ha-remoting.org"
-                  ;; "my-feeds.org"
-                  ,(when (ha-emacs-for-work?)
-                     "ha-work.org")))
+  (defvar ha-hamacs-files `("ha-config.org"
+                            "ha-display.org"
+                            "ha-org.org"
+                            "ha-org-word-processor.org"
+                            "ha-org-clipboard.org"
+                            ;; "org-journaling.org"
+                            ;; "org-publishing.org"
+                            "ha-org-sprint.org"
+                            "ha-capturing-notes.org"
+                            "ha-programming.org"
+                            ;; "ha-agendas.org"
+                            ;; "ha-email.org"
+                            ;; "ha-irc.org"
+                            ;; "ha-passwords.org"
+                            ;; "ha-remoting.org"
+                            "ha-feed-reader.org"
+
+                            ,(when (ha-emacs-for-work?)
+                               "ha-work.org"))
+    "List of org files that complete the hamacs project.")
+#+END_SRC
+
+We can test/debug/reload any individual file, via:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-hamacs-load (file)
+    "Load or reload an org-mode FILE containing literate Emacs configuration code."
+    (interactive (list (completing-read "Org file: " ha-hamacs-files)))
     (org-babel-load-file (f-join hamacs-source-dir file)))
 #+END_SRC
-We can test/debug any individual file, via:
-#+BEGIN_SRC emacs-lisp :tangle no
-  (org-babel-load-file (f-join hamacs-source-dir "ha-org-word-processor.org"))
+
+And we can now load everything:
+#+BEGIN_SRC emacs-lisp
+  (dolist (file ha-hamacs-files)
+    (ha-hamacs-load file))
 #+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:

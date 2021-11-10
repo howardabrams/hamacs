@@ -71,5 +71,6 @@ non-tangled files."
 	(unless (f-symlink? dir)
           (f-symlink src dir)))))
 
+(ha/install-configuration)
 (provide 'final-initialize)
 ;;; final-initialize.el ends here
