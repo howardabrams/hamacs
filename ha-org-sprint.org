@@ -282,10 +282,14 @@ So what that means, is given a particular date, I should expect to be able to fi
 Daily note-taking goes into my sprint file notes, so this interactive function makes an easy global short-cut key.
 
 #+BEGIN_SRC emacs-lisp
-(defun sprint-current-find-file (&optional date)
-  "Load the `org-mode' note associated with my current sprint."
-  (interactive)
-  (find-file (sprint-current-file date)))
+  (defun sprint-current-find-file (&optional date)
+    "Load the `org-mode' note associated with my current sprint."
+    (interactive)
+    (let ((filename (sprint-current-file date)))
+       (setq org-main-file filename
+             org-annotate-file-storage-file filename)
+       (add-to-list 'org-agenda-files filename)
+       (find-file filename)))
 #+END_SRC
 
 The /name/ and /nickname/ of the sprint will be used in the =#+TITLE= section, and it looks something like: =Sprint 2019-07 (darling-dadu)=

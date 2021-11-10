@@ -280,6 +280,13 @@ To make the snippets more context aware, this predicate
          (plist-get (cadr (org-element-at-point)) :language)))
 #+END_SRC
 ** Keybindings
+Keybindings available to all file buffers:
+#+BEGIN_SRC emacs-lisp
+(ha-leader
+  "o l" '("store link" . org-store-link)
+  "o x" '("org capture" . org-capture)
+  "o c" '("clock out" . org-clock-out))
+#+END_SRC
 Bindings specific to org files:
 #+BEGIN_SRC emacs-lisp
   (general-evil-define-key 'normal org-mode-map

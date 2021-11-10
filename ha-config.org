@@ -325,6 +325,8 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "X"   'org-capture
     "L"   'org-store-link
     "RET" 'bookmark-jump
+    "a"  '(:ignore t :which-key "apps")
+    "o"  '(:ignore t :which-key "org/open")
     "m"   '(:ignore t :which-key "mode"))
 #+END_SRC
 And ways to stop the system:
