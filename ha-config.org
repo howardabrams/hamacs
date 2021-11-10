@@ -310,13 +310,13 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
     :config
     (general-evil-setup t)
     (general-create-definer ha-leader
-      :keymaps 'normal
+      :keymaps '(normal visual)
       :prefix "SPC"
       :non-normal-prefix "M-SPC"
       :global-prefix "<f13>"))
 #+END_SRC
 *** Top-Level Operations
-Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice brings up the =M-x= collection of functions:
+Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
 #+BEGIN_SRC emacs-lisp
   (ha-leader
     "SPC" '("M-x" . execute-extended-command)
@@ -1013,55 +1013,16 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
       :config
       (ace-link-setup-default)))
 #+END_SRC
-** Feed Reader
-
-Let's get our feeds from a collection of org mode files. By default, Doom configures =rmh-elfeed-org-files= to [[file:~/Dropbox/org/elfeed.org][elfeed.org]] in =org-directory=, so that will be fine.
-
-By setting this variable, we configure elfeed to use elfeed:
-
 #+BEGIN_SRC emacs-lisp
-(setq rmh-elfeed-org-files (list (f-join hamacs-source-dir "my-feeds.org")))
-#+END_SRC
-
-While I would like to share the /status/ of my reads, so ...
-
-#+BEGIN_SRC emacs-lisp
-(use-package elfeed
-  :config
-  (setq elfeed-db-directory "~/dropbox/.elfeed/")
-  (evil-define-key 'normal elfeed-show-mode-map (kbd "q") 'delete-window)
-  (evil-define-key 'normal elfeed-search-mode-map (kbd "r") 'ha/elfeed-tag-unread)
-  (evil-define-key 'normal elfeed-search-mode-map (kbd "R") 'elfeed-search-update--force)
-
-  (use-package elfeed-org
     :config
-    (elfeed-org)))
-
-(defun ha/elfeed-tag-unread ()
-  (interactive)
-  (elfeed-search-untag-all 'unread)
-  (elfeed-search-update))
 #+END_SRC
-
-According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-eww/][this Pragmatic Emacs essay]], we could easily browse an article in the GUI browser instead of EWW with capital B:
-
-#+BEGIN_SRC emacs-lisp
-(defun bjm/elfeed-show-visit-gui ()
-  "Wrapper for elfeed-show-visit to use gui browser instead of eww"
-  (interactive)
-  (let ((browse-url-generic-program "/usr/bin/open"))
-    (elfeed-show-visit t)))
-
-(define-key elfeed-show-mode-map (kbd "B") 'bjm/elfeed-show-visit-gui)
-#+END_SRC
-
 ** VTerm
 
 I'm not giving up on Eshell, but I am playing around with [[https://github.com/akermu/emacs-libvterm][vterm]], and it is pretty good, but I use it primarily as a more reliable approach to [[file:ha-remoting.org][a remote shell]].
 
-VTerm has an issue (at least for me) with M-Backspace not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
+VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package vterm
   :init
   (setq vterm-shell "/usr/local/bin/fish")
