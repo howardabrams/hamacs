@@ -647,14 +647,15 @@ Consult users will also want the embark-consult package.
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line:
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil-snipe
-  :init
-  (setq evil-snipe-scope 'visible)
-  :config
-  (evil-define-key '(normal motion operator visual)
-      "s" #'evil-snipe-s
-      "S" #'evil-snipe-S)
-  (evil-snipe-mode +1))
+  (use-package evil-snipe
+    :after evil
+    :init
+    (setq evil-snipe-scope 'visible)
+    :config
+    (evil-define-key '(normal motion operator visual)
+	"s" #'evil-snipe-s
+	"S" #'evil-snipe-S)
+    (evil-snipe-mode +1))
 #+END_SRC
 
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
@@ -663,6 +664,7 @@ I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and H
 
 #+BEGIN_SRC emacs-lisp
   (use-package evil-surround
+    :after evil-snipe
     :config
     (dolist (state '(normal motion operator visual))
       (evil-define-key state evil-surround-mode-map "z" 'evil-surround-edit)
