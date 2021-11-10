@@ -592,7 +592,17 @@ Stealing much of this from Spacemacs.
 #+BEGIN_SRC emacs-lisp
 (ha-leader
    "x"  '(:ignore t :which-key "text")
-   "x q" '("fill paragraph" . fill-paragraph))
+   "x q" '("fill paragraph" . fill-paragraph)
+   "x p" '("unfill paragraph" . unfill-paragraph))
+#+END_SRC
+Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] ... I use this all the time:
+
+#+BEGIN_SRC emacs-lisp
+(defun unfill-paragraph ()
+  "Convert a multi-line paragraph into a single line of text."
+  (interactive)
+  (let ((fill-column (point-max)))
+    (fill-paragraph nil)))
 #+END_SRC
 *** Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.

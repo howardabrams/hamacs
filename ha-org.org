@@ -169,16 +169,6 @@ The org API allows getting the context associated with /current element/. Howeve
       (setq context (org-element-property :parent context)))
     context))
 #+END_SRC
-** Unfill Paragraph
-Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] ... I use this all the time:
-
-#+BEGIN_SRC emacs-lisp
-(defun unfill-paragraph ()
-  "Convert a multi-line paragraph into a single line of text."
-  (interactive)
-  (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
-#+END_SRC
 ** Tasks
 I need to add a /blocked/ state:
 
@@ -310,7 +300,7 @@ At this point, we assume that the =use-package= for org is complete, so we can c
 #+END_SRC
 ** Exporters
 Need a few extra exporters:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package ox-md
     :straight nil)
 
