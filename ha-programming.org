@@ -163,7 +163,10 @@ And some special keybindings to encrypt/decrypt files:
 ** Emacs Lisp
 
 Why yes, I do find I code a lot in Emacs...
-
+#+BEGIN_SRC emacs-lisp
+  (ha-auto-insert-file (rx ".el" eol) "emacs-lisp-mode.el")
+#+END_SRC
+However, most of my Emacs Lisp code is in literate org files.
 
 *** Clever Parenthesis
 
@@ -360,15 +363,21 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
     :straight nil
     :mode (rx (or (seq ".sh" eol)
                   "/bin/"))
+    :config
+    (ha-auto-insert-file (rx (or (seq ".sh" eol)
+                  "/bin/")) "sh-mode.sh")
     :hook
     (after-save . executable-make-buffer-file-executable-if-script-p))
 #+END_SRC
 *Note:* we make the script /executable/ by default. See [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this essay]] for details, but it appears that the executable bit is only turned on if the script has a shebang at the top of the file.
 ** Fish Shell
 #+BEGIN_SRC emacs-lisp
-(use-package fish-mode
-  :mode (rx ".fish" eol)
-  :hook (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
+  (use-package fish-mode
+    :mode (rx ".fish" eol)
+    :config
+    (ha-auto-insert-file (rx ".fish")) "fish-mode.sh")
+    :hook
+    (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Provide a name in order to =require= this code.
