@@ -49,7 +49,8 @@ Let's get the Straight project working with =use-package=:
 While that enables the =:straight t= extension to =use-package=, let's just have that be the default:
 #+BEGIN_SRC emacs-lisp
 (use-package straight
-  :custom (straight-use-package-by-default t))
+  :custom (straight-use-package-by-default t
+           straight-default-vc 'git))
 #+END_SRC
 See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
 ** Basic Libraries
@@ -113,7 +114,7 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-org-word-processor.org"
                             "ha-org-clipboard.org"
                             "ha-org-journaling.org"
-                            ;; "org-publishing.org"
+                            "ha-org-publishing.org"
                             "ha-org-sprint.org"
                             "ha-capturing-notes.org"
                             "ha-programming.org"
