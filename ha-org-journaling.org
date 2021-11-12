@@ -111,6 +111,7 @@ Capturing a task (that when uncompleted, would then spillover to following days)
   (org-narrow-to-subtree)
   (goto-char (point-max)))
 
+(defvar org-capture-templates (list))
 (add-to-list 'org-capture-templates
              '("j" "Journal Task/Entry" plain
                (function org-journal-find-location)

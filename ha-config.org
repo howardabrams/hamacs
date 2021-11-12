@@ -68,8 +68,7 @@ Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabra
 
 #+BEGIN_SRC emacs-lisp
   (use-package piper
-    :straight nil
-    :load-path "~/other/emacs-piper/"
+    :straight (:type git :protocol ssh :host gitlab :repo "howardabrams/emacs-piper")
     :commands shell-command-to-list    ; I use this function quite a bit
     :bind (:map evil-normal-state-map
            ("|" . piper-user-interface)))
@@ -467,10 +466,17 @@ And the collection of useful operations:
 The goal here is toggle switches and other miscellaneous settings.
 #+BEGIN_SRC emacs-lisp
   (ha-leader
-     "t"  '(:ignore t :which-key "toggles")
-     "t l" '("line numbers" . display-line-numbers-mode)
-     "t r" '("relative lines" . ha-toggle-relative-line-numbers))
+     "t"   '(:ignore t :which-key "toggles")
+     "t a" '("abbrev"         . abbrev-mode)
+     "t d" '("debug"          . toggle-debug-on-error)
+     "t f" '("auto-fill"      . auto-fill-mode)
+     "t l" '("line numbers"   . display-line-numbers-mode)
+     "t r" '("relative lines" . ha-toggle-relative-line-numbers)
+     "t t" '("truncate"       . toggle-truncate-lines)
+     "t v" '("visual"         . visual-line-mode)
+     "t w" '("whitespace"     . whitespace-mode))
 #+END_SRC
+
 Really? We can't automatically toggle between relative and absolute line numbers?
 #+BEGIN_SRC emacs-lisp
   (defun ha-toggle-relative-line-numbers ()
@@ -627,10 +633,11 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
 *** Text Operations
 Stealing much of this from Spacemacs.
 #+BEGIN_SRC emacs-lisp
-(ha-leader
-   "x"  '(:ignore t :which-key "text")
-   "x q" '("fill paragraph" . fill-paragraph)
-   "x p" '("unfill paragraph" . unfill-paragraph))
+  (ha-leader
+     "x"  '(:ignore t :which-key "text")
+     "x a" '("align"            . align-regexp)
+     "x q" '("fill paragraph"   . fill-paragraph)
+     "x p" '("unfill paragraph" . unfill-paragraph))
 #+END_SRC
 Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] ... I use this all the time:
 
@@ -992,7 +999,7 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
       :after magit
       :config
       (ha-leader
-        "g '" '("Forge dispatch"             . forge-dispatch)
+        "g '"   '("Forge dispatch"           . forge-dispatch)
         "g f i" '("Find issue"               . forge-visit-issue)
         "g f p" '("Find pull request"        . forge-visit-pullreq)
 
