@@ -46,7 +46,7 @@ First step is to make all Org header levels to use the variable font, and be the
   (let ((default-color (face-attribute 'default :foreground)))
     (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
       (set-face-attribute face nil
-                          :foreground default-color :weight 'bold :font ha/variable-font))))
+                          :foreground default-color :weight 'bold :font ha-variable-font))))
 #+END_SRC
 
 Next, we just need to change the header sizes:
@@ -101,7 +101,7 @@ I add a hook to standard Org, and since this is a Lisp-2, I can get away with:
 According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to-display-org-mode-checkboxes/][Huy Trần]], we can prettify the list checkboxes as well:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/org-prettify-checkboxes ()
+(defun ha-org-prettify-checkboxes ()
   "Beautify Org Checkbox Symbol"
   (push '("[ ]" . "☐") prettify-symbols-alist)
   (push '("[X]" . "☒") prettify-symbols-alist)
@@ -112,7 +112,7 @@ According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to
 And now we can attach it to a newly loaded org files:
 
 #+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook 'ha/org-prettify-checkboxes)
+(add-hook 'org-mode-hook 'ha-org-prettify-checkboxes)
 #+END_SRC
 
 To make it more distinguishable, he also changed the colors:
@@ -144,21 +144,21 @@ The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks pla
 #+END_SRC
 However, I'm just going to have to write a function to clean this.
 #+BEGIN_SRC emacs-lisp
-(defun ha/remove-superfluous-org-padding ()
+(defun ha-remove-superfluous-org-padding ()
   (interactive)
   (goto-char (point-min))
-  (ha/remove-org-header-padding)
+  (ha-remove-org-header-padding)
   (goto-char (point-min))
-  (ha/remove-org-block-padding))
+  (ha-remove-org-block-padding))
 
-(defun ha/remove-org-header-padding ()
+(defun ha-remove-org-header-padding ()
   ;; (goto-char (point-min))
   (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
                                 (group bol (one-or-more "*") (one-or-more space) (one-or-more any) "\n")
                                 (optional bol (zero-or-more space) eol "\n")) nil t)
     (replace-match (match-string 1) nil :no-error)))
 
-(defun ha/remove-org-block-padding ()
+(defun ha-remove-org-block-padding ()
   ;; (goto-char (point-min))
   (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
                                 (group bol (zero-or-more space) "#+BEGIN" (one-or-more any) eol "\n"
@@ -171,7 +171,7 @@ Now that is some complicated regular expressions.
 * Pasting
 I like the idea that I will paste HTML text from the clipboard and have it converted to org-formatted text:
 #+BEGIN_SRC emacs-lisp :results silent
-(defun ha/org-paste ()
+(defun ha-org-paste ()
   (interactive)
   (if (eq system-type 'gnu/linux)
       (shell-command "xclip -t text/html -o | pandoc -r html -w org" t)))

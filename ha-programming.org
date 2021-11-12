@@ -324,7 +324,7 @@ Sacha had an [[https://sachachua.com/blog/2021/04/emacs-making-a-hydra-cheatshee
 #+BEGIN_SRC emacs-lisp :var bindings=bindings :colnames yes :tangle no
 (defvar my-lispy-bindings bindings)
 
-(defvar ha/hydra-lispy-bindings
+(defvar ha-hydra-lispy-bindings
   (cl-loop for x in my-lispy-bindings
            unless (string= "" (elt x 2))
            collect
@@ -339,7 +339,7 @@ Sacha had an [[https://sachachua.com/blog/2021/04/emacs-making-a-hydra-cheatshee
 
 (eval
  `(defhydra
-    ,(append '(("<f14>" nil :exit t)) ha/hydra-lispy-bindings )
+    ,(append '(("<f14>" nil :exit t)) ha-hydra-lispy-bindings )
 
    ))
 (funcall defhydra

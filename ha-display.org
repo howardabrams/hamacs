@@ -150,7 +150,7 @@ brew install --cask font-hack-nerd-font
 ** Specifying a Font
 My /current/ favorite font is actually the top list of fonts that may be installed on my system (they usually are):
 #+BEGIN_SRC emacs-lisp
-  (defvar ha/fixed-font
+  (defvar ha-fixed-font
     (when window-system
       (cond ((x-list-fonts "Hack Nerd Font") "Hack Nerd Font")
 	    ((x-list-fonts "Cousine Nerd Font") "Cousine Nerd Font")
@@ -168,12 +168,12 @@ My /current/ favorite font is actually the top list of fonts that may be install
 
 Force something as well:
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq ha/fixed-font "Hack Nerd Font")
+(setq ha-fixed-font "Hack Nerd Font")
 #+END_SRC
 
 I probably don't need to have such a ranking system, as chances are really good that I'll have all of them installed. Still.
 #+BEGIN_SRC emacs-lisp
-(defvar ha/variable-font
+(defvar ha-variable-font
   (when window-system
     (cond ((x-list-fonts "Overpass")        "Overpass")
           ((x-list-fonts "Source Sans Pro") "Source Sans Pro")
@@ -184,52 +184,99 @@ I probably don't need to have such a ranking system, as chances are really good 
   "My variable width font available to org-mode files and whatnot.")
 #+END_SRC
 
-Simple function that gives me the font information based on the size I need.
-This calls =set-frame-font=, but also sets the monospaced font for org code blocks.
-
-#+BEGIN_SRC emacs-lisp :results none
-(defun ha/set-favorite-font-size (size)
-  (let ((fav-font (format "%s-%d" ha/fixed-font size)))
-    (set-frame-font fav-font nil t)
-
-    ;; When using variable-pitch in org, we need to specifically set the
-    ;; fixed-pitch as my default fixed-pitched font.
-    (custom-theme-set-faces
-     'user
-     `(variable-pitch ((t (:family ,ha/variable-font :slant normal :weight normal :height 1.1 :width normal))))
-     `(fixed-pitch ((t (:family ,ha/fixed-font :slant normal :weight normal :height 1.0 :width normal)))))))
-#+END_SRC
-
-  Define a few /interactive/ functions to quickly adjusting the font size based on my computing scenario:
+Simple function that gives me the font information based on the size I
+need.  This calls =set-frame-font=, but also sets the monospaced font
+for org code blocks.
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/mac-monitor-fontsize ()
+  (defun ha-set-favorite-font-size (size)
+    (let ((fav-font (format "%s-%d" ha-fixed-font size)))
+      (set-frame-font fav-font nil t)
+
+      ;; When using variable-pitch in org, we need to specifically set the
+      ;; fixed-pitch as my default fixed-pitched font.
+      (custom-theme-set-faces
+       'user
+       `(variable-pitch ((t (:family ,ha-variable-font :slant normal :weight normal :height 1.1 :width normal))))
+       `(fixed-pitch ((t (:family ,ha-fixed-font :slant normal :weight normal :height 1.0 :width normal)))))))
+#+END_SRC
+
+  Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
+
+#+BEGIN_SRC emacs-lisp
+(defun ha-mac-monitor-fontsize ()
   "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
   (interactive)
-  (ha/set-favorite-font-size 13))
+  (ha-set-favorite-font-size 13))
 
-(defun ha/linux-monitor-fontsize ()
+(defun ha-linux-monitor-fontsize ()
   "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
   (interactive)
-  (ha/set-favorite-font-size 12))
+  (ha-set-favorite-font-size 12))
 
-(defun ha/mac-laptop-fontsize ()
+(defun ha-mac-laptop-fontsize ()
   "Quickly set reset my font size when I disconnect my laptop to a monitor from a Mac."
   (interactive)
-  (ha/set-favorite-font-size 32))
+  (ha-set-favorite-font-size 32))
 
-(defun ha/linux-laptop-fontsize ()
+(defun ha-linux-laptop-fontsize ()
   "Quickly set reset my font size when I disconnect my laptop to a monitor from Linux."
   (interactive)
-  (ha/set-favorite-font-size 14))
+  (ha-set-favorite-font-size 14))
 #+END_SRC
 
 Which font to choose?
 
 #+BEGIN_SRC emacs-lisp
-(if (eq system-type 'gnu/linux)
-    (ha/linux-laptop-fontsize)
-  (ha/mac-monitor-fontsize))
+  (defun font-monitor-size-default ()
+    "Set the default size according to my preference."
+    (interactive)
+    (if (eq system-type 'gnu/linux)
+        (ha-linux-monitor-fontsize)
+      (ha-mac-monitor-fontsize)))
+
+  (defun font-laptop-size-default ()
+    "Set the default size according to my preference."
+    (interactive)
+    (if (eq system-type 'gnu/linux)
+        (ha-linux-laptop-fontsize)
+      (ha-mac-laptop-fontsize)))
+
+  (font-monitor-size-default)
+#+END_SRC
+** Zooming or Increasing Font Size
+Do we want to increase the size of font in a single window (using =text-scale-increase=), or globally (using my new =font-size-increase=)?
+
+Increase or decrease the set size of the face:
+#+BEGIN_SRC emacs-lisp
+  (defun font-size-adjust (delta)
+    "Adjust the current frame's font size.
+  DELTA would be something like 1 or -1."
+    (interactive "nFont size difference: ")
+    (when (null delta) (setq delta 1))
+
+    (let* ((font-family (face-attribute 'default :font))
+           (font-size   (font-get font-family :size))
+           (new-size    (+ delta font-size)))
+      (ha-set-favorite-font-size new-size)))
+
+  (defun font-size-increase ()
+     "Increase the `default' font size of all frames."
+     (interactive)
+     (font-size-adjust 1))
+
+  (defun font-size-decrease ()
+     "Decrease the `default' font size of all frames."
+     (interactive)
+     (font-size-adjust -1))
+#+END_SRC
+And some keybindings to call them:
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "s-+") 'font-size-increase)
+  (global-set-key (kbd "s-=") 'font-size-increase)
+  (global-set-key (kbd "s--") 'font-size-decrease)
+  (global-set-key (kbd "s-0") 'font-size-monitor-default)
+  (global-set-key (kbd "s-9") 'font-size-laptop-default)
 #+END_SRC
 * Ligatures
 

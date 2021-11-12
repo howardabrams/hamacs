@@ -79,19 +79,19 @@ Hitting the ~Return~ key in an org file should format the following line based o
 We begin with the interactive function that calls our code only if we are at the end of the line.
 
 #+BEGIN_SRC emacs-lisp
-  (defun ha/org-return ()
+  (defun ha-org-return ()
     "If at the end of a line, do something special based on the
-   information about the line by calling `ha/org-special-return',
+   information about the line by calling `ha-org-special-return',
    otherwise, just call `org-return' as usual."
     (interactive)
     (if (eolp)
-        (ha/org-special-return)
+        (ha-org-special-return)
       (org-return)))
 #+END_SRC
 
 And bind it to the Return key:
 #+BEGIN_SRC emacs-lisp
-(define-key org-mode-map (kbd "RET")  #'ha/org-return)
+(define-key org-mode-map (kbd "RET")  #'ha-org-return)
 #+END_SRC
 
 What should we do if we are at the end of a line?
@@ -104,7 +104,7 @@ What should we do if we are at the end of a line?
 I really should break this function into smaller bits ...
 
 #+BEGIN_SRC emacs-lisp
-  (defun ha/org-special-return (&optional ignore)
+  (defun ha-org-special-return (&optional ignore)
     "Add new list item, heading or table row with RET.
   A double return on an empty element deletes it.
   Use a prefix arg to get regular RET."
@@ -256,7 +256,7 @@ And turn on ALL the languages:
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/org-next-image-number (&optional prefix)
+(defun ha-org-next-image-number (&optional prefix)
   (when (null prefix)
     (if (null (buffer-file-name))
         (setq prefix "cool-image")
@@ -274,7 +274,7 @@ When I create images or other artifacts that I consider /part/ of the org docume
 To make the snippets more context aware, this predicate
 
 #+BEGIN_SRC emacs-lisp
-(defun ha/org-nested-in-plantuml-block ()
+(defun ha-org-nested-in-plantuml-block ()
   "Predicate is true if point is inside a Plantuml Source code block in org-mode."
   (equal "plantuml"
          (plist-get (cadr (org-element-at-point)) :language)))
