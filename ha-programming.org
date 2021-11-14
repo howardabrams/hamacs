@@ -360,7 +360,7 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
 
 #+BEGIN_SRC emacs-lisp
   (use-package sh-mode
-    :straight nil
+    :straight (:type built-in)
     :mode (rx (or (seq ".sh" eol)
                   "/bin/"))
     :config

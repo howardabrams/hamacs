@@ -22,7 +22,11 @@ A literate programming file for configuring org-mode and those files.
 ;;       And tangle the file to recreate this one.
 ;;
 ;;; Code:
+
 (use-package org
+  :straight (:type built-in)  ; Problems with the 9.4.4 version
+  ;; :straight (:type git :protocol ssh :repo
+  ;; 		   "git://git.sv.gnu.org/emacs/org-mode.git")
   :mode ("\\.org" . org-mode) ; Addresses an odd warning
   :init
 #+END_SRC
@@ -31,7 +35,13 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
 
 #+BEGIN_SRC emacs-lisp
   (setq org-return-follows-link t
-        org-startup-indented t
+        org-adapt-indentation nil   ; Don't physically change files
+        org-startup-indented t      ; Visually show paragraphs indented
+        org-list-indent-offset 2
+        org-edit-src-content-indentation 2 ; Doom Emacs sets this to 0,
+                                           ; but uses a trick to make it
+                                           ; appear indented.
+
         ;; Speed Commands: If point is at the beginning of a headline or code
         ;; block in org-mode, single keys do fun things. See
         ;; org-speed-command-help for details (or hit the ? key at a headline).
@@ -309,12 +319,14 @@ At this point, we assume that the =use-package= for org is complete, so we can c
 ** Exporters
 Need a few extra exporters:
 #+BEGIN_SRC emacs-lisp :tangle no
-  (use-package ox-md
-    :straight nil)
+(use-package ox-md
+  :after org
+  :straight nil)
 
-  (use-package ox-confluence
-    :straight nil
-    :load-path "~/.doom.d/elisp")
+(use-package ox-confluence
+  :after org
+  :straight nil
+  :load-path "~/.doom.d/elisp")
 #+END_SRC
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
