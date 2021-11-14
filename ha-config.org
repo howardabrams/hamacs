@@ -546,8 +546,8 @@ _w_: select _n_: new      _^_: taller (t)  _z_: Swap  _+_: text larger
 _c_: cycle  _d_: delete   _V_: shorter (T) _u_: undo  _-_: text smaller
 _j_: go up  _=_: balance  _>_: wider       _U_: undo+ _F_: font larger
 _k_: down   _m_: maximize _<_: narrower    _r_: redo  _f_: font smaller
-_h_: left   _s_: h-split  _e_: balanced    _R_: redo+
-_l_: right  _v_: v-split  _o_: choose by number (also 0-9)
+_h_: left   _s_: h-split  _e_: balanced    _R_: redo+ _0_: toggle neotree
+_l_: right  _v_: v-split  _o_: choose by number (also 1-9)
 "
     ("w" ace-window)
     ("c" other-window)
@@ -586,7 +586,6 @@ _l_: right  _v_: v-split  _o_: choose by number (also 0-9)
     ("e" balance-windows)
 
     ("o" winum-select-window-by-number)
-    ("0" winum-select-window-0-or-10)
     ("1" winum-select-window-1)
     ("2" winum-select-window-2)
     ("3" winum-select-window-3)
@@ -596,6 +595,7 @@ _l_: right  _v_: v-split  _o_: choose by number (also 0-9)
     ("7" winum-select-window-7)
     ("8" winum-select-window-8)
     ("9" winum-select-window-9)
+    ("0" neotree-toggle)
 
     ;; Extra bindings:
     ("t" evil-window-increase-height :color pink)
@@ -1112,6 +1112,17 @@ The advantage of running terminals in Emacs is the ability to copy text without 
 *Note:* To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
 
 Hrm. Seems that I might want a function to copy the output of the last command to a register, or even an org-capture...
+** Neotree
+I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
+#+BEGIN_SRC emacs-lisp
+(use-package neotree
+  :config
+    (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
+    (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
+    (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
+    (evil-define-key 'normal neotree-mode-map (kbd "g") 'neotree-refresh)
+    (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
+#+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
 

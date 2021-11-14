@@ -375,7 +375,7 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
   (use-package fish-mode
     :mode (rx ".fish" eol)
     :config
-    (ha-auto-insert-file (rx ".fish")) "fish-mode.sh")
+    (ha-auto-insert-file (rx ".fish") "fish-mode.sh")
     :hook
     (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
 #+END_SRC

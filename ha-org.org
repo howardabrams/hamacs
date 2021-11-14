@@ -52,10 +52,6 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
         org-src-fontify-natively t
         org-src-tab-acts-natively t)
 #+END_SRC
-Overcoming a bug:
-#+BEGIN_SRC emacs-lisp
-(defun org-clocking-buffer (&rest ignored))
-#+END_SRC
 * Configuration Section
 The following sections assume that org has been loaded, as this begin the configuration section:
 #+BEGIN_SRC emacs-lisp

@@ -278,6 +278,13 @@ And some keybindings to call them:
   (global-set-key (kbd "s-0") 'font-size-monitor-default)
   (global-set-key (kbd "s-9") 'font-size-laptop-default)
 #+END_SRC
+
+* Icons and Whatnot
+Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons)
+#+END_SRC
+*Note:* Install everything with the function, =all-the-icons-install-fonts=.
 * Ligatures
 
 Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.

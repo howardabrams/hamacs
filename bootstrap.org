@@ -109,9 +109,11 @@ the native-comp model, but I reserve the right to change this."
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
 #+BEGIN_SRC emacs-lisp
   (defvar ha-hamacs-files `("ha-config.org"
-                            "ha-display.org"
+                            ,(when (display-graphic-p)
+                               "ha-display.org")
                             "ha-org.org"
-                            "ha-org-word-processor.org"
+                            ,(when (display-graphic-p)
+                               "ha-org-word-processor.org")
                             "ha-org-clipboard.org"
                             "ha-org-journaling.org"
                             "ha-org-publishing.org"
