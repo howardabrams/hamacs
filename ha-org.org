@@ -297,15 +297,15 @@ Bindings specific to org files:
 #+BEGIN_SRC emacs-lisp
   (general-evil-define-key 'normal org-mode-map
     :prefix "SPC m"
-      "e" '("exports" . org-export-dispatch)
+      "e" '("exports"     . org-export-dispatch)
       "l" '("insert link" . org-insert-link)
-      "o" '("goto link" . ace-link-org)
+      "o" '("goto link"   . ace-link-org)
 
       "n"  '(:ignore t :which-key "narrow")
       "n s" '("subtree" . org-narrow-to-subtree)
-      "n b" '("block" . org-narrow-to-block)
+      "n b" '("block"   . org-narrow-to-block)
       "n e" '("element" . org-narrow-to-element)
-      "n w" '("widen" . widen))
+      "n w" '("widen"   . widen))
 #+END_SRC
 Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly jumping:
 #+BEGIN_SRC emacs-lisp

@@ -120,7 +120,7 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-org-sprint.org"
                             "ha-capturing-notes.org"
                             "ha-programming.org"
-                            ;; "ha-agendas.org"
+                            "ha-agendas.org"
                             ;; "ha-email.org"
                             ;; "ha-irc.org"
                             ;; "ha-passwords.org"
