@@ -24,6 +24,17 @@ A literate configuration file for email using Notmuch.
 ;;; Code:
 #+END_SRC
 * Introduction
+To use this system, begin with ~SPC a m~ (after a ~SPC a n~ to asychronously download new mail ... which probably should be running regularly).
+
+When the Notmuch interface up, hit ~J~ to jump to one of the Search boxes (described below). Typically, this is ~i~ for the Imbox, check out the focused message from people I care). Hit ~q~ to return.
+
+Next type ~s~ to view and organize mail I've never seen before. We need to keep things focused, so regularly /making auto filtering rules/ is important. Move the point to the message and hit one of the following to automatically move the sender to a pre-defined box:
+
+  - ~I~ :: screened stuff that important enough to go to my Imbox
+  - ~S~ :: spam ... so much goes here
+  - ~P~ :: receipts go to this *Paper Trail*, which takes a *tag* as the name of the store
+  - ~f~ :: mailing lists and other things that might be nice to read go to *The Feed*
+* Installation and Basic Configuration
 To begin, we need the code. On Ubuntu, this is:
 
 #+BEGIN_SRC shell :tangle no
@@ -41,14 +52,13 @@ Next, we need some basic configuration settings and some global keybindings:
 #+BEGIN_SRC emacs-lisp
   (use-package notmuch
     :init
-    (setq notmuch-mail-dir (format "%s/%s" (getenv "HOME") ".mail")
+    (setq mail-user-agent 'notmuch-user-agent
+
+          notmuch-mail-dir (format "%s/%s" (getenv "HOME") ".mail")
           notmuch-hooks-dir (expand-file-name ".notmuch/hooks" notmuch-mail-dir)
 
+          notmuch-show-logo nil
           notmuch-message-deleted-tags '("+deleted" "-inbox" "-unread")
-          message-kill-buffer-on-exit t
-          message-send-mail-function 'message-send-mail-with-sendmail
-          message-sendmail-envelope-from 'header
-          mail-specify-envelope-from t
           notmuch-archive-tags '("-inbox" "-unread" "+archived")
           notmuch-show-mark-read-tags '("-inbox" "-unread" "+archived")
           notmuch-search-oldest-first nil
@@ -57,9 +67,18 @@ Next, we need some basic configuration settings and some global keybindings:
     :bind (:map notmuch-hello-mode-map
                 ("U" . notmuch-retrieve-messages)   ; Defined later
                 ("C" . notmuch-mua-new-mail))
-    :config (ha-leader
-              "a m" '("read mail" . notmuch-retrieve-messages)
+    :config (ha-leader   ; Should I put these under an "m" heading?
+              "a n" '("new mail" . notmuch-retrieve-messages)
+              "a m" '("read mail" . notmuch)
               "a c" '("compose mail" . notmuch-mua-new-mail)))
+#+END_SRC
+Also, let's do some basic configuration of Emacs' mail system:
+#+BEGIN_SRC emacs-lisp
+  (setq mm-text-html-renderer 'shr
+        mail-specify-envelope-from t
+        message-kill-buffer-on-exit t
+        message-send-mail-function 'message-send-mail-with-sendmail
+        message-sendmail-envelope-from 'header)
 #+END_SRC
 * Configuration
 Do I want to sign messages by default? Nope.
@@ -334,16 +353,6 @@ do
 done
 timer_end "unsubscribable_spam"
 
-timer_start "schoolwork"
-for entry in $(cat $nm_maildir/.notmuch/hooks/schoolwork.db)
-do
-    if [ -n "$entry" ]
-    then
-        notmuch tag +schoolwork +archived -inbox -- tag:inbox and tag:unread and from:"$entry"
-    fi
-done
-timer_end "schoolwork"
-
 timer_start "thefeed"
 for entry in $(cat $nm_maildir/.notmuch/hooks/thefeed.db)
 do
@@ -394,12 +403,8 @@ A list of pre-defined searches act like "Folder buttons" at the top to quickly s
                                       :query "tag:screened AND NOT tag:unread"
                                       :key "I")
                                (:name "Unscreened"
-                                      :query "tag:inbox AND tag:unread AND NOT tag:screened AND NOT date:..14d AND NOT tag:thefeed AND NOT tag:/ledger/ AND NOT tag:old-project AND NOT tag:schoolwork"
+                                      :query "tag:inbox AND tag:unread AND NOT tag:screened AND NOT date:..14d AND NOT tag:thefeed AND NOT tag:/ledger/ AND NOT tag:old-project"
                                       :key "s")
-                               (:name "Schoolwork"
-                                      :query "tag:schoolwork AND tag:unread"
-                                      :key "Z"
-                                      :search-type 'tree)
                                (:name "New Feed"
                                       :query "tag:thefeed AND tag:unread"
                                       :key "f"
@@ -526,13 +531,6 @@ This means:
                               (format "%s/thefeed.db" notmuch-hooks-dir))
   (hey-notmuch-tag-by-from '("+thefeed" "+archived" "-inbox")))
 
-(defun hey-notmuch-move-sender-to-schoolwork ()
-  "Just a bucket for schoolwork as I'm not sure how to follow it. "
-  (interactive)
-  (hey-notmuch-add-addr-to-db (hey-notmuch-search-find-from)
-                              (format "%s/schoolwork.db" notmuch-hooks-dir))
-  (hey-notmuch-tag-by-from '("+schoolwork" "+archived" "-inbox")))
-
 (defun hey-notmuch-move-sender-to-papertrail (tag-name)
   "For the email at point, move the sender of that email to the papertrail.
 This means:
@@ -592,7 +590,38 @@ This means:
          (email-string (format "%s (From: %s)" email-subject email-from)))
     (message "Noted! Reply Later: %s" email-string)))
 #+END_SRC
+** Bucket Keybindings
 
+The bindings in =notmuch-tree-mode= make composing a new mail at the top-level easy:
+
+#+BEGIN_SRC emacs-lisp
+  (define-key notmuch-tree-mode-map (kbd "C") 'hey-notmuch-reply-later)
+#+END_SRC
+
+A series of keybindings to quickly send messages to one of the pre-defined buckets. The =notmuch-show-mode= is the ... uhm
+
+#+BEGIN_SRC emacs-lisp
+  (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
+#+END_SRC
+
+The bindings in =notmuch-search-mode= are available when looking at a list of messages:
+
+#+BEGIN_SRC emacs-lisp
+  (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
+  (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
+  (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
+  (define-key notmuch-search-mode-map (kbd "A") 'hey-notmuch-archive-all)
+  (define-key notmuch-search-mode-map (kbd "D") 'hey-notmuch-delete-all)
+  (define-key notmuch-search-mode-map (kbd "L") 'hey-notmuch-filter-by-from)
+  (define-key notmuch-search-mode-map (kbd ";") 'hey-notmuch-search-by-from)
+  (define-key notmuch-search-mode-map (kbd "d") 'hey-notmuch-search-delete-and-archive-thread)
+
+  (define-key notmuch-search-mode-map (kbd "S") 'hey-notmuch-move-sender-to-spam)
+  (define-key notmuch-search-mode-map (kbd "I") 'hey-notmuch-move-sender-to-screened)
+  (define-key notmuch-search-mode-map (kbd "P") 'hey-notmuch-move-sender-to-papertrail)
+  (define-key notmuch-search-mode-map (kbd "f") 'hey-notmuch-move-sender-to-thefeed)
+  (define-key notmuch-search-mode-map (kbd "C") 'hey-notmuch-reply-later)
+#+END_SRC
 ** Org Integration
 The gods ordained that Mail and Org should dance together, so step one is composing mail with org:
 #+BEGIN_SRC emacs-lisp
@@ -603,6 +632,29 @@ The gods ordained that Mail and Org should dance together, so step one is compos
       "s" '("send" . notmuch-mua-send-and-exit)
       "m" '("mime it" . org-mime-htmlize)))
 #+END_SRC
+A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]], so let's try it:
+#+BEGIN_SRC emacs-lisp
+  (use-package org-msg
+    :init
+    (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+          org-msg-startup "hidestars indent inlineimages"
+          org-msg-greeting-fmt "\nHi%s,\n\n"
+          org-msg-recipient-names '(("howard.abrams@gmail.com" . "Howard Abrams"))
+          org-msg-greeting-name-limit 3
+          org-msg-default-alternatives '((new		. (text html))
+                                         (reply-to-html	. (text html))
+                                         (reply-to-text	. (text)))
+          org-msg-convert-citation t
+          org-msg-signature "
+
+   Regards,
+
+   ,#+begin_signature
+   --
+   ,*Howard*
+   /One Emacs to rule them all/
+   ,#+end_signature"))
+#+END_SRC
 
 The idea of linking org documents to email could be nice, however, the =ol-notmuch= package in the [[https://elpa.nongnu.org/nongnu/org-contrib.html][org-contrib]] package needs a maintainer.
 #+BEGIN_SRC emacs-lisp
@@ -612,55 +664,17 @@ The idea of linking org documents to email could be nice, however, the =ol-notmu
     :config (add-to-list 'org-modules 'ol-notmuch))
 #+END_SRC
 To use, read a message and save a link to it with ~SPC o l~. Next, in an org document, create a link with ~SPC m l~. Now, you can return to the message from that document with ~SPC m o~.  Regardless, I may need to store a local copy when I upgrade Org.
-** Bucket Keybindings
-
-The bindings in =notmuch-tree-mode= make composing a new mail at the top-level easy:
-
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load "notmuch-tree"
-    (define-key notmuch-tree-mode-map (kbd "C") 'hey-notmuch-reply-later))
-#+END_SRC
-
-A series of keybindings to quickly send messages to one of the pre-defined buckets. The =notmuch-show-mode= is the ... uhm
-
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load "notmuch-show"
-    (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later))
-#+END_SRC
-
-The bindings in =notmuch-search-mode= are available when looking at a list of messages:
-
-#+BEGIN_SRC emacs-lisp
-  (with-eval-after-load "notmuch-search"
-    (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
-    (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
-    (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
-    (define-key notmuch-search-mode-map (kbd "A") 'hey-notmuch-archive-all)
-    (define-key notmuch-search-mode-map (kbd "D") 'hey-notmuch-delete-all)
-    (define-key notmuch-search-mode-map (kbd "L") 'hey-notmuch-filter-by-from)
-    (define-key notmuch-search-mode-map (kbd ";") 'hey-notmuch-search-by-from)
-    (define-key notmuch-search-mode-map (kbd "d") 'hey-notmuch-search-delete-and-archive-thread)
-
-    (define-key notmuch-search-mode-map (kbd "S") 'hey-notmuch-move-sender-to-spam)
-    (define-key notmuch-search-mode-map (kbd "I") 'hey-notmuch-move-sender-to-screened)
-    (define-key notmuch-search-mode-map (kbd "P") 'hey-notmuch-move-sender-to-papertrail)
-    (define-key notmuch-search-mode-map (kbd "f") 'hey-notmuch-move-sender-to-thefeed)
-    (define-key notmuch-search-mode-map (kbd "Z") 'hey-notmuch-move-sender-to-schoolwork)
-    (define-key notmuch-search-mode-map (kbd "C") 'hey-notmuch-reply-later))
-#+END_SRC
-
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
 #+BEGIN_SRC emacs-lisp
-(setq doom-modeline-mu4e t)
+  (setq doom-modeline-mu4e t)
 #+END_SRC
 * Technical Artifacts                                :noexport:
-
 Let's provide a name so that the file can be required:
 
 #+BEGIN_SRC emacs-lisp :exports none
-(provide 'ha-email)
-;;; ha-email.el ends here
+  (provide 'ha-email)
+  ;;; ha-email.el ends here
 #+END_SRC
 
 #+DESCRIPTION: A literate configuration file for email using Notmuch.
