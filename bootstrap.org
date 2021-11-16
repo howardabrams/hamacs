@@ -122,8 +122,8 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-programming.org"
                             "ha-agendas.org"
                             "ha-email.org"
-                            ;; "ha-irc.org"
-                            ;; "ha-passwords.org"
+                            "ha-irc.org"
+                            "ha-passwords.org"
                             "ha-remoting.org"
                             "ha-feed-reader.org"
 

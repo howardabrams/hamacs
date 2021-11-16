@@ -26,6 +26,8 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-capturing-notes.org][ha-capturing-notes.org]] :: my engineering notebook.
   - [[file:ha-agendas.org][ha-agendas.org]] :: Attempts to "supe-up" my task list.
   - [[file:ha-email.org][ha-email.org]] :: Reading email using =notmuch= in a *Hey* fashion.
+  - [[file:ha-irc.org][ha-irc.org]] :: Connection to IRC servers using rcirc and bitlbee.
+  - [[file:ha-passwords.org][ha-passwords.org]] :: Code for generating passwords.
   - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.
