@@ -5,7 +5,6 @@
 #+FILETAGS: :emacs:
 
 A literate programming file for configuring org-mode and those files.
-# *Note:* After each change, /tangle it/ to the source destination with ~C-c C-v t~.
 
 #+BEGIN_SRC emacs-lisp :exports none
 ;;
@@ -23,17 +22,34 @@ A literate programming file for configuring org-mode and those files.
 ;;
 ;;; Code:
 
-(use-package org
-  :straight (:type built-in)  ; Problems with the 9.4.4 version
-  ;; :straight (:type git :protocol ssh :repo
-  ;; 		   "git://git.sv.gnu.org/emacs/org-mode.git")
-  :mode ("\\.org" . org-mode) ; Addresses an odd warning
-  :init
+#+END_SRC
+* Use Package
+Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+    :straight (:type built-in)  ; Problems with the 9.4.4 version
+    ;; :straight (:type git :protocol ssh :repo
+    ;; 		   "git://git.sv.gnu.org/emacs/org-mode.git")
+    :mode ("\\.org" . org-mode) ; Addresses an odd warning
+    :init
+    <<variables>>
+    <<org-todo>>
+    :config
+    <<visual-hook>>
+    <<text-files>>
+    <<org-font-lock>>
+    <<no-flycheck-in-org>>
+    <<ob-languages>>
+    <<org-return-key>>
+    <<global-keybindings>>
+    <<org-keybindings>>
+    <<ace-keybindings>>)
 #+END_SRC
 * Initialization Section
 Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: variables
+#+BEGIN_SRC emacs-lisp :tangle no
   (setq org-return-follows-link t
         org-adapt-indentation nil   ; Don't physically change files
         org-startup-indented t      ; Visually show paragraphs indented
@@ -63,23 +79,20 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
         org-src-tab-acts-natively t)
 #+END_SRC
 * Configuration Section
-The following sections assume that org has been loaded, as this begin the configuration section:
-#+BEGIN_SRC emacs-lisp
-:config
-#+END_SRC
 I pretend that my org files are word processing files that wrap automatically:
-#+BEGIN_SRC emacs-lisp
+#+NAME: visual-hook
+#+BEGIN_SRC emacs-lisp :tangle no
 (add-hook 'org-mode-hook #'visual-line-mode)
 #+END_SRC
-Files that end in =.txt= are still org files to me:
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
-#+END_SRC
-Many of the files that I edit close some, but not all, of the headers using a file variable. Let's allow that to not insist that I need to approve that:
 
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'safe-local-variable-values '(org-content . 2))
+Files that end in =.txt= are still org files to me:
+#+NAME: text-files
+#+BEGIN_SRC emacs-lisp :tangle no
+  (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
+
+  (add-to-list 'safe-local-variable-values '(org-content . 2))
 #+END_SRC
+*Note:* Many of the files that I edit close some, but not all, of the headers using a file variable. Let's allow that to not insist that I need to approve that.
 ** Better Return
 Hitting the ~Return~ key in an org file should format the following line based on context. For instance, at the end of a list, insert a new item.
 We begin with the interactive function that calls our code only if we are at the end of the line.
@@ -96,7 +109,8 @@ We begin with the interactive function that calls our code only if we are at the
 #+END_SRC
 
 And bind it to the Return key:
-#+BEGIN_SRC emacs-lisp
+#+NAME: org-return-key
+#+BEGIN_SRC emacs-lisp :tangle no
 (define-key org-mode-map (kbd "RET")  #'ha-org-return)
 #+END_SRC
 
@@ -178,13 +192,15 @@ The org API allows getting the context associated with /current element/. Howeve
 ** Tasks
 I need to add a /blocked/ state:
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: org-todo
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)" )
                           (sequence "BLOCKED(b)" "|" "CANCELLED(c)")))
 #+END_SRC
 
 And I would like to have cute little icons for those states:
 
+#+NAME: org-font-lock
 #+BEGIN_SRC emacs-lisp
 (dolist (m '(org-mode org-journal-mode))
   (font-lock-add-keywords m                        ; A bit silly but my headers are now
@@ -204,8 +220,7 @@ And I would like to have cute little icons for those states:
                             ;; affecting the text file or the behavior).
                             ("^ +\\([-*]\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
-#+END_SRC
-
+                             #+END_SRC :tangle no
 ** Meetings
 I've notice that while I really like taking notes in a meeting, I don't always like the multiple windows I have opened, so I created this function that I can easily call to eliminate distractions during a meeting.
 
@@ -238,14 +253,17 @@ Of course, I need an 'undo' feature when the meeting is over...
 *** Babel Blocks
 Whenever I edit Emacs Lisp blocks from my tangle-able configuration files, I get a lot of superfluous warnings. Let's turn them off.
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: no-flycheck-in-org
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun disable-flycheck-in-org-src-block ()
   (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 
 (add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
 #+END_SRC
+
 And turn on ALL the languages:
-#+BEGIN_SRC emacs-lisp
+#+NAME: ob-languages
+#+BEGIN_SRC emacs-lisp :tangle no
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((shell      . t)
                                  (js         . t)
@@ -287,14 +305,17 @@ To make the snippets more context aware, this predicate
 #+END_SRC
 ** Keybindings
 Keybindings available to all file buffers:
-#+BEGIN_SRC emacs-lisp
+#+NAME: global-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
 (ha-leader
   "o l" '("store link" . org-store-link)
   "o x" '("org capture" . org-capture)
   "o c" '("clock out" . org-clock-out))
 #+END_SRC
+
 Bindings specific to org files:
-#+BEGIN_SRC emacs-lisp
+#+NAME: org-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
   (general-evil-define-key 'normal org-mode-map
     :prefix "SPC m"
       "e" '("exports"     . org-export-dispatch)
@@ -307,15 +328,14 @@ Bindings specific to org files:
       "n e" '("element" . org-narrow-to-element)
       "n w" '("widen"   . widen))
 #+END_SRC
+
 Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly jumping:
-#+BEGIN_SRC emacs-lisp
-(define-key org-mode-map (kbd "M-o") 'ace-link-org)
+#+NAME: ace-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package ace-link
+  (define-key org-mode-map (kbd "M-o") 'ace-link-org))
 #+END_SRC
 * Supporting Packages
-At this point, we assume that the =use-package= for org is complete, so we can close it and allow other projects to be loaded:
-#+BEGIN_SRC emacs-lisp
-)
-#+END_SRC
 ** Exporters
 Need a few extra exporters:
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -368,7 +388,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+DESCRIPTION: A literate programming file for configuring org-mode and those files.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp  :tangle yes
+#+PROPERTY:    header-args:emacs-lisp  :tangle yes :noweb yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
