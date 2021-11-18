@@ -49,7 +49,7 @@ brew install notmuch
 
 Next, we need some basic configuration settings and some global keybindings:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb yes
   (use-package notmuch
     :init
     (setq mail-user-agent 'notmuch-user-agent
@@ -67,10 +67,14 @@ Next, we need some basic configuration settings and some global keybindings:
     :bind (:map notmuch-hello-mode-map
                 ("U" . notmuch-retrieve-messages)   ; Defined later
                 ("C" . notmuch-mua-new-mail))
+          (:map notmuch-tree-mode-map
+                ("C" . notmuch-mua-new-mail))
     :config (ha-leader   ; Should I put these under an "m" heading?
               "a n" '("new mail" . notmuch-retrieve-messages)
               "a m" '("read mail" . notmuch)
-              "a c" '("compose mail" . notmuch-mua-new-mail)))
+              "a c" '("compose mail" . notmuch-mua-new-mail))
+            <<hey-show-keybindings>>
+            <<hey-search-keybindings>>)
 #+END_SRC
 Also, let's do some basic configuration of Emacs' mail system:
 #+BEGIN_SRC emacs-lisp
@@ -592,21 +596,17 @@ This means:
 #+END_SRC
 ** Bucket Keybindings
 
-The bindings in =notmuch-tree-mode= make composing a new mail at the top-level easy:
-
-#+BEGIN_SRC emacs-lisp
-  (define-key notmuch-tree-mode-map (kbd "C") 'hey-notmuch-reply-later)
-#+END_SRC
-
 A series of keybindings to quickly send messages to one of the pre-defined buckets. The =notmuch-show-mode= is the ... uhm
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: hey-show-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
   (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
 #+END_SRC
 
 The bindings in =notmuch-search-mode= are available when looking at a list of messages:
 
-#+BEGIN_SRC emacs-lisp
+#+NAME: hey-search-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
   (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
   (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
   (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
@@ -657,7 +657,7 @@ A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]
 #+END_SRC
 
 The idea of linking org documents to email could be nice, however, the =ol-notmuch= package in the [[https://elpa.nongnu.org/nongnu/org-contrib.html][org-contrib]] package needs a maintainer.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package ol-notmuch
     :after org
     :straight (:type built-in)

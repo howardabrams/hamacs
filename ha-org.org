@@ -42,8 +42,7 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     <<ob-languages>>
     <<org-return-key>>
     <<global-keybindings>>
-    <<org-keybindings>>
-    <<ace-keybindings>>)
+    <<org-keybindings>>)
 #+END_SRC
 * Initialization Section
 Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).
@@ -330,10 +329,12 @@ Bindings specific to org files:
 #+END_SRC
 
 Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly jumping:
-#+NAME: ace-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ace-link
-  (define-key org-mode-map (kbd "M-o") 'ace-link-org))
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-link
+    :after org
+    :config
+    (define-key org-mode-map (kbd "s-o") 'ace-link-org))
 #+END_SRC
 * Supporting Packages
 ** Exporters
