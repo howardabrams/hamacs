@@ -841,7 +841,8 @@ Build the hydra as well as configure the =perspective= project.
     _n_: new project  _r_: rename    _a_: add buffer     _l_: load worksp
     _]_: next worksp  _d_: delete    _b_: goto buffer    _s_: save worksp
     _[_: previous     _W_: init all  _k_: remove buffer  _`_: to last worksp "
-      ("TAB" persp-switch)
+      ("TAB" persp-switch-quick)
+      ("RET" persp-switch)
       ("`" persp-switch-last)
       ("1" (persp-switch-by-number 1))
       ("2" (persp-switch-by-number 2))
