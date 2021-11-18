@@ -1,6 +1,5 @@
 #+TITLE:  My Sprint Calculations and Support
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2020-09-25
 #+FILETAGS: :emacs:
 
@@ -13,7 +12,7 @@ A literate program for configuring org files for work-related notes.
 ;; Copyright (C) 2020 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: September 25, 2020
 ;;
 ;; This file is not part of GNU Emacs.

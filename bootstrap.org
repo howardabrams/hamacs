@@ -1,6 +1,5 @@
 #+TITLE:  My Emacs Bootstrap
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2021-10-08
 #+FILETAGS: :emacs:
 
@@ -12,7 +11,7 @@ A literate programming file for bootstraping my Emacs Configuration.
 ;; Copyright (C) 2021 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: October  8, 2021
 ;;
 ;; This file is not part of GNU Emacs.
@@ -58,7 +57,7 @@ The following packages come with Emacs, but seems like they still need loading:
 #+BEGIN_SRC emacs-lisp
 (require 'subr-x)
 #+END_SRC
-Ugh. Why am I getting this error?
+Ugh. Why am I getting a missing =first= function error? Let's just define it:
 #+BEGIN_SRC emacs-lisp
   (defun first (elt) (car elt))
 #+END_SRC
@@ -108,26 +107,28 @@ the native-comp model, but I reserve the right to change this."
 * Load the Rest
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
 #+BEGIN_SRC emacs-lisp
-  (defvar ha-hamacs-files `("ha-config.org"
+  (defvar ha-hamacs-files `("ha-private.org"
+                            "ha-config.org"
                             ,(when (display-graphic-p)
                                "ha-display.org")
                             "ha-org.org"
                             ,(when (display-graphic-p)
                                "ha-org-word-processor.org")
                             "ha-org-clipboard.org"
-                            "ha-org-journaling.org"
-                            "ha-org-publishing.org"
-                            "ha-org-sprint.org"
                             "ha-capturing-notes.org"
-                            "ha-programming.org"
                             "ha-agendas.org"
-                            "ha-email.org"
                             "ha-irc.org"
                             "ha-passwords.org"
                             "ha-remoting.org"
-                            "ha-feed-reader.org"
-
+                            "ha-programming.org"
+                            "ha-programming-python.org"
+                            ,(unless (ha-emacs-for-work?)
+                               "ha-org-journaling.org"
+                               "ha-org-publishing.org"
+                               "ha-email.org"
+                               "ha-feed-reader.org")
                             ,(when (ha-emacs-for-work?)
+                               "ha-org-sprint.org"
                                "ha-work.org"))
     "List of org files that complete the hamacs project.")
 #+END_SRC
@@ -137,7 +138,9 @@ We can test/debug/reload any individual file, via:
   (defun ha-hamacs-load (file)
     "Load or reload an org-mode FILE containing literate Emacs configuration code."
     (interactive (list (completing-read "Org file: " ha-hamacs-files)))
-    (org-babel-load-file (f-join hamacs-source-dir file)))
+    (let ((full-file (f-join hamacs-source-dir file)))
+      (when (f-exists? full-file)
+        (org-babel-load-file full-file))))
 #+END_SRC
 
 And we can now load everything:

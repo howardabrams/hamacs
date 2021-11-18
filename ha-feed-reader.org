@@ -1,6 +1,5 @@
 #+TITLE:  My RSS Feeds
 #+AUTHOR: Howard Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2018-08-08 August
 #+FILETAGS: :elfeed:
 
@@ -12,7 +11,7 @@ A literate programming file for configuring =elfeed= in Emacs.
 ;; Copyright (C) 2020-2021 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: September 10, 2020
 ;;
 ;; This file is not part of GNU Emacs.

@@ -16,7 +16,7 @@ ${2:A literate programming file configuring Emacs.}
 ;; Copyright (C) `(format-time-string "%Y")` `user-full-name`
 ;;
 ;; Author: `user-full-name` <http://gitlab.com/howardabrams>
-;; Maintainer: `user-full-name` <`user-mail-address`>
+;; Maintainer: `user-full-name`
 ;; Created: `(format-time-string "%B %e, %Y")`
 ;;
 ;; This file is not part of GNU Emacs.

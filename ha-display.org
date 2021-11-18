@@ -1,6 +1,5 @@
 #+TITLE:  Emacs Graphical Display Configuration
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2020-09-10
 #+FILETAGS: :emacs:
 
@@ -13,7 +12,7 @@ A literate programming file to configure the Emacs UI.
 ;; Copyright (C) 2020 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: September 10, 2020
 ;;
 ;; This file is not part of GNU Emacs.

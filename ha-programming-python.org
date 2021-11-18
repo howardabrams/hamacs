@@ -1,6 +1,5 @@
 #+TITLE:  Configuring Python in Emacs
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2021-11-16
 #+FILETAGS: :emacs:
 
@@ -12,7 +11,7 @@ A literate programming file for configuring Python.
   ;; Copyright (C) 2021 Howard X. Abrams
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-  ;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+  ;; Maintainer: Howard X. Abrams
   ;; Created: November 16, 2021
   ;;
   ;; This file is not part of GNU Emacs.

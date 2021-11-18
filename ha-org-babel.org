@@ -1,6 +1,5 @@
 #+TITLE:  Literate Programming with Org
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2021-11-05
 #+FILETAGS: :emacs:
 
@@ -12,7 +11,7 @@ This section is primarily about development in a literate way, especially focuse
   ;; Copyright (C) 2021 Howard X. Abrams
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-  ;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+  ;; Maintainer: Howard X. Abrams
   ;; Created: November  5, 2021
   ;;
   ;; This file is not part of GNU Emacs.

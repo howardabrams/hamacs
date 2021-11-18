@@ -1,6 +1,5 @@
 #+TITLE:  General Emacs Configuration
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+DATE:   2020-09-10
 #+FILETAGS: :emacs:
 
@@ -12,7 +11,7 @@ A literate programming file for configuring Emacs.
 ;; Copyright (C) 2020-2021 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: September 10, 2020
 ;;
 ;; This file is not part of GNU Emacs.
@@ -24,14 +23,6 @@ A literate programming file for configuring Emacs.
 ;;; Code:
 #+END_SRC
 * Introduction
-
-The following are general variable settings, and doesn't really belong to any specific purpose.
-
-#+BEGIN_SRC emacs-lisp
-(setq user-full-name "Howard X. Abrams"
-      user-mail-address "howard.abrams@gmail.com")
-#+END_SRC
-
 New way to display line-numbers. I set mine to =relative= so that I can easily jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
 
 #+BEGIN_SRC emacs-lisp
