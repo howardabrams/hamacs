@@ -32,9 +32,63 @@ The following work for all programming languages.
 ** direnv
 Farm off commands into /virtual environments/:
 #+BEGIN_SRC emacs-lisp
-(use-package direnv
-  :init
-  (setq direnv--executable "/usr/local/bin/direnv"))
+  (use-package direnv
+    :init
+    (setq direnv--executable "/usr/local/bin/direnv")
+    :config
+    (direnv-mode))
+#+END_SRC
+** Language Server Protocol (LSP) Integration
+The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp) ... wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and...).
+
+Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and friends), which simplifies my configuration:
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :init
+    ;; Let's make lsp-doctor happy with these settings:
+    (setq gc-cons-threshold (* 100 1024 1024)
+          read-process-output-max (* 1024 1024)
+          company-idle-delay 0.0 ; Are thing fast enough to do this?
+          lsp-keymap-prefix "s-m")
+    :config
+    :hook ((lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+#+END_SRC
+I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but ... later.
+
+The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP:
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-ui
+    :commands lsp-ui-mode
+    :config
+    (setq lsp-ui-sideline-ignore-duplicate t
+	      lsp-ui-sideline-show-hover t
+          lsp-ui-sideline-show-diagnostics t)
+    (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+#+END_SRC
+
+The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
+#+BEGIN_SRC emacs-lisp
+  (use-package company-lsp
+    :config
+    (push 'company-lsp company-backends))
+#+END_SRC
+To options that might be interesting:
+  - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
+  - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
+
+The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] offers a =lsp-ui-imenu= function for jumping to functions:
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-ui-imenu
+      :straight nil
+      :after lsp-ui
+      :config
+      (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
+#+END_SRC
+
+Do we want to use a debugger?
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package dap-mode)
 #+END_SRC
 ** Function Call Notifications
 As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.

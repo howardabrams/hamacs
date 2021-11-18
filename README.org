@@ -29,5 +29,6 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-irc.org][ha-irc.org]] :: Connection to IRC servers using rcirc and bitlbee.
   - [[file:ha-passwords.org][ha-passwords.org]] :: Code for generating passwords.
   - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-programming-python.org][ha-programming-python.org]] :: configuration for working with Python and LSP.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.
