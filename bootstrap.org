@@ -126,6 +126,7 @@ The following loads the rest of my org-mode literate files. I add them as they a
                                "ha-org-journaling.org"
                                "ha-org-publishing.org"
                                "ha-email.org"
+                               "ha-aux-apps.org"
                                "ha-feed-reader.org")
                             ,(when (ha-emacs-for-work?)
                                "ha-org-sprint.org"
