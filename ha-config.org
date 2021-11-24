@@ -290,25 +290,28 @@ Can we change Evil at this point? Some tips:
  - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html]]
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil
-  :init
-  (setq evil-undo-system 'undo-fu
-        evil-disable-insert-state-bindings t
-        evil-want-keybinding nil
-        evil-want-integration t
-        evil-escape-key-sequence "fd"
-        evil-escape-unordered-key-sequence t)
+  (use-package evil
+    :init
+    (setq evil-undo-system 'undo-fu
+          evil-disable-insert-state-bindings t
+          evil-want-keybinding nil
+          evil-want-integration t
+          evil-escape-key-sequence "fd"
+          evil-escape-unordered-key-sequence t)
 
-  :config
-  (add-to-list 'evil-normal-state-modes 'shell-mode)
-  (add-to-list 'evil-emacs-state-modes 'term-mode)
-  (add-to-list 'evil-emacs-state-modes 'elfeed-search-mode)
-  (add-to-list 'evil-emacs-state-modes 'elfeed-show-mode)
+    :config
+    (setq evil-insert-state-map (make-sparse-keymap))
+    (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
 
-  ;; Use escape to get out of visual mode, eh?
-  (evil-define-key 'visual global-map (kbd "v") 'er/expand-region)
+    (add-to-list 'evil-normal-state-modes 'shell-mode)
+    (add-to-list 'evil-emacs-state-modes 'term-mode)
+    (add-to-list 'evil-emacs-state-modes 'elfeed-search-mode)
+    (add-to-list 'evil-emacs-state-modes 'elfeed-show-mode)
 
-  (evil-mode))
+    ;; Use escape to get out of visual mode, eh?
+    (evil-define-key 'visual global-map (kbd "v") 'er/expand-region)
+
+    (evil-mode))
 #+END_SRC
 
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
