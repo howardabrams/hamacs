@@ -348,18 +348,20 @@ Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly 
 #+END_SRC
 * Supporting Packages
 ** Exporters
-Need a few extra exporters:
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package ox-md
-  :after org
-  :straight nil
-  :config
-  (add-to-list 'org-export-backends 'md))
+Limit the number of exporters to just the ones that I would use:
+#+NAME: ox-exporters
+#+BEGIN_SRC emacs-lisp
+(setq org-export-backends '(ascii html icalendar md odt))
+#+END_SRC
 
-(use-package ox-confluence
-  :after org
-  :straight nil
-  :load-path "~/.doom.d/elisp")
+I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence exporter]] for my org files:
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-confluence
+    :after org
+    :straight nil
+    :config
+      (ha-org-leader
+        "E" '("to confluence"     . ox-export-to-confluence)))
 #+END_SRC
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
