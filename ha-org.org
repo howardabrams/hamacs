@@ -33,15 +33,27 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     :init
     <<variables>>
     <<org-todo>>
+
     :config
+    <<ha-org-leader>>
     <<visual-hook>>
     <<text-files>>
     <<org-font-lock>>
     <<no-flycheck-in-org>>
     <<ob-languages>>
+    <<ox-exporters>>
     <<org-return-key>>
     <<global-keybindings>>
     <<org-keybindings>>)
+#+END_SRC
+
+One other helper routine is a =general= macro for org-mode files:
+#+NAME: ha-org-leader
+#+BEGIN_SRC emacs-lisp :tangle no
+  (general-create-definer ha-org-leader
+        :states '(normal visual)
+        :keymaps 'org-mode-map
+        :prefix "SPC m")
 #+END_SRC
 * Initialization Section
 Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).
@@ -314,8 +326,7 @@ Keybindings available to all file buffers:
 Bindings specific to org files:
 #+NAME: org-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
-  (general-evil-define-key 'normal org-mode-map
-    :prefix "SPC m"
+  (ha-org-leader
       "e" '("exports"     . org-export-dispatch)
       "l" '("insert link" . org-insert-link)
       "o" '("goto link"   . ace-link-org)

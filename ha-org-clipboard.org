@@ -165,9 +165,8 @@ The heavy lifting, however is done by this function. Note that I will need anoth
 * Keybinding to Paste into Org Files
 We just need to bind it to the /local/ mode key sequence:
 #+BEGIN_SRC emacs-lisp
-(general-evil-define-key 'normal org-mode-map
-  :prefix "SPC m"
-    "y" 'ha-org-yank-clipboard)
+  (with-eval-after-load 'ha-org
+    (ha-org-leader "y" 'ha-org-yank-clipboard))
 #+END_SRC
 
 * Technical Artifacts                                :noexport:

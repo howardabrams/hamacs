@@ -320,23 +320,23 @@ The =en= script is used as the last pipe entry on the command line, this display
 * Keybindings
 Along with kicking off the org-capture, I want to be able to clock-in and out:
 #+BEGIN_SRC emacs-lisp
-    (general-evil-define-key 'normal org-mode-map
-      :prefix "SPC m"
-        "X" 'org-capture
-        "c"  '(:ignore t :which-key "clocks")
-        "c i" '("clock in" . org-clock-in)
-        "c l" '("clock in last" . org-clock-in-last)
-        "c o" '("clock out" . org-clock-out)
-        "c c" '("cancel" . org-clock-cancel)
-        "c d" '("mark default task" . org-clock-mark-default-task)
-        "c e" '("modify effort" . org-clock-modify-effort-estimate)
-        "c E" '("set effort" . org-set-effort)
-        "c g" '("goto clock" . org-clock-goto)
-        "c r" '("resolve clocks" . org-resolve-clocks)
-        "c R" '("clock report" . org-clock-report)
-        "c t" '("eval range" . org-evaluate-time-range)
-        "c =" '("timestamp up" . org-clock-timestamps-up)
-        "c -" '("timestamp down" . org-clock-timestamps-down))
+  (with-eval-after-load 'ha-org
+    (ha-org-leader
+      "X" '("org capture" . org-capture)
+      "c"  '(:ignore t :which-key "clocks")
+      "c i" '("clock in" . org-clock-in)
+      "c l" '("clock in last" . org-clock-in-last)
+      "c o" '("clock out" . org-clock-out)
+      "c c" '("cancel" . org-clock-cancel)
+      "c d" '("mark default task" . org-clock-mark-default-task)
+      "c e" '("modify effort" . org-clock-modify-effort-estimate)
+      "c E" '("set effort" . org-set-effort)
+      "c g" '("goto clock" . org-clock-goto)
+      "c r" '("resolve clocks" . org-resolve-clocks)
+      "c R" '("clock report" . org-clock-report)
+      "c t" '("eval range" . org-evaluate-time-range)
+      "c =" '("timestamp up" . org-clock-timestamps-up)
+      "c -" '("timestamp down" . org-clock-timestamps-down)))
 #+END_SRC
 
 * Technical Artifacts                                :noexport:

@@ -626,8 +626,8 @@ The gods ordained that Mail and Org should dance together, so step one is compos
 #+BEGIN_SRC emacs-lisp
   (use-package org-mime
     :config
-    (general-evil-define-key 'normal notmuch-message-mode-map
-      :prefix "SPC m"
+    (ha-local-leader
+       :keymaps 'notmuch-message-mode-map
       "s" '("send" . notmuch-mua-send-and-exit)
       "m" '("mime it" . org-mime-htmlize)))
 #+END_SRC

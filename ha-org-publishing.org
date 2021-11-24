@@ -165,18 +165,18 @@ Another helper function for the content of website is to make sure to update =in
 * Keybindings
 Make it easy to publish all or just some of my website:
 #+BEGIN_SRC emacs-lisp
-  (general-evil-define-key 'normal org-mode-map
-    :prefix "SPC m"
+  (with-eval-after-load 'ha-org
+    (ha-org-leader
       "p"  '(:ignore t :which-key "publishing")
       "p a" '("all" . org-publish-all)
-      "p p" '("project" . org-publish-project))
+      "p p" '("project" . org-publish-project)))
 #+END_SRC
 
 And let's put a /leader key/ sequence for my favorite file on my website:
 #+BEGIN_SRC emacs-lisp
   (ha-leader
         "f h"  '(:ignore t :which-key "howards")
-        "f h w" '("website index" . (lambda ()
+        "f h i" '("website index" . (lambda ()
                                       (find-file (expand-file-name "index.org" "~/website")))))
 #+END_SRC
 * Technical Artifacts :noexport:

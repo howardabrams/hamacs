@@ -26,6 +26,14 @@ A literate programming file for helping me program.
 * Introduction
 
 Seems that all programming interfaces and workflows behave similarly. However...
+
+One other helper routine is a =general= macro for org-mode files:
+#+BEGIN_SRC emacs-lisp
+  (general-create-definer ha-prog-leader
+        :states '(normal visual)
+        :keymaps 'prog-mode-map
+        :prefix "SPC m")
+#+END_SRC
 * General
 The following work for all programming languages.
 ** direnv
@@ -125,15 +133,12 @@ I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd perso
 #+END_SRC
 And a keybinding:
 #+BEGIN_SRC emacs-lisp
-  (general-evil-define-key 'normal prog-mode-map
-    :prefix "SPC m"
-      "c" '("comment line" . ha-comment-line))
+  (ha-prog-leader "c" '("comment line" . ha-comment-line))
 #+END_SRC
 ** Evaluation
 Typical keybindings for all programming modes:
 #+BEGIN_SRC emacs-lisp
-  (general-evil-define-key 'normal prog-mode-map
-    :prefix "SPC m"
+  (ha-prog-leader
      "e"  '(:ignore t :which-key "eval")
      "e ;" '("expression" . eval-expression)
      "e b" '("buffer" . eval-buffer)
@@ -206,8 +211,7 @@ And, finally, we install [[https://github.com/k1LoW/emacs-ansible][Ansible]] as 
 #+END_SRC
 And some special keybindings to encrypt/decrypt files:
 #+BEGIN_SRC emacs-lisp
-  (general-evil-define-key 'normal ansible-mode-map
-    :prefix "SPC m"
+  (ha-prog-leader
      "x"  '(:ignore t :which-key "decryption")
      "x d" '("decrypt buffer" . ansible-decrypt-buffer)
      "x e" '("encrypt buffer" . ansible-encrypt-buffer))
@@ -288,9 +292,8 @@ finds at that point."
 And we just need to bind it. The following is Doom-specific:
 
 #+BEGIN_SRC emacs-lisp
-  (general-evil-define-key 'normal prog-mode-map
-    :prefix "SPC m"
-     "e c" '("current" . ha-eval-current-expression))
+  (ha-prog-leader
+    "e c" '("current" . ha-eval-current-expression))
 #+END_SRC
 *** Dim those Parenthesis
 The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I personally find better.

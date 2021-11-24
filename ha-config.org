@@ -347,7 +347,11 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :keymaps '(normal visual)
       :prefix "SPC"
       :non-normal-prefix "M-SPC"
-      :global-prefix "<f13>"))
+      :global-prefix "<f13>")
+
+    (general-create-definer ha-local-leader
+      :states '(normal visual)
+      :prefix "SPC m"))
 #+END_SRC
 *** Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
