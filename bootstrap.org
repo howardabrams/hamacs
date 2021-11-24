@@ -146,8 +146,16 @@ We can test/debug/reload any individual file, via:
 
 And we can now load everything:
 #+BEGIN_SRC emacs-lisp
-  (dolist (file ha-hamacs-files)
-    (ha-hamacs-load file))
+  (defun ha-hamacs-reload-all ()
+    "Reload our entire ecosystem of configuration files."
+    (interactive)
+    (dolist (file ha-hamacs-files)
+      (ha-hamacs-load file)))
+#+END_SRC
+
+And do it:
+#+BEGIN_SRC emacs-lisp
+  (ha-hamacs-reload-all)
 #+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
