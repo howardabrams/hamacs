@@ -107,7 +107,7 @@ the native-comp model, but I reserve the right to change this."
 * Load the Rest
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
 #+BEGIN_SRC emacs-lisp
-  (defvar ha-hamacs-files `("ha-private.org"
+  (defvar ha-hamacs-files (flatten-list `("ha-private.org"
                             "ha-config.org"
                             ,(when (display-graphic-p)
                                "ha-display.org")
@@ -123,14 +123,14 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-programming.org"
                             "ha-programming-python.org"
                             ,(unless (ha-emacs-for-work?)
-                               "ha-org-journaling.org"
+                               '("ha-org-journaling.org"
                                "ha-org-publishing.org"
                                "ha-email.org"
                                "ha-aux-apps.org"
-                               "ha-feed-reader.org")
+                               "ha-feed-reader.org"))
                             ,(when (ha-emacs-for-work?)
-                               "ha-org-sprint.org"
-                               "ha-work.org"))
+                               '("ha-org-sprint.org"
+                               "ha-work.org"))))
     "List of org files that complete the hamacs project.")
 #+END_SRC
 
