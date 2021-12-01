@@ -33,7 +33,33 @@ Next type ~s~ to view and organize mail I've never seen before. We need to keep 
   - ~S~ :: spam ... so much goes here
   - ~P~ :: receipts go to this *Paper Trail*, which takes a *tag* as the name of the store
   - ~f~ :: mailing lists and other things that might be nice to read go to *The Feed*
+** Email Addresses
+The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /hardly/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
+
+#+NAME: email-address-1
+#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+  (rot13-string "ubjneq.noenzf@tznvy.pbz")
+#+END_SRC
+
+#+NAME: email-address-2
+#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+  (rot13-string "ubjneq@ubjneqnoenzf.pbz")
+#+END_SRC
+
+#+NAME: email-address-3
+#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+  (rot13-string "ubjneq@shmmlgbnfg.pbz")
+#+END_SRC
+
+To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance:
+#+begin_example
+,#+begin_src conf :noweb yes :tangle /tmp/foobar.txt :results silent
+some-address: <<email-address-2()>>
+,#+end_src
+#+end_example
+
 * Installation and Basic Configuration
+
 To begin, we need the code. On Ubuntu, this is:
 
 #+BEGIN_SRC shell :tangle no
@@ -124,81 +150,79 @@ Currently, I have a couple of Google Mail accounts that I want connected.
 
 The file generally can have a =Pass= entry for the encrypted passcode, but in order to demonstrate how to connect to multiple accounts, I'm using a GPG daemon:
 
-#+BEGIN_SRC conf-unix :tangle ~/.mbsyncrc
-# Note: We now tangle this file from ~/other/hamacs/ha-email.org
-Create Both
-SyncState *
-MaxMessages 300
-Sync All # New ReNew Flags
+#+BEGIN_SRC conf :tangle ~/.mbsyncrc :noweb yes
+  # Note: We now tangle this file from ~/other/hamacs/ha-email.org
+  Create Both
+  SyncState *
+  MaxMessages 300
+  Sync All # New ReNew Flags
 
-#  PERSONAL ACCOUNT
-IMAPAccount personal
-Host imap.gmail.com
-User howard@howardabrams.com
-# I took out the --no-tty as we need to get the password to decrypt the password file.
-# Note that the password is actually the token for the account.
-PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
-SSLType IMAPS
-AuthMechs LOGIN
+  #  PERSONAL ACCOUNT
+  IMAPAccount personal
+  Host imap.gmail.com
+  User <<email-address-2()>>  # Obviously, you'd substitute your own email address here
+  PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
+  SSLType IMAPS
+  AuthMechs LOGIN
 
-IMAPStore personal-remote
-Account personal
+  IMAPStore personal-remote
+  Account personal
 
-MaildirStore personal-local
-Path ~/.mail/personal/
-Inbox ~/.mail/personal/INBOX
-Flatten .
+  MaildirStore personal-local
+  Path ~/.mail/personal/
+  Inbox ~/.mail/personal/INBOX
+  Flatten .
 
-Channel personal-inbox
-Master :personal-remote:
-Slave :personal-local:
-Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
-Expunge Both
-# Patterns "inbox"
-# ExpireUnread no
+  Channel personal-inbox
+  Master :personal-remote:
+  Slave :personal-local:
+  Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
+  Expunge Both
+  # Patterns "inbox"
+  # ExpireUnread no
 
-Channel personal-sent
-Master :personal-remote:"[Gmail]/Sent Mail"
-Slave :personal-local:sent
-ExpireUnread yes
+  Channel personal-sent
+  Master :personal-remote:"[Gmail]/Sent Mail"
+  Slave :personal-local:sent
+  ExpireUnread yes
 
-Channel personal-trash
-Master :personal-remote:"[Gmail]/Trash"
-Slave :personal-local:trash
-ExpireUnread yes
+  Channel personal-trash
+  Master :personal-remote:"[Gmail]/Trash"
+  Slave :personal-local:trash
+  ExpireUnread yes
 
-#  GMAIL ACCOUNT
-IMAPAccount gmail
-Host imap.gmail.com
-User howard.abrams@gmail.com
-PassCmd "gpg -q --for-your-eyes-only --pinentry-mode loopback -d ~/.mailpass-google.gpg"
-SSLType IMAPS
-AuthMechs LOGIN
+  #  GMAIL ACCOUNT
+  IMAPAccount gmail
+  Host imap.gmail.com
+  User <<email-address-1()>>  # Substitute your own email address here
+  PassCmd "gpg -q --for-your-eyes-only --pinentry-mode loopback -d ~/.mailpass-google.gpg"
+  SSLType IMAPS
+  AuthMechs LOGIN
 
-IMAPStore gmail-remote
-Account gmail
+  IMAPStore gmail-remote
+  Account gmail
 
-MaildirStore gmail-local
-Path ~/.mail/gmail/
-Inbox ~/.mail/gmail/INBOX
-Flatten .
+  MaildirStore gmail-local
+  Path ~/.mail/gmail/
+  Inbox ~/.mail/gmail/INBOX
+  Flatten .
 
-Channel gmail-inbox
-Master :gmail-remote:
-Slave :gmail-local:
-Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
-Expunge Both
-# Patterns "inbox"
+  Channel gmail-inbox
+  Master :gmail-remote:
+  Slave :gmail-local:
+  Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
+  Expunge Both
+  # Patterns "inbox"
 
-Channel gmail-sent
-Master :gmail-remote:"[Gmail]/Sent Mail"
-Slave :gmail-local:sent
-ExpireUnread yes
+  Channel gmail-sent
+  Master :gmail-remote:"[Gmail]/Sent Mail"
+  Slave :gmail-local:sent
+  ExpireUnread yes
 
-Channel gmail-trash
-Master :gmail-remote:"[Gmail]/Trash"
-Slave :gmail-local:trash
-ExpireUnread yes
+  Channel gmail-trash
+  Master :gmail-remote:"[Gmail]/Trash"
+  Slave :gmail-local:trash
+  ExpireUnread yes
 #+END_SRC
 
 * Notmuch Configuration
@@ -230,12 +254,13 @@ Here is where you can let notmuch know how you would like to be addressed. Valid
 
 Notmuch will use the various email addresses configured here when formatting replies. It will avoid including your own addresses in the recipient list of replies, and will set the From address based on the address to which the original email was addressed.
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config :noweb yes
 [user]
 name=Howard Abrams
-primary_email=howard.abrams@gmail.com
-other_email=howard@howardabrams.com;howard@fuzzytoast.com;
+primary_email=<<email-address-1()>>
+other_email=<<email-address-2()>>;<<email-address-3()>>
 #+END_SRC
+*NB:* In the configuration above, you may see the addresses are all set to =nil=. If you are copying this from a rendered web page, just note that you need to substitute that with your own email address.
 *** Configuration for "notmuch new"
 The following options are supported here:
 
@@ -632,13 +657,13 @@ The gods ordained that Mail and Org should dance together, so step one is compos
       "m" '("mime it" . org-mime-htmlize)))
 #+END_SRC
 A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]], so let's try it:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb yes
   (use-package org-msg
     :init
     (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
           org-msg-startup "hidestars indent inlineimages"
           org-msg-greeting-fmt "\nHi%s,\n\n"
-          org-msg-recipient-names '(("howard.abrams@gmail.com" . "Howard Abrams"))
+          org-msg-recipient-names '(("<<email-address-1()>>" . "Howard Abrams"))
           org-msg-greeting-name-limit 3
           org-msg-default-alternatives '((new		. (text html))
                                          (reply-to-html	. (text html))

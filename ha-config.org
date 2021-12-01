@@ -853,6 +853,7 @@ Build the hydra as well as configure the =perspective= project.
       ("9" (persp-switch-by-number 9))
       ("0" (persp-switch-by-number 0))
       ("n" ha-project-persp)
+      ("N" ha-new-persp)
       ("]" persp-next :color pink)
       ("[" persp-prev :color pink)
       ("r" persp-rename)
@@ -959,6 +960,17 @@ Displaying a few files? Well, when /starting/ I am only showing one or two files
         (split-window-horizontally)
         (ha--project-show-files root more))))
 #+END_SRC
+
+The =persp-switch= allows me to select or create a new project, but what if we insisted on a new workspace?
+#+BEGIN_SRC emacs-lisp
+  (defun ha-new-persp (name)
+    (interactive "sNew Workspace: ")
+    (persp-switch name)
+    (cond
+     ((s-ends-with? "mail" name) (notmuch))
+     ((s-starts-with? "twit" name) (twit))))
+#+END_SRC
+Once we create the new perspective workspace, if it matches a particular name, I pretty much know what function I would like to call.
 * Applications
 Can we really call these /applications/?
 ** Magit
