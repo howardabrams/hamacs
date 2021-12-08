@@ -51,9 +51,9 @@ One other helper routine is a =general= macro for org-mode files:
 #+NAME: ha-org-leader
 #+BEGIN_SRC emacs-lisp :tangle no
   (general-create-definer ha-org-leader
-        :states '(normal visual)
-        :keymaps 'org-mode-map
-        :prefix "SPC m")
+      :states '(normal visual motion)
+      :keymaps 'org-mode-map
+      :prefix "SPC m")
 #+END_SRC
 * Initialization Section
 Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).

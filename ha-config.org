@@ -347,13 +347,14 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
     :config
     (general-evil-setup t)
     (general-create-definer ha-leader
-      :keymaps '(normal visual)
+      :states '(normal visual motion)
+      :keymaps 'override
       :prefix "SPC"
       :non-normal-prefix "M-SPC"
       :global-prefix "<f13>")
 
     (general-create-definer ha-local-leader
-      :states '(normal visual)
+      :states '(normal visual motion)
       :prefix "SPC m"))
 #+END_SRC
 *** Top-Level Operations
@@ -672,6 +673,18 @@ While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
     "h i" '("info" . info))
 #+END_SRC
 
+Let's make Info behave a little more VI-like:
+#+BEGIN_SRC emacs-lisp
+  (use-package info
+    :straight (:type built-in)
+    :general
+    (:states 'normal :keymaps 'Info-mode-map
+             "o" 'ace-link-info
+             "b" 'Info-history-back
+             "TAB" 'Info-history-forward
+             "p" 'Info-backward-node
+             "n" 'Info-forward-node))    ; Old habit die hard
+#+END_SRC
 *** Consult Enhancements
 The [[https://github.com/minad/consult][consult]] package is a replacement for selecting buffers and other /speciality functions/, similar to the [[https://oremacs.com/2015/04/09/counsel-completion/][Ivy's counsel completion]] project. I think I may be adding it sparingly, as personally, I read files and buffers based on the selected /project/.
 

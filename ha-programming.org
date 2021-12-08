@@ -30,9 +30,9 @@ Seems that all programming interfaces and workflows behave similarly. However...
 One other helper routine is a =general= macro for org-mode files:
 #+BEGIN_SRC emacs-lisp
   (general-create-definer ha-prog-leader
-        :states '(normal visual)
-        :keymaps 'prog-mode-map
-        :prefix "SPC m")
+      :states '(normal visual motion)
+      :keymaps 'prog-mode-map
+      :prefix "SPC m")
 #+END_SRC
 * General
 The following work for all programming languages.
