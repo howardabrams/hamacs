@@ -63,14 +63,14 @@ Now that headers are noticeable, I have no reason to see a number of asterisks. 
 #+BEGIN_SRC emacs-lisp
 (use-package org-superstar
   :init
-  (add-hook 'org-mode 'org-superstar-mode)
   (setq org-superstar-headline-bullets-list '("▶")
-        org-superstar-special-todo-items t
+        org-superstar-special-todo-items nil
         org-superstar-todo-bullet-alist t
         org-superstar-prettify-item-bullets t
         org-superstar-item-bullet-alist '((42 . "⊙")   ; *
                                           (43 . "⁍")   ; +
-                                          (45 . "•"))))
+                                          (45 . "•")))
+  :hook org-mode)
 #+END_SRC
 
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I just stay with dashed bullets. Numeric bullets should cycle:
