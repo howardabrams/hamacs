@@ -26,20 +26,30 @@ A literate programming file to configure the Emacs UI.
 * Dashboard
 The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] project makes a nicer startup screen.
 #+BEGIN_SRC emacs-lisp
-    (use-package dashboard
-      :init
-      (setq dashboard-banner-logo-title "Welcome to Emacs"
-            dashboard-startup-banner "~/other/hamacs/support/levitating-gnu.png"
-            dashboard-center-content t
-            dashboard-set-init-info t
-            dashboard-projects-switch-function 'projectile-persp-switch-project
-            dashboard-items '((projects . 5)
-                              ;; (agenda . 5)
-                              (bookmarks . 5)))
-      :config
-      (dashboard-setup-startup-hook)
+  (use-package dashboard
+    :init
+    (defun ha-dashboard-version ()
+      (let ((smaller-version (replace-regexp-in-string
+                     (rx " (" (zero-or-more any) eol) "" (emacs-version))))
+        (string-replace "\n" "" smaller-version)))
 
-      (setq dashboard-footer-messages (list (ha--dad-joke))))
+    (setq dashboard-banner-logo-title
+          (format "Emacs %s ⸺ %s"
+                  (if (and (fboundp 'native-comp-available-p)
+                           (native-comp-available-p))
+                      "with Native Compilation" "")
+                  (ha-dashboard-version))
+          dashboard-startup-banner "~/other/hamacs/support/levitating-gnu.png"
+          dashboard-center-content t
+          dashboard-set-init-info t
+          dashboard-projects-switch-function 'projectile-persp-switch-project
+          dashboard-items '((projects . 5)
+                            ;; (agenda . 5)
+                            (bookmarks . 5)))
+    :config
+    (dashboard-setup-startup-hook)
+
+    (setq dashboard-footer-messages (list (ha--dad-joke))))
 #+END_SRC
 * Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:
