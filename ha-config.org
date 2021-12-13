@@ -46,11 +46,11 @@ More settings:
 
 And some Mac-specific settings:
 #+BEGIN_SRC emacs-lisp
-(when (equal system-type 'darwin)
-  (setq mac-option-modifier 'meta)
-  (setq mac-command-modifier 'super)
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)))
+  (when (ha-running-on-macos?)
+    (setq mac-option-modifier 'meta)
+    (setq mac-command-modifier 'super)
+    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+    (add-to-list 'default-frame-alist '(ns-appearance . dark)))
 #+END_SRC
 * Support Packages
 ** Piper
