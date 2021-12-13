@@ -613,6 +613,7 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
     :config
     (ha-leader
        "s"  '(:ignore t :which-key "search")
+       "s q" '("close" . ha-rg-close-results-buffer)
        "s r" '("dwim" . rg-dwim)
        "s s" '("search" . rg)
        "s S" '("literal" . rg-literal)
@@ -622,6 +623,11 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
        "s j" '("next results" . ha-rg-go-next-results)
        "s k" '("prev results" . ha-rg-go-previous-results)
        "s b" '("results buffer" . ha-rg-go-results-buffer))
+
+    (defun ha-rg-close-results-buffer ()
+      "Close to the `*rg*' buffer that `rg' creates."
+      (interactive)
+      (kill-buffer "*rg*"))
 
     (defun ha-rg-go-results-buffer ()
       "Pop to the `*rg*' buffer that `rg' creates."
