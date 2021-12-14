@@ -55,7 +55,7 @@ One other helper routine is a =general= macro for org-mode files:
       :keymaps 'org-mode-map
       :prefix "SPC m"
       :global-prefix "<f17>"
-      :non-normal-prefix "M-SPC")
+      :non-normal-prefix "S-SPC")
 #+END_SRC
 * Initialization Section
 Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).

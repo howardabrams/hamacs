@@ -100,7 +100,7 @@ Let's create a leader for this mode:
       :keymaps '(circe-channel-mode-map circe-server-mode-map)
       :prefix "SPC m"
       :global-prefix "<f17>"
-      :non-normal-prefix "M-SPC")
+      :non-normal-prefix "S-SPC")
 #+END_SRC
 
 And a quick shortcut to call it:

@@ -34,7 +34,7 @@ One other helper routine is a =general= macro for org-mode files:
       :keymaps 'prog-mode-map
       :prefix "SPC m"
       :global-prefix "<f17>"
-      :non-normal-prefix "M-SPC")
+      :non-normal-prefix "S-SPC")
 #+END_SRC
 * General
 The following work for all programming languages.

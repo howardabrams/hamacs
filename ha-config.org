@@ -357,7 +357,7 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :states '(normal visual motion)
       :prefix "SPC m"
       :global-prefix "<f17>"
-      :non-normal-prefix "M-SPC"))
+      :non-normal-prefix "S-SPC"))
 #+END_SRC
 *** Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
