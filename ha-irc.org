@@ -23,47 +23,92 @@ A literate programming configuration file for IRC communiction.
 ;;; Code:
 #+END_SRC
 * Introduction
-My IRC /needs/ are basic, so until I really start using Bitlbee heavily (see below), I connect to IRC servers using [[https://www.gnu.org/software/emacs/manual/html_node/rcirc/][rcirc]], see the [[info:rcirc][Info for rcirc]].
-
-Basic configuration settings, include:
+My IRC /needs/ are basic, but I'm not sure which I want to use.
+** Circe
+The [[https://github.com/emacs-circe/circe][circe project]] (see the [[http://www.nongnu.org/circe/][old site]]) looks intriguing, and is still supported. See the [[https://github.com/emacs-circe/circe/wiki][wiki documentation]], but it has good defaults.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package rcirc
+  (use-package circe
     :init
-    (setq rcirc-default-nick "howard-abrams"
-          rcirc-enable-authinfo-support t
-          rcirc-enable-styles t
-          rcirc-enable-late-fix t
-          rcirc-enable-emojify t
-          rcirc-enable-erc-tweet t
-          rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY")
-          rcirc-server-alist '(("howardabrams.com"
-                                :port 7777
-                                :nick "howard-abrams"
-                                :full-name "Howard Abrams")))
-   :config
-   (rcirc-track-minor-mode 1))
+    (setq circe-reduce-lurker-spam t
+          lui-flyspell-p t
+          circe-network-options
+          '(("howardabrams.com"
+             :tls nil
+             :nick "howard-abrams"
+             :port 7777
+             :sasl-username "howard-abrams")))
+    :config
+    ;; Trick to ignore the PART and QUIT messages:
+    (circe-set-display-handler "PART" (lambda (&rest ignored) nil))
+    (circe-set-display-handler "QUIT" (lambda (&rest ignored) nil)))
 #+END_SRC
 
-Note the following key-bindings:
+* ZNC Server
+I'm using my own ZNC server, and I need to log in with a password stored in my GPG auth storage:
 
-  + ~C-c C-o~ :: To ignore the unimportant JOIN/PART messages, do this for every channel
-  + ~C-c C-l~ :: Lower the priority. Chatty, technical channels get this treatment.
-  + ~C-c TAB~ :: Ignore a channel's notification, do this for =#emacs= because it is always displayed.
-* IRC Servers
-Gotta jump into the new Libera. This shows how you can contact me, and what channels I like to visit.
+#+BEGIN_SRC emacs-lisp
+  (defun ha-circe-reconnect-password ()
+    "Send the reconnection password string."
+    (interactive)
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  (with-eval-after-load "rcirc"
-    (setq rcirc-server-alist '(("irc.libera.chat"
-                                :nick "howard-abrams"
-                                :full-name "Howard Abrams"
-                                :channels ("#emacs"
-                                           "#evil-mode"
-                                           "#org-mode"
-                                           "#openstack-operators"
-                                           "#openstack-kolla"
-                                           "#openstack-ansible")))))
+    (let* ((auth-results (auth-source-search :host "howardabrams.com" :port 7777 :max 1))
+           (auth-first   (first auth-results))
+           (username     (plist-get auth-first :user))
+           (password     (funcall (plist-get auth-first :secret))))
+      (circe-command-QUOTE (format "PASS %s:%s" username password))))
+#+END_SRC
+
+But now we can call both the reconnect, as well as the password:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-circe-reconnect ()
+    "Overlay interface to reconnect to my IRC server."
+    (interactive)
+    (circe-reconnect)
+    (sit-for 3)
+    (ha-circe-reconnect-password))
+#+END_SRC
+
+* Key Bindings
+Quick way to start and jump to my IRC world.
+#+BEGIN_SRC emacs-lisp
+  (defun ha-irc-persp-start ()
+    "Create an IRC workspace and start my IRC client."
+    (interactive)
+    (persp-switch "irc")
+    (circe "howardabrams.com"))
+
+  (defun ha-irc-persp-switch ()
+    "Switch to the IRC workspace and load the next buffer."
+    (interactive)
+    (persp-switch "irc")
+    (tracking-next-buffer))
+#+END_SRC
+
+And some global keys to display them:
+#+BEGIN_SRC emacs-lisp
+(ha-leader
+  "a i" '("irc switch" . ha-irc-persp-switch)
+  "a I" '("irc start"  . ha-irc-persp-start))
+#+END_SRC
+
+Let's create a leader for this mode:
+#+BEGIN_SRC emacs-lisp
+  (general-create-definer ha-circe-leader
+      :states '(normal visual motion)
+      :keymaps '(circe-channel-mode-map circe-server-mode-map)
+      :prefix "SPC m"
+      :global-prefix "<f17>"
+      :non-normal-prefix "M-SPC")
+#+END_SRC
+
+And a quick shortcut to call it:
+#+BEGIN_SRC emacs-lisp
+  (ha-circe-leader
+   "o" '("next channel" . tracking-next-buffer)
+   "r" '("reconnect" . ha-circe-reconnect)
+   "p" '("send password" . ha-circe-reconnect-password))
 #+END_SRC
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
