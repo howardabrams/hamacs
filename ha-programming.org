@@ -32,7 +32,9 @@ One other helper routine is a =general= macro for org-mode files:
   (general-create-definer ha-prog-leader
       :states '(normal visual motion)
       :keymaps 'prog-mode-map
-      :prefix "SPC m")
+      :prefix "SPC m"
+      :global-prefix "<f17>"
+      :non-normal-prefix "M-SPC")
 #+END_SRC
 * General
 The following work for all programming languages.
