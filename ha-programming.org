@@ -191,32 +191,17 @@ Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add 
 #+END_SRC
 * Languages
 Simple to configure languages go here. More advanced stuff will go in their own files...eventually.
-** YAML/Ansible/Jinja
+** YAML and Jinja
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
 #+BEGIN_SRC emacs-lisp
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
 #+END_SRC
+
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
 #+BEGIN_SRC emacs-lisp
 (use-package jinja2-mode
   :mode (rx ".j2" eol))
-#+END_SRC
-
-And, finally, we install [[https://github.com/k1LoW/emacs-ansible][Ansible]] as well:
-#+BEGIN_SRC emacs-lisp
-  (use-package ansible
-    :init
-    (setq ansible-vault-password-file "~/work/5/wpc5/deploy/playbooks/.vault-password")
-    :config
-    (add-hook 'yaml-mode-hook '(lambda () (ansible 1))))
-#+END_SRC
-And some special keybindings to encrypt/decrypt files:
-#+BEGIN_SRC emacs-lisp
-  (ha-prog-leader
-     "x"  '(:ignore t :which-key "decryption")
-     "x d" '("decrypt buffer" . ansible-decrypt-buffer)
-     "x e" '("encrypt buffer" . ansible-encrypt-buffer))
 #+END_SRC
 
 ** Emacs Lisp
