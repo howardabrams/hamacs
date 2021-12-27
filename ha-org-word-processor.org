@@ -62,7 +62,9 @@ Now that headers are noticeable, I have no reason to see a number of asterisks. 
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-superstar
+    :after org
     :straight (:type git :protocol ssh :host github :repo "integral-dw/org-superstar-mode")
+    :hook (org-mode . org-superstar-mode)
     :init
     (setq org-superstar-headline-bullets-list '("▶")
           org-superstar-special-todo-items nil
@@ -70,9 +72,20 @@ Now that headers are noticeable, I have no reason to see a number of asterisks. 
           org-superstar-prettify-item-bullets t
           org-superstar-item-bullet-alist '((42 . "⊙")   ; *
                                             (43 . "⁍")   ; +
-                                            (45 . "•")))
-    :hook org-mode)
+                                            (45 . "•"))))
 #+END_SRC
+
+If this works, then we get the prettier bulleted list:
+
+  * Top bullets
+  * Plus bullets:
+      + Apples
+      + Oranges
+      + Bananas
+  * Minus bullets:
+      - Dogs
+      - Cats
+      - Birds
 
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I just stay with dashed bullets. Numeric bullets should cycle:
 
