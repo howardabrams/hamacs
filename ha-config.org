@@ -160,6 +160,13 @@ For this, I use the =request= package, which is /asynchronous/
 #+BEGIN_SRC emacs-lisp
 #+END_SRC
 
+** Demo It
+Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
+#+BEGIN_SRC emacs-lisp
+  (use-package demo-it
+    :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
+    :commands (demo-it-create demo-it-start))
+#+END_SRC
 * Configuration Changes
 ** Initial Settings and UI
 Let's turn off the menu and other things:

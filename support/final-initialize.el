@@ -60,9 +60,8 @@ non-tangled files."
   (unless (f-exists? hamacs-private-code-dir)
     (make-directory hamacs-private-code-dir))
 
-  (ha/install-code-from-essays)
   ;; (ha/install-code-from-hamacs)
-
+  (ha/install-code-from-essays))
 
 (ha/install-configuration)
 (provide 'final-initialize)
