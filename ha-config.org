@@ -40,8 +40,9 @@ As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to
 More settings:
 
 #+BEGIN_SRC emacs-lisp
-(setq truncate-string-ellipsis "…" ; Unicode ellispis are nicer than "..."
-      auto-save-default t)
+  (setq truncate-string-ellipsis "…" ; Unicode ellispis are nicer than "..."
+        auto-save-default t
+        debug-on-error t)
 #+END_SRC
 
 And some Mac-specific settings:
