@@ -60,9 +60,10 @@ Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabra
 #+BEGIN_SRC emacs-lisp
   (use-package piper
     :straight (:type git :protocol ssh :host gitlab :repo "howardabrams/emacs-piper")
-    :commands shell-command-to-list    ; I use this function quite a bit
+    :commands piper shell-command-to-list    ; I use this function quite a bit
     :bind (:map evil-normal-state-map
-           ("|" . piper-user-interface)))
+           ("C-M-|" . piper)
+           ("C-|" . piper-user-interface)))
 #+END_SRC
 ** Yet Another Snippet System (YASnippets)
 Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
@@ -79,7 +80,7 @@ Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippe
 #+BEGIN_SRC emacs-lisp
 (use-package doom-snippets
   :after yasnippet
-  :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+  :straight (:type git :protocol ssh :host github :repo "hlissner/doom-snippets"))
 #+END_SRC
 *Note:* Including his snippets also includes some [[https://github.com/hlissner/doom-snippets#snippets-api][helper functions]] and other features.
 ** Auto Insert Templates

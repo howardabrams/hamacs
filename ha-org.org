@@ -27,8 +27,7 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :straight (:type built-in)  ; Problems with the 9.4.4 version
-    ;; :straight (:type git :protocol ssh :repo
-    ;; 		   "git://git.sv.gnu.org/emacs/org-mode.git")
+    ;; :straight (:type git :protocol ssh :repo "git://git.sv.gnu.org/emacs/org-mode.git")
     :mode ("\\.org" . org-mode) ; Addresses an odd warning
     :init
     <<variables>>
@@ -360,7 +359,7 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
 #+BEGIN_SRC emacs-lisp
   (use-package ox-confluence
     :after org
-    :straight nil
+    :straight nil   ; Located in my "elisp" directory
     :config
       (ha-org-leader
         "E" '("to confluence"     . ox-export-to-confluence)))

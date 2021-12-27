@@ -61,16 +61,17 @@ Next, we just need to change the header sizes:
 Now that headers are noticeable, I have no reason to see a number of asterisks. Once I used the [[https://github.com/sabof/org-bullets][org-bullets]] package, but believe we've replaced it with [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]], so the following is an improvement, especially with the sub-bullets:
 
 #+BEGIN_SRC emacs-lisp
-(use-package org-superstar
-  :init
-  (setq org-superstar-headline-bullets-list '("▶")
-        org-superstar-special-todo-items nil
-        org-superstar-todo-bullet-alist t
-        org-superstar-prettify-item-bullets t
-        org-superstar-item-bullet-alist '((42 . "⊙")   ; *
-                                          (43 . "⁍")   ; +
-                                          (45 . "•")))
-  :hook org-mode)
+  (use-package org-superstar
+    :straight (:type git :protocol ssh :host github :repo "integral-dw/org-superstar-mode")
+    :init
+    (setq org-superstar-headline-bullets-list '("▶")
+          org-superstar-special-todo-items nil
+          org-superstar-todo-bullet-alist t
+          org-superstar-prettify-item-bullets t
+          org-superstar-item-bullet-alist '((42 . "⊙")   ; *
+                                            (43 . "⁍")   ; +
+                                            (45 . "•")))
+    :hook org-mode)
 #+END_SRC
 
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I just stay with dashed bullets. Numeric bullets should cycle:
@@ -132,7 +133,7 @@ The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks pla
 
 #+BEGIN_SRC emacs-lisp
 (use-package org-padding
-  :straight (org-padding :type git :host github :repo "TonCherAmi/org-padding")
+  :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
   :hook
   (org-mode . org-padding-mode)
   :config
