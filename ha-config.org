@@ -1046,38 +1046,13 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g c b" '("Branch"                   . magit-branch-and-checkout)))
 #+END_SRC
 
-Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+BEGIN_SRC emacs-lisp
-    (use-package forge
-      :after magit
-      :config
-      (ha-leader
-        "g '"   '("Forge dispatch"           . forge-dispatch)
-        "g f i" '("Find issue"               . forge-visit-issue)
-        "g f p" '("Find pull request"        . forge-visit-pullreq)
-
-        "g l i" '("List issues"              . forge-list-issues)
-        "g l p" '("List pull requests"       . forge-list-pullreqs)
-        "g l n" '("List notifications"       . forge-list-notifications)
-
-        "g o r" '("Browse remote"            . forge-browse-remote)
-        "g o c" '("Browse commit"            . forge-browse-commit)
-        "g o i" '("Browse an issue"          . forge-browse-issue)
-        "g o p" '("Browse a pull request"    . forge-browse-pullreq)
-        "g o i" '("Browse issues"            . forge-browse-issues)
-        "g o P" '("Browse pull requests"     . forge-browse-pullreqs)
-
-        "g c i" '("Issue"                    . forge-create-issue)
-        "g c p" '("Pull request"             . forge-create-pullreq)))
-#+END_SRC
-
 The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project is cool:
 #+BEGIN_SRC emacs-lisp
 (use-package git-timemachine
   :config
   (ha-leader "g t" '("git timemachine" . git-timemachine)))
 #+END_SRC
-
+*** Gist
 Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
 #+BEGIN_SRC emacs-lisp
    (use-package gist
@@ -1092,6 +1067,63 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
        "g G B" '("private buffer" . gist-buffer-private)           ; Explicitly create a private gist.
        "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
        "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
+#+END_SRC
+*** Forge
+Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
+#+BEGIN_SRC emacs-lisp
+  (use-package forge
+    :after magit
+    :init
+    (setq )
+    :config
+    (ha-leader
+      "g '"   '("Forge dispatch"           . forge-dispatch)
+      "g f i" '("Find issue"               . forge-visit-issue)
+      "g f p" '("Find pull request"        . forge-visit-pullreq)
+
+      "g l i" '("List issues"              . forge-list-issues)
+      "g l p" '("List pull requests"       . forge-list-pullreqs)
+      "g l n" '("List notifications"       . forge-list-notifications)
+
+      "g o r" '("Browse remote"            . forge-browse-remote)
+      "g o c" '("Browse commit"            . forge-browse-commit)
+      "g o i" '("Browse an issue"          . forge-browse-issue)
+      "g o p" '("Browse a pull request"    . forge-browse-pullreq)
+      "g o i" '("Browse issues"            . forge-browse-issues)
+      "g o P" '("Browse pull requests"     . forge-browse-pullreqs)
+
+      "g c i" '("Issue"                    . forge-create-issue)
+      "g c p" '("Pull request"             . forge-create-pullreq)))
+#+END_SRC
+
+Every /so often/, pop over to the following URLs and generate a new
+token where the *Note* is =forge=, and then copy that into the
+[[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
+
+  - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
+  - [[https://github.com/settings/tokens][Github]]
+
+ and make sure this works:
+
+#+BEGIN_SRC emacs-lisp
+  (ghub-request "GET" "/user" nil
+                :forge 'github
+                :host "api.github.com"
+                :username "howardabrams"
+                :auth 'forge)
+#+END_SRC
+*** Pushing is Bad
+Pushing directly to the upstream branch is /bad form/, as one should create a pull request, etc. To prevent an accidental push, we /double-check/ first:
+
+#+BEGIN_SRC emacs-lisp
+(define-advice magit-push-current-to-upstream (:before (args) query-yes-or-no)
+  "Prompt for confirmation before permitting a push to upstream."
+  (when-let ((branch (magit-get-current-branch)))
+    (unless (yes-or-no-p (format "Push %s branch upstream to %s? "
+                                 branch
+                                 (or (magit-get-upstream-branch branch)
+                                     (magit-get "branch" branch "remote"))))
+      (user-error "Push to upstream aborted by user"))))
 #+END_SRC
 ** Web Browsing
 *** EWW
