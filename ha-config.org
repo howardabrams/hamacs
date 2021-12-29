@@ -429,21 +429,47 @@ If ROOT is given, they copies the filepath relative to that."
     (error "Couldn't find filename in current buffer")))
 #+END_SRC
 
+Perhaps my OCD is out-of-control, but I really want to load a file in another window, but want to control which window.
+
+#+BEGIN_SRC emacs-lisp
+  (defmacro ha-create-find-file-window (winum)
+    (let ((func-name (intern (format "ha-find-file-window-%s" winum)))
+          (call-func (intern (format "winum-select-window-%s" winum))))
+      `(defun ,func-name ()
+         "Call `find-file' in the particular `winum' window."
+         (interactive)
+         (,call-func)
+         (call-interactively 'find-file))))
+
+  (dolist (winum (number-sequence 1 9))
+    (ha-create-find-file-window winum))
+#+END_SRC
+
 With these helper functions in place, I can create a leader collection for file-related functions:
 #+BEGIN_SRC emacs-lisp
-(ha-leader
-   "f"  '(:ignore t :which-key "files")
-   "f f" '("load" . find-file)
-   "f s" '("save" . save-buffer)
-   "f S" '("save as" . write-buffer)
-   "f SPC" '("project" . projectile-find-file)
-   "f r" '("recent" . recentf-open-files)
-   "f c" '("copy" . copy-file)
-   "f R" '("rename" . rename-file)
-   "f D" '("delete" . delete-file)
-   "f y" '("yank path" . ha-yank-buffer-path)
-   "f Y" '("yank path from project" . ha-yank-project-buffer-path)
-   "f d" '("dired" . dired))
+  (ha-leader
+     "f"  '(:ignore t :which-key "files")
+     "f f" '("load" . find-file)
+     "f F" '("load new window" . find-file-other-window)
+     "f s" '("save" . save-buffer)
+     "f S" '("save as" . write-buffer)
+     "f SPC" '("project" . projectile-find-file)
+     "f r" '("recent" . recentf-open-files)
+     "f c" '("copy" . copy-file)
+     "f R" '("rename" . rename-file)
+     "f D" '("delete" . delete-file)
+     "f y" '("yank path" . ha-yank-buffer-path)
+     "f Y" '("yank path from project" . ha-yank-project-buffer-path)
+     "f d" '("dired" . dired)
+     "f 1" '("load win-1" . ha-find-file-window-1)
+     "f 2" '("load win-2" . ha-find-file-window-2)
+     "f 3" '("load win-3" . ha-find-file-window-3)
+     "f 4" '("load win-4" . ha-find-file-window-4)
+     "f 5" '("load win-5" . ha-find-file-window-5)
+     "f 6" '("load win-6" . ha-find-file-window-6)
+     "f 7" '("load win-7" . ha-find-file-window-7)
+     "f 8" '("load win-8" . ha-find-file-window-8)
+     "f 9" '("load win-9" . ha-find-file-window-9))
 #+END_SRC
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
