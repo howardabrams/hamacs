@@ -402,6 +402,29 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
       "s n" '("next misspell" . evil-next-flyspell-error)))
 #+END_SRC
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
+
+Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package powerthesaurus
+    :bind ("M-T" . powerthesaurus-lookup-dwim)
+    :config
+    (ha-local-leader :keymaps 'text-mode-map
+      "s t" '("thesaurus" . powerthesaurus-lookup-dwim)
+      "s s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
+      "s a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
+      "s r" '("related" . powerthesaurus-lookup-related-dwim)
+      "s S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
+#+END_SRC
+The key-bindings, keystrokes, key-connections work well with just ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. However, the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package define-word
+    :config
+    (ha-local-leader :keymaps 'text-mode-map
+      "s d" '("define this" . define-word-at-point)
+      "s D" '("define word" . define-word)))
+#+END_SRC
 ** Writegood
 
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] highlights passive and weasel words as typed. Shame it doesn't check for dangled prepositions.
