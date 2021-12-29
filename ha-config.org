@@ -538,6 +538,16 @@ To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winu
   :config
   (winum-mode +1))
 #+END_SRC
+And when creating new windows, why isn't the new window selected?
+#+BEGIN_SRC emacs-lisp
+  (defun jump-to-new-window (&rest _arg)
+    "Advice function to jump to newly spawned window."
+    (other-window 1))
+
+  (dolist (command '(split-window-below split-window-right
+                     evil-window-split evil-window-vsplit))
+    (advice-add command :after #'jump-to-new-window))
+#+END_SRC
 This is nice since the window numbers are always present on a Doom modeline, however, they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
 
 The ~0~ key/window should be always associated with a project-specific tree window:
