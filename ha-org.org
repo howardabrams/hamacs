@@ -205,7 +205,7 @@ I need to add a /blocked/ state:
 
 #+NAME: org-todo
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)" )
+(setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)")
                           (sequence "BLOCKED(b)" "|" "CANCELLED(c)")))
 #+END_SRC
 
@@ -231,7 +231,7 @@ And I would like to have cute little icons for those states:
                             ;; affecting the text file or the behavior).
                             ("^ +\\([-*]\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
-                             #+END_SRC :tangle no
+#+END_SRC
 ** Meetings
 I've notice that while I really like taking notes in a meeting, I don't always like the multiple windows I have opened, so I created this function that I can easily call to eliminate distractions during a meeting.
 
@@ -380,6 +380,28 @@ And we can install company support:
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-graphviz-dot)
 #+END_SRC
+** Spell Checking
+Let's hook some spell-checking into org files, and actually all text files. We'll use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and use the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting (as it is less mousy).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flyspell
+    :hook (text-mode . flyspell-mode)
+    :bind ("M-S" . ha-fix-last-spelling)
+    :config
+    (defun ha-fix-last-spelling (count)
+      "Jump to the last misspelled word, and correct it."
+      (interactive "p")
+      (save-excursion
+        (evil-prev-flyspell-error count)
+        (ispell-word)))
+
+    (ha-local-leader :keymaps 'text-mode-map
+      "s"  '(:ignore t :which-key "spellcheck")
+      "s c" '("correct last misspell" . ha-fix-last-spelling)
+      "s p" '("previous misspell" . evil-prev-flyspell-error)
+      "s n" '("next misspell" . evil-next-flyspell-error)))
+#+END_SRC
+Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
 ** Writegood
 
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] highlights passive and weasel words as typed. Shame it doesn't check for dangled prepositions.

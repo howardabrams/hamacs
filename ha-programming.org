@@ -47,6 +47,13 @@ Farm off commands into /virtual environments/:
     :config
     (direnv-mode))
 #+END_SRC
+** Spell Checking Comments
+The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only checks for misspellings in comments. Useful!
+
+#+BEGIN_SRC emacs-lisp
+(use-package flyspell
+  :hook (prog-mode . flyspell-prog-mode))
+#+END_SRC
 ** Language Server Protocol (LSP) Integration
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp) ... wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and...).
 
