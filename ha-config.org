@@ -393,7 +393,7 @@ And ways to stop the system:
 *** File Operations
 Obviously, =find-file= is still my bread and butter, but I do like getting information about the file associated with the buffer. For instance, the file path:
 #+BEGIN_SRC emacs-lisp
-(defun ha/relative-filepath (filepath)
+(defun ha-relative-filepath (filepath)
   "Return the FILEPATH without the HOME directory and typical filing locations.
 The expectation is that this will return a filepath with the proejct name."
   (let* ((home-re (rx (literal (getenv "HOME")) "/"))
@@ -407,7 +407,7 @@ The expectation is that this will return a filepath with the proejct name."
      ((string-match home-re filepath) (substring filepath (match-end 0)))
      (t filepath))))
 
-(defun ha/yank-buffer-path (&optional root)
+(defun ha-yank-buffer-path (&optional root)
   "Copy the file path of the buffer relative to my 'work' directory, ROOT."
   (interactive)
   (if-let (filename (buffer-file-name (buffer-base-buffer)))
@@ -415,10 +415,10 @@ The expectation is that this will return a filepath with the proejct name."
                (kill-new (abbreviate-file-name
                           (if root
                               (file-relative-name filename root)
-                            (ha/relative-filepath filename)))))
+                            (ha-relative-filepath filename)))))
     (error "Couldn't find filename in current buffer")))
 
-(defun ha/yank-project-buffer-path (&optional root)
+(defun ha-yank-project-buffer-path (&optional root)
   "Copy the file path of the buffer relative to the file's project.
 If ROOT is given, they copies the filepath relative to that."
   (interactive)
@@ -441,8 +441,8 @@ With these helper functions in place, I can create a leader collection for file-
    "f c" '("copy" . copy-file)
    "f R" '("rename" . rename-file)
    "f D" '("delete" . delete-file)
-   "f y" '("yank path" . ha/yank-buffer-path)
-   "f Y" '("yank path from project" . ha/yank-project-buffer-path)
+   "f y" '("yank path" . ha-yank-buffer-path)
+   "f Y" '("yank path from project" . ha-yank-project-buffer-path)
    "f d" '("dired" . dired))
 #+END_SRC
 *** Buffer Operations
@@ -450,7 +450,7 @@ This section groups buffer-related operations under the "SPC b" sequence.
 
 Putting the entire visible contents of the buffer on the clipboard is often useful:
 #+BEGIN_SRC emacs-lisp
-(defun ha/yank-buffer-contents ()
+(defun ha-yank-buffer-contents ()
   "Copy narrowed contents of the buffer to the clipboard."
   (interactive)
   (kill-new (buffer-substring-no-properties
@@ -473,7 +473,7 @@ And the collection of useful operations:
    "b S" '("save all" . evil-write-all)
    "b n" '("next" . next-buffer)
    "b p" '("previous" . previous-buffer)
-   "b y" '("copy contents" . ha/yank-buffer-contents)
+   "b y" '("copy contents" . ha-yank-buffer-contents)
    "b z" '("bury" . bury-buffer)
    "b Z" '("unbury" . unbury-buffer)
 
@@ -658,6 +658,20 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
       (ha-rg-go-results-buffer)
       (previous-error-no-select)
       (compile-goto-error)))
+#+END_SRC
+
+The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with ripgrep. Typically, you can just his ~i~ to automatically go into =wgrep-mode= and edit away, however, I typically want to edit everything at the same time, so I have a toggle that should work as well:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package wgrep
+    :after rg
+    :commands wgrep-rg-setup
+    :hook (rg-mode-hook . wgrep-rg-setup)
+    :config
+      (ha-leader
+       :keymaps 'rg-mode-map  ; Actually, just `i` works!
+       "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
+       "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
 #+END_SRC
 *** Text Operations
 Stealing much of this from Spacemacs.
