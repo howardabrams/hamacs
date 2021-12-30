@@ -69,6 +69,7 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
                                            ; but uses a trick to make it
                                            ; appear indented.
 
+          sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
         ;; Speed Commands: If point is at the beginning of a headline or code
         ;; block in org-mode, single keys do fun things. See
         ;; org-speed-command-help for details (or hit the ? key at a headline).
@@ -430,8 +431,26 @@ The key-bindings, keystrokes, key-connections work well with just ~M-T~ (notice 
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] highlights passive and weasel words as typed. Shame it doesn't check for dangled prepositions.
 
 #+BEGIN_SRC emacs-lisp
-(use-package writegood-mode
-    :hook ((org-mode . writegood-mode)))
+  (use-package writegood-mode
+      :hook ((org-mode . writegood-mode)))
+#+END_SRC
+** Writeroom
+For a complete focused, /distraction-free/ environment, for writing or just concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package writeroom-mode
+    :hook (writeroom-mode-disable . winner-undo)
+    :config
+    (ha-leader "t W" '("writeroom" . writeroom-mode))
+    (ha-leader :keymaps 'writeroom-mode-map
+      "=" '("adjust width" . writeroom-adjust-width)
+      "<" '("decrease width" . writeroom-decrease-width)
+      ">" '("increase width" . writeroom-increase-width))
+
+    :bind (:map writeroom-mode-map
+                ("C-M-<" . writeroom-decrease-width)
+                ("C-M->" . writeroom-increase-width)
+                ("C-M-=" . writeroom-adjust-width)))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 
