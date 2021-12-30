@@ -161,13 +161,6 @@ For this, I use the =request= package, which is /asynchronous/
 #+BEGIN_SRC emacs-lisp
 #+END_SRC
 
-** Demo It
-Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
-#+BEGIN_SRC emacs-lisp
-  (use-package demo-it
-    :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
-    :commands (demo-it-create demo-it-start))
-#+END_SRC
 * Configuration Changes
 ** Initial Settings and UI
 Let's turn off the menu and other things:
@@ -670,6 +663,7 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
        "s j" '("next results" . ha-rg-go-next-results)
        "s k" '("prev results" . ha-rg-go-previous-results)
        "s b" '("results buffer" . ha-rg-go-results-buffer))
+          (rg-enable-default-bindings (kbd "M-R"))
 
     (defun ha-rg-close-results-buffer ()
       "Close to the `*rg*' buffer that `rg' creates."
@@ -967,9 +961,7 @@ Granted, this list is essentially a list of projects that I'm currently developi
   '(("projects" "~/projects" ("breathe.org" "tasks.org"))
     ("personal" "~/personal" ("general.org"))
     ("technical" "~/technical" ("ansible.org"))
-    ("hamacs" "~/other/hamacs" ("README.org" "ha-config.org"))
-    ("rpg" "~/Dropbox/org/rpg" ("workdavians-dragon-heist.org" "dragon-heist.org"))
-    ("dm-work" "~/Dropbox/org/rpg-dm" ("README-mythic.org" "rpgdm.el")))
+    ("hamacs" "~/other/hamacs" ("README.org" "ha-config.org")))
   "List of default projects with a name.")
 #+END_SRC
 
@@ -1201,40 +1193,13 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
     (define-key eww-buffers-mode-map (kbd "q") #'eww-bookmark-kill)
     (define-key eww-bookmark-mode-map (kbd "q") #'eww-bookmark-kill))
 #+END_SRC
+
 And let's get [[https://github.com/abo-abo/ace-link][ace-link]] to work with EWW and Info pages:
 #+BEGIN_SRC emacs-lisp
   (use-package ace-link
     :config
     (ace-link-setup-default))
 #+END_SRC
-** VTerm
-
-I'm not giving up on Eshell, but I am playing around with [[https://github.com/akermu/emacs-libvterm][vterm]], and it is pretty good, but I use it primarily as a more reliable approach to [[file:ha-remoting.org][a remote shell]].
-
-VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package vterm
-  :init
-  (setq vterm-shell "/usr/local/bin/fish")
-  ;; Granted, I seldom pop out to the shell except during code demonstrations,
-  ;; but I like how C-p/C-n jumps up to each prompt entry using this setting
-  ;; that works with my prompt:
-  (setq vterm-use-vterm-prompt-detection-method nil
-        term-prompt-regexp "^.* $ ")
-  :config
-  (dolist (k '("<C-backspace>" "<M-backspace>"))
-    (define-key vterm-mode-map (kbd k)
-      (lambda () (interactive) (vterm-send-key (kbd "C-w")))))
-
-  (advice-add 'vterm-copy-mode :after 'evil-normal-state))
-#+END_SRC
-
-The advantage of running terminals in Emacs is the ability to copy text without a mouse. For that, hit ~C-c C-t~ to enter a special copy-mode. If I go into this mode, I might as well also go into normal mode to move the cursor.
-
-*Note:* To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
-
-Hrm. Seems that I might want a function to copy the output of the last command to a register, or even an org-capture...
 ** Neotree
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
 #+BEGIN_SRC emacs-lisp

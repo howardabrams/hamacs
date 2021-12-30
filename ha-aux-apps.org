@@ -24,7 +24,112 @@ A literate programming file for helper apps in Emacs.
   #+END_SRC
 * Introduction
 The following applications are not really needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and simply using a stand-alone app on my Workday computer.
-** Twitter
+* Terminal
+The following section configures my Terminal experience, both inside and outside Emacs.
+** Eshell
+I used to use [[http://www.howardism.org/Technical/Emacs/eshell.html][Eshell all the time]], but now I've migrated most of /work/ directly into Emacs (rewriting all those shell scripts a Emacs Lisp code). However, a shell is pretty good for my brain at organizing files (old habits, maybe).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eshell
+    :config (ha-leader "a e" '("eshell" . eshell-here)))
+#+END_SRC
+
+I usually want a new window running Eshell, that is smaller than the current buffer:
+
+#+BEGIN_SRC emacs-lisp
+  (defun eshell-here ()
+    "Opens up a new shell in the directory associated with the
+  current buffer's file. Rename the eshell buffer name to match
+  that directory to make multiple eshell windows easier."
+    (interactive)
+    (let* ((parent (if (buffer-file-name)
+                       (file-name-directory (buffer-file-name))
+                     default-directory))
+           (height (/ (window-total-height) 3))
+           (name   (car (last (split-string parent "/" t)))))
+      (split-window-vertically (- height))
+      (eshell "new")
+      (rename-buffer (concat "*eshell: " name "*"))
+
+      (insert (concat "ls"))
+      (eshell-send-input)))
+#+END_SRC
+
+And since Emacs supplies Eshell, we can just define these helper functions:
+
+#+BEGIN_SRC emacs-lisp
+  (defun eshell/e (file)
+        (find-file file))
+
+  (defun eshell/ee (file)
+        (find-file-other-window file))
+
+  (defun eshell/x ()
+    (insert "exit")
+    (eshell-send-input)
+    (delete-window))
+#+END_SRC
+
+Add my org-specific predicates, see this [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][this essay]] for the details:
+#+BEGIN_SRC emacs-lisp
+  (defun eshell-org-file-tags ()
+    "Helps the eshell parse the text the point is currently on,
+  looking for parameters surrounded in single quotes. Returns a
+  function that takes a FILE and returns nil if the file given to
+  it doesn't contain the org-mode #+FILETAGS: entry specified."
+
+    ;; Step 1. Parse the eshell buffer for our tag between quotes
+    ;;         Make sure to move point to the end of the match:
+    (if (looking-at "'\\([^)']+\\)'")
+        (let* ((tag (match-string 1))
+               (reg (rx bol "#+FILETAGS: "
+                        (zero-or-more any)
+                        word-start
+                        (literal tag)
+                        word-end
+                        (zero-or-more any)
+                        eol)))
+          (goto-char (match-end 0))
+
+          ;; Step 2. Return the predicate function:
+          ;;         Careful when accessing the `reg' variable.
+          `(lambda (file)
+             (with-temp-buffer
+               (insert-file-contents file)
+               (re-search-forward ,reg nil t 1))))
+      (error "The `T' predicate takes an org-mode tag value in single quotes.")))
+
+  (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags)))
+#+END_SRC
+** VTerm
+
+I'm not giving up on Eshell, but I am playing around with [[https://github.com/akermu/emacs-libvterm][vterm]], and it is pretty good, but I use it primarily as a more reliable approach to [[file:ha-remoting.org][a remote shell]].
+
+VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package vterm
+  :init
+  (setq vterm-shell "/usr/local/bin/fish")
+  ;; Granted, I seldom pop out to the shell except during code demonstrations,
+  ;; but I like how C-p/C-n jumps up to each prompt entry using this setting
+  ;; that works with my prompt:
+  (setq vterm-use-vterm-prompt-detection-method nil
+        term-prompt-regexp "^.* $ ")
+  :config
+  (dolist (k '("<C-backspace>" "<M-backspace>"))
+    (define-key vterm-mode-map (kbd k)
+      (lambda () (interactive) (vterm-send-key (kbd "C-w")))))
+
+  (advice-add 'vterm-copy-mode :after 'evil-normal-state))
+#+END_SRC
+
+The advantage of running terminals in Emacs is the ability to copy text without a mouse. For that, hit ~C-c C-t~ to enter a special copy-mode. If I go into this mode, I might as well also go into normal mode to move the cursor.
+
+*Note:* To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
+
+Hrm. Seems that I might want a function to copy the output of the last command to a register, or even an org-capture...
+* Twitter
 The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
 #+BEGIN_SRC emacs-lisp
   (use-package twittering-mode
@@ -34,7 +139,7 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     :config
     (defalias 'epa--decode-coding-string 'decode-coding-string))
 #+END_SRC
-** Telega
+* Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
 
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -45,6 +150,34 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 
 *Note:* Turning this off as it needs version 1.7.7 of =tdlib=, and that isn't easily available on my Mac. Maybe I may enable this on my Linux system.
+* Demo It
+Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
+#+BEGIN_SRC emacs-lisp
+  (use-package demo-it
+    :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
+    :commands (demo-it-create demo-it-start))
+#+END_SRC
+Perhaps I should change the reference to this for more local development:
+#+begin_example
+      :straight (:local-repo "~/other/demo-it")
+#+end_example
+** RPG DM
+Been working on a project for getting Emacs helping as a /Dungeon Master's Assistant/, and I must say, it is coming along nicely. In case you are reading this, let me know, and I'll start to share it.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package rpgdm
+    :straight (:local-repo "~/other/rpgdm")
+    :commands (rpgdm-mode rpgdm-tables-load)
+    :config (ha-leader "t D" '("rpg dm" . rpgdm-mode)))
+#+END_SRC
+
+While it is a minor mode, I don't necessarily want to turn it on for all files.
+Instead, in an Org file, I just need to include something like this:
+#+BEGIN_SRC org
+# Local Variables:
+# eval: (progn (rpgdm-mode 1) (rpgdm-tables-load "ironsworn"))
+# End:
+#+END_SRC
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
