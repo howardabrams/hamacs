@@ -7,31 +7,32 @@ My Emacs configuration, that I'm cheekily calling /hamacs/ is a literate program
 
 The other advantage to rolling yer own is that you are more likely to /use/ what you add, leading to less bloat, and a more fun experience.
 
-Why yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with =ha-=, however, everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)... meaning that most blocks of code should /just work/ on its own.
+Why yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, however, everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)... meaning that most blocks of code should /just work/ on its own.
 Hit me up with questions, =@howardabrams=.  If you want to try this out, after installing Emacs, and cloning this repo, run:
 #+BEGIN_SRC sh
 ./initialize
 #+END_SRC
 This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the process loading the files:
 
-  - [[file:bootstrap.org][bootstrap.org]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order:
-  - [[file:ha-config.org][ha-config.org]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
-  - [[file:ha-display.org][ha-display.org]] :: sets up the visual aspects of an Emacs GUI, including themes, fonts and the dashboard.
-  - [[file:ha-org.org][ha-org.org]] :: configures the basics for org-mode formatted files. Specific features, however, come from their own files, however.
-  - [[file:ha-org-word-processor.org][ha-org-word-processor.org]] :: attempts to make Org files /visually/ look like what one might see in a word processor, including turning off the colors for headers, and instead increasing their size.
-  - [[file:ha-org-clipboard.org][ha-org-clipboard.org]] :: automatically converting HTML from a clipboard into Org-formatted content.
-  - [[file:ha-org-journaling.org][ha-org-journaling.org]] :: for writing journal entries and tasks.
-  - [[file:ha-org-publishing.org][ha-org-publishing.org]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
-  - [[file:ha-org-sprint.org][ha-org-sprint.org]] :: functions for working with the my Org-focused sprint files.
-  - [[file:ha-remoting.org][ha-remoting.org]] :: my interface to systems using SSH and Vterm.
-  - [[file:ha-email.org][ha-email.org]] :: reading email using =notmuch= in a *Hey* fashion.
-  - [[file:ha-feed-reader.org][ha-feed-reader.org]] :: configuration of elfeed as well as my RSS feeds.
-  - [[file:ha-aux-apps.org][ha-aux-apps.org]] :: optional applications, like Twitter and Telegram.
-  - [[file:ha-capturing-notes.org][ha-capturing-notes.org]] :: my engineering notebook.
-  - [[file:ha-agendas.org][ha-agendas.org]] :: attempts to "supe-up" my task list.
-  - [[file:ha-irc.org][ha-irc.org]] :: connection to IRC servers using rcirc and bitlbee.
-  - [[file:ha-passwords.org][ha-passwords.org]] :: code for generating passwords.
-  - [[file:ha-programming.org][ha-programming.org]] :: configuration for /all/ programming languages, or at least, the simple ones.
-  - [[file:ha-programming-python.org][ha-programming-python.org]] :: configuration for working with Python and LSP.
+  - [[file:bootstrap.org][bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order:
+  - [[file:ha-config.org][config]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
+  - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes, fonts and the dashboard.
+  - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features, however, come from their own files, however.
+  - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like what one might see in a word processor, including turning off the colors for headers, and instead increasing their size.
+  - [[file:ha-org-clipboard.org][org-clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
+  - [[file:ha-org-journaling.org][org-journaling]] :: for writing journal entries and tasks.
+  - [[file:ha-org-publishing.org][org-publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
+  - [[file:ha-org-sprint.org][org-sprint]] :: functions for working with the my Org-focused sprint files.
+  - [[file:ha-remoting.org][remoting]] :: my interface to systems using SSH and Vterm.
+  - [[file:ha-email.org][email]] :: reading email using =notmuch= in a *Hey* fashion.
+  - [[file:ha-feed-reader.org][feed-reader]] :: configuration of elfeed as well as my RSS feeds.
+  - [[file:ha-aux-apps.org][aux-apps]] :: optional applications, like Twitter and Telegram.
+  - [[file:ha-capturing-notes.org][capturing-notes]] :: my engineering notebook.
+  - [[file:ha-agendas.org][agendas]] :: attempts to "supe-up" my task list.
+  - [[file:ha-irc.org][irc]] :: connection to IRC servers using rcirc and bitlbee.
+  - [[file:ha-passwords.org][passwords]] :: code for generating passwords.
+  - [[file:ha-programming.org][programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-programming-python.org][programming-python]] :: configuration for working with Python and LSP.
+  - [[file:ha-aux-apps.org][aux-apps]] :: additional application configuration.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]].  To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.

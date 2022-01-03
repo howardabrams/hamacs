@@ -161,17 +161,18 @@ My /current/ favorite font is actually the top list of fonts that may be install
 #+BEGIN_SRC emacs-lisp
   (defvar ha-fixed-font
     (when window-system
-      (cond ((x-list-fonts "Hack Nerd Font") "Hack Nerd Font")
-	    ((x-list-fonts "Cousine Nerd Font") "Cousine Nerd Font")
-	    ((x-list-fonts "Iosevka Nerd Font") "Iosevka Nerd Font")
-	    ((x-list-fonts "Iosevka")           "Iosevka")
-	    ((x-list-fonts "FantasqueSansMono Nerd Font") "FantasqueSansMono Nerd Font")
-	    ((x-list-fonts "Monoid Nerd Font")  "Monoid Nerd Font")
-	    ((x-list-fonts "Hasklig")           "Hasklig")
-	    ((x-list-fonts "Cascadia Code PL")  "Cascadia Code PL")
-	    ((x-list-fonts "Source Code Pro")   "Source Code Pro")
-	    ((x-list-fonts "Anonymous Pro")     "Anonymous Pro")
-	    (t "monospaced")))
+      (cond
+       ((x-list-fonts "Hack Nerd Font") "Hack Nerd Font")
+       ((x-list-fonts "Cousine Nerd Font") "Cousine Nerd Font")
+       ((x-list-fonts "Iosevka Nerd Font") "Iosevka Nerd Font")
+       ((x-list-fonts "Iosevka")           "Iosevka")
+       ((x-list-fonts "FantasqueSansMono Nerd Font") "FantasqueSansMono Nerd Font")
+       ((x-list-fonts "Monoid Nerd Font")  "Monoid Nerd Font")
+       ((x-list-fonts "Hasklig")           "Hasklig")
+       ((x-list-fonts "Cascadia Code PL")  "Cascadia Code PL")
+       ((x-list-fonts "Source Code Pro")   "Source Code Pro")
+       ((x-list-fonts "Anonymous Pro")     "Anonymous Pro")
+       (t "monospaced")))
     "My fixed width font based on what is installed, `nil' if not defined.")
 #+END_SRC
 
@@ -193,9 +194,7 @@ I probably don't need to have such a ranking system, as chances are really good 
   "My variable width font available to org-mode files and whatnot.")
 #+END_SRC
 
-Simple function that gives me the font information based on the size I
-need.  This calls =set-frame-font=, but also sets the monospaced font
-for org code blocks.
+Simple function that gives me the font information based on the size I need. This calls =set-frame-font=, but also sets the monospaced font for org code blocks.
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-set-favorite-font-size (size)
@@ -213,25 +212,30 @@ for org code blocks.
   Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha-mac-monitor-fontsize ()
-  "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
-  (interactive)
-  (ha-set-favorite-font-size 13))
+  (defun ha-mac-monitor-fontsize ()
+    "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
+    (interactive)
+    (ha-set-favorite-font-size 13))
 
-(defun ha-linux-monitor-fontsize ()
-  "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
-  (interactive)
-  (ha-set-favorite-font-size 12))
+  (defun ha-linux-monitor-fontsize ()
+    "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
+    (interactive)
+    (ha-set-favorite-font-size 12))
 
-(defun ha-mac-laptop-fontsize ()
-  "Quickly set reset my font size when I disconnect my laptop to a monitor from a Mac."
-  (interactive)
-  (ha-set-favorite-font-size 32))
+  (defun ha-mac-laptop-fontsize ()
+    "Quickly set reset my font size when I disconnect my laptop to a monitor from a Mac."
+    (interactive)
+    (ha-set-favorite-font-size 32))
 
-(defun ha-linux-laptop-fontsize ()
-  "Quickly set reset my font size when I disconnect my laptop to a monitor from Linux."
-  (interactive)
-  (ha-set-favorite-font-size 14))
+  (defun ha-linux-laptop-fontsize ()
+    "Quickly set reset my font size when I disconnect my laptop to a monitor from Linux."
+    (interactive)
+    (ha-set-favorite-font-size 14))
+
+  (defun ha-imac-fontsize ()
+    "Quickly set reset my font size when I am on my iMac."
+    (interactive)
+    (ha-set-favorite-font-size 16))
 #+END_SRC
 
 Which font to choose?
@@ -240,9 +244,10 @@ Which font to choose?
   (defun font-monitor-size-default ()
     "Set the default size according to my preference."
     (interactive)
-    (if (eq system-type 'gnu/linux)
-        (ha-linux-monitor-fontsize)
-      (ha-mac-monitor-fontsize)))
+    (cond
+     ((eq system-type 'gnu/linux)         (ha-linux-monitor-fontsize))
+     ((s-starts-with? "imac" system-name) (ha-imac-fontsize))
+     (t                                   (ha-mac-monitor-fontsize))))
 
   (defun font-laptop-size-default ()
     "Set the default size according to my preference."

@@ -75,21 +75,23 @@ With the way I start Emacs, I may not have the PATH I /actually/ use (from the s
   This is particularly useful under Mac OS X and macOS, where GUI
   apps are not started from a shell."
     (interactive)
-    (let ((path-from-shell (replace-regexp-in-string
-                            (rx (zero-or-more space) eol)
-                            ""
-                            (shell-command-to-string "$SHELL --login -c 'echo $PATH'"))))
-      (setenv "PATH" path-from-shell)
-      (setq exec-path (split-string path-from-shell path-separator))))
-
-  (when (ha-running-on-macos?)
-    (set-exec-path-from-shell))
+    (let* ((path-from-shell (shell-command-to-string "echo $PATH"))
+           (trimmed-path    (replace-regexp-in-string (rx (zero-or-more space) eol)
+                                                      "" path-from-shell))
+           (in-fish?        (string-match (rx "fish" eol)
+                                          (shell-command-to-string "echo $SHELL")))
+           (separator       (if in-fish? " " ":"))
+           (env-path        (if in-fish? (replace-regexp-in-string " " ":" trimmed-path) trimmed-path)))
+      (message "PATH=%s" path-from-shell)
+      (setenv "PATH" env-path)
+      (setq exec-path (split-string trimmed-path separator))))
 #+END_SRC
 
 Clear up a Mac-specific issue that sometimes arises since I'm switching to [[http://akrl.sdf.org/gccemacs.html][native compilation project]], as the =Emacs.app= that I use doesn't have its =bin= directory, e.g. =Emacs.app/Contents/MacOS/bin=:
 
 #+BEGIN_SRC emacs-lisp
   (when (ha-running-on-macos?)
+      (add-to-list 'exec-path "/usr/local/bin")
       (add-to-list 'exec-path (concat invocation-directory "bin") t))
 #+END_SRC
 
@@ -99,6 +101,25 @@ Getting tired off all the packages that I load spewing a bunch of warnings that 
              (native-comp-available-p))
     (setq native-comp-async-report-warnings-errors nil
           native-comp-deferred-compilation t))
+#+END_SRC
+** GNU Pretty Good Privacy
+On Linux, GPG is pretty straight-forward, but on the Mac, I often have troubles doing:
+#+BEGIN_SRC sh
+brew install gpg
+#+END_SRC
+And I need to install the [[https://gpgtools.org/][GPG Suite]]. While very nice, isn't a GUI I really need, but can take advantage when installed:
+
+#+BEGIN_SRC emacs-lisp
+  (defun executable (path)
+    "Return PATH if it is executable, see `file-executable-p'."
+    (when (file-executable-p path) path))
+
+  (use-package epa-file
+    :straight (:type built-in)
+    :custom (epg-gpg-program (or (executable "/usr/local/MacGPG2/bin/gpg")
+                                 (executable "/usr/local/bin/gpg")
+                                 (executable "/usr/local/opt/gpg")))
+    :config (epa-file-enable))
 #+END_SRC
 ** Basic Libraries
 The following packages come with Emacs, but seems like they still need loading:
@@ -134,23 +155,26 @@ Hopefully, this will tie me over while I transition.
 Sure the Emacs application will almost always have the =server-start= going, however, I need to control it just a bit (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
 
 #+BEGIN_SRC emacs-lisp
-(defun ha-emacs-for-work? ()
-  "Return non-nil when the Emacs application's location matches as one for work.
-Currently, this is the `emacs-plus' app that I have built with
-the native-comp model, but I reserve the right to change this."
-  (->> Info-default-directory-list
-    (first)
-    (s-split "/")
-    (--filter (s-starts-with? "emacs-plus" it))
-    (first)))
+  (defun ha-emacs-for-work? ()
+    "Return non-nil when the Emacs application's location matches as one for work.
+  Currently, this is the `emacs-plus' app that I have built with
+  the native-comp model, but I reserve the right to change this."
+    (and (f-dir? "~/work")
+         (->> Info-default-directory-list
+              (first)
+              (s-split "/")
+              (--filter (s-starts-with? "emacs-plus" it))
+              (first))))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(if (ha-emacs-for-work?)
+  (if (not (ha-emacs-for-work?))
+      (setq server-name "personal")
     (setq server-name "work")
-  (setq server-name "personal"))
+    (when (ha-running-on-macos?)
+      (set-exec-path-from-shell)))
 
-(server-start)
+  (server-start)
 #+END_SRC
 * Load the Rest
 The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
