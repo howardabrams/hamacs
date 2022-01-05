@@ -99,6 +99,8 @@ Add my org-specific predicates, see this [[http://www.howardism.org/Technical/Em
                (re-search-forward ,reg nil t 1))))
       (error "The `T' predicate takes an org-mode tag value in single quotes.")))
 
+  (defvar eshell-predicate-alist nil
+    "A list of predicates than can be applied to a globbing pattern.")
   (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags)))
 #+END_SRC
 ** VTerm
@@ -169,14 +171,6 @@ Been working on a project for getting Emacs helping as a /Dungeon Master's Assis
     :straight (:local-repo "~/other/rpgdm")
     :commands (rpgdm-mode rpgdm-tables-load)
     :config (ha-leader "t D" '("rpg dm" . rpgdm-mode)))
-#+END_SRC
-
-While it is a minor mode, I don't necessarily want to turn it on for all files.
-Instead, in an Org file, I just need to include something like this:
-#+BEGIN_SRC org
-# Local Variables:
-# eval: (progn (rpgdm-mode 1) (rpgdm-tables-load "ironsworn"))
-# End:
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:

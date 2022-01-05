@@ -957,12 +957,16 @@ Let's describe a list of startup project workspaces. This way, I don't need the 
 Granted, this list is essentially a list of projects that I'm currently developing, so I expect this to change often.
 
 #+BEGIN_SRC emacs-lisp
-(defvar ha-workspace-projects-personal
-  '(("projects" "~/projects" ("breathe.org" "tasks.org"))
-    ("personal" "~/personal" ("general.org"))
-    ("technical" "~/technical" ("ansible.org"))
-    ("hamacs" "~/other/hamacs" ("README.org" "ha-config.org")))
-  "List of default projects with a name.")
+  (defvar ha-workspace-projects-personal nil "List of default projects with a name.")
+
+  (add-to-list 'ha-workspace-projects-personal
+               '("projects" "~/projects" ("breathe.org" "tasks.org")))
+  (add-to-list 'ha-workspace-projects-personal
+               '("personal" "~/personal" ("general.org")))
+  (add-to-list 'ha-workspace-projects-personal
+               '("technical" "~/technical" ("ansible.org")))
+  (add-to-list 'ha-workspace-projects-personal
+               '("hamacs" "~/other/hamacs" ("README.org" "ha-config.org")))
 #+END_SRC
 
 Given a list of information about project-workspaces, can we just create them all?

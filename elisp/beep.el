@@ -97,11 +97,12 @@ See `beep--when-finished' for details."
 
 (defun beep--extract-function-name (expr)
   "Extracts the original function from a lambda expression, EXPR."
-  (if (listp expr)
-     (if (equal (car expr) 'lambda)
-         (car (cadr expr))
-       expr)
-    expr))
+  (cond ((listp expr)
+         (if (equal (car expr) 'lambda)
+             (car (cadr expr))
+           (car expr)))
+        ((stringp expr) expr)
+        (t "")))
 
 (provide 'beep)
 ;;; beep.el ends here
