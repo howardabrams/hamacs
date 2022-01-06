@@ -650,6 +650,9 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
 
 #+BEGIN_SRC emacs-lisp
   (use-package rg
+    :init                 		; I sometimes call `grep`:
+    ; (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
+
     :config
     (ha-leader
        "s"  '(:ignore t :which-key "search")
@@ -1215,6 +1218,17 @@ I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am s
     (evil-define-key 'normal neotree-mode-map (kbd "g") 'neotree-refresh)
     (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
 #+END_SRC
+** Demo It
+Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
+#+BEGIN_SRC emacs-lisp
+  (use-package demo-it
+    :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
+    :commands (demo-it-create demo-it-start))
+#+END_SRC
+Perhaps I should change the reference to this for more local development:
+#+begin_example
+      :straight (:local-repo "~/other/demo-it")
+#+end_example
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
 

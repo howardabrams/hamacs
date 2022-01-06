@@ -124,16 +124,20 @@ And I need to install the [[https://gpgtools.org/][GPG Suite]]. While very nice,
 ** Basic Libraries
 The following packages come with Emacs, but seems like they still need loading:
 #+BEGIN_SRC emacs-lisp
-(require 'subr-x)
+  (use-package cl-lib
+    :straight (:type built-in)
+    :init (defun first (elt) (car elt))
+    :commands (first))
+
+  (require 'subr-x)
 #+END_SRC
-Ugh. Why am I getting a missing =first= function error? Let's just define it:
-#+BEGIN_SRC emacs-lisp
-  (defun first (elt) (car elt))
-#+END_SRC
+Ugh. Why am I getting a missing =first= function error? I define a simple implementation, that the CL library will overwrite ... at some point.
+
 While most libraries will take care of their dependencies, I want to install /my dependent libraries/. Especially, [[https://github.com/magnars/.emacs.d/][Magnar Sveen]]'s Clojure-inspired [[https://github.com/magnars/dash.el][dash.el]] project:
 #+BEGIN_SRC emacs-lisp
 (use-package dash)
 #+END_SRC
+Sure this package is essentially syntactic sugar, and to help /share/ my configuration, I attempt to use =thread-last= instead of =->>=, but, I still like it.
 
 The [[https://github.com/magnars/s.el][s.el]] project is a simpler string manipulation library that I (and other projects) use:
 #+BEGIN_SRC emacs-lisp
@@ -189,13 +193,13 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-org-clipboard.org"
                             "ha-capturing-notes.org"
                             "ha-agendas.org"
-                            "ha-irc.org"
                             "ha-passwords.org"
                             "ha-remoting.org"
                             "ha-programming.org"
                             "ha-programming-python.org"
                             ,(unless (ha-emacs-for-work?)
                                '("ha-org-journaling.org"
+                               "ha-irc.org"
                                "ha-org-publishing.org"
                                "ha-email.org"
                                "ha-aux-apps.org"

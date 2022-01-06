@@ -319,10 +319,10 @@ To make the snippets more context aware, this predicate
 Keybindings available to all file buffers:
 #+NAME: global-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
-(ha-leader
-  "o l" '("store link" . org-store-link)
-  "o x" '("org capture" . org-capture)
-  "o c" '("clock out" . org-clock-out))
+  (ha-leader
+    "o l" '("store link" . org-store-link)
+    "o x" '("org capture" . org-capture)
+    "o c" '("clock out" . org-clock-out))
 #+END_SRC
 
 Bindings specific to org files:
@@ -332,9 +332,9 @@ Bindings specific to org files:
       "e" '("exports"     . org-export-dispatch)
       "I" '("insert id" .  org-id-get-create)
       "l" '("insert link" . org-insert-link)
-      "n" '("store link" .  org-store-link)
+      "N" '("store link" .  org-store-link)
       "o" '("goto link"   . ace-link-org)
-      "p" '("set property" .  org-set-property)
+      "P" '("set property" .  org-set-property)
       "q" '("set tags" .  org-set-tags-command)
       "t" '("todo"   . org-todo)
       "T" '("list todos" .  org-todo-list)

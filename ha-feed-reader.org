@@ -68,7 +68,7 @@ According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-
 #+END_SRC
 Finally, we can add it to the =apps= menu:
 #+BEGIN_SRC emacs-lisp
-(ha-leader "a e" 'elfeed)
+(ha-leader "a f" 'elfeed)
 #+END_SRC
 * The Feeds :elfeed:
 ** Personal :personal:
