@@ -49,10 +49,11 @@ For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainb
 Been working on a project for getting Emacs helping as a /Dungeon Master's Assistant/, and I must say, it is coming along nicely. In case you are reading this, let me know, and I'll start to share it.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package rpgdm
-    :straight (:local-repo "~/other/rpgdm")
-    :commands (rpgdm-mode rpgdm-tables-load)
-    :config (ha-leader "t D" '("rpg dm" . rpgdm-mode)))
+  (when (f-directory? "~/other/rpgdm")
+    (use-package rpgdm
+      :straight (:local-repo "~/other/rpgdm")
+      :commands (rpgdm-mode rpgdm-tables-load)
+      :config (ha-leader "t D" '("rpg dm" . rpgdm-mode))))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
