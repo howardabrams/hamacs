@@ -118,7 +118,8 @@ And I need to install the [[https://gpgtools.org/][GPG Suite]]. While very nice,
     :straight (:type built-in)
     :custom (epg-gpg-program (or (executable "/usr/local/MacGPG2/bin/gpg")
                                  (executable "/usr/local/bin/gpg")
-                                 (executable "/usr/local/opt/gpg")))
+                                 (executable "/usr/local/opt/gpg")
+                                 (executable "/usr/bin/pgp")))
     :config (epa-file-enable))
 #+END_SRC
 ** Basic Libraries
