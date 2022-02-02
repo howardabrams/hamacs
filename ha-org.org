@@ -69,11 +69,13 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
                                            ; but uses a trick to make it
                                            ; appear indented.
 
-          sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
+        sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
         ;; Speed Commands: If point is at the beginning of a headline or code
         ;; block in org-mode, single keys do fun things. See
         ;; org-speed-command-help for details (or hit the ? key at a headline).
         org-use-speed-commands t
+
+        org-export-with-sub-superscripts nil
 
         org-directory "~/personal"
         org-default-notes-file "~/personal/general-notes.txt"
@@ -286,7 +288,6 @@ And turn on ALL the languages:
                                  (dot        . t)
                                  (css        . t)
                                  (plantuml   . t)))
-
 #+END_SRC
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
