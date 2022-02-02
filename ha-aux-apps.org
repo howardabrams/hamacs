@@ -35,16 +35,17 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     (defalias 'epa--decode-coding-string 'decode-coding-string))
 #+END_SRC
 * Telega
-I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
+I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, but only if I've cloned it.
 
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package telega
-  :commands (telega)
-  :defer t)
+#+BEGIN_SRC emacs-lisp
+  (when (file-exists-p "~/other/telega.el")
+    (use-package telega
+      :straight (:local-repo "~/other/telega.el")
+      :commands (telega)
+      :init
+      (setq telega-use-images nil)))
 #+END_SRC
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
-
-*Note:* Turning this off as it needs version 1.7.7 of =tdlib=, and that isn't easily available on my Mac. Maybe I may enable this on my Linux system.
 * RPG DM
 Been working on a project for getting Emacs helping as a /Dungeon Master's Assistant/, and I must say, it is coming along nicely. In case you are reading this, let me know, and I'll start to share it.
 
