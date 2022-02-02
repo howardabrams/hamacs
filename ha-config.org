@@ -22,34 +22,60 @@ A literate programming file for configuring Emacs.
 ;;
 ;;; Code:
 #+END_SRC
-* Introduction
+* Basic Configuration
 New way to display line-numbers. I set mine to =relative= so that I can easily jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
 
 #+BEGIN_SRC emacs-lisp
-(setq display-line-numbers t)
-(setq display-line-numbers-type 'relative)
+  (setq display-line-numbers t
+        display-line-numbers-type 'relative)
 #+END_SRC
 
-As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot.
+As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-every-edited-file/][Phil Jackson]] mentioned, Emacs has a lot of file backup strategy, and either change the [[help:backup-directory-alist][backup-directory-alist]] to put individual file backups elsewhere, e.g.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (setq backup-directory-alist `(("." . "~/.backups")))
+#+END_SRC
+
+Or leave them in the current directory, but create an alias to =ls= to normally not see them, e.g.
+
+#+BEGIN_SRC sh
+  alias ls="ls --color=auto --hide='*~'"
+#+END_SRC
+
+I'm leaving them side-by-side, but I am keeping some extra copies:
+#+BEGIN_SRC emacs-lisp
+  (setq auto-save-default t
+        delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+#+END_SRC
+The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
+
+As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
 
 #+BEGIN_SRC emacs-lisp
-(setq auth-sources '("~/.authinfo.gpg")
-      auth-source-cache-expiry nil)
+  (use-package epa-file
+    :config
+    (defvar epa-pinentry-mode)
+    (setq epa-file-select-keys nil
+	  epa-pinentry-mode 'loopback
+	  auth-sources '("~/.authinfo.gpg")
+	  auth-source-cache-expiry nil))
 #+END_SRC
 
 More settings:
 
 #+BEGIN_SRC emacs-lisp
   (setq truncate-string-ellipsis "…" ; Unicode ellispis are nicer than "..."
-        auto-save-default t
         debug-on-error t)
 #+END_SRC
 
 And some Mac-specific settings:
 #+BEGIN_SRC emacs-lisp
   (when (ha-running-on-macos?)
-    (setq mac-option-modifier 'meta)
-    (setq mac-command-modifier 'super)
+    (setq mac-option-modifier 'meta
+          mac-command-modifier 'super)
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
 #+END_SRC
@@ -1178,7 +1204,6 @@ Pushing directly to the upstream branch is /bad form/, as one should create a pu
 ** Web Browsing
 *** EWW
 Web pages look pretty good with EWW, but I'm having difficulty getting it to render a web search from DuckDuck.
-
 
 #+BEGIN_SRC emacs-lisp
 (use-package eww
