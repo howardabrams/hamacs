@@ -33,6 +33,7 @@ Next type ~s~ to view and organize mail I've never seen before. We need to keep 
   - ~S~ :: spam ... so much goes here
   - ~P~ :: receipts go to this *Paper Trail*, which takes a *tag* as the name of the store
   - ~f~ :: mailing lists and other things that might be nice to read go to *The Feed*
+
 ** Email Addresses
 The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /hardly/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
 
@@ -98,6 +99,12 @@ Next, we need some basic configuration settings and some global keybindings:
               "a n" '("new mail" . notmuch-retrieve-messages)
               "a m" '("read mail" . notmuch)
               "a c" '("compose mail" . notmuch-mua-new-mail))
+            <<local-leader-keybindings>>
+            (ha-mail-hello-leader
+                "u" '("new mail" . notmuch-retrieve-messages)
+                "m" '("read mail" . notmuch)
+                "c" '("compose"     . notmuch-mua-new-mail)
+                "C" '("reply-later" . hey-notmuch-reply-later))
             <<hey-show-keybindings>>
             <<hey-search-keybindings>>)
 #+END_SRC
@@ -619,11 +626,40 @@ This means:
     (message "Noted! Reply Later: %s" email-string)))
 #+END_SRC
 ** Bucket Keybindings
+In /Emacs/ mode, we can just call =define-key=, but since it starts in Evil state (and we may want to use Evil keybindings, let's create some local leaders:
 
-A series of keybindings to quickly send messages to one of the pre-defined buckets. The =notmuch-show-mode= is the ... uhm
+#+NAME: local-leader-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
+  (general-create-definer ha-mail-hello-leader
+      :states '(normal visual motion)
+      :keymaps 'notmuch-hello-mode-map
+      :prefix "SPC m"
+      :global-prefix "<f17>"
+      :non-normal-prefix "S-SPC")
+
+  (general-create-definer ha-mail-search-leader
+      :states '(normal visual motion)
+      :keymaps 'notmuch-search-mode-map
+      :prefix "SPC m"
+      :global-prefix "<f17>"
+      :non-normal-prefix "S-SPC")
+
+  (general-create-definer ha-mail-show-leader
+      :states '(normal visual motion)
+      :keymaps 'notmuch-show-mode-map
+      :prefix "SPC m"
+      :global-prefix "<f17>"
+      :non-normal-prefix "S-SPC")
+#+END_SRC
+
+A series of keybindings to quickly send messages to one of the pre-defined buckets.
 
 #+NAME: hey-show-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
+  (ha-mail-show-leader
+      "c" '("compose"     . notmuch-mua-new-mail)
+      "C" '("reply-later" . hey-notmuch-reply-later))
+
   (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
 #+END_SRC
 
@@ -631,6 +667,23 @@ The bindings in =notmuch-search-mode= are available when looking at a list of me
 
 #+NAME: hey-search-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
+  (ha-mail-search-leader
+      "r" '("reply"              . notmuch-search-reply-to-thread)
+      "R" '("reply-all"          . notmuch-search-reply-to-thread-sender)
+      "/" '("search"             . notmuch-search-filter)
+      "A" '("archive all"        . hey-notmuch-archive-all)
+      "D" '("delete all"         . hey-notmuch-delete-all)
+      "L" '("filter by from"     . hey-notmuch-filter-by-from)
+      ";" '("search by from"     . hey-notmuch-search-by-from)
+      "d" '("delete thread"      . hey-notmuch-search-delete-and-archive-thread)
+
+      "s" '("send to spam"       . hey-notmuch-move-sender-to-spam)
+      "i" '("send to screened"   . hey-notmuch-move-sender-to-screened)
+      "p" '("send to papertrail" . hey-notmuch-move-sender-to-papertrail)
+      "f" '("send to feed"       . hey-notmuch-move-sender-to-thefeed)
+      "C" '("reply"              . hey-notmuch-reply-later)
+      "c" '("compose"            . notmuch-mua-new-mail))
+
   (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
   (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
   (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
