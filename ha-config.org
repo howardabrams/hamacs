@@ -1146,7 +1146,7 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
 #+END_SRC
 *** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package forge
     :after magit
     :init
@@ -1181,7 +1181,7 @@ token where the *Note* is =forge=, and then copy that into the
 
  and make sure this works:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (ghub-request "GET" "/user" nil
                 :forge 'github
                 :host "api.github.com"
