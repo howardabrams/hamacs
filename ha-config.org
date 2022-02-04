@@ -1043,11 +1043,13 @@ Often, but not always, I want a perspective based on an actual Git repository, e
 
       ;; To pin a project in projectile to the perspective, we need to load a file
       ;; from that project. The README will do, or at least, the dired of it.
-      (if files
-          (ha--project-show-files project files)
-        (if-let ((readme (f-join project "README*")))
-            (find-file readme t)
-          (dired project)))))
+      (let ((readme-org (f-join project "README.org"))
+            (readme-md  (f-join project "README.md")))
+        (cond
+         (files                  (ha--project-show-files project files))
+         ((f-exists? readme-org) (find-file readme-org))
+         ((f-exists? readme-md)  (find-file readme-md))
+         (t                      (dired project))))))
 #+END_SRC
 Displaying a few files? Well, when /starting/ I am only showing one or two files (maybe three), so we will split the window horizontally for each file.
 
