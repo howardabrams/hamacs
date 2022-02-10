@@ -71,6 +71,16 @@ More settings:
         debug-on-error t)
 #+END_SRC
 
+Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
+#+BEGIN_SRC emacs-lisp
+  (defun save-all-buffers ()
+    "Saves all buffers, because, why not?"
+    (interactive)
+    (save-some-buffers t))
+
+  (add-hook 'focus-out-hook 'save-all-buffers)
+#+END_SRC
+
 And some Mac-specific settings:
 #+BEGIN_SRC emacs-lisp
   (when (ha-running-on-macos?)
