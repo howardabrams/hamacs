@@ -1038,7 +1038,7 @@ Often, but not always, I want a perspective based on an actual Git repository, e
     "Create a new perspective, and then switch to the PROJECT using projectile.
   If NAME is not given, then figure it out based on the name of the
   PROJECT. If FILES aren't specified, then see if there is a
-  README. Otherwise, pull up a dired."
+  README. Otherwise, pull up Dired."
     (interactive (list (projectile-completing-read "Project: " projectile-known-projects)))
     (when (f-directory-p project)
       (unless name
@@ -1218,21 +1218,23 @@ Pushing directly to the upstream branch is /bad form/, as one should create a pu
 Web pages look pretty good with EWW, but I'm having difficulty getting it to render a web search from DuckDuck.
 
 #+BEGIN_SRC emacs-lisp
-(use-package eww
+  (use-package eww
     :init
     (setq browse-url-browser-function 'eww-browse-url
-          browse-url-secondary-browser-function 'browse-url-default-browser
-          eww-browse-url-new-window-is-tab nil
-          shr-use-colors nil
-          shr-use-fonts t     ; I go back and forth on this one
-          ; shr-discard-aria-hidden t
-          shr-bullet "• "
-          shr-inhibit-images nil  ; Gotta see the images
-          ; shr-blocked-images '(svg)
-          ; shr-folding-mode nil
-          url-privacy-level '(email))
+	  browse-url-secondary-browser-function 'browse-url-default-browser
+	  eww-browse-url-new-window-is-tab nil
+	  shr-use-colors nil
+	  shr-use-fonts t     ; I go back and forth on this one
+					  ; shr-discard-aria-hidden t
+	  shr-bullet "• "
+	  shr-inhibit-images nil  ; Gotta see the images
+					  ; shr-blocked-images '(svg)
+					  ; shr-folding-mode nil
+	  url-privacy-level '(email))
 
     :config
+    (ha-leader "a b" '("eww browser" . eww))
+
     (evil-define-key 'normal eww-mode-map (kbd "Y") 'eww-copy-page-url)
     (evil-define-key 'normal eww-mode-map (kbd "L") 'eww-list-bookmarks)
     (evil-define-key 'normal eww-buffers-mode-map (kbd "q") 'eww-bookmark-kill)
