@@ -1309,6 +1309,24 @@ I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am s
     (evil-define-key 'normal neotree-mode-map (kbd "g") 'neotree-refresh)
     (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
 #+END_SRC
+** Annotations
+Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package annotate
+    :config
+    (ha-leader
+      "t A" '("annotations" . annotate-mode)
+
+      "n"   '(:ignore t :which-key "notes")
+      "n a" '("toggle mode" . annotate-mode)
+      "n n" '("annotate"    . annotate-annotate)
+      "n d" '("delete"      . annotate-delete)
+      "n s" '("summary"     . annotate-show-annotation-summary)
+      "n j" '("next"        . annotate-goto-next-annotation)
+      "n k" '("prev"        . annotate-goto-previous-annotation)))
+#+END_SRC
+Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
 ** Demo It
 Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
 #+BEGIN_SRC emacs-lisp
