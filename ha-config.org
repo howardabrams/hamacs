@@ -1247,6 +1247,57 @@ And let's get [[https://github.com/abo-abo/ace-link][ace-link]] to work with EWW
     :config
     (ace-link-setup-default))
 #+END_SRC
+*** Get Pocket
+The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project connects to the [[https://getpocket.com/en/][Get Pocket]] service.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pocket-reader
+    :init
+    (setq org-web-tools-pandoc-sleep-time 1)
+    :config
+    (ha-leader "o p" '("get pocket" . pocket-reader))
+
+    ;; Instead of jumping into Emacs mode to get the `pocket-mode-map',
+    ;; we just add the keybindings to the normal mode that makes sense.
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "RET") 'pocket-reader-open-url)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "TAB") 'pocket-reader-pop-to-url)
+
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "*") 'pocket-reader-toggle-favorite)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "B") 'pocket-reader-open-in-external-browser)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "D") 'pocket-reader-delete)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "E") 'pocket-reader-excerpt-all)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "F") 'pocket-reader-show-unread-favorites)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "M") 'pocket-reader-mark-all)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "R") 'pocket-reader-random-item)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "S") 'tabulated-list-sort)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "a") 'pocket-reader-toggle-archived)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "c") 'pocket-reader-copy-url)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "d") 'pocket-reader)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "e") 'pocket-reader-excerpt)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "f") 'pocket-reader-toggle-favorite)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "l") 'pocket-reader-limit)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "m") 'pocket-reader-toggle-mark)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "o") 'pocket-reader-more)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "q") 'quit-window)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "s") 'pocket-reader-search)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "u") 'pocket-reader-unmark-all)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "t a") 'pocket-reader-add-tags)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "t r") 'pocket-reader-remove-tags)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "t s") 'pocket-reader-tag-search)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "t t") 'pocket-reader-set-tags)
+
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "g s") 'pocket-reader-resort)
+    (evil-define-key 'normal pocket-reader-mode-map (kbd "g r") 'pocket-reader-refresh))
+#+END_SRC
+
+Use these special keywords when searching:
+
+  - =:*=, =:favorite= Return only favorited items.
+  - =:archive= Return only archived items.
+  - =:unread= Return only unread items (default).
+  - =:all= Return all items.
+  - =:COUNT= Return at most /COUNT/ (a number) items. This limit persists until a new search is run.
+  - =:t:TAG=, =t:TAG= Return items with /TAG/ (only one tag may be searched for, a limitation of the Pocket API).
 ** Neotree
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
 #+BEGIN_SRC emacs-lisp
