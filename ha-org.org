@@ -444,14 +444,20 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
         (evil-prev-flyspell-error count)
         (ispell-word)))
 
+    (evil-define-key  'insert text-mode-map (kbd "M-s M-s") 'ha-fix-last-spelling)
+
     (ha-local-leader :keymaps 'text-mode-map
       "s"  '(:ignore t :which-key "spellcheck")
-      "s c" '("correct last misspell" . ha-fix-last-spelling)
+      "s s" '("correct last misspell" . ha-fix-last-spelling)
+      "s b" '("check buffer" . flyspell-buffer)
+      "s c" '("correct word" . flyspell-auto-correct-word)
       "s p" '("previous misspell" . evil-prev-flyspell-error)
       "s n" '("next misspell" . evil-next-flyspell-error)))
 #+END_SRC
 
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
+
+A real issue I often face is I can be typing along and notice a mistake after entering a more words. Since this happens in /insert/ mode, I have bound ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am. If the spelling mistake is /obvious/, I use ~C-;~ to call =flyspell-auto-correct-word=.
 
 According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur Malabarba]], we can turn on rounded apostrophe's, like =‘= (left single quotation mark). The idea is to not send the quote to the sub-process:
 

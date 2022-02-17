@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: evil-define-key
+# key: edk
+# --
+(evil-define-key  '${1:normal} ${2:mode}-mode-map (kbd "$0") '${3:function})
