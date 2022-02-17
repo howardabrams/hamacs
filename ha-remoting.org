@@ -161,7 +161,7 @@ I'm not giving up on Eshell, but I am playing around with [[https://github.com/a
 
 VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package vterm
   :init
   (setq vterm-shell "/usr/local/bin/fish")

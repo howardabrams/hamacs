@@ -43,7 +43,9 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
       :straight (:local-repo "~/other/telega.el")
       :commands (telega)
       :init
-      (setq telega-use-images nil)))
+      (setq telega-use-images nil)
+      :config
+      (ha-leader "a t" 'telega)))
 #+END_SRC
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 * RPG DM
