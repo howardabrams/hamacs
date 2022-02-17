@@ -499,6 +499,22 @@ The key-bindings, keystrokes, key-connections work well with just ~M-T~ (notice 
       "s d" '("define this" . define-word-at-point)
       "s D" '("define word" . define-word)))
 #+END_SRC
+** Focused Work
+:LOGBOOK:
+CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
+:END:
+I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-work.html][approach to focused work]],
+
+#+BEGIN_SRC emacs-lisp
+  (use-package async)
+
+  (use-package ha-focus
+    :straight (:type built-in)
+    :config
+    (ha-leader
+     "o f" '("begin focus" . ha-focus-begin)
+     "o F" '("break focus" . ha-focus-break)))
+#+END_SRC
 ** Writegood
 
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] highlights passive and weasel words as typed. Shame it doesn't check for dangled prepositions.
