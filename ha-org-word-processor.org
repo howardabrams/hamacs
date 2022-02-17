@@ -35,6 +35,58 @@ Since I use ellipsis in my writing... I like to /change/ how org renders a colla
         org-src-fontify-natively t ;; Pretty code blocks
         org-hide-emphasis-markers t)
 #+END_SRC
+** Typographic Quotes
+According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type a /straight quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
+
+Stealing his function so that “quotes” just work to insert /rounded/ quotation marks:
+
+#+BEGIN_SRC emacs-lisp
+(define-key org-mode-map "\"" #'endless/round-quotes)
+
+(defun endless/round-quotes (italicize)
+  "Insert “” and leave point in the middle.
+With prefix argument ITALICIZE, insert /“”/ instead
+\(meant for org-mode).
+Inside a code-block, just call `self-insert-command'."
+  (interactive "P")
+  (if (and (derived-mode-p 'org-mode)
+           (org-in-block-p '("src" "latex" "html")))
+      (call-interactively #'self-insert-command)
+    (if (looking-at "”[/=_\\*]?")
+        (goto-char (match-end 0))
+      (when italicize
+        (if (derived-mode-p 'markdown-mode)
+            (insert "__")
+          (insert "//"))
+        (forward-char -1))
+      (insert "“”")
+      (forward-char -1))))
+#+END_SRC
+
+Stealing function for automatically adding a single quote (not in pairs):
+
+#+BEGIN_SRC emacs-lisp
+(define-key org-mode-map "'" #'endless/apostrophe)
+
+(defun endless/apostrophe (opening)
+  "Insert ’ in prose or `self-insert-command' in code.
+With prefix argument OPENING, insert ‘’ instead and
+leave point in the middle.
+Inside a code-block, just call `self-insert-command'."
+  (interactive "P")
+  (if (and (derived-mode-p 'org-mode)
+           (org-in-block-p '("src" "latex" "html")))
+      (call-interactively #'self-insert-command)
+    (if (looking-at "['’][=_/\\*]?")
+        (goto-char (match-end 0))
+      (if (null opening)
+          (insert "’")
+        (insert "‘’")
+        (forward-char -1)))))
+#+END_SRC
+Quote: “From this time forward, I shouldn’t have to worry about quotes.”
+
+*Note:* I still need to worry about how quotes affect [[file:ha-org.org::*Spell Checking][spell checking]].
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 

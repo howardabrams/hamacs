@@ -26,9 +26,8 @@ A literate programming file for configuring org-mode and those files.
 Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    :straight (:type built-in)  ; Problems with the 9.4.4 version
-    ;; :straight (:type git :protocol ssh :repo "git://git.sv.gnu.org/emacs/org-mode.git")
-    :mode ("\\.org" . org-mode) ; Addresses an odd warning
+    ;; :straight (:type built-in)  ; Use with problems from 9.4.4 version
+    :mode ("\\.org" . org-mode)    ; Addresses an odd warning
     :init
     <<variables>>
     <<org-todo>>
@@ -431,6 +430,12 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
   (use-package flyspell
     :hook (text-mode . flyspell-mode)
     :bind ("M-S" . ha-fix-last-spelling)
+    :init
+    ;; Tell ispell.el that ’ can be part of a word.
+    (setq ispell-local-dictionary-alist
+          `((nil "[[:alpha:]]" "[^[:alpha:]]"
+                 "['\x2019]" nil ("-B") nil utf-8)))
+
     :config
     (defun ha-fix-last-spelling (count)
       "Jump to the last misspelled word, and correct it."
@@ -445,7 +450,32 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
       "s p" '("previous misspell" . evil-prev-flyspell-error)
       "s n" '("next misspell" . evil-next-flyspell-error)))
 #+END_SRC
+
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
+
+According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur Malabarba]], we can turn on rounded apostrophe's, like =‘= (left single quotation mark). The idea is to not send the quote to the sub-process:
+
+#+BEGIN_SRC emacs-lisp
+  (defun endless/replace-apostrophe (args)
+    "Don't send ’ to the subprocess."
+    (cons (replace-regexp-in-string
+           "’" "'" (car args))
+          (cdr args)))
+
+  (advice-add #'ispell-send-string :filter-args #'endless/replace-apostrophe)
+
+  (defun endless/replace-quote (args)
+    "Convert ' back to ’ from the subprocess."
+    (if (not (derived-mode-p 'org-mode))
+        args
+      (cons (replace-regexp-in-string
+             "'" "’" (car args))
+            (cdr args))))
+
+  (advice-add #'ispell-parse-output :filter-args #'endless/replace-quote)
+#+END_SRC
+
+The end result? No misspellings. Isn‘t this nice?
 
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
 
