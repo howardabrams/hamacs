@@ -283,17 +283,18 @@ However, most of my Emacs Lisp code is in literate org files.
 The [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] solves having me create keybindings to the [[https://github.com/Fuco1/smartparens][smartparens]] project by updating the evil states with Lisp-specific bindings.
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil-cleverparens
-  :after smartparens-mode
-  :custom
-  evil-cleverparens-use-additional-bindings t
-  evil-cleverparens-use-additional-movement-keys t
-  evil-cleverparens-use-s-and-S nil ; using evil-sniper
+  (use-package evil-cleverparens
+    :after smartparens-mode
+    :custom
+    evil-cleverparens-use-additional-bindings t
+    evil-cleverparens-use-additional-movement-keys t
+    evil-cleverparens-use-s-and-S nil ; using evil-sniper
 
-  :init
-  (require 'evil-cleverparens-text-objects)
+    :init
+    (require 'evil-cleverparens-text-objects)
 
-  :hook (emacs-lisp-mode . evil-cleverparens-mode))
+    :hook (prog-mode . evil-cleverparens-mode))  ;; All the languages!
+    ;; Otherwise: (emacs-lisp-mode . evil-cleverparens-mode)
 #+END_SRC
 
 I would like to have a list of what keybindings do what:
