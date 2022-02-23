@@ -54,6 +54,52 @@ The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only 
 (use-package flyspell
   :hook (prog-mode . flyspell-prog-mode))
 #+END_SRC
+** Documentation
+I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, however, this is only available for Mac.
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package dash-at-point
+    :commands (dash-at-point)
+    :config
+    (define-key evil-normal-state-map (kbd "g D") 'dash-at-point))
+#+END_SRC
+However, I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). There are seems to be two competing Emacs projects for this.
+
+The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package devdocs
+    :config
+    (define-key evil-normal-state-map (kbd "g D") 'devdocs-lookup)
+
+    (ha-prog-leader
+      "d"  '(:ignore t :which-key "docs")
+      "d d" '("open" . devdocs-lookup)
+      "d p" '("peruse" . devdocs-peruse)
+      "d i" '("install" . devdocs-install)
+      "d u" '("update" . devdocs-update-all)
+      "d x" '("uninstall" . devdocs-delete)
+      "d s" '("search" . devdocs-search)))
+#+END_SRC
+
+The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] project acts similar, but with slightly different command names. Its advantage is that it allows for downloading docs and having it available offline, in fact, you can’t search for a function, until you download its pack. This is slightly faster because of this.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package devdocs-browser
+    :config
+    (define-key evil-normal-state-map (kbd "g D") 'devdocs-browser-open)
+
+    (ha-prog-leader
+      "d"  '(:ignore t :which-key "docs")
+      "d d" '("open" . devdocs-browser-open)
+      "d D" '("open in" . devdocs-browser-open-in)
+      "d l" '("list" . devdocs-browser-list-docs)
+      "d u" '("update" . devdocs-browser-update-docs)
+      "d i" '("install" . devdocs-browser-install-doc)
+      "d x" '("uninstall" . devdocs-browser-uninstall-doc)
+      "d U" '("upgrade" . devdocs-browser-upgrade-doc)
+      "d o" '("download" . devdocs-browser-download-offline-data)
+      "d O" '("remove download" . devdocs-browser-remove-offline-data)))
+#+END_SRC
 ** Language Server Protocol (LSP) Integration
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp) ... wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and...).
 
