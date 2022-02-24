@@ -54,6 +54,24 @@ The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only 
 (use-package flyspell
   :hook (prog-mode . flyspell-prog-mode))
 #+END_SRC
+** Flymake
+Grab the latest version of [[https://www.emacswiki.org/emacs/FlyMake][Flymake]] in order to integrate with LSP. While we are at it, let’s add some keybindings.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flymake
+    :config
+    (ha-prog-leader
+      ">" '("next problem" . flymake-goto-next-error)
+      "<" '("previous problem" . flymake-goto-prev-error)
+      "p" '(:ignore t :which-key "problems")
+      "p s" '("start checking" . flymake-start)
+      "p t" '("toggle flymake" . flymake-mode)
+      "p p" '("show problem" . flymake-show-diagnostic)
+      "p P" '("list all problems" . flymake-show-buffer-diagnostics)
+      "p l" '("show log buffer" . flymake-switch-to-log-buffer)
+      "p b" '("show log buffer" . flymake-running-backends)))
+#+END_SRC
+The question is why not use the newer [[https://www.flycheck.org/][flycheck]]? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue.
 ** Documentation
 I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, however, this is only available for Mac.
 #+BEGIN_SRC emacs-lisp :tangle no
