@@ -86,6 +86,7 @@ The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, a
 
 #+BEGIN_SRC emacs-lisp
   (use-package devdocs
+    :after evil
     :config
     (define-key evil-normal-state-map (kbd "g D") 'devdocs-lookup)
 

@@ -365,10 +365,11 @@ Using the key-chord project allows me to make Escape be on two key combo presses
 Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
+(ignore-errors
+  (use-package evil-collection
+      :after evil
+      :config
+      (evil-collection-init)))
 #+END_SRC
 
 Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
@@ -984,12 +985,6 @@ Build the hydra as well as configure the =perspective= project.
     (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body)))
 #+END_SRC
 *** Predefined Workspaces
-First step is to get rid of the /recent/ feature, as I don't really use that.
-#+BEGIN_SRC emacs-lisp :tangle no
-(recentf-mode -1)
-(remove-hook 'kill-emacs-hook 'recentf-cleanup)
-(remove-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
-(remove-hook 'kill-emacs-hook 'savehist-autosave)
 #+END_SRC
 
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.

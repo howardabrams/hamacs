@@ -211,9 +211,6 @@ the native-comp model, but I reserve the right to change this."
 (server-start)
 #+END_SRC
 * External Capturing
-:LOGBOOK:
-CLOCK: [2021-05-25 Tue 13:35]--[2021-05-25 Tue 14:05] =>  0:30
-:END:
 If we put something on the clipboard using =xclip= or something, and then
 perhaps =emacsclient= could call this function to put those contents into clocked in task.
 
