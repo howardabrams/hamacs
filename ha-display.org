@@ -64,6 +64,15 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
 
   (use-package doom-themes)
 #+END_SRC
+* Find the Bloody Cursor
+Large screen, lots of windows, so where is the cursor?
+
+#+BEGIN_SRC emacs-lisp
+  (use-package hl-line+
+    :config
+    (set-face-attribute 'hl-line nil :background "#846444" :inherit 'default)
+    :bind ("<f6>" . 'hl-line-flash))
+#+END_SRC
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
 #+BEGIN_SRC emacs-lisp
