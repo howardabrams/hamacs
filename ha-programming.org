@@ -43,7 +43,9 @@ Farm off commands into /virtual environments/:
 #+BEGIN_SRC emacs-lisp
   (use-package direnv
     :init
-    (setq direnv--executable "/usr/local/bin/direnv")
+    (setq direnv--executable "/usr/local/bin/direnv"
+          direnv-always-show-summary t
+          direnv-show-paths-in-summary t)
     :config
     (direnv-mode))
 #+END_SRC
@@ -57,7 +59,7 @@ The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only 
 ** Flymake
 Grab the latest version of [[https://www.emacswiki.org/emacs/FlyMake][Flymake]] in order to integrate with LSP. While we are at it, let’s add some keybindings.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package flymake
     :config
     (ha-prog-leader
@@ -71,7 +73,42 @@ Grab the latest version of [[https://www.emacswiki.org/emacs/FlyMake][Flymake]] 
       "p l" '("show log buffer" . flymake-switch-to-log-buffer)
       "p b" '("show log buffer" . flymake-running-backends)))
 #+END_SRC
-The question is why not use the newer [[https://www.flycheck.org/][flycheck]]? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue.
+The question is why not use the newer [[https://www.flycheck.org/][flycheck]]? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue. However, what about when I am not using LSP?
+
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :bind (:map flycheck-error-list-mode-map
+                ("C-n" . 'flycheck-error-list-next-error)
+                ("C-p" . 'flycheck-error-list-previous-error)
+                ("j"   . 'flycheck-error-list-next-error)
+                ("k"   . 'flycheck-error-list-previous-error))
+    :config
+    (flymake-mode -1)
+    (global-flycheck-mode)
+    (ha-leader "t c" 'flycheck-mode)
+
+    (ha-prog-leader
+      ">" '("next problem" . flycheck-next-error)
+      "<" '("previous problem" . flycheck-previous-error)
+
+      "p" '(:ignore t :which-key "problems")
+      "p b" '("error buffer" . flycheck-buffer)
+      "p c" '("clear" . flycheck-clear)
+      "p n" '("next" . flycheck-next-error)
+      "p p" '("previous" . flycheck-previous-error)
+      "p l" '("list all" . flycheck-list-errors)
+      "p y" '("copy errors" . flycheck-copy-errors-as-kill)
+      "p s" '("select checker" . flycheck-select-checker)
+      "p ?" '("describe checker" . flycheck-describe-checker)
+      "p h" '("display error" . flycheck-display-error-at-point)
+      "p e" '("explain error" . flycheck-explain-error-at-point)
+      "p H" '("help" . display-local-help)
+      "p i" '("manual" . flycheck-manual)
+      "p V" '("version" . flycheck-version)
+      "p v" '("verify-setup" . flycheck-verify-setup)
+      "p x" '("disable-checker" . flycheck-disable-checker)
+      "p t" '("toggle flycheck" . flycheck-mode)))
+#+END_SRC
 ** Documentation
 I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, however, this is only available for Mac.
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -125,30 +162,31 @@ The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to c
 Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and friends), which simplifies my configuration:
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
+    :commands lsp
     :init
     ;; Let's make lsp-doctor happy with these settings:
     (setq gc-cons-threshold (* 100 1024 1024)
           read-process-output-max (* 1024 1024)
           company-idle-delay 0.0 ; Are thing fast enough to do this?
           lsp-keymap-prefix "s-m")
-    :config
-    :hook ((lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp)
+    :hook ((lsp-mode . lsp-enable-which-key-integration)))
 #+END_SRC
-I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but ... later.
-
+I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
+*** UI
 The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP:
+
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-ui
     :commands lsp-ui-mode
     :config
     (setq lsp-ui-sideline-ignore-duplicate t
-	      lsp-ui-sideline-show-hover t
+          lsp-ui-sideline-show-hover t
           lsp-ui-sideline-show-diagnostics t)
-    (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+    :hook (lsp-mode . lsp-ui-mode))
 #+END_SRC
-
+*** Company Completion
 The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
+
 #+BEGIN_SRC emacs-lisp
   (use-package company-lsp
     :config
@@ -158,18 +196,36 @@ To options that might be interesting:
   - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
   - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
 
-The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] offers a =lsp-ui-imenu= function for jumping to functions:
+*** iMenu
+The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] project offers a =lsp-ui-imenu= function for jumping to functions:
+
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-ui-imenu
       :straight nil
       :after lsp-ui
       :config
+      (ha-prog-leader
+        "g"  '(:ignore t :which-key "goto")
+        "g m" '("imenu" . lsp-ui-imenu))
       (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
 #+END_SRC
+*** Treemacs
+The [[https://github.com/emacs-lsp/lsp-treemacs][lsp-treemacs]] offers a project-specific structure oriented to the code:
 
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-treemacs
+    :config
+    (ha-prog-leader
+          "0" '("treemacs" . lsp-treemacs-symbols)))
+#+END_SRC
+
+*** Debugging
 Do we want to use a debugger?
+
 #+BEGIN_SRC emacs-lisp :tangle no
-(use-package dap-mode)
+  (use-package dap-mode
+     :init
+     (require 'dap-python))
 #+END_SRC
 ** Function Call Notifications
 As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.

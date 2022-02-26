@@ -342,9 +342,12 @@ Can we change Evil at this point? Some tips:
     (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
 
     (add-to-list 'evil-normal-state-modes 'shell-mode)
-    (add-to-list 'evil-emacs-state-modes 'term-mode)
-    (add-to-list 'evil-emacs-state-modes 'elfeed-search-mode)
-    (add-to-list 'evil-emacs-state-modes 'elfeed-show-mode)
+
+    ;; A number of modes have very specific keys that I want to use the
+    ;; default (maybe adding `j' and `k' for up/down):
+    (dolist (name '(term flycheck-error-list elfeed-search elfeed-show))
+      (let ((mode (make-symbol (format "%s-mode" name))))
+        (add-to-list 'evil-emacs-state-modes mode)))
 
     ;; Use escape to get out of visual mode, eh?
     (evil-define-key 'visual global-map (kbd "v") 'er/expand-region)
