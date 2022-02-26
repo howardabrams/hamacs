@@ -1299,13 +1299,15 @@ Use these special keywords when searching:
 ** Neotree
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
 #+BEGIN_SRC emacs-lisp
-(use-package neotree
-  :config
-    (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
-    (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
-    (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
-    (evil-define-key 'normal neotree-mode-map (kbd "g") 'neotree-refresh)
-    (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
+  (use-package neotree
+    :bind (:neotree-mode-map ; Let evil-collection do its thing
+      ("j" . 'neotree-next-line)
+      ("k" . 'neotree-previous-line))
+    :config   				 ; evil-collection forget a couple:
+      (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
+      (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
+      (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
+      (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
 #+END_SRC
 ** Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
