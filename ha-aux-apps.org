@@ -58,7 +58,18 @@ Been working on a project for getting Emacs helping as a /Dungeon Master's Assis
     (use-package rpgdm
       :straight (:local-repo "~/other/rpgdm")
       :commands (rpgdm-mode rpgdm-tables-load)
+      :init (setq rpgdm-base (expand-file-name "~/other/rpgdm"))
       :config (ha-leader "t D" '("rpg dm" . rpgdm-mode))))
+#+END_SRC
+And my new Ironsworn project:
+
+#+BEGIN_SRC emacs-lisp
+  (when (f-directory? "~/other/emacs-ironsworn")
+    (use-package rpgdm-ironsworn
+      :after rpgdm
+      :straight (:local-repo "~/other/emacs-ironsworn")
+      :init
+      (setq rpgdm-ironsworn-project (expand-file-name "~/other/emacs-ironsworn"))))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:

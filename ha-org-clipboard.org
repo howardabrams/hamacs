@@ -43,27 +43,27 @@ either :html or :text, and the second is the clipboard contents."
 Let's define the clipboard for a Mac. The challenge here is that we need to binary unpack the data from a call to Applescript.
 
 #+BEGIN_SRC emacs-lisp
-(defun ha-get-mac-clipboard ()
-  "Returns a list where the first entry is the content type,
-either :html or :text, and the second is the clipboard contents."
-  (destructuring-bind (exit-code contents)
-      (shell-command-with-exit-code "osascript" "-e" "the clipboard as \"HTML\"")
-    (if (= 0 exit-code)
-        (list :html (ha-convert-applescript-to-html contents))
-      (list :text (shell-command-to-string "osascript -e 'the clipboard'")))))
+  (defun ha-get-mac-clipboard ()
+    "Returns a list where the first entry is the content type,
+  either :html or :text, and the second is the clipboard contents."
+    (cl-destructuring-bind (exit-code contents)
+        (shell-command-with-exit-code "osascript" "-e" "the clipboard as \"HTML\"")
+      (if (= 0 exit-code)
+          (list :html (ha-convert-applescript-to-html contents))
+        (list :text (shell-command-to-string "osascript -e 'the clipboard'")))))
 
-(defun ha-convert-applescript-to-html (packed-contents)
-  "Applescript's clipboard returns the contents in a packed array.
-Convert and return this encoding into a UTF-8 string."
-  (cl-flet ((hex-pack-bytes (tuple) (string-to-number (apply 'string tuple) 16)))
-    (let* ((data (-> packed-contents
-                     (substring 10 -2) ; strips off the =«data RTF= and =»\= bits
-                     (string-to-list)))
-           (byte-seq (->> data
-                          (-partition 2)  ; group each two hex characters into tuple
-                          (mapcar #'hex-pack-bytes))))
-      (decode-coding-string
-       (mapconcat #'byte-to-string byte-seq "") 'utf-8))))
+  (defun ha-convert-applescript-to-html (packed-contents)
+    "Applescript's clipboard returns the contents in a packed array.
+  Convert and return this encoding into a UTF-8 string."
+    (cl-flet ((hex-pack-bytes (tuple) (string-to-number (apply 'string tuple) 16)))
+      (let* ((data (-> packed-contents
+                       (substring 10 -2) ; strips off the =«data RTF= and =»\= bits
+                       (string-to-list)))
+             (byte-seq (->> data
+                            (-partition 2)  ; group each two hex characters into tuple
+                            (mapcar #'hex-pack-bytes))))
+        (decode-coding-string
+         (mapconcat #'byte-to-string byte-seq "") 'utf-8))))
 #+END_SRC
 
 And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (that really should go into the piper project).
@@ -71,7 +71,7 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
 #+BEGIN_SRC emacs-lisp
 (defun ha-get-linux-clipboard ()
   "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."
-  (destructuring-bind (exit-code contents)
+  (cl-destructuring-bind (exit-code contents)
       (shell-command-with-exit-code "xclip" "-o" "-t" "text/html")
     (if (= 0 exit-code)
         (list :html contents)
