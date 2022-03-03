@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------
 
 HAMACS_DIR=$(cd "$(dirname "$0")"; pwd)
-HAMACS_DEST=$HOME/.emacs.hamacs    # A symlink to ~/.emacs.d
+HAMACS_DEST=$HOME/.emacs.d
 
 mkdir -p $HAMACS_DEST
 
@@ -43,6 +43,35 @@ cat > $HAMACS_DEST/init.el <<EOF
 
 (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
 (defvar hamacs-source-dir "$HAMACS_DIR" "Where we be.")
+
+;; Configure straight https://github.com/raxod502/straight.el#getting-started
+
+(defvar bootstrap-version)
+
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+
+;; While that enables the :straight t extension to use-package, let's just have that be the default:
+(use-package straight
+  :custom (straight-use-package-by-default t
+           straight-default-vc 'git))
+
+;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
+
+;; Download and use the latest version of org:
+
+(use-package org)  ; We'll configure this in ernest later.
 
 ;; Let's rock:
 (org-babel-load-file "$HAMACS_DIR/bootstrap.org")

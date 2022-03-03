@@ -25,28 +25,31 @@ A literate programming file for bootstraping my Emacs Configuration.
 * Introduction
 This file contains all the variable definitions and library loading for the other files in my project.
 ** Straight Package Installer
-I'm going to be installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. Here is the initialization/installation for it:
+I'm going to be installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. However, before I could tangle these org files, I needed to have =straight= grab the latest =org=, so the following initialization code is actually in [[file:initialize][initialize]], but the good stuff is:
 
-#+BEGIN_SRC emacs-lisp
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defvar bootstrap-version)
+
+  (let ((bootstrap-file
+	 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	(bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+	  (url-retrieve-synchronously
+	   "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	   'silent 'inhibit-cookies)
+	(goto-char (point-max))
+	(eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
 #+END_SRC
 Let's get the Straight project working with =use-package=:
-#+BEGIN_SRC emacs-lisp
+
+#+BEGIN_SRC emacs-lisp :tangle no
 (straight-use-package 'use-package)
 #+END_SRC
+
 While that enables the =:straight t= extension to =use-package=, let's just have that be the default:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package straight
   :custom (straight-use-package-by-default t
            straight-default-vc 'git))

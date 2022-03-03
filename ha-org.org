@@ -26,7 +26,6 @@ A literate programming file for configuring org-mode and those files.
 Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    ;; :straight (:type built-in)  ; Use with problems from 9.4.4 version
     :mode ("\\.org" . org-mode)    ; Addresses an odd warning
     :init
     <<variables>>
@@ -91,6 +90,7 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
         org-src-fontify-natively t
         org-src-tab-acts-natively t)
 #+END_SRC
+
 * Configuration Section
 I pretend that my org files are word processing files that wrap automatically:
 #+NAME: visual-hook

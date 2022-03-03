@@ -118,12 +118,12 @@ Now that headers are noticeable, I have no reason to see a number of asterisks. 
     :straight (:type git :protocol ssh :host github :repo "integral-dw/org-superstar-mode")
     :hook (org-mode . org-superstar-mode)
     :init
-    (setq org-superstar-headline-bullets-list '("▶")
+    (setq ; org-superstar-headline-bullets-list '("▶")
           org-superstar-special-todo-items nil
           org-superstar-todo-bullet-alist t
           org-superstar-prettify-item-bullets t
-          org-superstar-item-bullet-alist '((42 . "⊙")   ; *
-                                            (43 . "⁍")   ; +
+          org-superstar-item-bullet-alist '((42 . "●")   ; *
+                                            (43 . "○")   ; +
                                             (45 . "•"))))
 #+END_SRC
 
@@ -152,7 +152,7 @@ Since the following code does not work like I would have expected:
 #+END_SRC
 
 I add a hook to standard Org, and since this is a Lisp-2, I can get away with:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun org-hide-leading-stars ()
   (let* ((keyword
           `(("^\\(\\*+ \\)\\s-*\\S-" ; Do not hide empty headings!
