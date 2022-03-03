@@ -71,9 +71,27 @@ According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-
 
 (define-key elfeed-show-mode-map (kbd "B") 'elfeed-show-visit-gui)
 #+END_SRC
-Finally, we can add it to the =apps= menu:
+
+Quick way to start and jump to my world of feeds.
 #+BEGIN_SRC emacs-lisp
-(ha-leader "a f" 'elfeed)
+  (defun ha-elfeed-persp-start ()
+    "Create an ELFEED workspace and start my ELFEED client."
+    (interactive)
+    (persp-switch "feeds")
+    (elfeed))
+
+  (defun ha-elfeed-persp-switch ()
+    "Switch to the ELFEED workspace and load the next buffer."
+    (interactive)
+    (persp-switch "feeds"))
+#+END_SRC
+
+And some global keys to display them in the =apps= menu:
+
+#+BEGIN_SRC emacs-lisp
+(ha-leader
+  "a f" '("elfeed switch" . ha-elfeed-persp-switch)
+  "a F" '("elfeed start"  . ha-elfeed-persp-start))
 #+END_SRC
 * The Feeds :elfeed:
 ** Personal :personal:

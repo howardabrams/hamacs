@@ -617,72 +617,73 @@ The ~0~ key/window should be always associated with a project-specific tree wind
 
 Let's try this out with a Hydra since some commands (enlarge window), I want to repeatedly call. It also allows me to organize the helper text.
 #+BEGIN_SRC emacs-lisp
-(use-package hydra
-  :config
-  (defhydra hydra-window-resize (:color blue :hint nil) "
-_w_: select _n_: new      _^_: taller (t)  _z_: Swap  _+_: text larger
-_c_: cycle  _d_: delete   _V_: shorter (T) _u_: undo  _-_: text smaller
-_j_: go up  _=_: balance  _>_: wider       _U_: undo+ _F_: font larger
-_k_: down   _m_: maximize _<_: narrower    _r_: redo  _f_: font smaller
-_h_: left   _s_: h-split  _e_: balanced    _R_: redo+ _0_: toggle neotree
-_l_: right  _v_: v-split  _o_: choose by number (also 1-9)
-"
-    ("w" ace-window)
-    ("c" other-window)
-    ("=" balance-windows)
-    ("m" delete-other-windows)
-    ("d" delete-window)
-    ("D" ace-delete-window)
+  (use-package hydra
+    :config
+    (defhydra hydra-window-resize (:color blue :hint nil) "
+  _w_: select _n_: new      _^_: taller (t)  _z_: Swap  _+_: text larger
+  _c_: cycle  _d_: delete   _V_: shorter (T) _u_: undo  _-_: text smaller
+  _j_: go up  _=_: balance  _>_: wider       _U_: undo+ _F_: font larger
+  _k_: down   _m_: maximize _<_: narrower    _r_: redo  _f_: font smaller
+  _h_: left   _s_: h-split  _e_: balanced    _R_: redo+ _0_: toggle neotree
+  _l_: right  _v_: v-split  _o_: choose by number (also 1-9)
+  "
+      ("w" ace-window)
+      ("c" other-window)
+      ("=" balance-windows)
+      ("m" delete-other-windows)
+      ("d" delete-window)
+      ("D" ace-delete-window)
 
-    ("z" ace-window-swap)
-    ("u" winner-undo)
-    ("U" winner-undo :color pink)
-    ("C-r" winner-redo)
-    ("r" winner-redo)
-    ("R" winner-redo :color pink)
+      ("z" ace-window-swap)
+      ("u" winner-undo)
+      ("U" winner-undo :color pink)
+      ("C-r" winner-redo)
+      ("r" winner-redo)
+      ("R" winner-redo :color pink)
 
-    ("n" evil-window-new)
-    ("j" evil-window-up)
-    ("k" evil-window-down)
-    ("h" evil-window-left)
-    ("l" evil-window-right)
+      ("n" evil-window-new)
+      ("j" evil-window-up)
+      ("k" evil-window-down)
+      ("h" evil-window-left)
+      ("l" evil-window-right)
+      ("o" other-window)
 
-    ("s" evil-window-split)
-    ("v" evil-window-vsplit)
+      ("s" evil-window-split)
+      ("v" evil-window-vsplit)
 
-    ("F" font-size-increase :color pink)
-    ("f" font-size-decrease :color pink)
-    ("+" text-scale-increase :color pink)
-    ("=" text-scale-increase :color pink)
-    ("-" text-scale-decrease :color pink)
-    ("^" evil-window-increase-height :color pink)
-    ("V" evil-window-decrease-height :color pink)
-    ("t" evil-window-increase-height :color pink)
-    ("T" evil-window-decrease-height :color pink)
-    (">" evil-window-increase-width :color pink)
-    ("<" evil-window-decrease-width :color pink)
-    ("e" balance-windows)
+      ("F" font-size-increase :color pink)
+      ("f" font-size-decrease :color pink)
+      ("+" text-scale-increase :color pink)
+      ("=" text-scale-increase :color pink)
+      ("-" text-scale-decrease :color pink)
+      ("^" evil-window-increase-height :color pink)
+      ("V" evil-window-decrease-height :color pink)
+      ("t" evil-window-increase-height :color pink)
+      ("T" evil-window-decrease-height :color pink)
+      (">" evil-window-increase-width :color pink)
+      ("<" evil-window-decrease-width :color pink)
+      ("e" balance-windows)
 
-    ("o" winum-select-window-by-number)
-    ("1" winum-select-window-1)
-    ("2" winum-select-window-2)
-    ("3" winum-select-window-3)
-    ("4" winum-select-window-4)
-    ("5" winum-select-window-5)
-    ("6" winum-select-window-6)
-    ("7" winum-select-window-7)
-    ("8" winum-select-window-8)
-    ("9" winum-select-window-9)
-    ("0" neotree-toggle)
+      ("o" winum-select-window-by-number)
+      ("1" winum-select-window-1)
+      ("2" winum-select-window-2)
+      ("3" winum-select-window-3)
+      ("4" winum-select-window-4)
+      ("5" winum-select-window-5)
+      ("6" winum-select-window-6)
+      ("7" winum-select-window-7)
+      ("8" winum-select-window-8)
+      ("9" winum-select-window-9)
+      ("0" neotree-toggle)
 
-    ;; Extra bindings:
-    ("t" evil-window-increase-height :color pink)
-    ("T" evil-window-decrease-height :color pink)
-    ("." evil-window-increase-width :color pink)
-    ("," evil-window-decrease-width :color pink)
-    ("q" nil :color blue)))
+      ;; Extra bindings:
+      ("t" evil-window-increase-height :color pink)
+      ("T" evil-window-decrease-height :color pink)
+      ("." evil-window-increase-width :color pink)
+      ("," evil-window-decrease-width :color pink)
+      ("q" nil :color blue)))
 
-(ha-leader "w" '("windows" . hydra-window-resize/body))
+  (ha-leader "w" '("windows" . hydra-window-resize/body))
 #+END_SRC
 *** Search Operations
 Ways to search for information goes under the ~s~ key. This primarily depends on the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.

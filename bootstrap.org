@@ -198,16 +198,16 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-remoting.org"
                             "ha-programming.org"
                             "ha-programming-python.org"
-                            ,(unless (ha-emacs-for-work?)
+                            ,(if (ha-emacs-for-work?)
+                                 '("ha-org-sprint.org" "ha-work.org")
+                               ;; Personal Editor
                                '("ha-org-journaling.org"
-                               "ha-irc.org"
-                               "ha-org-publishing.org"
-                               "ha-email.org"
-                               "ha-aux-apps.org"
-                               "ha-feed-reader.org"))
-                            ,(when (ha-emacs-for-work?)
-                               '("ha-org-sprint.org"
-                               "ha-work.org"))))
+                                 "ha-irc.org"
+                                 "ha-org-publishing.org"
+                                 "ha-email.org"
+                                 "ha-programming-scheme.org"
+                                 "ha-aux-apps.org"
+                                 "ha-feed-reader.org"))))
     "List of org files that complete the hamacs project.")
 #+END_SRC
 

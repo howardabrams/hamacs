@@ -26,13 +26,15 @@ A literate programming file for helper apps in Emacs.
 The following applications are not really needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and simply using a stand-alone app on my Workday computer.
 * Twitter
 The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
+
 #+BEGIN_SRC emacs-lisp
   (use-package twittering-mode
     :init
     (setq twittering-use-master-password t
           epa-pinentry-mode 'loopback)
     :config
-    (defalias 'epa--decode-coding-string 'decode-coding-string))
+    (defalias 'epa--decode-coding-string 'decode-coding-string)
+    (ha-leader "a t" '("twitter" . twit)))
 #+END_SRC
 * Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, but only if I've cloned it.
@@ -45,7 +47,7 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
       :init
       (setq telega-use-images nil)
       :config
-      (ha-leader "a t" 'telega)))
+      (ha-leader "a T" 'telega)))
 #+END_SRC
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 * RPG DM
