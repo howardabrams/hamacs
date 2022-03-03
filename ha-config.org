@@ -32,8 +32,8 @@ New way to display line-numbers. I set mine to =relative= so that I can easily j
 
 As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-every-edited-file/][Phil Jackson]] mentioned, Emacs has a lot of file backup strategy, and either change the [[help:backup-directory-alist][backup-directory-alist]] to put individual file backups elsewhere, e.g.
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  (setq backup-directory-alist `(("." . "~/.backups")))
+#+BEGIN_SRC emacs-lisp
+  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
 #+END_SRC
 
 Or leave them in the current directory, but create an alias to =ls= to normally not see them, e.g.
