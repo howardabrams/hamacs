@@ -41,9 +41,11 @@ The [[https://github.com/emacs-circe/circe][circe project]] (see the [[http://ww
     :config
     ;; Trick to ignore the PART and QUIT messages:
     (circe-set-display-handler "PART" (lambda (&rest ignored) nil))
-    (circe-set-display-handler "QUIT" (lambda (&rest ignored) nil)))
-#+END_SRC
+    (circe-set-display-handler "QUIT" (lambda (&rest ignored) nil))
 
+    (require 'circe-color-nicks)
+    (enable-circe-color-nicks))
+#+END_SRC
 * ZNC Server
 I'm using my own ZNC server, and I need to log in with a password stored in my GPG auth storage:
 
