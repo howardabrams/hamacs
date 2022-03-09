@@ -7,7 +7,7 @@ A literate programming file for configuring org-mode and those files.
 
 #+BEGIN_SRC emacs-lisp :exports none
 ;;
-;; Copyright (C) 2020 Howard X. Abrams
+;; ©2020 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
 ;; Maintainer: Howard X. Abrams
@@ -55,8 +55,7 @@ One other helper routine is a =general= macro for org-mode files:
       :non-normal-prefix "S-SPC")
 #+END_SRC
 * Initialization Section
-Org is an important part of my Emacs world, and with a lot of customization (even though Spacemacs and Doom do a good job getting things started).
-
+Begin by initializing these org variables:
 #+NAME: variables
 #+BEGIN_SRC emacs-lisp :tangle no
   (setq org-return-follows-link t
@@ -68,17 +67,13 @@ Org is an important part of my Emacs world, and with a lot of customization (eve
                                            ; appear indented.
 
         sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
-        ;; Speed Commands: If point is at the beginning of a headline or code
-        ;; block in org-mode, single keys do fun things. See
-        ;; org-speed-command-help for details (or hit the ? key at a headline).
-        org-use-speed-commands t
 
         org-export-with-sub-superscripts nil
 
         org-directory "~/personal"
         org-default-notes-file "~/personal/general-notes.txt"
 
-        org-enforce-todo-dependencies t   ; Can't close a task until subtasks are done
+        org-enforce-todo-dependencies t   ; Can't close a task without completed subtasks
         org-agenda-dim-blocked-tasks t
         org-log-done 'time
 
@@ -105,16 +100,16 @@ Files that end in =.txt= are still org files to me:
 
   (add-to-list 'safe-local-variable-values '(org-content . 2))
 #+END_SRC
-*Note:* Many of the files that I edit close some, but not all, of the headers using a file variable. Let's allow that to not insist that I need to approve that.
+*Note:* Org mode files with the =org-content= variable setting will collapse two levels headers. Let's allow that without the need to approve that.
 ** Better Return
 Hitting the ~Return~ key in an org file should format the following line based on context. For instance, at the end of a list, insert a new item.
-We begin with the interactive function that calls our code only if we are at the end of the line.
+We begin with the interactive function that calls our code if we are at the end of the line.
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-org-return ()
     "If at the end of a line, do something special based on the
    information about the line by calling `ha-org-special-return',
-   otherwise, just call `org-return' as usual."
+   otherwise, `org-return' as usual."
     (interactive)
     (if (eolp)
         (ha-org-special-return)
@@ -128,13 +123,13 @@ And bind it to the Return key:
 #+END_SRC
 
 What should we do if we are at the end of a line?
- - Given a prefix, call =org-return= as usual in an org file.
- - On a link, call =org-return= in order to open it.
- - On a header? Let's create a new header (or maybe not).
- - In a table? Let's create a new row.
- - If we are really in a list, we can create a new item.
+  - Given a prefix, call =org-return= as usual in an org file.
+  - On a link, call =org-return= and open it.
+  - On a header? Create a new header.
+  - In a table? Create a new row.
+  - In a list, create a new item.
 
-I really should break this function into smaller bits ...
+I should break this function into smaller bits ...
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-org-special-return (&optional ignore)
@@ -178,22 +173,22 @@ I really should break this function into smaller bits ...
         (org-return)))))
 #+END_SRC
 
-How do we know if we are in a list item? Lists end with two blank lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with only one blank line.
+How do we know if we are in a list item? Lists end with two blank lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with one blank line.
 
 #+BEGIN_SRC emacs-lisp
-(defun org-really-in-item-p ()
-  "Similar to `org-in-item-p', however, this works around an
-issue where the point could actually be in some =code= words, but
-still be on an item element."
-  (save-excursion
-    (let ((location (org-element-property :contents-begin (org-line-element-context))))
-      (when location
-        (goto-char location))
-      (org-in-item-p))))
+  (defun org-really-in-item-p ()
+    "Return item beginning position when in a plain list, nil otherwise.
+  Unlike `org-in-item-p', this works around an issue where the
+  point could actually be in some =code= words, but still be on an
+  item element."
+    (save-excursion
+      (let ((location (org-element-property :contents-begin (org-line-element-context))))
+        (when location
+          (goto-char location))
+        (org-in-item-p))))
 #+END_SRC
 
-The org API allows getting the context associated with /current element/. However, this could be a line-level symbol, like paragraph or =list-item= only if the point isn't /inside/ a bold or italics item. You know how HTML distinguishes between /block/ and /inline/ elements, org doesn't. So, let's make a function that makes that distinction:
-
+The org API allows getting the context associated with the /current element/. This could be a line-level symbol, like paragraph or =list-item=, but always when the point isn't /inside/ a bold or italics item. You know how HTML distinguishes between /block/ and /inline/ elements, org doesn't. So, let's make a function that makes that distinction:
 #+BEGIN_SRC emacs-lisp
 (defun org-line-element-context ()
   "Return the symbol of the current block element, e.g. paragraph or list-item."
@@ -215,27 +210,26 @@ And I would like to have cute little icons for those states:
 
 #+NAME: org-font-lock
 #+BEGIN_SRC emacs-lisp
-(dolist (m '(org-mode org-journal-mode))
-  (font-lock-add-keywords m                        ; A bit silly but my headers are now
-                          `(("^\\*+ \\(TODO\\) "   ; shorter, and that is nice canceled
-                             (1 (progn (compose-region (match-beginning 1) (match-end 1) "⚑") nil)))
-                            ("^\\*+ \\(DOING\\) "
-                             (1 (progn (compose-region (match-beginning 1) (match-end 1) "⚐") nil)))
-                            ("^\\*+ \\(CANCELED\\) "
-                             (1 (progn (compose-region (match-beginning 1) (match-end 1) "✘") nil)))
-                            ("^\\*+ \\(BLOCKED\\) "
-                             (1 (progn (compose-region (match-beginning 1) (match-end 1) "✋") nil)))
-                            ("^\\*+ \\(DONE\\) "
-                             (1 (progn (compose-region (match-beginning 1) (match-end 1) "✔") nil)))
-                            ;; Here is my approach for quickly making the
-                            ;; initial asterisks for listing items and whatnot,
-                            ;; appear as Unicode bullets (without actually
-                            ;; affecting the text file or the behavior).
-                            ("^ +\\([-*]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+  (dolist (m '(org-mode org-journal-mode))
+    (font-lock-add-keywords m                        ; A bit silly but my headers are now
+                            `(("^\\*+ \\(TODO\\) "   ; shorter, and that is nice canceled
+                               (1 (progn (compose-region (match-beginning 1) (match-end 1) "⚑") nil)))
+                              ("^\\*+ \\(DOING\\) "
+                               (1 (progn (compose-region (match-beginning 1) (match-end 1) "⚐") nil)))
+                              ("^\\*+ \\(CANCELED\\) "
+                               (1 (progn (compose-region (match-beginning 1) (match-end 1) "✘") nil)))
+                              ("^\\*+ \\(BLOCKED\\) "
+                               (1 (progn (compose-region (match-beginning 1) (match-end 1) "✋") nil)))
+                              ("^\\*+ \\(DONE\\) "
+                               (1 (progn (compose-region (match-beginning 1) (match-end 1) "✔") nil)))
+                              ;; Here is my approach for making the initial asterisks for listing items and
+                              ;; whatnot, appear as Unicode bullets ;; (without actually affecting the text
+                              ;; file or the behavior).
+                              ("^ +\\([-*]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 #+END_SRC
 ** Meetings
-I've notice that while I really like taking notes in a meeting, I don't always like the multiple windows I have opened, so I created this function that I can easily call to eliminate distractions during a meeting.
+I've notice that while showing a screen while taking meeting notes, I don't always like showing other windows, so I created this function to remove distractions during a meeting.
 
 #+BEGIN_SRC emacs-lisp
 (defun meeting-notes ()
@@ -243,7 +237,7 @@ I've notice that while I really like taking notes in a meeting, I don't always l
      should be. After calling this function, call 'meeting-done' to reset the environment."
       (interactive)
       (outline-mark-subtree)                             ; Select org-mode section
-      (narrow-to-region (region-beginning) (region-end)) ; Only show that region
+      (narrow-to-region (region-beginning) (region-end)) ; Show that region
       (deactivate-mark)
       (delete-other-windows)                             ; remove other windows
       (text-scale-set 2)                                 ; readable by others
@@ -251,7 +245,7 @@ I've notice that while I really like taking notes in a meeting, I don't always l
       (message "When finished taking your notes, run meeting-done."))
 #+END_SRC
 
-Of course, I need an 'undo' feature when the meeting is over...
+Of course, I need an 'undo' feature when the meeting is over…
 
 #+BEGIN_SRC emacs-lisp
 (defun meeting-done ()
@@ -316,7 +310,7 @@ To make the snippets more context aware, this predicate
          (plist-get (cadr (org-element-at-point)) :language)))
 #+END_SRC
 ** Keybindings
-Keybindings available to all file buffers:
+Global keybindings available to all file buffers:
 #+NAME: global-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
   (ha-leader
@@ -382,7 +376,7 @@ Bindings specific to org files:
       "n w" '("widen"   . widen))
 #+END_SRC
 
-Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly jumping:
+Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for jumping:
 
 #+BEGIN_SRC emacs-lisp
   (use-package ace-link
@@ -392,7 +386,7 @@ Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for quickly 
 #+END_SRC
 * Supporting Packages
 ** Exporters
-Limit the number of exporters to just the ones that I would use:
+Limit the number of exporters to the ones that I would use:
 #+NAME: ox-exporters
 #+BEGIN_SRC emacs-lisp
 (setq org-export-backends '(ascii html icalendar md odt))
@@ -424,7 +418,7 @@ And we can install company support:
 (use-package company-graphviz-dot)
 #+END_SRC
 ** Spell Checking
-Let's hook some spell-checking into org files, and actually all text files. We'll use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and use the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting (as it is less mousy).
+Let's hook some spell-checking into org files, and actually all text files. We'll use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and use the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
@@ -496,7 +490,7 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "s r" '("related" . powerthesaurus-lookup-related-dwim)
       "s S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
 #+END_SRC
-The key-bindings, keystrokes, key-connections work well with just ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. However, the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
+The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
 
 #+BEGIN_SRC emacs-lisp
   (use-package define-word
@@ -521,16 +515,60 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
      "o f" '("begin focus" . ha-focus-begin)
      "o F" '("break focus" . ha-focus-break)))
 #+END_SRC
-** Writegood
-
-The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] highlights passive and weasel words as typed. Shame it doesn't check for dangled prepositions.
-
-#+BEGIN_SRC emacs-lisp
+** Grammar and Prose Linting
+Flagging cliches, weak phrasing and other poor grammar choices.
+*** Writegood
+The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words, but isn’t integrated into =flycheck=:
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package writegood-mode
       :hook ((org-mode . writegood-mode)))
 #+END_SRC
-** Writeroom
-For a complete focused, /distraction-free/ environment, for writing or just concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
+
+We install the =write-good= NPM:
+#+BEGIN_SRC shell
+  npm install -g write-good
+#+END_SRC
+
+And check that the following works:
+#+BEGIN_SRC sh
+  write-good --text="So it is what it is."
+#+END_SRC
+
+Now, let’s connect it to flycheck:
+#+BEGIN_SRC emacs-lisp
+  (flycheck-define-checker write-good
+    "A checker for prose"
+    :command ("write-good" "--parse" source-inplace)
+    :standard-input nil
+    :error-patterns
+    ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
+    :modes (markdown-mode org-mode text-mode))
+
+  (add-to-list 'flycheck-checkers 'vale 'append)
+#+END_SRC
+*** Proselint
+With overlapping goals to =write-good=, the [[https://github.com/amperser/proselint/][proselint]] project, once installed, can check for some English phrasings. I like =write-good= better, but I want this available for its level of /pedantic-ness/.
+#+BEGIN_SRC sh
+  brew install proselint
+#+END_SRC
+
+Next, create a configuration file, =~/.config/proselint/config= file, to turn on/off checks:
+#+BEGIN_SRC js :tangle ~/.config/proselint/config.json :mkdirp yes
+{
+  "checks": {
+    "typography.diacritical_marks": false,
+    "consistency.spacing": false
+  }
+}
+#+END_SRC
+
+And tell [[https://www.flycheck.org/][flycheck]] to use this:
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :config (add-to-list 'flycheck-checkers 'proselint))
+#+END_SRC
+** Write-room
+For a complete focused, /distraction-free/ environment, for writing or concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 
 #+BEGIN_SRC emacs-lisp
   (use-package writeroom-mode
@@ -548,9 +586,7 @@ For a complete focused, /distraction-free/ environment, for writing or just conc
                 ("C-M-=" . writeroom-adjust-width)))
 #+END_SRC
 * Technical Artifacts                                :noexport:
-
-Let's provide a name so that the file can be required:
-
+Let's provide a name, to allow =require= to work:
 #+BEGIN_SRC emacs-lisp :exports none
 (provide 'ha-org)
 ;;; ha-org.el ends here

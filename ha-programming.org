@@ -8,7 +8,7 @@ A literate programming file for helping me program.
 #+BEGIN_SRC emacs-lisp :exports none
 ;;; general-programming.el --- A literate programming file for helping me program. -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020 Howard X. Abrams
+;; Copyright © 2020 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
 ;; Maintainer: Howard X. Abrams
@@ -25,9 +25,7 @@ A literate programming file for helping me program.
 
 * Introduction
 
-Seems that all programming interfaces and workflows behave similarly. However...
-
-One other helper routine is a =general= macro for org-mode files:
+Seems that all programming interfaces and workflows behave similarly. However, one other helper routine is a =general= macro for org-mode files:
 #+BEGIN_SRC emacs-lisp
   (general-create-definer ha-prog-leader
       :states '(normal visual motion)
@@ -50,30 +48,14 @@ Farm off commands into /virtual environments/:
     (direnv-mode))
 #+END_SRC
 ** Spell Checking Comments
-The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only checks for misspellings in comments. Useful!
+The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only checks for misspellings in comments.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :hook (prog-mode . flyspell-prog-mode))
 #+END_SRC
-** Flymake
-Grab the latest version of [[https://www.emacswiki.org/emacs/FlyMake][Flymake]] in order to integrate with LSP. While we are at it, let’s add some keybindings.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flymake
-    :config
-    (ha-prog-leader
-      ">" '("next problem" . flymake-goto-next-error)
-      "<" '("previous problem" . flymake-goto-prev-error)
-      "p" '(:ignore t :which-key "problems")
-      "p s" '("start checking" . flymake-start)
-      "p t" '("toggle flymake" . flymake-mode)
-      "p p" '("show problem" . flymake-show-diagnostic)
-      "p P" '("list all problems" . flymake-show-buffer-diagnostics)
-      "p l" '("show log buffer" . flymake-switch-to-log-buffer)
-      "p b" '("show log buffer" . flymake-running-backends)))
-#+END_SRC
-The question is why not use the newer [[https://www.flycheck.org/][flycheck]]? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue. However, what about when I am not using LSP?
+** Flycheck
+Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue. However, what about when I am not using LSP? Also, since I’ve hooked up grammar stuff to it, I need this with global keybindings.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
@@ -87,27 +69,27 @@ The question is why not use the newer [[https://www.flycheck.org/][flycheck]]? S
     (global-flycheck-mode)
     (ha-leader "t c" 'flycheck-mode)
 
-    (ha-prog-leader
+    (ha-leader
       ">" '("next problem" . flycheck-next-error)
       "<" '("previous problem" . flycheck-previous-error)
 
-      "p" '(:ignore t :which-key "problems")
-      "p b" '("error buffer" . flycheck-buffer)
-      "p c" '("clear" . flycheck-clear)
-      "p n" '("next" . flycheck-next-error)
-      "p p" '("previous" . flycheck-previous-error)
-      "p l" '("list all" . flycheck-list-errors)
-      "p y" '("copy errors" . flycheck-copy-errors-as-kill)
-      "p s" '("select checker" . flycheck-select-checker)
-      "p ?" '("describe checker" . flycheck-describe-checker)
-      "p h" '("display error" . flycheck-display-error-at-point)
-      "p e" '("explain error" . flycheck-explain-error-at-point)
-      "p H" '("help" . display-local-help)
-      "p i" '("manual" . flycheck-manual)
-      "p V" '("version" . flycheck-version)
-      "p v" '("verify-setup" . flycheck-verify-setup)
-      "p x" '("disable-checker" . flycheck-disable-checker)
-      "p t" '("toggle flycheck" . flycheck-mode)))
+      "P" '(:ignore t :which-key "problems")
+      "P b" '("error buffer" . flycheck-buffer)
+      "P c" '("clear" . flycheck-clear)
+      "P n" '("next" . flycheck-next-error)
+      "P p" '("previous" . flycheck-previous-error)
+      "P l" '("list all" . flycheck-list-errors)
+      "P y" '("copy errors" . flycheck-copy-errors-as-kill)
+      "P s" '("select checker" . flycheck-select-checker)
+      "P ?" '("describe checker" . flycheck-describe-checker)
+      "P h" '("display error" . flycheck-display-error-at-point)
+      "P e" '("explain error" . flycheck-explain-error-at-point)
+      "P H" '("help" . display-local-help)
+      "P i" '("manual" . flycheck-manual)
+      "P V" '("version" . flycheck-version)
+      "P v" '("verify-setup" . flycheck-verify-setup)
+      "P x" '("disable-checker" . flycheck-disable-checker)
+      "P t" '("toggle flycheck" . flycheck-mode)))
 #+END_SRC
 ** Documentation
 I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, however, this is only available for Mac.
@@ -157,7 +139,7 @@ The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] proje
       "d O" '("remove download" . devdocs-browser-remove-offline-data)))
 #+END_SRC
 ** Language Server Protocol (LSP) Integration
-The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp) ... wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and...).
+The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
 Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and friends), which simplifies my configuration:
 #+BEGIN_SRC emacs-lisp
@@ -218,7 +200,13 @@ The [[https://github.com/emacs-lsp/lsp-treemacs][lsp-treemacs]] offers a project
     (ha-prog-leader
           "0" '("treemacs" . lsp-treemacs-symbols)))
 #+END_SRC
+*** Origami Folding
+The [[https://github.com/emacs-lsp/lsp-origami][lsp-origami]] project integrates the [[https://github.com/gregsexton/origami.el][origami]] project with LSP for /better code folding/:
 
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-origami
+    :hook (lsp-after-open . lsp-origami-try-enable))
+#+END_SRC
 *** Debugging
 Do we want to use a debugger?
 
@@ -334,7 +322,7 @@ Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add 
 (setq doom-modeline-env-version t)
 #+END_SRC
 * Languages
-Simple to configure languages go here. More advanced stuff will go in their own files...eventually.
+Simple to configure languages go here. More advanced stuff will go in their own files… eventually.
 ** YAML and Jinja
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
 #+BEGIN_SRC emacs-lisp
@@ -350,7 +338,7 @@ Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-
 
 ** Emacs Lisp
 
-Why yes, I do find I code a lot in Emacs...
+Why yes, I do find I code a lot in Emacs…
 #+BEGIN_SRC emacs-lisp
   (ha-auto-insert-file (rx ".el" eol) "emacs-lisp-mode.el")
 #+END_SRC
@@ -428,7 +416,7 @@ And we just need to bind it. The following is Doom-specific:
     "e c" '("current" . ha-eval-current-expression))
 #+END_SRC
 *** Dim those Parenthesis
-The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I personally find better.
+The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I find better.
 
 #+BEGIN_SRC emacs-lisp
 (use-package paren-face
