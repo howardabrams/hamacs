@@ -4,16 +4,17 @@
                     (--map (s-capitalize it))
                     (s-join " "))`}
 #+AUTHOR: `user-full-name`
-#+EMAIL:  `user-mail-address`
 #+DATE:   `(format-time-string "%Y-%m-%d")`
 #+FILETAGS: :emacs:
 
-${2:A literate programming file configuring Emacs.}
+A literate programming file for ${2:configuring Emacs.}
 
 #+BEGIN_SRC emacs-lisp :exports none
-;;; `(file-name-base (buffer-file-name)))`.el --- $2 -*- lexical-binding: t; -*-
+;;; `(file-name-base (buffer-file-name)))` --- $2 -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) `(format-time-string "%Y")` `user-full-name`
+;; © `(format-time-string "%Y")` `user-full-name`
+;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+;;   See http://creativecommons.org/licenses/by/4.0/
 ;;
 ;; Author: `user-full-name` <http://gitlab.com/howardabrams>
 ;; Maintainer: `user-full-name`

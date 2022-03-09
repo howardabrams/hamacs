@@ -6,9 +6,11 @@
 A literate programming file for configuring Python.
 
 #+BEGIN_SRC emacs-lisp :exports none
-  ;;; ha-programming-python.el --- A literate programming file for configuring Python. -*- lexical-binding: t; -*-
+  ;;; ha-programming-python --- Python configuration. -*- lexical-binding: t; -*-
   ;;
-  ;; Copyright (C) 2021 Howard X. Abrams
+  ;; © 2021-2022 Howard X. Abrams
+  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
   ;; Maintainer: Howard X. Abrams
