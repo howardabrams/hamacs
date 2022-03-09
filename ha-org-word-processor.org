@@ -109,6 +109,13 @@ Next, we just need to change the header sizes:
   (set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'default)
   (set-face-attribute 'org-level-4 nil :height 1.1 :inherit 'default))
 #+END_SRC
+
+While we are at it, let’s make sure the code blocks are using my fixed with font:
+#+BEGIN_SRC emacs-lisp
+  (use-package mixed-pitch
+    :init (setq mixed-pitch-set-height t)
+    :hook (org-mode . mixed-pitch-mode))
+#+END_SRC
 * Superstar
 Now that headers are noticeable, I have no reason to see a number of asterisks. Once I used the [[https://github.com/sabof/org-bullets][org-bullets]] package, but believe we've replaced it with [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]], so the following is an improvement, especially with the sub-bullets:
 

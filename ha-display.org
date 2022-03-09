@@ -214,7 +214,7 @@ Simple function that gives me the font information based on the size I need. Thi
       ;; fixed-pitch as my default fixed-pitched font.
       (custom-theme-set-faces
        'user
-       `(variable-pitch ((t (:family ,ha-variable-font :slant normal :weight normal :height 1.1 :width normal))))
+       `(variable-pitch ((t (:family ,ha-variable-font :slant normal :weight normal :height 1.3 :width normal))))
        `(fixed-pitch ((t (:family ,ha-fixed-font :slant normal :weight normal :height 1.0 :width normal)))))))
 #+END_SRC
 
@@ -224,7 +224,7 @@ Simple function that gives me the font information based on the size I need. Thi
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 13))
+    (ha-set-favorite-font-size 16))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
