@@ -946,7 +946,6 @@ Build the hydra as well as configure the =perspective= project.
   (use-package perspective
     :custom
     (persp-modestring-short t)
-    (persp-sort 'name)
     (persp-show-modestring t)
 
     :config
@@ -986,12 +985,14 @@ Build the hydra as well as configure the =perspective= project.
       ("q" nil)
       ("C-g" nil))
 
-    (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
     :bind ("C-<tab>" . hydra-workspace-leader/body))
 #+END_SRC
-*** Predefined Workspaces
-#+END_SRC
 
+I have no idea why this binding doesn’t work /within/ the =use-package= declaration, but oh well…
+#+BEGIN_SRC emacs-lisp
+(ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
+#+END_SRC
+*** Predefined Workspaces
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
 Granted, this list is essentially a list of projects that I'm currently developing, so I expect this to change often.
 
@@ -1013,7 +1014,8 @@ Given a list of information about project-workspaces, can we just create them al
 #+BEGIN_SRC emacs-lisp
   (defun ha-persp-exists? (name)
     "Return non-nill is a perspective of NAME has been created."
-    (seq-contains (hash-table-keys (perspectives-hash)) name))
+    (when (fboundp 'perspectives-hash)
+      (seq-contains (hash-table-keys (perspectives-hash)) name)))
 
   (defun ha-workspace-initialize (&optional projects)
     "Precreate workspace projects from a PROJECTS list.

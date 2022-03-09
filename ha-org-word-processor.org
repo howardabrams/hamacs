@@ -193,6 +193,21 @@ To make it more distinguishable, he also changed the colors:
     1 'org-checkbox-done-text prepend))
  'append)
 #+END_SRC
+* SVG-Based Prettiness
+While I'm intrigued with [[https://github.com/rougier][Nicolas P. Rougier]]'s [[https://github.com/rougier/notebook-mode][notebook project]], I really just want to steal their [[https://github.com/rougier/svg-lib][svg-lib project]] that allows me to create and display various SVG objects, namely tags, progress bars, progress pies and icons.  Each object fits nicely in a text buffer ensuring width is an integer multiple of character width.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package svg-lib
+    :straight (:type git :protocol ssh :host github :repo "rougier/svg-lib"))
+
+  (use-package svg-tag-mode
+    :straight (:type git :protocol ssh :host github :repo "rougier/svg-tag-mode"))
+
+  (use-package notebook
+    :straight (:type git :protocol ssh :host github :repo "rougier/notebook")
+    :after org
+    :hook (org-mode . notebook-mode))
+#+END_SRC
 * Padding
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
 
