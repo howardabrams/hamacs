@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# contributor: Howard Abrams <howard.abrams@gmail.com>
+# contributor: Howard Abrams
 # name: use-case-diagram
 # key: use-case
 # condition: (ha/org-nested-in-plantuml-block)

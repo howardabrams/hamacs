@@ -8,5 +8,4 @@
                     (--map (s-capitalize it))
                     (s-join " "))`}
 #+AUTHOR: Howard X. Abrams
-#+EMAIL:  howard.abrams@gmail.com
 #+FILETAGS: :rpg:5e:dm-screen:

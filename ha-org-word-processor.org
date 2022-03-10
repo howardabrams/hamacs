@@ -25,9 +25,9 @@ A literate programming file for making Org file more readable.
   ;;; Code:
 #+END_SRC
 * Introduction
-I like having org-mode files look more like editing in a word processor than having it look like programming code. But that is just me.
+I like having org-mode files look more like a word processor than having it look like programming code. But that is just me.
 * General Org Settings
-Since I use ellipsis in my writing... I like to /change/ how org renders a collapsed heading.
+Since I use ellipsis in my writing… to /change/ how org renders a collapsed heading.
 
 #+BEGIN_SRC emacs-lisp
   (setq org-pretty-entities t

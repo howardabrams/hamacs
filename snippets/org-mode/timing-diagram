@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# contributor: Howard Abrams <howard.abrams@gmail.com>
+# contributor: Howard Abrams
 # name: timing-diagram
 # key: timing
 # condition: (ha/org-nested-in-plantuml-block)

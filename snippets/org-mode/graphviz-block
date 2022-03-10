@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: graphviz-block
+# key: <g
+# --
+
+#+BEGIN_SRC dot :file ${1:`(file-name-base (buffer-file-name)))`-`(ha-org-next-image-number)`}.${2:png} :exports file :results file
+  digraph G {
+    ${0:A -> B};
+  }
+#+END_SRC
+
+#+ATTR_ORG: :width 800px

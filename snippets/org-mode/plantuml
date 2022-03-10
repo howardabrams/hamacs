@@ -1,14 +1,16 @@
 # -*- mode: snippet -*-
 # name: plantuml
 # key: <p
-# contributor: Howard Abrams <howard.abrams@gmail.com>
+# contributor: Howard Abrams
 # group: plantuml
 # --
 
-#+begin_src plantuml :file ${1:`(ha/org-next-image-number)`}.${2:png} :exports file :results file
+#+begin_src plantuml :file ${1:`(file-name-base (buffer-file-name)))`-`(ha-org-next-image-number)`}.${2:png} :exports file :results file
 @startuml
 !include plantuml-dark-theme.puml
 ' See details at https://plantuml.com/
 $0
 @enduml
 #+end_src
+
+#+ATTR_ORG: :width 800px

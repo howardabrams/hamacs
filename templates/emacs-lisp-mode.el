@@ -1,9 +1,12 @@
 ;;; `(file-name-nondirectory (buffer-file-name))` --- $1  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) `(format-time-string "%Y")`  Howard X. Abrams
+;; © `(format-time-string "%Y")` Howard X. Abrams
+;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+;;   See http://creativecommons.org/licenses/by/4.0/
+;;
 ;;
 ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: `(format-time-string "%e %B %Y")`
 ;;
 ;; This file is not part of GNU Emacs. Obviously. But you knew that.
