@@ -336,7 +336,7 @@ Can we change Evil at this point? Some tips:
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
           evil-want-integration t
-          evil-escape-key-sequence "fd"
+          evil-escape-key-sequence "jk"
           evil-escape-unordered-key-sequence t)
 
     :config
@@ -414,6 +414,7 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "RET" 'bookmark-jump
     "a"  '(:ignore t :which-key "apps")
     "o"  '(:ignore t :which-key "org/open")
+    "o i" 'imenu
     "m"   '(:ignore t :which-key "mode"))
 #+END_SRC
 And ways to stop the system:
@@ -791,10 +792,6 @@ Let's make Info behave a little more VI-like:
              "p" 'Info-backward-node
              "n" 'Info-forward-node))    ; Old habit die hard
 #+END_SRC
-*** Consult Enhancements
-The [[https://github.com/minad/consult][consult]] package is a replacement for selecting buffers and other /speciality functions/, similar to the [[https://oremacs.com/2015/04/09/counsel-completion/][Ivy's counsel completion]] project. I think I may be adding it sparingly, as personally, I read files and buffers based on the selected /project/.
-
-The pattern is to add the /consult/ functions to my standard general leader organization, but they will all end with ~TAB~ (unique, easy and consistent).
 #+BEGIN_SRC emacs-lisp
 (use-package consult
   :config

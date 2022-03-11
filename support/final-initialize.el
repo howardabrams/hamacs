@@ -4,7 +4,7 @@
 ;; Copyright (C) 2020 Howard X. Abrams
 ;;
 ;; Author: Howard X. Abrams <http://github/howard>
-;; Maintainer: Howard X. Abrams <howard.abrams@gmail.com>
+;; Maintainer: Howard X. Abrams
 ;; Created: September 11, 2020
 ;; Modified: September 11, 2020
 ;; Version: 0.0.1
