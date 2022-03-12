@@ -38,6 +38,12 @@ As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
 #+END_SRC
 
+Oh, and let’s see if I will use the =recentf= feature more:
+
+#+BEGIN_SRC emacs-lisp
+  (recentf-mode 1)
+#+END_SRC
+
 Or leave them in the current directory, but create an alias to =ls= to normally not see them, e.g.
 
 #+BEGIN_SRC sh
