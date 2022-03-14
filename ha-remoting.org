@@ -398,18 +398,18 @@ We'll do the work of getting the /server list/ with this function:
 #+BEGIN_SRC emacs-lisp
   (defun ha-ssh-overcloud-cache-populate (cluster)
     (interactive (list (completing-read "Cluster: " '(devprod1 devprod501 devprod502))))
-    (message "Calling the =openstack= command...this will take a while. Grab a coffee, eh?")
+    (message "Calling the `openstack' command...this will take a while. Grab a coffee, eh?")
     (let* ((command (format "openstack --os-cloud %s server list --no-name-lookup --insecure -f json" cluster))
            (json-data (shell-command-to-string command)))
       (message "Call to openstack returned: %s" json-data)
       (setq ha-ssh-overcloud-cache-data (json-read-from-string json-data))
-      (let* ((hostnames (->> ha-ssh-overcloud-cache-data
-                             (--map (alist-get 'Name it))))
-             (addresses (->> ha-ssh-overcloud-cache-data
-                             (--map (alist-get 'Networks it))
-                             (--map (replace-regexp-in-string ".*?=" "" it)))))
-        (setq ha-ssh-favorite-hostnames (append ha-ssh-favorite-hostnames
-                                                (-zip-pair hostnames addresses)))))
+      (cl-flet* ((ssh-tuple   (entry)   (cons (alist-get 'Name entry)
+                                              (aref (thread-last entry
+                                                      (alist-get 'Networks)
+                                                      (alist-get 'cedev13))
+                                                    0))))
+        (setq ha-ssh-favorite-hostnames
+              (mapcar #'ssh-tuple ha-ssh-overcloud-cache-data))))
     (message "Call to =openstack= complete. Found %d hosts." (length ha-ssh-overcloud-cache-data)))
 #+END_SRC
 
