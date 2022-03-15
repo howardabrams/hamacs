@@ -566,21 +566,23 @@ We install the =write-good= NPM:
 #+END_SRC
 
 And check that the following works:
-#+BEGIN_SRC sh
+#+BEGIN_SRC sh :results output
   write-good --text="So it is what it is."
 #+END_SRC
 
 Now, let’s connect it to flycheck:
 #+BEGIN_SRC emacs-lisp
-  (flycheck-define-checker write-good
-    "A checker for prose"
-    :command ("write-good" "--parse" source-inplace)
-    :standard-input nil
-    :error-patterns
-    ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
-    :modes (markdown-mode org-mode text-mode))
+  (use-package flycheck
+    :config
+    (flycheck-define-checker write-good
+                             "A checker for prose"
+                             :command ("write-good" "--parse" source-inplace)
+                             :standard-input nil
+                             :error-patterns
+                             ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
+                             :modes (markdown-mode org-mode text-mode))
 
-  (add-to-list 'flycheck-checkers 'vale 'append)
+    (add-to-list 'flycheck-checkers 'vale 'append))
 #+END_SRC
 *** Proselint
 With overlapping goals to =write-good=, the [[https://github.com/amperser/proselint/][proselint]] project, once installed, can check for some English phrasings. I like =write-good= better, but I want this available for its level of /pedantic-ness/.

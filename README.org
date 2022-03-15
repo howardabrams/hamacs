@@ -18,7 +18,7 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-config.org][config]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
   - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes, fonts and the dashboard.
   - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features, however, come from their own files, however.
-  - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like what one might see in a word processor, including turning off the colors for headers, and instead increasing their size.
+  - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
   - [[file:ha-org-clipboard.org][org-clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
   - [[file:ha-org-journaling.org][org-journaling]] :: for writing journal entries and tasks.
   - [[file:ha-org-publishing.org][org-publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
@@ -33,6 +33,7 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-passwords.org][passwords]] :: code for generating passwords.
   - [[file:ha-programming.org][programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
   - [[file:ha-programming-python.org][programming-python]] :: configuration for working with Python and LSP.
+  - [[file:ha-programming-scheme.org][programming-scheme]] :: configuration for Racket.
   - [[file:ha-aux-apps.org][aux-apps]] :: additional application configuration.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]].  To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.
