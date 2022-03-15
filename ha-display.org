@@ -66,13 +66,57 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
   (use-package doom-themes)
 #+END_SRC
 * Find the Bloody Cursor
-Large screen, lots of windows, so where is the cursor?
+Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F6~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package hl-line+
-    :config
-    (set-face-attribute 'hl-line nil :background "#846444" :inherit 'default)
-    :bind ("<f6>" . 'hl-line-flash))
+  (use-package pulsar
+    :straight (:type git :protocol ssh :host gitlab :repo "protesilaos/pulsar")
+    :custom
+    (pulsar-pulse-functions '(recenter-top-bottom
+                              move-to-window-line-top-bottom
+                              reposition-window
+                              bookmark-jump
+                              other-window
+                              delete-window
+                              delete-other-windows
+                              forward-page
+                              backward-page
+                              scroll-up-command
+                              scroll-down-command
+                              windmove-right
+                              windmove-left
+                              windmove-up
+                              windmove-down
+                              windmove-swap-states-right
+                              windmove-swap-states-left
+                              windmove-swap-states-up
+                              windmove-swap-states-down
+                              winum-select-window-1
+                              winum-select-window-2
+                              winum-select-window-3
+                              winum-select-window-4
+                              winum-select-window-5
+                              winum-select-window-6
+                              winum-select-window-7
+                              winum-select-window-8
+                              winum-select-window-9
+                              winner-undo
+                              winner-redo
+                              tab-new
+                              tab-close
+                              tab-next
+                              org-next-visible-heading
+                              org-previous-visible-heading
+                              org-forward-heading-same-level
+                              org-backward-heading-same-level
+                              outline-backward-same-level
+                              outline-forward-same-level
+                              outline-next-visible-heading
+                              outline-previous-visible-heading
+                              outline-up-heading))
+    (pulsar-face 'pulsar-magenta)
+    (pulsar-delay 0.055)
+    :bind ("<f6>" . pulsar-pulse-line))
 #+END_SRC
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
