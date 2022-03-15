@@ -90,7 +90,7 @@ If we want to read the [[file:~/.emacs.d/straight/build/sicp/sicp.info][sicp.inf
 #+END_SRC
 * Racket
 Actually, let’s do this with [[https://racket-lang.org/][Racket]]:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC sh
   brew install racket
 #+END_SRC
 
