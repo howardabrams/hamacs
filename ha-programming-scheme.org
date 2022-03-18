@@ -108,10 +108,9 @@ Can we get Racket working with Org?
     :config
     (add-to-list 'org-babel-load-languages '(racket . t)))
 #+END_SRC
-
 ** Try It Out
 :PROPERTIES:
-:header-args:racket: :session racketeering :results value replace :lang racket
+:HEADER-ARGS:racket: :session racketeering :results value replace :lang racket
 :END:
 Working for values?
 #+BEGIN_SRC racket
