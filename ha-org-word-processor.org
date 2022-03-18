@@ -94,28 +94,50 @@ I really want to use the Org Beautify package, but it overrides my darker themes
 First step is to make all Org header levels to use the variable font, and be the same color as the default text:
 
 #+BEGIN_SRC emacs-lisp
-(when window-system
-  (let ((default-color (face-attribute 'default :foreground)))
-    (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
-      (set-face-attribute face nil
-                          :foreground default-color :weight 'bold :font ha-variable-font))))
+  (when window-system
+    (let ((default-color (face-attribute 'default :foreground)))
+      (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
+        (set-face-attribute face nil
+                            :foreground default-color :weight 'bold :font ha-variable-font))))
 #+END_SRC
 
 Next, we just need to change the header sizes:
 
 #+BEGIN_SRC emacs-lisp
-(when window-system
-  (set-face-attribute 'org-level-1 nil :height 2.2 :inherit 'default)
-  (set-face-attribute 'org-level-2 nil :height 1.8 :inherit 'default)
-  (set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'default)
-  (set-face-attribute 'org-level-4 nil :height 1.1 :inherit 'default))
+  (when window-system
+    (set-face-attribute 'org-level-1 nil :height 2.2)
+    (set-face-attribute 'org-level-2 nil :height 1.8)
+    (set-face-attribute 'org-level-3 nil :height 1.4)
+    (set-face-attribute 'org-level-4 nil :height 1.1))
 #+END_SRC
 
 While we are at it, let’s make sure the code blocks are using my fixed with font:
 #+BEGIN_SRC emacs-lisp
-  (use-package mixed-pitch
-    :init (setq mixed-pitch-set-height t)
-    :hook (org-mode . mixed-pitch-mode))
+  (when window-system
+    (dolist (face '(org-block org-code org-verbatim org-table org-drawer
+                    org-special-keyword org-property-value org-document-info-keyword))
+      (set-face-attribute face nil :inherit 'fixed-pitch)))
+#+END_SRC
+Not sure why the above code removes the color of =org-verbatim=, so let’s make it stand out slightly:
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'org-verbatim nil :foreground "#aaaacc")
+#+END_SRC
+And some slight adjustments to the way blocks are displayed:
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'org-block-begin-line nil :background "#282828")
+  (set-face-attribute 'org-block nil :height 0.95)
+  (set-face-attribute 'org-block-end-line nil :background "#262626")
+#+END_SRC
+And decrease the prominence of the property drawers:
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'org-drawer nil :height 0.8 :line-height 0.8)
+  (set-face-attribute 'org-property-value nil :height 0.85)
+  (set-face-attribute 'org-special-keyword nil :height 0.85)
+#+END_SRC
+This process allows us to use =variable-pitch= mode for all org documents.
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+    :hook (org-mode . variable-pitch-mode))
 #+END_SRC
 * Superstar
 Now that headers are noticeable, I have no reason to see a number of asterisks. Once I used the [[https://github.com/sabof/org-bullets][org-bullets]] package, but believe we've replaced it with [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]], so the following is an improvement, especially with the sub-bullets:
@@ -148,10 +170,9 @@ If this works, then we get the prettier bulleted list:
       - Birds
 
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I just stay with dashed bullets. Numeric bullets should cycle:
-
 #+BEGIN_SRC emacs-lisp
-(setq org-list-demote-modify-bullet '(("*" . "+") ("+" . "-") ("-" . "-")
-                                      ("1." . "a.") ("a." . "1.")))
+  (setq org-list-demote-modify-bullet '(("*" . "+") ("+" . "-") ("-" . "-")
+                                        ("1." . "a.") ("a." . "1.")))
 #+END_SRC
 
 Since the following code does not work like I would have expected:
@@ -183,13 +204,11 @@ According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to
 #+END_SRC
 
 And now we can attach it to a newly loaded org files:
-
 #+BEGIN_SRC emacs-lisp
 (add-hook 'org-mode-hook 'ha-org-prettify-checkboxes)
 #+END_SRC
 
 To make it more distinguishable, he also changed the colors:
-
 #+BEGIN_SRC emacs-lisp
 (defface org-checkbox-done-text
   '((t (:foreground "#71696A" :strike-through t)))
@@ -258,7 +277,7 @@ However, I'm just going to have to write a function to clean this.
 Now that is some complicated regular expressions.
 * Pasting
 I like the idea that I will paste HTML text from the clipboard and have it converted to org-formatted text:
-#+BEGIN_SRC emacs-lisp :results silent
+#+BEGIN_SRC emacs-lisp
 (defun ha-org-paste ()
   (interactive)
   (if (eq system-type 'gnu/linux)

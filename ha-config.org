@@ -780,6 +780,8 @@ While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
     "h"  '(:ignore t :which-key "help")
     "h e" '("errors" . view-echo-area-messages)
     "h f" '("function" . describe-function)
+    "h F" '("font" . describe-font)
+    "h =" '("face" . describe-face)
     "h v" '("variable" . describe-variable)
     "h k" '("key binding" . describe-key)
     "h B" '("embark" . embark-bindings)
@@ -1172,9 +1174,7 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
       "g c p" '("Pull request"             . forge-create-pullreq)))
 #+END_SRC
 
-Every /so often/, pop over to the following URLs and generate a new
-token where the *Note* is =forge=, and then copy that into the
-[[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
+Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
 
   - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
@@ -1318,16 +1318,14 @@ Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allow
 #+END_SRC
 Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
 ** Demo It
-Making demonstrations /within/ Emacs with [[https://github.com/howardabrams/demo-it][demo-it]].
+Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While it is on MELPA, I want to use my own cloned version to make sure I can keep debugging aspects of it. Especially since its use of [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] has separated.
 #+BEGIN_SRC emacs-lisp
   (use-package demo-it
     :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
+
 #+END_SRC
-Perhaps I should change the reference to this for more local development:
-#+begin_example
-      :straight (:local-repo "~/other/demo-it")
-#+end_example
+
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
 

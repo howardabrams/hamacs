@@ -130,7 +130,6 @@ Most of the time, Emacs is on my desk is a darkened room, so I choose the dark t
   (interactive)
   (load-theme 'sanityinc-tomorrow-night t)
   (set-face-attribute 'region nil :background "#000096")
-  ;; font-lock-comment-face #8a8b8a
   (set-face-attribute 'mode-line nil :background "black")
   (set-face-attribute 'mode-line-inactive nil :background "#333333"))
 #+END_SRC
@@ -142,7 +141,6 @@ But, when feeling adventurous, I /sometimes/ take my laptop outside:
   (interactive)
   (load-theme 'sanityinc-tomorrow-day t)
   (set-face-attribute 'region nil :background "orange1")
-  ;; font-lock-comment-face #8a8b8a
   (set-face-attribute 'mode-line nil :background "#cccccc")
   (set-face-attribute 'mode-line-inactive nil :background "#888888"))
 #+END_SRC
@@ -248,28 +246,24 @@ I probably don't need to have such a ranking system, as chances are really good 
   "My variable width font available to org-mode files and whatnot.")
 #+END_SRC
 
-Simple function that gives me the font information based on the size I need. This calls =set-frame-font=, but also sets the monospaced font for org code blocks.
+Simple function that gives me the font information based on the size I need.  Recently updated after reading [[https://protesilaos.com/codelog/2020-09-05-emacs-note-mixed-font-heights/][this essay]], as I wanted my =fixed-pitch= to scale along with my =variable-pitch= font.
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-set-favorite-font-size (size)
+    "Set the default font size as well as equalize the fixed and variable fonts."
     (let ((fav-font (format "%s-%d" ha-fixed-font size)))
-      (set-frame-font fav-font nil t)
-
-      ;; When using variable-pitch in org, we need to specifically set the
-      ;; fixed-pitch as my default fixed-pitched font.
-      (custom-theme-set-faces
-       'user
-       `(variable-pitch ((t (:family ,ha-variable-font :slant normal :weight normal :height 1.3 :width normal))))
-       `(fixed-pitch ((t (:family ,ha-fixed-font :slant normal :weight normal :height 1.0 :width normal)))))))
+      (set-face-attribute 'default nil :font fav-font)
+      (set-face-attribute 'fixed-pitch nil :family ha-fixed-font :inherit 'default :height 1.0)
+      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.15)))
 #+END_SRC
 
-  Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
+Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 16))
+    (ha-set-favorite-font-size 17))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
