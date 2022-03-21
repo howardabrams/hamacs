@@ -193,7 +193,7 @@ In the interim, let’s use [[https://github.com/minad/org-modern][org-modern]] 
 #+BEGIN_SRC emacs-lisp
   (use-package org-modern
     :straight (:type git :protocol ssh :host github :repo "minad/org-modern")
-    :custom (org-modern-label-border 0.4
+    :custom (org-modern-label-border 0.1
              org-modern-variable-pitch t
              org-modern-tag  nil  ; Letting svg-tag do this
              org-modern-list . '((?+ . "◦")
@@ -217,13 +217,66 @@ I like the idea that I will paste HTML text from the clipboard and have it conve
       (shell-command "xclip -t text/html -o | pandoc -r html -w org" t)))
 #+END_SRC
 * Presentations
-The [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] still seems to be the best presentation tool for Org files, but I really need to issue a pull request to fix a few warnings.
+Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for showing org files as presentations. Converted to use [[https://github.com/rlister/org-present][org-present]]. I love the /hooks/ as that makes it easier to pull out much of my =demo-it= configuration. My concern with =org-present= is that it only jumps from one top-level to another top-level header.
+
 #+BEGIN_SRC emacs-lisp
-(use-package org-tree-slide
+  (use-package org-present
     :init
-    (setq org-tree-slide-skip-outline-level 4)
+    (defvar ha-org-present-mode-line mode-line-format "Cache previous mode-line format state")
+
     :config
-    (org-tree-slide-simple-profile))
+    (defun org-blocks-hide-headers ()
+      "Make the headers and other block metadata invisible. See `org-blocks-show-headers'."
+      (add-to-invisibility-spec 'ha-org-block-headers)
+
+      (defun hide-this (regexp)
+        (goto-char (point-min))
+        (while (re-search-forward regexp nil t)
+          (let ((start (match-beginning 0)) (end (1+ (match-end 0))))
+            (overlay-put (make-overlay start end) 'invisible 'ha-org-block-headers))))
+
+      (defun hide-these (patterns)
+        (when patterns
+            (hide-this (car patterns))
+            (hide-these (cdr patterns))))
+
+      (save-excursion
+        (hide-these (list (rx bol (zero-or-more space)
+                              "#+" (or "begin" "end") "_"
+                              (one-or-more any) eol)
+                          (rx bol (zero-or-more space)
+                              "#+" (or "name" "header" "results" "property" "options"
+                                       "filetags") ":"
+                              (zero-or-more any) eol)
+                          (rx bol (zero-or-more space)
+                              ":" (or "properties" "header-args" "end") ":"
+                              (zero-or-more any) eol)))))
+
+    (defun org-blocks-show-headers ()
+      "Un-invisibilize the headers and other block metadata invisible.
+    In other words, this undoes what `org-blocks-hide-headers' did."
+      (remove-from-invisibility-spec 'ha-org-block-headers))
+
+    (defun org-present-start ()
+      (goto-char (point-min)) (re-search-forward (rx bol "*"))
+      (org-blocks-hide-headers)
+      (org-present-big)
+      (setq mode-line-format nil)
+      (org-display-inline-images)
+      (blink-cursor-mode -1)
+      (setq cursor-type nil))
+
+    (defun org-present-end ()
+      (org-present-small)
+      (org-blocks-show-headers)
+      (setq mode-line-format ha-org-present-mode-line-format)
+      (setq cursor-type t)
+      (blink-cursor-mode 1)
+      (org-present-read-write))
+
+    :hook
+    (org-present-mode . org-present-start)
+    (org-present-mode-quit . org-present-end))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's provide a name so that the file can be required:

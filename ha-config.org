@@ -1318,12 +1318,11 @@ Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allow
 #+END_SRC
 Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
 ** Demo It
-Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While it is on MELPA, I want to use my own cloned version to make sure I can keep debugging aspects of it. Especially since its use of [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] has separated.
+Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While it is on MELPA, I want to use my own cloned version to make sure I can keep debugging aspects of it. Especially since its use of [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] has separated so that I can use [[https://github.com/rlister/org-present][org-present]].
 #+BEGIN_SRC emacs-lisp
   (use-package demo-it
     :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
-
 #+END_SRC
 
 * Technical Artifacts :noexport:

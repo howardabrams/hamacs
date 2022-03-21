@@ -10,47 +10,38 @@
 #+FILETAGS: :work:
 
 * Work Issues
-
 $0
 
 * Onboarding Work
-
 See [[file:Onboarding-Work.org][Onboard-Work]] for all details.
 
 * Distractions and Support
-
 Anything that doesn't fit the above goes here.
 
 * Meeting Notes                                                     :meeting:
 * Scrum Status                                                       :status:
 
 * Sprint Demonstration
-SCHEDULED: <`(sprint-date-from-start 12)`> DEADLINE: <`(sprint-date-from-start 13)`>
+New approach for giving presentations. First create [[file:`(file-name-sans-extension (buffer-name))`-demo.org][`(file-name-sans-extension (buffer-name))`-demo.org]], and then add the bits to the code below.
 
-* Sprint Retrospective
-SCHEDULED: <`(sprint-date-from-start 14)`>
+#+BEGIN_SRC emacs-lisp :results silent
+  (defun org-present-file (filename)
+    (find-file (filename))
+    (delete-other-windows)
+    (org-present))
 
-* Notes for Next Sprint
-
-** Support Section
-
-We should always allow the display of this file for a demonstration.
-
-#+BEGIN_SRC elisp :results silent
-  (use-package demo-it
-    :load-path "~/Other/demo-it"
-    :config
-    (demo-it-create :advanced-mode :single-window
-                    (demo-it-presentation (buffer-file-name) 3 :both "Sprint Demonstration")
-                    (osx-browse-url-forwork "https://...")
-                    (demo-it-load-fancy-file "~/work/wpc4/wpc/dashboards/wpc4/hypervisor.yml"
-                                             :line 116 133)
-                    (demo-it-presentation-return-noadvance)
-                    ;; ...
-    ))
+  (demo-it-create :advanced-mode :single-window
+                  (org-present-file "`(file-name-sans-extension (buffer-name))`-demo.org")
+                  (org-present-next)
+                  (osx-browse-url-forwork "https://...")
+                  (demo-it-load-fancy-file "~/work/wpc4/wpc/dashboards/wpc4/hypervisor.yml" :line 116 133)
+                  ;; ...
+  )
 #+END_SRC
 
-Have fun and start the show: =demo-it-start= and hit ~F5~ (or the ~Num~ key on Keyboardio).
+Have fun and start the show: =demo-it-start= and hit ~F5~.
+* Notes for Next Sprint
+
 
 #+DESCRIPTION: Notes taken during Sprint #`(sprint-number)`
 #+PROPERTY:    header-args: :results drawer :tangle no  :eval no-export :comments org
