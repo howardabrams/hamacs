@@ -421,15 +421,18 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "a"  '(:ignore t :which-key "apps")
     "o"  '(:ignore t :which-key "org/open")
     "o i" 'imenu
-    "m"   '(:ignore t :which-key "mode"))
+    "m"   '(:ignore t :which-key "mode")
+    "u"   'universal-argument)
 #+END_SRC
 And ways to stop the system:
 #+BEGIN_SRC emacs-lisp
-(ha-leader
-   "q"  '(:ignore t :which-key "quit/session")
-   "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
-   "q q" '("quit emacs" . save-buffers-kill-terminal)
-   "q Q" '("quit without saving" . evil-quit-all-with-error-code))
+  (ha-leader
+     "q"  '(:ignore t :which-key "quit/session")
+     "q b" '("bury buffer" . bury-buffer)
+     "q w" '("close window" . delete-window)
+     "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
+     "q q" '("quit emacs" . save-buffers-kill-terminal)
+     "q Q" '("quit without saving" . evil-quit-all-with-error-code))
 #+END_SRC
 *** File Operations
 Obviously, =find-file= is still my bread and butter, but I do like getting information about the file associated with the buffer. For instance, the file path:
@@ -775,17 +778,33 @@ Unfilling a paragraph joins all the lines in a paragraph into a single line. Tak
 #+END_SRC
 *** Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
+Sure, I believe I should have grabbed /all/ the help functions:
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-leader "h" `("help" . ,(lookup-key global-map (kbd "C-h"))))
+#+END_SRC
+Or simply connect the =help-map= (not that we wants it /value/):
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-leader "'" `("help" . ,help-map))
+#+END_SRC
+
+But I decided to tweak the help menu, so I craft my own:
 #+BEGIN_SRC emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
+    "h a" '("apropos" . apropos-command)
     "h e" '("errors" . view-echo-area-messages)
+    "h E" '("emacs-lisp" . (lambda () (interactive) (info "elisp")))
     "h f" '("function" . describe-function)
     "h F" '("font" . describe-font)
     "h =" '("face" . describe-face)
-    "h v" '("variable" . describe-variable)
     "h k" '("key binding" . describe-key)
+    "h m" '("mode" . describe-mode)
+    "h p" '("package" . describe-package)
+    "h s" '("symbol" . info-lookup-symbol)
+    "h v" '("variable" . describe-variable)
     "h B" '("embark" . embark-bindings)
-    "h i" '("info" . info))
+    "h i" '("info" . info)
+    "h I" '("info jump" . info-apropos))
 #+END_SRC
 
 Let's make Info behave a little more VI-like:
@@ -795,8 +814,13 @@ Let's make Info behave a little more VI-like:
     :general
     (:states 'normal :keymaps 'Info-mode-map
              "o" 'ace-link-info
-             "b" 'Info-history-back
-             "TAB" 'Info-history-forward
+             "B" 'Info-bookmark-jump
+             "Y" 'org-store-link
+             "H" 'Info-history-back
+             "L" 'Info-history-forward
+             "u" 'Info-up
+             "U" 'Info-directory
+             "T" 'Info-top-node
              "p" 'Info-backward-node
              "n" 'Info-forward-node))    ; Old habit die hard
 #+END_SRC
@@ -1209,24 +1233,33 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
   (use-package eww
     :init
     (setq browse-url-browser-function 'eww-browse-url
-	  browse-url-secondary-browser-function 'browse-url-default-browser
-	  eww-browse-url-new-window-is-tab nil
-	  shr-use-colors nil
-	  shr-use-fonts t     ; I go back and forth on this one
-					  ; shr-discard-aria-hidden t
-	  shr-bullet "• "
-	  shr-inhibit-images nil  ; Gotta see the images
-					  ; shr-blocked-images '(svg)
-					  ; shr-folding-mode nil
-	  url-privacy-level '(email))
+          browse-url-secondary-browser-function 'browse-url-default-browser
+          eww-browse-url-new-window-is-tab nil
+          shr-use-colors nil
+          shr-use-fonts t     ; I go back and forth on this one
+          ;; shr-discard-aria-hidden t
+          shr-bullet "• "
+          shr-inhibit-images nil  ; Gotta see the images?
+          ;; shr-blocked-images '(svg)
+          ;; shr-folding-mode nil
+          url-privacy-level '(email))
 
     :config
     (ha-leader "a b" '("eww browser" . eww))
 
-    (evil-define-key 'normal eww-mode-map (kbd "Y") 'eww-copy-page-url)
-    (evil-define-key 'normal eww-mode-map (kbd "L") 'eww-list-bookmarks)
-    (evil-define-key 'normal eww-buffers-mode-map (kbd "q") 'eww-bookmark-kill)
-    (evil-define-key 'normal eww-bookmark-mode-map (kbd "q") 'eww-bookmark-kill))
+    :general
+    (:states 'normal :keymaps 'eww-mode-map
+             "o" 'ace-link-eww
+             "B" 'eww-list-bookmarks
+             "Y" 'eww-copy-page-url
+             "H" 'eww-back-url
+             "L" 'eww-forward-url
+             "u" 'eww-top-url
+             "p" 'eww-previous-url
+             "n" 'eww-next-url
+             "q" 'eww-buffer-kill)
+    (:states 'normal :keymaps 'eww-buffers-mode-map
+             "q" 'eww-buffer-kill))
 #+END_SRC
 
 And let's get [[https://github.com/abo-abo/ace-link][ace-link]] to work with EWW and Info pages:
