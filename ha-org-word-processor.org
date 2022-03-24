@@ -139,7 +139,7 @@ And some slight adjustments to the way blocks are displayed:
 #+END_SRC
 And decrease the prominence of the property drawers:
 #+BEGIN_SRC emacs-lisp
-  (set-face-attribute 'org-drawer nil :height 0.8 :line-height 0.8)
+  (set-face-attribute 'org-drawer nil :height 0.8)
   (set-face-attribute 'org-property-value nil :height 0.85)
   (set-face-attribute 'org-special-keyword nil :height 0.85)
 #+END_SRC
