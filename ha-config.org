@@ -123,9 +123,14 @@ Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writ
 
 Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippets]] is what Henrik Lissner has made for Doom (otherwise, we should use [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package):
 #+BEGIN_SRC emacs-lisp
-(use-package doom-snippets
-  :after yasnippet
-  :straight (:type git :protocol ssh :host github :repo "hlissner/doom-snippets"))
+  (use-package doom-snippets
+    :after yasnippet
+    :straight (:type git :protocol ssh :host github :repo "hlissner/doom-snippets")
+    :config
+    (add-to-list 'yas-snippet-dirs (thread-last user-emacs-directory
+                                                (expand-file-name "straight")
+                                                (expand-file-name "repos")
+                                                (expand-file-name "doom-snippets"))))
 #+END_SRC
 *Note:* Including his snippets also includes some [[https://github.com/hlissner/doom-snippets#snippets-api][helper functions]] and other features.
 ** Auto Insert Templates
@@ -314,6 +319,10 @@ To begin my binding changes, let's turn on [[https://github.com/justbur/emacs-wh
 (use-package which-key
   :init   (setq which-key-popup-type 'minibuffer)
   :config (which-key-mode))
+#+END_SRC
+Why would I ever quit Emacs with a simple keybinding? Let’s override it:
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "s-q") 'bury-buffer)
 #+END_SRC
 *** Undo-Fu
 Configure the Evil session to use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]], as this project is now maintained.
@@ -863,7 +872,7 @@ I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and H
     (evil-define-key '(normal motion operator visual) evil-surround-mode-map
       "z" 'evil-surround-edit
       "Z" 'evil-Surround-edit)
-    (global-evil-surround-mode 1))
+    :hook (text-mode . evil-surround-mode))  ; Don't globally use it on Magit, et. al
 #+END_SRC
 Notes:
   - ~cz'"~ :: to convert surrounding single quote string to double quotes.
