@@ -324,6 +324,10 @@ Why would I ever quit Emacs with a simple keybinding? Let’s override it:
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "s-q") 'bury-buffer)
 #+END_SRC
+Oh, and let’s not close the frame, but instead, the window:
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "s-w") 'delete-window)
+#+END_SRC
 *** Undo
 I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but since I’m on the Mac quite a bit, I want to cover my bases.
 
