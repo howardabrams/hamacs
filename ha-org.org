@@ -592,12 +592,13 @@ With overlapping goals to =write-good=, the [[https://github.com/amperser/prosel
 
 Next, create a configuration file, =~/.config/proselint/config= file, to turn on/off checks:
 #+BEGIN_SRC js :tangle ~/.config/proselint/config.json :mkdirp yes
-{
-  "checks": {
-    "typography.diacritical_marks": false,
-    "consistency.spacing": false
+  {
+    "checks": {
+      "typography.diacritical_marks": false,
+      "annotations.misc": false,
+      "consistency.spacing": false
+    }
   }
-}
 #+END_SRC
 
 And tell [[https://www.flycheck.org/][flycheck]] to use this:
