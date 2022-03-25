@@ -324,11 +324,16 @@ Why would I ever quit Emacs with a simple keybinding? Let’s override it:
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "s-q") 'bury-buffer)
 #+END_SRC
-*** Undo-Fu
-Configure the Evil session to use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]], as this project is now maintained.
+*** Undo
+I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but since I’m on the Mac quite a bit, I want to cover my bases.
+
+Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the built-in undo functionality? Well, there isn’t much to the project (that’s a good thing), but It basically doesn’t /cycle/ around the redo, which annoying.
+
 #+BEGIN_SRC emacs-lisp
 (use-package undo-fu
   :config
+  (global-set-key [remap undo] 'undo-fu-only-undo)
+  (global-set-key [remap undo-redo] 'undo-fu-only-redo)
   (global-unset-key (kbd "s-z"))
   (global-set-key (kbd "s-z")   'undo-fu-only-undo)
   (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
