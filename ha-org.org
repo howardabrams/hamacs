@@ -605,7 +605,8 @@ And tell [[https://www.flycheck.org/][flycheck]] to use this:
   (use-package flycheck
     :config (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
-** Write-room
+** Distraction-Free Writing
+*** Write-room
 For a complete focused, /distraction-free/ environment, for writing or concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 
 #+BEGIN_SRC emacs-lisp
@@ -617,11 +618,49 @@ For a complete focused, /distraction-free/ environment, for writing or concentra
       "=" '("adjust width" . writeroom-adjust-width)
       "<" '("decrease width" . writeroom-decrease-width)
       ">" '("increase width" . writeroom-increase-width))
-
     :bind (:map writeroom-mode-map
                 ("C-M-<" . writeroom-decrease-width)
                 ("C-M->" . writeroom-increase-width)
                 ("C-M-=" . writeroom-adjust-width)))
+#+END_SRC
+*** Olivetti
+The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and centers the text. It isn’t better than Writeroom, however, it works well with Logos (below).
+#+BEGIN_SRC emacs-lisp
+  (use-package olivetti
+    :init
+    (setq-default olivetti-body-width 100)
+    :config
+    (ha-leader "t O" '("olivetti" . olivetti-mode))
+    :bind (:map olivetti-mode-map
+                ("C-M-<" . olivetti-shrink)
+                ("C-M->" . olivetti-expand)
+                ("C-M-=" . olivetti-set-width)))
+#+END_SRC
+*** Logos
+Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://protesilaos.com/emacs/logos][logos project]] as a replacement for [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
+#+BEGIN_SRC emacs-lisp
+  (use-package logos
+    :straight (:type git :protocol ssh :host gitlab :repo "protesilaos/logos")
+    :init
+    (setq logos-outlines-are-pages t
+          logos-outline-regexp-alist
+          `((emacs-lisp-mode . "^;;;+ ")
+            (org-mode . "^\\*+ +")
+            (t . ,(or outline-regexp logos--page-delimiter))))
+
+    ;; These apply when `logos-focus-mode' is enabled.  Their value is
+    ;; buffer-local.
+    (setq-default logos-hide-mode-line t
+                  logos-scroll-lock nil
+                  logos-indicate-buffer-boundaries nil
+                  logos-buffer-read-only nil
+                  logos-olivetti t)
+    :config
+    (ha-leader "t L" '("logos" . logos-focus-mode))
+    (let ((map global-map))
+      (define-key global-map [remap narrow-to-region] #'logos-narrow-dwim)
+      (evil-define-key 'normal map (kbd "g [") 'logos-backward-page-dwim)
+      (evil-define-key 'normal map (kbd "g ]") 'logos-forward-page-dwim)))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's provide a name, to allow =require= to work:

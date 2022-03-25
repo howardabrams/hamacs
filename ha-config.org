@@ -574,12 +574,11 @@ The goal here is toggle switches and other miscellaneous settings.
      "t d" '("debug"          . toggle-debug-on-error)
      "t f" '("auto-fill"      . auto-fill-mode)
      "t l" '("line numbers"   . display-line-numbers-mode)
-     "t r" '("relative lines" . ha-toggle-relative-line-numbers)
      "t t" '("truncate"       . toggle-truncate-lines)
      "t v" '("visual"         . visual-line-mode)
      "t w" '("whitespace"     . whitespace-mode))
 #+END_SRC
-
+**** Line Numbers
 Really? We can't automatically toggle between relative and absolute line numbers?
 #+BEGIN_SRC emacs-lisp
   (defun ha-toggle-relative-line-numbers ()
@@ -587,6 +586,30 @@ Really? We can't automatically toggle between relative and absolute line numbers
     (if (eq display-line-numbers 'relative)
         (setq display-line-numbers t)
       (setq display-line-numbers 'relative)))
+#+END_SRC
+Add it to the toggle menu:
+#+BEGIN_SRC emacs-lisp
+  (ha-leader
+     "t r" '("relative lines" . ha-toggle-relative-line-numbers))
+#+END_SRC
+**** Narrowing
+I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but what a /dwim/ aspect:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-narrow-dwim ()
+    "Narrow to region or org-tree or widen if already narrowed."
+    (interactive)
+    (cond
+     ((buffer-narrowed-p) (widen))
+     ((region-active-p)  (narrow-to-region (region-beginning) (region-end)))
+     ((and (fboundp 'logos-focus-mode)
+           (seq-contains local-minor-modes 'logos-focus-mode 'eq))
+      (logos-narrow-dwim))
+     ((eq major-mode 'org-mode) (org-narrow-to-subtree))
+     (t  (narrow-to-defun))))
+#+END_SRC
+And put it on the toggle menu:
+#+BEGIN_SRC emacs-lisp
+    (ha-leader "t n" '("narrow" . ha-narrow-dwim))
 #+END_SRC
 *** Window Operations
 While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]] to undo window-related changes:
