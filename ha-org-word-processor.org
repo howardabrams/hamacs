@@ -337,41 +337,41 @@ What does do? Here are some examples:
 * Padding
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package org-padding
   :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
   :hook
   (org-mode . org-padding-mode)
   :config
-  (setq ;; org-padding-block-begin-line-padding '(0.5 . 0.3)
-        ;; org-padding-block-end-line-padding '(0.1 . 0.5)
+  (setq org-padding-block-begin-line-padding '(0.5 . 0.3)
+        org-padding-block-end-line-padding '(0.1 . 0.5)
         org-padding-heading-padding-alist
         '((4.0 . 1.5) (3.0 . 0.5) (3.0 . 0.5) (3.0 . 0.5) (2.5 . 0.5) (2.0 . 0.5) (1.5 . 0.5) (0.5 . 0.5))))
 #+END_SRC
 However, I'm just going to have to write a function to clean this.
-#+BEGIN_SRC emacs-lisp
-(defun ha-remove-superfluous-org-padding ()
-  (interactive)
-  (goto-char (point-min))
-  (ha-remove-org-header-padding)
-  (goto-char (point-min))
-  (ha-remove-org-block-padding))
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun ha-remove-superfluous-org-padding ()
+    (interactive)
+    (goto-char (point-min))
+    (ha-remove-org-header-padding)
+    (goto-char (point-min))
+    (ha-remove-org-block-padding))
 
-(defun ha-remove-org-header-padding ()
-  ;; (goto-char (point-min))
-  (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
-                                (group bol (one-or-more "*") (one-or-more space) (one-or-more any) "\n")
-                                (optional bol (zero-or-more space) eol "\n")) nil t)
-    (replace-match (match-string 1) nil :no-error)))
+  (defun ha-remove-org-header-padding ()
+    ;; (goto-char (point-min))
+    (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
+                                  (group bol (one-or-more "*") (one-or-more space) (one-or-more any) "\n")
+                                  (optional bol (zero-or-more space) eol "\n")) nil t)
+      (replace-match (match-string 1) nil :no-error)))
 
-(defun ha-remove-org-block-padding ()
-  ;; (goto-char (point-min))
-  (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
-                                (group bol (zero-or-more space) "#+BEGIN" (one-or-more any) eol "\n"
-                                       (zero-or-more (group bol (zero-or-more any) eol "\n"))
-                                       bol (zero-or-more space) "#+END" (zero-or-more any) eol "\n")
-                                (optional bol (zero-or-more space) eol "\n")) nil t)
-    (replace-match (match-string 1) nil :no-error)))
+  (defun ha-remove-org-block-padding ()
+    ;; (goto-char (point-min))
+    (while (re-search-forward (rx (optional bol (zero-or-more space) eol "\n")
+                                  (group bol (zero-or-more space) "#+BEGIN" (one-or-more any) eol "\n"
+                                         (zero-or-more (group bol (zero-or-more any) eol "\n"))
+                                         bol (zero-or-more space) "#+END" (zero-or-more any) eol "\n")
+                                  (optional bol (zero-or-more space) eol "\n")) nil t)
+      (replace-match (match-string 1) nil :no-error)))
 #+END_SRC
 Now that is some complicated regular expressions.
 * Pasting
