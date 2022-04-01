@@ -167,16 +167,13 @@ Sure the Emacs application will almost always have the =server-start= going, how
 #+BEGIN_SRC emacs-lisp
   (defun ha-emacs-for-work? ()
     "Return non-nil when the Emacs application's location matches as one for work.
-  Currently, this is the `emacs-plus' app that I have built with
+  Currently, this is the `emacs-plus@28' app that I have built with
   the native-comp model, but I reserve the right to change this."
     (and (f-dir? "~/work")
-         (->> Info-default-directory-list
-              (first)
-              (s-split "/")
-              (--filter (s-starts-with? "emacs-plus" it))
-              (first))))
+         (string-match "emacs-plus@28" exec-directory)))
 #+END_SRC
 
+And now start the server with an appropriate tag name:
 #+BEGIN_SRC emacs-lisp
   (if (not (ha-emacs-for-work?))
       (setq server-name "personal")

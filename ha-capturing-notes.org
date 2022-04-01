@@ -189,29 +189,6 @@ currently clocked-in org-mode task."
   (org-capture nil "f"))
 #+END_SRC
 
-* External Interface
-** Emacs Server Control
-Sure the Emacs application will almost always have the =server-start= going, however, I need to control it just a bit (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
-
-#+BEGIN_SRC emacs-lisp
-(defun ha-emacs-for-work? ()
-  "Return non-nil when the Emacs application's location matches as one for work.
-Currently, this is the `emacs-plus' app that I have built with
-the native-comp model, but I reserve the right to change this."
-  (->> Info-default-directory-list
-    (first)
-    (s-split "/")
-    (--filter (s-starts-with? "emacs-plus" it))
-    (first)))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-(if (ha-emacs-for-work?)
-    (setq server-name "work")
-  (setq server-name "personal"))
-
-(server-start)
-#+END_SRC
 * External Capturing
 If we put something on the clipboard using =xclip= or something, and then
 perhaps =emacsclient= could call this function to put those contents into clocked in task.
