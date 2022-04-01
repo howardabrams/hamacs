@@ -122,9 +122,13 @@ Next, we just need to change the header sizes:
 While we are at it, let’s make sure the code blocks are using my fixed with font:
 #+BEGIN_SRC emacs-lisp
   (when window-system
-    (dolist (face '(org-block org-code org-verbatim org-table org-drawer
+    (dolist (face '(org-block org-code org-verbatim org-table org-drawer org-table org-formula
                     org-special-keyword org-property-value org-document-info-keyword))
       (set-face-attribute face nil :inherit 'fixed-pitch)))
+
+  (set-face-attribute 'org-table nil :height 1.0)
+  (set-face-attribute 'org-formula nil :height 1.0)
+
 #+END_SRC
 Not sure why the above code removes the color of =org-verbatim=, so let’s make it stand out slightly:
 #+BEGIN_SRC emacs-lisp
@@ -223,54 +227,110 @@ To make it more distinguishable, he also changed the colors:
 While I'm intrigued with [[https://github.com/rougier][Nicolas P. Rougier]]'s [[https://github.com/rougier/notebook-mode][notebook project]], I really just want to steal their [[https://github.com/rougier/svg-lib][svg-lib project]] that allows me to create and display various SVG objects, namely tags, progress bars, progress pies and icons.  Each object fits nicely in a text buffer ensuring width is an integer multiple of character width.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package svg-lib
-    :straight (:type git :protocol ssh :host github :repo "rougier/svg-lib"))
+  (when (image-type-available-p 'svg)
+    (use-package svg-lib
+      :straight (:type git :protocol ssh :host github :repo "rougier/svg-lib"))
 
-  (use-package svg-tag-mode
-    :straight (:type git :protocol ssh :host github :repo "howardabrams/svg-tag-mode")
-    :config
-    (setq svg-tag-tags
-          '(("TODO:" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo
-                                                    :radius 2 :inverse t
-                                                    :margin 0 :padding 0 :height 0.8))))
-            ("NOTE:" . ((lambda (tag) (svg-tag-make "NOTE" :face 'org-done
-                                                    :inverse nil :margin 0 :radius 2 :height 0.8))))
-            ("\\(:[A-Z-]+\\):[a-zA-Z#0-9]+:" . ((lambda (tag)
-                                                 (svg-tag-make tag :beg 1 :inverse t
-                                                               :margin 0 :crop-right t))))
-            (":[A-Z-]+\\(:[a-zA-Z#0-9]+:\\)" . ((lambda (tag)
-                                                 (svg-tag-make tag :beg 1 :end -1
-                                                               :margin 0 :crop-left t))))
-            ("\\(:[A-Z-]+:\\)[ \n]" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1 :margin 0))))
+    (use-package svg-tag-mode
+      ;; :straight (:type git :protocol ssh :host github :repo "rougier/svg-tag-mode")
+      :straight (:type git :protocol ssh :host github :repo "howardabrams/svg-tag-mode")
+      :hook ((org-mode . svg-tag-mode)
+             (emacs-lisp-mode . svg-tag-mode)
+             (python-mode . svg-tag-mode))
+      :config
+      (setq svg-tag-tags
+            `(("NOTE:" .
+               ((lambda (tag)
+                  (svg-tag-make "NOTE" :face 'org-done
+                                :inverse nil :margin 0 :radius 2))))
 
-            ; The notebook-mode overrides these:
-            ("#\\+BEGIN_SRC [a-zA-Z#0-9-]+" . ((lambda (tag)
-                                                 (svg-tag-make "SRC" :face 'org-block-begin-line
-                                                               :height 0.6
-                                                               :inverse t :margin 0 :crop-right t))))
-            ("#\\+BEGIN_SRC \\([a-zA-Z#0-9-]+\\)" . ((lambda (tag)
-                                                 (svg-tag-make tag  :face 'org-block-begin-line
-                                                               :height 0.6
-                                                               :margin 0 :crop-left t))))
-            ("#\\+END_SRC" . ((lambda (tag)
-                                (svg-tag-make "SRC"  :face 'org-block-end-line
-                                              :height 0.6
-                                              :beg 0 :inverse t :margin 0))))
-            ("\\(#\\+[a-zA-Z#0-9-_]+:\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-document-info-keyword
-                                              :beg 2 :end -1 :height 0.6))))))
-    (global-svg-tag-mode 1))
+              ;; ------------------------------------------------------------
+              ;; Two definitions of TODO That include the single line message
+              ;; ------------------------------------------------------------
+              (,(rx word-start "TODO" word-end) .
+               ((lambda (tag)
+                  (svg-tag-make "TODO" :face 'org-todo
+                                :radius 2 :inverse t :margin 0 :padding 0 :crop-right t))))
+              (,(rx word-start "TODO"
+                    (group (one-or-more space) (zero-or-more not-newline)) line-end) .
+                    ((lambda (tag)
+                       (svg-tag-make tag :face 'org-todo
+                                     :radius 2 :margin 0 :padding 0 :crop-left t))))
+
+              ;; ------------------------------------------------------------
+              ;; Two definitions of tag combo, like :TAG:foobar:
+              ;; ------------------------------------------------------------
+              ;; Where the first is inversed:
+              ;; (,(rx (group ":" (one-or-more (any alpha "-")) ":")
+              ;;       (one-or-more (any alphanumeric "-" "_")) ":") .
+              ;;  ((lambda (tag)
+              ;;     (svg-tag-make tag :beg 1 :end -1 :inverse t :margin 0 :crop-right t))))
+              ;; And the second is not:
+              ;; (,(rx ":" (one-or-more (any alpha "-"))
+              ;;       (group ":" (one-or-more (any alphanumeric "-" "_")) ":")) .
+              ;;  ((lambda (tag)
+              ;;     (svg-tag-make tag :beg 1 :end -1 :margin 0 :crop-left t))))
+
+              ;; ------------------------------------------------------------
+              ;; Org-mode :TAGS: shown as a box:
+              ;; ------------------------------------------------------------
+              (,(rx (or line-start space)
+                    (group ":" (one-or-more (any alpha "-")) ":")
+                    (or space line-end)) .
+                    ((lambda (tag)
+                       (svg-tag-make tag :face 'org-drawer :beg 1 :end -1 :margin 0))))
+
+              ;; ------------------------------------------------------------
+              ;; Org-mode blocks #+BEGIN_SRC language ... #+END_SRC
+              ;; ------------------------------------------------------------
+              (,(rx line-start (zero-or-more space) "#+BEGIN_SRC") .
+               ((lambda (tag)
+                  (svg-tag-make "RUN" :face 'org-block-begin-line
+                                :inverse t :margin 0 :crop-right t))
+                (lambda () (interactive) (org-ctrl-c-ctrl-c))
+                "Run this block of code"))
+              (,(rx line-start (zero-or-more space) "#+BEGIN_SRC"
+                    (1+ space) (group (one-or-more (any alpha "-"))) word-end) .
+                    ((lambda (tag)
+                       (svg-tag-make tag :face 'org-block-begin-line
+                                     :margin 0 :crop-left t))
+                     (lambda () (interactive) (org-ctrl-c-ctrl-c))
+                     "Run this block of code"))
+              (,(rx line-start (zero-or-more space) "#+END_SRC" word-end) .
+               ((lambda (tag)
+                  (svg-tag-make "END" :face 'org-block-end-line :inverse t))))
+              ("^#\\+RESULTS:" .
+               ((lambda (tag)
+                  (svg-tag-make "RESULTS" :face 'org-block-end-line :inverse t))))
+
+              (,(rx line-start (zero-or-more space) "#+ATTR" (zero-or-more (any alpha "_")) ":") .
+               ((lambda (tag)
+                  (svg-tag-make "ATTR" :face 'org-block-begin-line :inverse t))))
+
+              ("^#\\+NAME:"         . ((lambda (tag) (svg-tag-make "NAME" :face 'org-meta-line))))
+              ("^#\\+HEADER:"       . ((lambda (tag) (svg-tag-make "HEADER" :face 'org-meta-line))))
+              ("^#\\+BEGIN_EXAMPLE" . ((lambda (tag) (svg-tag-make "CODE" :face 'org-block-begin-line))))
+              ("^#\\+END_EXAMPLE"   . ((lambda (tag) (svg-tag-make "END" :face 'org-block-end-line))))
+              ("^#\\+begin_quote"   . ((lambda (tag) (svg-tag-make "“" :face 'org-block-begin-line))))
+              ("^#\\+end_quote"     . ((lambda (tag) (svg-tag-make "”" :face 'org-block-end-line))))
+
+              ;; ------------------------------------------------------------
+              ;; Things like #+OPTIONS: and property definitions
+              ;; ------------------------------------------------------------
+              ("#\\+PROPERTY:" . ((lambda (tag) (svg-tag-make "PROPERTY" :face 'org-meta-line))))
+              ("#\\+OPTIONS:"  . ((lambda (tag) (svg-tag-make "OPTIONS" :face 'org-meta-line))))))))
 #+END_SRC
 
 What does do? Here are some examples:
- - TODO: Marks comments for tasks (this can be in source files too).
- - NOTE: Highlights comments and other notes.
- - :PROP:tag: are highlighted as two parts of the same tag
- - And :TAG: with colons are highlighted, which include :PROPERTY: drawers.
- - Org-specific #+PROPERTY: entries are highlighted.
+  TODO Marks comments for tasks (this can be in source files too).
+  NOTE: Highlights comments and other notes.
+  :PROP:tag: are highlighted as two parts of the same tag
+  And :TAG: with colons are highlighted, which include :PROPERTY: drawers.
+  Org-specific #+PROPERTY: entries are highlighted.
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package notebook
-    :straight (:type git :protocol ssh :host github :repo "rougier/notebook")
+    :straight (:type git :protocol ssh :host github :repo "rougier/notebook-mode")
     :after org
     :hook (org-mode . notebook-mode))
 #+END_SRC

@@ -320,8 +320,10 @@ While my company is typically using =Rakefile= and =Makefile= in the top-level p
 ** Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
 #+BEGIN_SRC emacs-lisp
-(setq doom-modeline-lsp t)
-(setq doom-modeline-env-version t)
+  (use-package doom-modeline
+    :config
+    (setq doom-modeline-lsp t
+          doom-modeline-env-version t))
 #+END_SRC
 * Languages
 Simple to configure languages go here. More advanced stuff will go in their own files… eventually.

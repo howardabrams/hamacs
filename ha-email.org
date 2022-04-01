@@ -746,7 +746,9 @@ To use, read a message and save a link to it with ~SPC o l~. Next, in an org doc
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
 #+BEGIN_SRC emacs-lisp
-  (setq doom-modeline-mu4e t)
+  (use-package doom-modeline
+    :config
+    (setq doom-modeline-mu4e t))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's provide a name so that the file can be required:

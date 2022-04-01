@@ -214,10 +214,11 @@ For this, I use the =request= package, which is /asynchronous/
 ** Initial Settings and UI
 Let's turn off the menu and other things:
 #+BEGIN_SRC emacs-lisp
+(when (display-graphic-p)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (horizontal-scroll-bar-mode -1)
-(setq visible-bell 1)
+  (setq visible-bell 1))
 #+END_SRC
 I dislike forgetting to trim trailing white-space:
 
