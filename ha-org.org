@@ -302,8 +302,12 @@ The [[https://graphviz.org/][graphviz project]] can be written in org blocks, an
 #+END_SRC
 
 For example:
-#+BEGIN_SRC dot :file ha-org-graphviz-example.png :exports file :results replace file
+#+BEGIN_SRC dot :file support/ha-org-graphviz-example.png :exports file :results replace file
   digraph G {
+    graph [bgcolor=transparent];
+    edge [color=white];
+    node[style=filled];
+
     A -> B -> E;
     A -> D;
     A -> C;
@@ -317,7 +321,7 @@ For example:
 
 #+ATTR_ORG: :width 400px
 #+RESULTS:
-[[file:ha-org-graphviz-example.png]]
+[[file:support/ha-org-graphviz-example.png]]
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
