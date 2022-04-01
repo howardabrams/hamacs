@@ -48,12 +48,12 @@ At the beginning of the year, I choose a theme, and make a list for the upcoming
 #+BEGIN_SRC emacs-lisp :noweb yes
 (defvar sprint-nicknames
   (--map (replace-regexp-in-string " *[:#].*" "" (first it))
-         '<<sprint-names-2021()>>)
+         '<<sprint-names-2022()>>)
   "List of 26 Sprint Nicknames from A to Z.")
 #+END_SRC
 ** 2022
 
-Fun sprint names for 2021 lists my favorite D&D monsters, also see [[https://list.fandom.com/wiki/List_of_monsters][this list of monsters]] from mythology and other sources:
+Fun sprint names for 2022 lists my favorite D&D monsters, also see [[https://list.fandom.com/wiki/List_of_monsters][this list of monsters]] from mythology and other sources:
 
 #+NAME: sprint-names-2022
 - ankheg
