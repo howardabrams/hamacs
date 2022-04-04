@@ -440,7 +440,7 @@ Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for sho
     (defun org-present-end ()
       (org-present-small)
       (org-blocks-show-headers)
-      (setq mode-line-format ha-org-present-mode-line-format)
+      (setq mode-line-format ha-org-present-mode-line)
       (setq cursor-type t)
       (blink-cursor-mode 1)
       (org-present-read-write))
