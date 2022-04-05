@@ -44,29 +44,58 @@ The [[https://www.nongnu.org/geiser/][geiser project]] attempts to be the interf
     (setq geiser-mit-binary "/usr/local/bin/scheme"
           geiser-racket-binary "/usr/local/bin/racket"
           geiser-guile-binary "/usr/local/bin/guile"
-          geiser-active-implementations '(guile)
+          geiser-active-implementations '(guile mit)
           geiser-default-implementations '(guile))
     :config
     (use-package geiser-mit)
     (use-package geiser-guile)
-    (use-package geiser-racket)
-
-    (add-to-list 'org-babel-load-languages '(scheme . t)))
+    (use-package geiser-racket))
 #+END_SRC
-Do we need a Scheme work for Org Babel? According to [[https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-scheme.html][this document]], we just need to make sure we add the =:session= variable to start the REPL.
-** Try it Out
+** Org Mode
 :PROPERTIES:
-:header-args:scheme:    :session *scheming* :results value
+:header-args:scheme:    :session *scheming* :results value replace
 :END:
+Do we need a Scheme work for Org Babel? According to [[https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-scheme.html][this document]], we just need to make sure we add the =:session= variable to start the REPL.
+#+BEGIN_SRC emacs-lisp
+  (use-package ob-scheme
+    :straight (:type built-in)
+    :config
+    (add-to-list 'org-babel-load-languages '(scheme . t)))
 
-This should work?
-#+name: hello-world
-#+header: :var message="Hello World! What?"
-#+begin_src scheme
-message
-#+end_src
+#+END_SRC
 
-However, it doesn’t output the results /back into/ this buffer. What is the point of connecting it to =ob=?
+Since the version of Scheme hasn't been updated with the deprecation, and subsequent removal of =org-babel-get-header=, we include it here:
+#+BEGIN_SRC emacs-lisp
+  (defun org-babel-get-header (params key &optional others)
+    (delq nil
+          (mapcar
+           (lambda (p) (when (funcall (if others #'not #'identity) (eq (car p) key)) p))
+           params)))
+
+
+#+END_SRC
+
+Let’s test it out by defining a variable:
+#+BEGIN_SRC scheme
+  (define a 42)
+#+END_SRC
+
+And simply using it:
+#+BEGIN_SRC scheme :var b=8
+  (+ a b)
+
+
+  
+
+#+END_SRC
+
+#+RESULTS:
+: ;Value: 50
+
+And what about Scheme-specific stuff needed for SICP?
+#+BEGIN_SRC scheme
+  (inc 42)
+#+END_SRC
 
 ** Install SICP
 :PROPERTIES:
