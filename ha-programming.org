@@ -61,6 +61,8 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
+    :init
+    (setq next-error-message-highlight t)
     :bind (:map flycheck-error-list-mode-map
                 ("C-n" . 'flycheck-error-list-next-error)
                 ("C-p" . 'flycheck-error-list-previous-error)
