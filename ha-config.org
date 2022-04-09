@@ -52,13 +52,21 @@ Or leave them in the current directory, but create an alias to =ls= to normally 
 
 I'm leaving them side-by-side, but I am keeping some extra copies:
 #+BEGIN_SRC emacs-lisp
-  (setq auto-save-default t
+  (setq create-lockfiles nil   ; Having .# files around ain't helpful
+        auto-save-default t
         delete-old-versions t
         kept-new-versions 6
         kept-old-versions 2
         version-control t)
 #+END_SRC
 The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
+
+Changes and settings I like introduced in Emacs 28:
+#+BEGIN_SRC emacs-lisp
+  (setq use-short-answers t
+        describe-bindings-outline t
+        completions-detailed t)
+#+END_SRC
 
 As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
 
@@ -358,6 +366,7 @@ Can we change Evil at this point? Some tips:
   (use-package evil
     :init
     (setq evil-undo-system 'undo-fu
+          evil-want-fine-undo t  ; Be more like Emacs
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
           evil-want-integration t
@@ -391,7 +400,7 @@ Using the key-chord project allows me to make Escape be on two key combo presses
   (key-chord-define-global "jk" 'evil-normal-state)
   (key-chord-define-global "JK" 'evil-normal-state))
 #+END_SRC
-** Evil Collection
+*** Evil Collection
 Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
 
 #+BEGIN_SRC emacs-lisp
@@ -829,25 +838,32 @@ Or simply connect the =help-map= (not that we wants it /value/):
   (ha-leader "'" `("help" . ,help-map))
 #+END_SRC
 
-But I decided to tweak the help menu, so I craft my own:
+Since I decided to tweak the help menu, so I craft my own:
 #+BEGIN_SRC emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
     "h a" '("apropos" . apropos-command)
+    "h c" '("elisp cheatsheet" . shortdoc-display-group)
     "h e" '("errors" . view-echo-area-messages)
     "h E" '("emacs-lisp" . (lambda () (interactive) (info "elisp")))
     "h f" '("function" . describe-function)
     "h F" '("font" . describe-font)
     "h =" '("face" . describe-face)
     "h k" '("key binding" . describe-key)
+    "h K" '("key map" . describe-keymap)
     "h m" '("mode" . describe-mode)
     "h p" '("package" . describe-package)
     "h s" '("symbol" . info-lookup-symbol)
     "h v" '("variable" . describe-variable)
     "h B" '("embark" . embark-bindings)
     "h i" '("info" . info)
-    "h I" '("info jump" . info-apropos))
+    "h I" '("info manual" . info-display-manual)
+    "h j" '("info jump" . info-apropos))
 #+END_SRC
+
+Remember these keys in the *Help* buffer:
+  - ~s~ :: view source of the function
+  - ~i~ :: view info manual of the function
 
 Let's make Info behave a little more VI-like:
 #+BEGIN_SRC emacs-lisp

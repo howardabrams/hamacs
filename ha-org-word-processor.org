@@ -47,7 +47,9 @@ Oh, and as I indent lists, they should change the /bulleting/ in a particular se
 
 The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really work well with variable-width fonts, so let’s make the spaces at the beginning of the line fixed:
 #+BEGIN_SRC emacs-lisp
-  (set-face-attribute 'org-indent nil :inherit 'fixed-pitch)
+  (use-package org
+    :config
+    (set-face-attribute 'org-indent nil :inherit 'fixed-pitch))
 #+END_SRC
 ** Typographic Quotes
 According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type a /straight quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
