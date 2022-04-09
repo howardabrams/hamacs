@@ -38,26 +38,28 @@ My IRC /needs/ are basic, but I'm not sure which I want to use.
     :commands erc
     :config
     (setq
-        erc-nick "howard-abrams"
-        erc-user-full-name "Howard Abrams"
-        erc-prompt ">>"
-        erc-prompt-for-nickserv-password nil
-        erc-auto-query 'bury
-        erc-join-buffer 'bury
-        erc-interpret-mirc-color t
-        erc-rename-buffers t
-        erc-hide-list '("JOIN" "PART" "QUIT")
-        erc-track-enable-keybindings nil
-        erc-track-visibility nil ; Only use the selected frame for visibility
-        erc-fill-column 120
-        erc-fill-function 'erc-fill-static
-        erc-fill-static-center 20
-        erc-autojoin-channels-alist '(("howardabrams.com" "#emacs" "#org-mode"))
-        erc-quit-reason (lambda (s) (or s "Fading out..."))
-        erc-modules
-        '(autoaway autojoin button completion fill irccontrols keep-place
-            list match menu move-to-prompt netsplit networks noncommands
-            readonly ring stamp track hl-nicks)))
+     erc-nick "howard-abrams"
+     erc-user-full-name "Howard Abrams"
+     erc-prompt ">>"
+     erc-prompt-for-nickserv-password nil
+     erc-auto-query 'bury
+     erc-join-buffer 'bury
+     erc-interpret-mirc-color t
+     erc-rename-buffers t
+     erc-hide-list '("JOIN" "PART" "QUIT")
+     erc-track-enable-keybindings nil
+     erc-track-visibility nil ; Only use the selected frame for visibility
+     erc-fill-column 120
+     erc-fill-function 'erc-fill-static
+     erc-fill-static-center 20
+     erc-timestamp-only-if-changed-flag nil
+     ;; erc-timestamp-format "%H:%M"
+     erc-autojoin-channels-alist '(("howardabrams.com" "#emacs" "#org-mode"))
+     erc-quit-reason (lambda (s) (or s "Fading out..."))
+     erc-modules
+     '(autoaway autojoin button completion fill irccontrols keep-place
+                list match menu move-to-prompt netsplit networks noncommands
+                readonly ring stamp track hl-nicks)))
 
   (defun ha-erc-connect-irc ()
     "Connect to my favorite IRC server with ERC."
@@ -67,7 +69,7 @@ My IRC /needs/ are basic, but I'm not sure which I want to use.
            (username     (plist-get auth-first :user))
            (password     (funcall (plist-get auth-first :secret))))
       (erc :server "howardabrams.com" :port 7777)
-      (sit-for 1)
+      (sit-for 2)
       (erc-cmd-QUOTE (format "PASS %s:%s" username password))))
 #+END_SRC
 
