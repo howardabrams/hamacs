@@ -131,7 +131,7 @@ While we are at it, let’s make sure the code blocks are using my fixed with fo
   (when window-system
     (dolist (face '(org-block org-code org-verbatim org-table org-drawer org-table org-formula
                     org-special-keyword org-property-value org-document-info-keyword))
-      (set-face-attribute face nil :inherit 'fixed-pitch)))
+      (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9)))
 
   (set-face-attribute 'org-table nil :height 1.0)
   (set-face-attribute 'org-formula nil :height 1.0)
@@ -344,7 +344,7 @@ What does do? Here are some examples:
 * Padding
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (use-package org-padding
   :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
   :hook

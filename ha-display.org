@@ -289,7 +289,7 @@ Simple function that gives me the font information based on the size I need.  Re
     (let ((fav-font (format "%s-%d" ha-fixed-font size)))
       (set-face-attribute 'default nil :font fav-font)
       (set-face-attribute 'fixed-pitch nil :family ha-fixed-font :inherit 'default :height 1.0)
-      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.15)))
+      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.2)))
 #+END_SRC
 
 Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
@@ -298,7 +298,7 @@ Define /interactive/ functions to quickly adjusting the font size based on my co
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 17))
+    (ha-set-favorite-font-size 16))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
@@ -376,7 +376,28 @@ And some keybindings to call them:
   (global-set-key (kbd "s-9") 'font-size-laptop-default)
 #+END_SRC
 
-* Icons and Whatnot
+* Emojis, Icons and Whatnot
+In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Currently, my systems, seems to work just fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+#+BEGIN_SRC emacs-lisp
+;; set font for symbols
+(set-fontset-font t 'symbol
+ (cond
+  ((string-equal system-type "darwin")
+   (cond
+    ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
+  ((string-equal system-type "gnu/linux")
+   (cond
+    ((member "Symbola" (font-family-list)) "Symbola")))))
+
+;; set font for emoji (should come after setting symbols)
+(set-fontset-font t 'emoji
+ (cond
+  ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
+  ((member "Noto Color Emoji" (font-family-list)) "Noto Color Emoji")
+  ((member "Symbola" (font-family-list)) "Symbola")))
+#+END_SRC
+Test this out: 😄 😱 😸 👸 👽 🙋
+
 Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons)
