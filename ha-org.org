@@ -262,6 +262,61 @@ Of course, I need an 'undo' feature when the meeting is over…
       (fringe-mode 1)
       (winner-undo))             ; Put the windows back in place
 #+END_SRC
+** Searching
+Now that my paragraphs in an org file are on a single line, I need this less, but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results that line-oriented search systems, like =grep=. Let’s create operating-system functions the command line for searching:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-search-notes--macos (phrase path)
+    "Return the indexed search system command on MACOS, mdfind.
+  Including the parameters using the PHRASE on the PATH(s)."
+    (let ((paths (if (listp path)
+                     (mapconcat (lambda (p) (concat "-onlyin " p)) path " ")
+                   (concat "-onlyin " path))))
+      (format "mdfind %s -interpret %s" paths phrase)))
+
+  (defun ha-search-notes--linux (phrase path)
+    "Return the indexed search system command on Linux, recoll.
+  Including the parameters using the PHRASE on the PATH(s)."
+      (format "recoll -t -a -b %s" phrase))
+
+
+#+END_SRC
+
+This function calls these operating-system functions, but returns the matching files as a /single string/ (where each file is wrapped in single quotes, and all joined together, separated by spaces. This function also allows me to /not-match/ backup files and whatnot.
+#+BEGIN_SRC emacs-lisp
+  (defun ha-search-notes--files (phrase path)
+    "Return an escaped string of all files matching PHRASE.
+  On a Mac, this search is limited by PATH"
+    (let ((command (if (equal system-type 'darwin)
+                       (ha-search-notes--macos phrase path)
+                     (ha-search-notes--linux phrase path))))
+      (->> command
+           (shell-command-to-list)    ; Function from piper!
+           (--remove (s-matches? "~$" it))
+           (--remove (s-matches? "#" it))
+           (--map (format "'%s'" it))
+           (s-join " "))))
+
+#+END_SRC
+
+The =ha-search-notes= function prompts for the phrase to search, and then searches through the =org-directory= path to acquire the matching files. It then feeds that list to =grep= (and the [[help:grep][grep function]] in order to display a list of matches that I can jump to.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-search-notes (phrase &optional path)
+    "Search files in PATH for PHRASE and display in a grep mode buffer."
+    (interactive "sSearch notes for: ")
+    (let* ((command   (if (equal system-type 'darwin) "ggrep" "grep"))
+           (regexp    (string-replace " " "\\|" phrase))
+           (use-paths (if path path (list org-directory org-journal-dir)))
+           (files     (ha-search-notes--files phrase use-paths)))
+      (grep (format "%s -ni -m 1 '%s' %s" command regexp files))))
+
+
+#+END_SRC
+Eventually, I would like to change the output so that the title of the Org mode is displayed instead of the first match, but that is good enough.
+
+#+BEGIN_SRC emacs-lisp
+(ha-leader "f n" '("find notes" . ha-search-notes))
+#+END_SRC
 ** Misc
 *** Babel Blocks
 I use [[https://orgmode.org/worg/org-contrib/babel/intro.html][org-babel]] (obviously) and don’t need confirmation before evaluating a block:
