@@ -207,7 +207,6 @@ The following loads the rest of my org-mode literate files. I add them as they a
                                  "ha-irc.org"
                                  "ha-org-publishing.org"
                                  "ha-email.org"
-                                 "ha-programming-scheme.org"
                                  "ha-aux-apps.org"
                                  "ha-feed-reader.org"))))
     "List of org files that complete the hamacs project.")
