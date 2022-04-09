@@ -236,6 +236,14 @@ And do it:
 #+BEGIN_SRC emacs-lisp
   (ha-hamacs-reload-all)
 #+END_SRC
+
+Once we have loaded /my world/, let’s add every other Org file in the project to the list, so that I can easily bring more stuff.
+#+BEGIN_SRC emacs-lisp
+  (setq ha-hamacs-files
+        (-uniq
+         (append ha-hamacs-files
+                 (directory-files "~/other/hamacs" nil (rx ".org" eos)))))
+#+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
 
