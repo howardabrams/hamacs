@@ -61,6 +61,11 @@ I'm leaving them side-by-side, but I am keeping some extra copies:
 #+END_SRC
 The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
 
+I like the rendering to curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
+#+BEGIN_SRC emacs-lisp
+(setq text-quoting-style 'curve)
+#+END_SRC
+
 Changes and settings I like introduced in Emacs 28:
 #+BEGIN_SRC emacs-lisp
   (setq use-short-answers t

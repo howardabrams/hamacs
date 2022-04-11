@@ -52,57 +52,90 @@ The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really w
     (set-face-attribute 'org-indent nil :inherit 'fixed-pitch))
 #+END_SRC
 ** Typographic Quotes
-According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type a /straight quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
+According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type either a /straight single or double quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
 
-Stealing his function so that “quotes” just work to insert /rounded/ quotation marks:
-
+Stealing his function, and updating it a bit, so that “quotes” just work to insert /rounded/ quotation marks:
 #+BEGIN_SRC emacs-lisp
-(define-key org-mode-map "\"" #'endless/round-quotes)
+  (defun ha--insert-round-quotes (opening closing)
+    "Insert rounded quotes in prose but not inside code.
+  The OPENING and CLOSING variables are either or .
 
-(defun endless/round-quotes (italicize)
-  "Insert “” and leave point in the middle.
-With prefix argument ITALICIZE, insert /“”/ instead
-\(meant for org-mode).
-Inside a code-block, just call `self-insert-command'."
-  (interactive "P")
-  (if (and (derived-mode-p 'org-mode)
-           (org-in-block-p '("src" "latex" "html")))
-      (call-interactively #'self-insert-command)
-    (if (looking-at "”[/=_\\*]?")
-        (goto-char (match-end 0))
-      (when italicize
-        (if (derived-mode-p 'markdown-mode)
-            (insert "__")
-          (insert "//"))
-        (forward-char -1))
-      (insert "“”")
-      (forward-char -1))))
+  Rules:
+
+   • At beginning of line or after a space (in other words,
+     single-quoting a word or phrase), insert OPENING and CLOSING
+     string, and leave point between them.
+
+   • At beginning of existing word, insert OPENING, as the assumption
+     is to go somewhere else to insert the CLOSING character.
+
+   • If looking at the CLOSING character, move past it.
+
+   • Otherwise, insert an CLOSING character, as this is probably
+     finishing the quotation.
+
+  Inside a code-block, just call `self-insert-command'."
+    (cl-flet ((insert-pair ()
+                (insert opening) (insert closing) (forward-char -1)))
+
+      ;; Don't do anything special in code blocks:
+      (if (and (derived-mode-p 'org-mode)
+               (org-in-block-p '("src" "latex" "html")))
+          (call-interactively #'self-insert-command)
+
+        ;; Define some regular expressions to make the `cond' clearer:
+        (let ((existing-word (rx word-start))
+              (starting-anew (rx (or bol space)))
+              (existing-endq (rx (or "'" "\"" (eval opening) (eval closing))
+                                 (optional (any "=_/*")))))
+          (cond
+           ((looking-at   existing-word) (insert opening))
+           ((looking-back starting-anew) (insert-pair))
+           ((looking-at   existing-endq) (goto-char (match-end 0)))
+           (t                            (insert closing)))))))
 #+END_SRC
 
-Stealing function for automatically adding a single quote (not in pairs):
+Now we can take advantage of the abstraction for “double quotes”:
 
 #+BEGIN_SRC emacs-lisp
-(define-key org-mode-map "'" #'endless/apostrophe)
+  (defun ha-round-quotes ()
+    "Insert “” and leave point in the middle.
+  Inside a code-block, just call `self-insert-command'.
+  See `ha--insert-round-quotes' for rule details."
+    (interactive)
+    (ha--insert-round-quotes "“" "”"))
 
-(defun endless/apostrophe (opening)
-  "Insert ’ in prose or `self-insert-command' in code.
-With prefix argument OPENING, insert ‘’ instead and
-leave point in the middle.
-Inside a code-block, just call `self-insert-command'."
-  (interactive "P")
-  (if (and (derived-mode-p 'org-mode)
-           (org-in-block-p '("src" "latex" "html")))
-      (call-interactively #'self-insert-command)
-    (if (looking-at "['’][=_/\\*]?")
-        (goto-char (match-end 0))
-      (if (null opening)
-          (insert "’")
-        (insert "‘’")
-        (forward-char -1)))))
+  (define-key org-mode-map "\"" #'ha-round-quotes)
 #+END_SRC
-Quote: “From this time forward, I shouldn’t have to worry about quotes.”
+
+And something similar for single quotes:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-apostrophe ()
+    "Insert ‘’ and leave point in the middle.
+  Inside a code-block, just call `self-insert-command'.
+  See `ha--insert-round-quotes' for rule details."
+    (interactive)
+    (ha--insert-round-quotes "‘" "’"))
+
+  (define-key org-mode-map "'" #'ha-apostrophe)
+#+END_SRC
 
 *Note:* I still need to worry about how quotes affect [[file:ha-org.org::*Spell Checking][spell checking]].
+
+What would be nice, is that if I end quotes using the functions above, that if I immediately delete, I delete both pairs.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-delete-quote-pairs (&optional N)
+    "If positioned between two quote symbols, delete the last.
+  Used as advice to `org-delete-backward-char' function."
+    (when (and (looking-at (rx (any "\"" "'" "`" "”" "’")))
+             (looking-back (rx (any "\"" "'" "`" "“" "‘"))))
+      (org-delete-char N)))
+
+  (advice-add #'org-delete-backward-char :before #'ha-delete-quote-pairs)
+
+#+END_SRC
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 
