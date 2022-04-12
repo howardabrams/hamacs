@@ -345,12 +345,19 @@ Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]?
 #+BEGIN_SRC emacs-lisp
   (use-package ansible
+    :init
+    (setq ansible-vault-password-file "~/.ansible-vault-passfile")
     ;; :hook (yaml-mode . ansible-mode)
     :config
     (ha-leader "t y" 'ansible))
 #+END_SRC
+The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable needs to change /per project/, so let’s use the =.dir-locals.el= file, for instance:
+#+BEGIN_SRC emacs-lisp :tangle no
+  ((nil . ((ansible-vault-password-file . "playbooks/.vault-password"))))
 
-However, let’s have all YAML able to access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
+#+END_SRC
+
+However, let’s have all YAML files able to access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
 #+BEGIN_SRC emacs-lisp
   (use-package ansible-doc
     :hook (yaml-mode . ansible-doc-mode)
