@@ -329,17 +329,42 @@ Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add 
 #+END_SRC
 * Languages
 Simple to configure languages go here. More advanced stuff will go in their own files… eventually.
-** YAML and Jinja
+** Ansible
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
 #+BEGIN_SRC emacs-lisp
 (use-package yaml-mode
-  :mode "\\.ya?ml\\'")
+  :mode (rx ".y" (optional "a") "ml" string-end))
 #+END_SRC
 
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
 #+BEGIN_SRC emacs-lisp
 (use-package jinja2-mode
-  :mode (rx ".j2" eol))
+  :mode (rx ".j2" string-end))
+#+END_SRC
+
+Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]?
+#+BEGIN_SRC emacs-lisp
+  (use-package ansible
+    ;; :hook (yaml-mode . ansible-mode)
+    :config
+    (ha-leader "t y" 'ansible))
+#+END_SRC
+
+However, let’s have all YAML able to access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
+#+BEGIN_SRC emacs-lisp
+  (use-package ansible-doc
+    :hook (yaml-mode . ansible-doc-mode)
+    :config
+    (ha-local-leader :keymaps 'yaml-mode-map
+      "d"  '(:ignore t :which-key "docs")
+      "d d" 'ansible-doc))
+#+END_SRC
+
+The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [[https://polymode.github.io/][polymode]], gluing [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] into [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
+#+BEGIN_SRC emacs-lisp
+(use-package poly-ansible
+  :straight (:host github :repo "emacsmirror/poly-ansible")
+  :hook (yaml-mode . poly-ansible-mode))
 #+END_SRC
 
 ** Emacs Lisp

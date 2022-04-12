@@ -415,7 +415,6 @@ Here is a sequence diagram example to show how is looks/works:
 #+begin_src plantuml :file ha-org-plantuml-example.png :exports file :results file
   @startuml
   !include https://raw.githubusercontent.com/ptrkcsk/one-dark-plantuml-theme/v1.0.0/theme.puml
-  ' See details at https://plantuml.com/
   ' See details at https://plantuml.com/sequence-diagram
   Alice -> Bob: Authentication Request
   Bob --> Alice: Authentication Response
