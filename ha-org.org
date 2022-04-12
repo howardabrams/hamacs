@@ -349,7 +349,7 @@ And turn on ALL the languages:
                                  (css        . t)
                                  (plantuml   . t)))
 #+END_SRC
-
+*** Graphviz
 The [[https://graphviz.org/][graphviz project]] can be written in org blocks, and then rendered as an image:
 #+NAME: ob-graphviz
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -377,6 +377,56 @@ For example:
 #+ATTR_ORG: :width 400px
 #+RESULTS:
 [[file:support/ha-org-graphviz-example.png]]
+*** PlantUML
+Need to install and configure Emacs to work with [[https://plantuml.com/][PlantUML]]. Granted, this is easier now that [[http://orgmode.org/worg/org-contrib/babel][Org-Babel]] natively supports [[http://eschulte.github.io/babel-dev/DONE-integrate-plantuml-support.html][blocks of plantuml code]]. First, [[https://plantuml.com/download][download the Jar]].
+
+#+BEGIN_SRC sh
+  curl -o ~/bin/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2022.4/plantuml-1.2022.4.jar
+#+END_SRC
+
+After installing the [[https://github.com/skuro/plantuml-mode][plantuml-mode]], we need to reference the location:
+#+BEGIN_SRC emacs-lisp
+  (use-package plantuml-mode
+    :straight (:host github :repo "skuro/plantuml-mode")
+    :init
+    (setq org-plantuml-jar-path (expand-file-name "~/bin/plantuml.jar")))
+#+END_SRC
+
+With some [[file:snippets/org-mode/plantuml][YASnippets]], I have =<p= to start a general diagram, and afterwards (while still in the org-mode file), type one of the following to expand as an example:
+  - =activity= :: https://plantuml.com/activity-diagram-betastart
+  - =component= :: https://plantuml.com/component-diagram
+  - =deployment= :: https://plantuml.com/deployment-diagram
+  - =object= :: https://plantuml.com/object-diagram
+  - =sequence= :: https://plantuml.com/sequence-diagram
+  - =state= :: https://plantuml.com/state-diagram
+  - =timing= :: https://plantuml.com/timing-diagram
+  - =use-case= :: https://plantuml.com/use-case-diagram
+
+You may be wondering how such trivial terms can be used as expansions in an org file. Well, the trick is that each snippets has a =condition= that calls the following predicate function, that make the snippets context aware:
+
+#+BEGIN_SRC emacs-lisp
+(defun ha-org-nested-in-plantuml-block ()
+  "Predicate is true if point is inside a Plantuml Source code block in org-mode."
+  (equal "plantuml"
+         (plist-get (cadr (org-element-at-point)) :language)))
+#+END_SRC
+
+Here is a sequence diagram example to show how is looks/works:
+#+begin_src plantuml :file ha-org-plantuml-example.png :exports file :results file
+  @startuml
+  !include https://raw.githubusercontent.com/ptrkcsk/one-dark-plantuml-theme/v1.0.0/theme.puml
+  ' See details at https://plantuml.com/
+  ' See details at https://plantuml.com/sequence-diagram
+  Alice -> Bob: Authentication Request
+  Bob --> Alice: Authentication Response
+
+  Alice -> Bob: Another authentication Request
+  Alice <-- Bob: Another authentication Response
+  @enduml
+  #+end_src
+
+#+ATTR_ORG: :width 800px
+[[file:ha-org-plantuml-example.png]]
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
@@ -394,15 +444,6 @@ When I create images or other artifacts that I consider /part/ of the org docume
       (while (re-search-forward png-reg nil t)
         (setq largest (max largest (string-to-number (match-string-no-properties 1)))))
       (format "%s-%02d" prefix (1+ largest)))))
-#+END_SRC
-*** In a PlantUML Block
-To make the snippets more context aware, this predicate
-
-#+BEGIN_SRC emacs-lisp
-(defun ha-org-nested-in-plantuml-block ()
-  "Predicate is true if point is inside a Plantuml Source code block in org-mode."
-  (equal "plantuml"
-         (plist-get (cadr (org-element-at-point)) :language)))
 #+END_SRC
 ** Keybindings
 Global keybindings available to all file buffers:

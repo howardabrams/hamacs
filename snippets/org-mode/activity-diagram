@@ -2,7 +2,7 @@
 # contributor: Howard Abrams
 # name: activity-diagram
 # key: activity
-# condition: (ha/org-nested-in-plantuml-block)
+# condition: (ha-org-nested-in-plantuml-block)
 # group: plantuml
 # --
 ' See details at https://plantuml.com/activity-diagram-betastart

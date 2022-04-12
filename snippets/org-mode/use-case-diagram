@@ -2,7 +2,7 @@
 # contributor: Howard Abrams
 # name: use-case-diagram
 # key: use-case
-# condition: (ha/org-nested-in-plantuml-block)
+# condition: (ha-org-nested-in-plantuml-block)
 # group: plantuml
 # --
 ' See details at https://plantuml.com/use-case-diagram

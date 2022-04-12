@@ -2,7 +2,7 @@
 # contributor: Howard Abrams
 # name: deployment-diagram
 # key: deployment
-# condition: (ha/org-nested-in-plantuml-block)
+# condition: (ha-org-nested-in-plantuml-block)
 # group: plantuml
 # --
 ' See details at https://plantuml.com/deployment-diagram

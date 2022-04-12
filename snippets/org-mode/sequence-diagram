@@ -2,7 +2,7 @@
 # contributor: Howard Abrams
 # name: sequence-diagram
 # key: sequence
-# condition: (ha/org-nested-in-plantuml-block)
+# condition: (ha-org-nested-in-plantuml-block)
 # group: plantuml
 # --
 ' See details at https://plantuml.com/sequence-diagram

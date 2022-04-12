@@ -2,7 +2,7 @@
 # contributor: Howard Abrams
 # name: state-diagram
 # key: state
-# condition: (ha/org-nested-in-plantuml-block)
+# condition: (ha-org-nested-in-plantuml-block)
 # group: plantuml
 # --
 ' See details at https://plantuml.com/state-diagram
