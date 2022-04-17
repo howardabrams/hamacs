@@ -48,8 +48,7 @@ Oh, and as I indent lists, they should change the /bulleting/ in a particular se
 The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really work well with variable-width fonts, so let’s make the spaces at the beginning of the line fixed:
 #+BEGIN_SRC emacs-lisp
   (use-package org
-    :config
-    (set-face-attribute 'org-indent nil :inherit 'fixed-pitch))
+    :custom-face (org-indent ((t (:inherit fixed-pitch)))))
 #+END_SRC
 ** Typographic Quotes
 According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type either a /straight single or double quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
@@ -80,14 +79,15 @@ Stealing his function, and updating it a bit, so that “quotes” just work to 
 
       ;; Don't do anything special in code blocks:
       (if (and (derived-mode-p 'org-mode)
-               (org-in-block-p '("src" "latex" "html")))
+               (org-in-block-p '("src" "latex" "html" "example")))
           (call-interactively #'self-insert-command)
 
         ;; Define some regular expressions to make the `cond' clearer:
         (let ((existing-word (rx word-start))
               (starting-anew (rx (or bol space)))
-              (existing-endq (rx (or "'" "\"" (eval opening) (eval closing))
-                                 (optional (any "=_/*")))))
+              (existing-endq
+               (rx-to-string `(seq (or "'" "\"" ,opening ,closing)
+                                   (optional (any "=_/*"))))))
           (cond
            ((looking-at   existing-word) (insert opening))
            ((looking-back starting-anew) (insert-pair))
@@ -134,6 +134,52 @@ What would be nice, is that if I end quotes using the functions above, that if I
       (org-delete-char N)))
 
   (advice-add #'org-delete-backward-char :before #'ha-delete-quote-pairs)
+
+#+END_SRC
+
+Can we do the same with ellipses?
+#+BEGIN_SRC emacs-lisp
+  (defun ha-insert-dot-or-ellipsis ()
+    "Insert a `.' unless two have already be inserted.
+  In this case, insert an ellipsis instead."
+    (interactive)
+    (if (and (derived-mode-p 'org-mode)
+             (org-in-block-p '("src" "latex" "html" "example")))
+        (call-interactively #'self-insert-command)
+      (cond
+       ((looking-back (rx "…"))   (delete-backward-char 1)
+                                  (insert "⋯"))
+       ((looking-back (rx ".."))  (delete-backward-char 2)
+                                  (insert "…"))
+       (t                         (insert ".")))))
+
+  (define-key org-mode-map "." #'ha-insert-dot-or-ellipsis)
+
+
+#+END_SRC
+
+Now I’m getting obsessive with elongating dashes:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-insert-long-dash ()
+    "Insert a `.' unless two have already be inserted.
+  In this case, insert an ellipsis instead."
+    (interactive)
+    (if (and (derived-mode-p 'org-mode)
+             (org-in-block-p '("src" "latex" "html" "example")))
+        (call-interactively #'self-insert-command)
+      (cond
+       ((looking-back (rx "-"))  (delete-backward-char 1)
+        (insert "—"))
+       ((looking-back (rx "—"))  (delete-backward-char 1)
+        (insert "⸺"))
+       ((looking-back (rx "⸺"))  (delete-backward-char 1)
+        (insert "⸻"))
+       ((looking-back (rx "⸻"))  (delete-backward-char 1)
+        (insert "------------------------------------------------------------"))
+       (t                        (insert "-")))))
+
+  (define-key org-mode-map "-" #'ha-insert-long-dash)
+
 
 #+END_SRC
 * Org Beautify
