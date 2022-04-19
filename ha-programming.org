@@ -286,10 +286,18 @@ Typical keybindings for all programming modes:
      "e p" '("print s-exp" . eval-print-last-sexp))
 #+END_SRC
 ** Ligatures
-The idea of using math symbols for a programming languages keywords is /cute/, but confusing when working with other people, and they are looking at my screen:
+The idea of using math symbols for a programming languages keywords is /cute/, but can be confusing, so I use it sparingly:
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  (set-ligatures! 'python-mode nil)
+#+BEGIN_SRC emacs-lisp
+  (add-hook
+   'prog-mode-hook
+   (lambda ()
+     (mapc (lambda (pair) (push pair prettify-symbols-alist))
+           '(("lambda" . "𝝀")
+             (">=" . "≥")
+             ("<=" . "≤")
+             ("!=" . "≠")))))
+
 #+END_SRC
 
 The rest of the ligature system in Doom is nice.
