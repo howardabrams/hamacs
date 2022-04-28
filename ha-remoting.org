@@ -397,20 +397,21 @@ We'll do the work of getting the /server list/ with this function:
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-ssh-overcloud-cache-populate (cluster)
+    "Given an `os-cloud' entry, stores all available hostnames.
+  Calls `ha-ssh-add-favorite-host' for each host found."
     (interactive (list (completing-read "Cluster: " '(devprod1 devprod501 devprod502))))
     (message "Calling the `openstack' command...this will take a while. Grab a coffee, eh?")
     (let* ((command (format "openstack --os-cloud %s server list --no-name-lookup --insecure -f json" cluster))
-           (json-data (shell-command-to-string command)))
-      (message "Call to openstack returned: %s" json-data)
-      (setq ha-ssh-overcloud-cache-data (json-read-from-string json-data))
-      (cl-flet* ((ssh-tuple   (entry)   (cons (alist-get 'Name entry)
-                                              (aref (thread-last entry
-                                                      (alist-get 'Networks)
-                                                      (alist-get 'cedev13))
-                                                    0))))
-        (setq ha-ssh-favorite-hostnames
-              (mapcar #'ssh-tuple ha-ssh-overcloud-cache-data))))
-    (message "Call to =openstack= complete. Found %d hosts." (length ha-ssh-overcloud-cache-data)))
+           (json-data (thread-last command
+                                   (shell-command-to-string)
+                                   (json-read-from-string))))
+      (dolist (entry (seq--into-list json-data))
+        (ha-ssh-add-favorite-host (alist-get 'Name entry)
+                                  (thread-last entry
+                                               (alist-get 'Networks)
+                                               (alist-get 'cedev13)
+                                               (seq-first))))
+      (message "Call to `openstack' complete. Found %d hosts." (length json-data))))
 #+END_SRC
 
 In case I change my virtual machines, I can repopulate that cache:

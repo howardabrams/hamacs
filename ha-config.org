@@ -25,6 +25,11 @@ A literate programming file for configuring Emacs.
   ;;; Code:
 #+END_SRC
 * Basic Configuration
+I hate a fat-finger that stop Emacs:
+#+BEGIN_SRC emacs-lisp
+  (setq confirm-kill-emacs 'yes-or-no-p)
+#+END_SRC
+
 New way to display line-numbers. I set mine to =relative= so that I can easily jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
 
 #+BEGIN_SRC emacs-lisp
@@ -1005,7 +1010,7 @@ While I really don't /need/ all the features that [[https://github.com/bbatsov/p
    "p p" '("switch project" . projectile-switch-project)
    "p r" '("find recent project files" . projectile-recentf)
    "p R" '("run project" . projectile-run-project)
-   "p s" '("save project files" . projectile-save-project-buffers)
+   "p S" '("save project files" . projectile-save-project-buffers)
    "p T" '("test project" . projectile-test-project)))
 #+END_SRC
 ** Workspaces
@@ -1073,6 +1078,7 @@ Build the hydra as well as configure the =perspective= project.
       ("K" persp-kill-buffer)
       ("s" persp-state-save)
       ("l" persp-state-load)
+      ("w" ha-switch-to-special)  ; The most special perspective
       ("q" nil)
       ("C-g" nil))
 
@@ -1082,6 +1088,14 @@ Build the hydra as well as configure the =perspective= project.
 I have no idea why this binding doesn’t work /within/ the =use-package= declaration, but oh well…
 #+BEGIN_SRC emacs-lisp
 (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
+#+END_SRC
+
+The /special/ perspective is a nice shortcut to the one I use the most:
+#+BEGIN_SRC emacs-lisp
+(defun ha-switch-to-special ()
+  "Change to the projects perspective."
+  (interactive)
+  (persp-switch "projects"))
 #+END_SRC
 *** Predefined Workspaces
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
