@@ -84,6 +84,14 @@ use_python() {
   fi
 }
 #+end_src
+** Editing Python Code
+Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-text-object-python
+     :hook python-mode . evil-text-object-python-add-bindings)
+
+#+END_SRC
+This allows me to delete a Python “block” using ~dal~.
 ** Docker Environment
 Docker really allows you to isolate your project's environment. The downside is that you are using Docker and probably a bloated container. On my work laptop, a Mac, this creates a behemoth virtual machine that immediately spins the fans like a wind tunnel.
 
