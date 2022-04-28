@@ -457,6 +457,8 @@ Global keybindings available to all file buffers:
 Bindings specific to org files:
 #+NAME: org-keybindings
 #+BEGIN_SRC emacs-lisp :tangle no
+  (evil-define-key '(normal motion operator visual) org-mode-map "gu" #'org-up-element)
+
   (ha-org-leader
       "e" '("exports"     . org-export-dispatch)
       "I" '("insert id" .  org-id-get-create)
