@@ -576,9 +576,9 @@ And the collection of useful operations:
 #+BEGIN_SRC emacs-lisp
 (ha-leader
    "b"  '(:ignore t :which-key "buffers")
-   "b b" '("switch" . persp-switch-to-buffer)
-   "b B" '("switch" . switch-to-buffer-other-window)
-   "b o" '("other" . projectile-switch-buffer-to-other-window)
+   "b B" '("switch" . persp-switch-to-buffer)
+   "b o" '("switch" . switch-to-buffer-other-window)
+   "b O" '("other" . projectile-switch-buffer-to-other-window)
    "b i" '("ibuffer" . ibuffer)
    "b I" '("ibuffer" . ibuffer-other-window)
    "b k" '("persp remove" . persp-remove-buffer)
@@ -900,6 +900,48 @@ Let's make Info behave a little more VI-like:
              "p" 'Info-backward-node
              "n" 'Info-forward-node))    ; Old habit die hard
 #+END_SRC
+*** Consult
+The [[https://github.com/minad/consult][consult project]] aims to use the libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I particularly appreciate the feature that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :after general
+    ;; Enable automatic preview at point in the *Completions* buffer. This is
+    ;; relevant when you use the default completion UI.
+    :hook (completion-list-mode . consult-preview-at-point-mode)
+
+    :init
+    ;; Use Consult to select xref locations with preview
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    :config
+    (define-key evil-normal-state-map (kbd "g p") 'consult-yank-pop)
+    (define-key evil-normal-state-map (kbd "g s") 'consult-line)
+
+    ;; And some leader keys since that seems to be the only place I remember:
+    (ha-leader
+        "RET" '("bookmark" . consult-bookmark)
+        "o i" '("imenu" . consult-imenu)
+        "x y" '("preview yank" . consult-yank-pop)))
+
+
+#+END_SRC
+*** Consult for Projects
+One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile. So let’s see what the [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can offer.
+#+BEGIN_SRC emacs-lisp
+  (use-package consult-projectile
+    :after consult general
+    :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
+    :config
+    (ha-leader
+      "p ." '("switch to..." . consult-projectile)
+      "b b" '("switch buffer" . consult-projectile-switch-to-buffer)
+      "p p" '("switch project" . consult-projectile-switch-project)
+      "p f" '("find file" . consult-projectile-find-file)
+      "p r" '("find recent file" . consult-projectile-recentf)))
+
+#+END_SRC
+The advantage of [[help:persp-switch-to-buffer][persp-switch-to-buffer]] over =consult-projectile-switch-to-buffer= is that is shows non-file buffers.
 *** Embark
 The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/, however, I'm primarily thinking of acting on selected items in the minibuffer, however, they actually act anywhere. Consequently, I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
 #+BEGIN_SRC emacs-lisp
