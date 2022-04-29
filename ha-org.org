@@ -464,7 +464,6 @@ Bindings specific to org files:
       "I" '("insert id" .  org-id-get-create)
       "l" '("insert link" . org-insert-link)
       "N" '("store link" .  org-store-link)
-      "o" '("goto link"   . ace-link-org)
       "P" '("set property" .  org-set-property)
       "q" '("set tags" .  org-set-tags-command)
       "t" '("todo"   . org-todo)
@@ -511,15 +510,6 @@ Bindings specific to org files:
       "n b" '("block"   . org-narrow-to-block)
       "n e" '("element" . org-narrow-to-element)
       "n w" '("widen"   . widen))
-#+END_SRC
-
-Oh, and we'll use [[https://github.com/abo-abo/ace-link][ace-link]] for jumping:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ace-link
-    :after org
-    :config
-    (define-key org-mode-map (kbd "s-o") 'ace-link-org))
 #+END_SRC
 * Supporting Packages
 ** Exporters

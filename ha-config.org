@@ -889,7 +889,6 @@ Let's make Info behave a little more VI-like:
     :straight (:type built-in)
     :general
     (:states 'normal :keymaps 'Info-mode-map
-             "o" 'ace-link-info
              "B" 'Info-bookmark-jump
              "Y" 'org-store-link
              "H" 'Info-history-back
@@ -1013,6 +1012,27 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
       :bind ("<f18>" . avy-goto-char-timer))
 #+END_SRC
 *Note:* The links should be shorter near the point as opposed to starting from the top of the window.
+** Link Hint, the Link Jumper
+I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to work with hyperlinks on Org, EWW and Info pages, however, the [[https://github.com/noctuid/link-hint.el][link-hint]] project works with more types of links:
+#+BEGIN_SRC emacs-lisp
+  (use-package link-hint
+    :bind
+    ("s-o" . link-hint-open-link)
+    ("C-c l o" . link-hint-open-link)
+    ("C-c l c" . link-hint-copy-link)
+    :general
+    (:states 'normal :keymaps 'eww-mode-map
+             "o" 'link-hint-open-link)
+    (:states 'normal :keymaps 'Info-mode-map
+             "o" 'link-hint-open-link)
+    :config
+    (evil-define-key '(normal) global-map
+      "gl" #'link-hint-open-link
+      "gL" #'link-hint-copy-link))
+
+
+#+END_SRC
+
 ** Miscellaneous Keys
 I really appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]]:
 
@@ -1384,7 +1404,6 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
 
     :general
     (:states 'normal :keymaps 'eww-mode-map
-             "o" 'ace-link-eww
              "B" 'eww-list-bookmarks
              "Y" 'eww-copy-page-url
              "H" 'eww-back-url
@@ -1397,11 +1416,31 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
              "q" 'eww-buffer-kill))
 #+END_SRC
 
-And let's get [[https://github.com/abo-abo/ace-link][ace-link]] to work with EWW and Info pages:
+This function allows Imenu to offer HTML headings in EWW buffers, which is especially helpful for navigating long, technical documents.
+
 #+BEGIN_SRC emacs-lisp
-  (use-package ace-link
+  (use-package eww
     :config
-    (ace-link-setup-default))
+    (defun unpackaged/imenu-eww-headings ()
+      "Return alist of HTML headings in current EWW buffer for Imenu.
+  Suitable for `imenu-create-index-function'."
+      (let ((faces '(shr-h1 shr-h2 shr-h3 shr-h4 shr-h5 shr-h6 shr-heading)))
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (cl-loop for next-pos = (next-single-property-change (point) 'face)
+                     while next-pos
+                     do (goto-char next-pos)
+                     for face = (get-text-property (point) 'face)
+                     when (cl-typecase face
+                            (list (cl-intersection face faces))
+                            (symbol (member face faces)))
+                     collect (cons (buffer-substring (point-at-bol) (point-at-eol)) (point))
+                     and do (forward-line 1))))))
+    :hook (eww-mode .
+                    (lambda ()
+                      (setq-local imenu-create-index-function #'unpackaged/imenu-eww-headings))))
 #+END_SRC
 *** Get Pocket
 The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project connects to the [[https://getpocket.com/en/][Get Pocket]] service.

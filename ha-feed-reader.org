@@ -37,10 +37,10 @@ While I would like to share the /status/ of my reads, so ...
 
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
+    :after (link-hint)
     :config
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
     (evil-define-key 'normal elfeed-show-mode-map (kbd "b") 'elfeed-show-visit)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "o") 'ace-link)
     (evil-define-key 'normal elfeed-show-mode-map (kbd "n") 'elfeed-show-next)
     (evil-define-key 'normal elfeed-show-mode-map (kbd "p") 'elfeed-show-prev)
     (evil-define-key 'normal elfeed-show-mode-map (kbd "y") 'elfeed-show-yank)
@@ -50,6 +50,9 @@ While I would like to share the /status/ of my reads, so ...
     (evil-define-key 'normal elfeed-search-mode-map (kbd "R") 'elfeed-search-update--force)
     (evil-define-key 'normal elfeed-search-mode-map (kbd "u") 'elfeed-update)
     (evil-define-key 'normal elfeed-search-mode-map (kbd "U") 'elfeed-unjam)
+
+    ;; This is why this package depends on link-hint:
+    (evil-define-key 'normal elfeed-show-mode-map (kbd "o") 'link-hint-open-link)
 
     ;; And let's make the Space pull of my general leader:
     (general-unbind elfeed-show-mode-map "SPC")
