@@ -71,7 +71,11 @@ And my new Ironsworn project:
       :after rpgdm
       :straight (:local-repo "~/other/emacs-ironsworn")
       :init
-      (setq rpgdm-ironsworn-project (expand-file-name "~/other/emacs-ironsworn"))))
+      (setq rpgdm-ironsworn-project (expand-file-name "~/other/emacs-ironsworn")
+            ;; Ignore org links that call my RPG functions:
+            org-link-elisp-skip-confirm-regexp (rx string-start (optional "(") "rpgdm-"
+                                                   (or "tables-" "ironsworn-")
+                                                   (one-or-more any)))))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
