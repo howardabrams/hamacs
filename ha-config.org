@@ -955,8 +955,20 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
     :config
     (ha-leader "h K" '("keybindings" . embark-bindings)))
 #+END_SRC
-** Evil Snipe
 
+According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
+
+#+BEGIN_SRC emacs-lisp
+(use-package embark-consult
+  :after (embark consult)
+  :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+  ;; auto-updating embark collect buffer
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+END_SRC
+
+** Evil Snipe
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line. When I use it, I stop and analyze to see the two characters to work on, so I’ve changed from the default, single ~s~, to ~g s~ so as not to get it confused with the =evil-surround=.
 
 #+BEGIN_SRC emacs-lisp
