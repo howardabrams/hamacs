@@ -71,13 +71,16 @@ While I would like to share the /status/ of my reads, so ...
 According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-eww/][this Pragmatic Emacs essay]], we could easily browse an article in the GUI browser instead of EWW with capital B:
 
 #+BEGIN_SRC emacs-lisp
-(defun elfeed-show-visit-gui ()
-  "Wrapper for elfeed-show-visit to use gui browser instead of eww"
-  (interactive)
-  (let ((browse-url-generic-program "/usr/bin/open"))
-    (elfeed-show-visit t)))
+  (use-package elfeed
+    :config
+    (defun elfeed-show-visit-gui ()
+      "Wrapper for elfeed-show-visit to use gui browser instead of eww"
+      (interactive)
+      (let ((browse-url-generic-program "/usr/bin/open"))
+        (elfeed-show-visit t)))
 
-(define-key elfeed-show-mode-map (kbd "B") 'elfeed-show-visit-gui)
+    :bind (:map elfeed-show-mode-map
+                ("B" . elfeed-show-visit-gui)))
 #+END_SRC
 
 Quick way to start and jump to my world of feeds.

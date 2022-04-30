@@ -1329,7 +1329,7 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
 #+END_SRC
 *** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit
     :init
@@ -1356,13 +1356,11 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
 #+END_SRC
 
 Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
-
   - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
-
  and make sure this works:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :results replace
   (ghub-request "GET" "/user" nil
                 :forge 'github
                 :host "api.github.com"

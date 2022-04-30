@@ -88,7 +88,8 @@ use_python() {
 Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
 #+BEGIN_SRC emacs-lisp
   (use-package evil-text-object-python
-     :hook python-mode . evil-text-object-python-add-bindings)
+    :hook (python-mode . evil-text-object-python-add-bindings))
+
 
 #+END_SRC
 This allows me to delete a Python “block” using ~dal~.
