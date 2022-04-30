@@ -873,7 +873,6 @@ Since I decided to tweak the help menu, so I craft my own:
     "h p" '("package" . describe-package)
     "h s" '("symbol" . info-lookup-symbol)
     "h v" '("variable" . describe-variable)
-    "h B" '("embark" . embark-bindings)
     "h i" '("info" . info)
     "h I" '("info manual" . info-display-manual)
     "h j" '("info jump" . info-apropos))
@@ -951,7 +950,10 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 
     :init
     ;; Optionally replace the key help with a completing-read interface
-    (setq prefix-help-command #'embark-prefix-help-command))
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+    (ha-leader "h K" '("keybindings" . embark-bindings)))
 #+END_SRC
 ** Evil Snipe
 
