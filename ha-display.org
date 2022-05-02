@@ -377,24 +377,30 @@ And some keybindings to call them:
 #+END_SRC
 
 * Emojis, Icons and Whatnot
-In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Currently, my systems, seems to work just fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+Sometimes two symbols should really be one, for instance:
 #+BEGIN_SRC emacs-lisp
-;; set font for symbols
-(set-fontset-font t 'symbol
- (cond
-  ((string-equal system-type "darwin")
-   (cond
-    ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
-  ((string-equal system-type "gnu/linux")
-   (cond
-    ((member "Symbola" (font-family-list)) "Symbola")))))
+  (add-hook 'text-mode-hook (lambda ()
+    (push  '("!?" . "‽") prettify-symbols-alist)))
+#+END_SRC
 
-;; set font for emoji (should come after setting symbols)
-(set-fontset-font t 'emoji
- (cond
-  ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
-  ((member "Noto Color Emoji" (font-family-list)) "Noto Color Emoji")
-  ((member "Symbola" (font-family-list)) "Symbola")))
+In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Currently, my systems, seems to work just fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+#+BEGIN_SRC emacs-lisp :tangle no
+  ;; set font for symbols
+  (set-fontset-font t 'symbol
+   (cond
+    ((string-equal system-type "darwin")
+     (cond
+      ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
+    ((string-equal system-type "gnu/linux")
+     (cond
+      ((member "Symbola" (font-family-list)) "Symbola")))))
+
+  ;; set font for emoji (should come after setting symbols)
+  (set-fontset-font t 'emoji
+   (cond
+    ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
+    ((member "Noto Color Emoji" (font-family-list)) "Noto Color Emoji")
+    ((member "Symbola" (font-family-list)) "Symbola")))
 #+END_SRC
 Test this out: 😄 😱 😸 👸 👽 🙋
 
