@@ -968,6 +968,51 @@ According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][thi
   (embark-collect-mode . consult-preview-at-point-mode))
 #+END_SRC
 
+According to the [[https://elpa.gnu.org/packages/embark-consult.html][Embark-Consult page]]:
+#+begin_quote
+Users of the popular [[https://github.com/justbur/emacs-which-key][which-key]] package may prefer to use the =embark-which-key-indicator= from the [[https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt][Embark wiki]]. Just copy its definition from the wiki into your configuration and customize the =embark-indicators= user option to exclude the mixed and verbose indicators and to include =embark-which-key-indicator=.
+#+end_quote
+In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, but the following code puts them in a smaller configuration directly above the selections.
+
+#+BEGIN_SRC emacs-lisp
+  (defun embark-which-key-indicator ()
+    "An embark indicator that displays keymaps using which-key.
+  The which-key help message will show the type and value of the
+  current target followed by an ellipsis if there are further
+  targets."
+    (lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+        (which-key--show-keymap
+         (if (eq (plist-get (car targets) :type) 'embark-become)
+             "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+         (if prefix
+             (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+         nil nil t (lambda (binding)
+                     (not (string-suffix-p "-argument" (cdr binding))))))))
+
+  (setq embark-indicators
+        '(embark-which-key-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+    "Hide the which-key indicator immediately when using the completing-read prompter."
+    (which-key--hide-popup-ignore-command)
+    (let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+      (apply fn args)))
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator)
+#+END_SRC
 ** Evil Snipe
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line. When I use it, I stop and analyze to see the two characters to work on, so I’ve changed from the default, single ~s~, to ~g s~ so as not to get it confused with the =evil-surround=.
 
