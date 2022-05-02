@@ -1325,7 +1325,6 @@ The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project 
 #+END_SRC
 *** Gist
 Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
-#+BEGIN_SRC emacs-lisp
    (use-package gist
      :config
      (ha-leader
@@ -1338,14 +1337,21 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
        "g G B" '("private buffer" . gist-buffer-private)           ; Explicitly create a private gist.
        "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
        "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
+
+#+BEGIN_SRC emacs-lisp :tangle no
 #+END_SRC
+
+The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package gh
+    :straight (:type git :host :github :repo "sigma/gh.el"))
+#+END_SRC
+
 *** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
 #+BEGIN_SRC emacs-lisp
   (use-package forge
     :after magit
-    :init
-    (setq )
     :config
     (ha-leader
       "g '"   '("Forge dispatch"           . forge-dispatch)

@@ -37,7 +37,6 @@ While I would like to share the /status/ of my reads, so ...
 
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
-    :after (link-hint)
     :config
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
     (evil-define-key 'normal elfeed-show-mode-map (kbd "b") 'elfeed-show-visit)
