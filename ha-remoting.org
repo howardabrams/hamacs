@@ -253,7 +253,7 @@ Simply calling =vterm= fails to load my full environment, so this allows me to s
 #+BEGIN_SRC emacs-lisp
 (defun ha-shell (&optional directory)
   "Creates and tidies up a =vterm= terminal shell in side window."
-  (interactive (list (counsel-read-directory-name "Starting Directory:" (projectile-project-root))))
+  (interactive (list (read-directory-name "Starting Directory: " (projectile-project-root))))
   (let* ((win-name "Terminal")
          (buf-name (format "*%s*" win-name))
          (default-directory (or directory default-directory)))
