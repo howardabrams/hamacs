@@ -1084,10 +1084,9 @@ I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to wo
              "o" 'link-hint-open-link)
     (:states 'normal :keymaps 'Info-mode-map
              "o" 'link-hint-open-link)
-    :config
-    (evil-define-key '(normal) global-map
-      "gl" #'link-hint-open-link
-      "gL" #'link-hint-copy-link))
+    (:states 'normal :keymaps 'global-map
+             "gl" 'link-hint-open-link
+             "gL" 'link-hint-copy-link))
 
 
 #+END_SRC
