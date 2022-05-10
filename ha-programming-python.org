@@ -46,7 +46,7 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     (setq python-indent-guess-indent-offset-verbose nil)
     :config
     (when (and (executable-find "python3")
-                 (string= python-shell-interpreter "python"))
+               (string= python-shell-interpreter "python"))
         (setq python-shell-interpreter "python3"))
 
     ;; While `setup.py' and `requirements.txt' are already added, I often
@@ -162,106 +162,102 @@ The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP
               (setq lsp-pyright-python-executable-cmd "python3")))
 #+END_SRC
 * LSP Integration of Python
-Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together:
+Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I turn it on with ~SPC m w s~.
 
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
-    :hook ((python-mode . lsp)))
-#+END_SRC
+    ;; :hook ((python-mode . lsp)))
+    :config
+    (ha-python-leader
+      "0" '("treemacs" . lsp-treemacs-symbols)
 
-And we're done. Except that I would like a select collection of LSP keybindings for Python.
+      "/" '("complete" . completion-at-point)
+      "k" '("check code" . python-check)
+      "]" '("shift left" . python-indent-shift-left)
+      "[" '("shift right" . python-indent-shift-right)
 
-#+BEGIN_SRC emacs-lisp
-  (ha-python-leader
-    "0" '("treemacs" . lsp-treemacs-symbols)
+      ;; actions
+      "a" '(:ignore t :which-key "code actions")
+      "aa" '("code actions" . lsp-execute-code-action)
+      "ah" '("highlight symbol" . lsp-document-highlight)
+      "al" '("lens" . lsp-avy-lens)
 
-    "/" '("complete" . completion-at-point)
-    "k" '("check code" . python-check)
-    "]" '("shift left" . python-indent-shift-left)
-    "[" '("shift right" . python-indent-shift-right)
+      ;; formatting
+      "=" '(:ignore t :which-key "formatting")
+      "==" '("format buffer" . lsp-format-buffer)
+      "=r" '("format region" . lsp-format-region)
 
-    ;; actions
-    "a" '(:ignore t :which-key "code actions")
-    "aa" '("code actions" . lsp-execute-code-action)
-    "ah" '("highlight symbol" . lsp-document-highlight)
-    "al" '("lens" . lsp-avy-lens)
+      "e" '(:ignore t :which-key "eval")
+      "e P" '("run python" . run-python)
+      "e e" '("send statement" . python-shell-send-statement)
+      "e b" '("send buffer" . python-shell-send-buffer)
+      "e f" '("send defun" . python-shell-send-defun)
+      "e F" '("send file" . python-shell-send-file)
+      "e r" '("send region" . python-shell-send-region)
+      "e ;" '("expression" . python-shell-send-string)
+      "e p" '("switch-to-shell" . python-shell-switch-to-shell)
 
-    ;; formatting
-    "=" '(:ignore t :which-key "formatting")
-    "==" '("format buffer" . lsp-format-buffer)
-    "=r" '("format region" . lsp-format-region)
+      ;; folders
+      "F" '(:ignore t :which-key "folders")
+      "Fa" '("add folder" . lsp-workspace-folders-add)
+      "Fb" '("un-blacklist folder" . lsp-workspace-blacklist-remove)
+      "Fr" '("remove folder" . lsp-workspace-folders-remove)
 
-    "e" '(:ignore t :which-key "eval")
-    "e P" '("run python" . run-python)
-    "e e" '("send statement" . python-shell-send-statement)
-    "e b" '("send buffer" . python-shell-send-buffer)
-    "e f" '("send defun" . python-shell-send-defun)
-    "e F" '("send file" . python-shell-send-file)
-    "e r" '("send region" . python-shell-send-region)
-    "e ;" '("expression" . python-shell-send-string)
-    "e p" '("switch-to-shell" . python-shell-switch-to-shell)
+      ;; goto
+      "g" '(:ignore t :which-key "goto")
+      "ga" '("find symbol in workspace" . xref-find-apropos)
+      "gd" '("find declarations" . lsp-find-declaration)
+      "ge" '("show errors" . lsp-treemacs-errors-list)
+      "gg" '("find definitions" . lsp-find-definition)
+      "gh" '("call hierarchy" . lsp-treemacs-call-hierarchy)
+      "gi" '("find implementations" . lsp-find-implementation)
+      "gm" '("imenu" . lsp-ui-imenu)
+      "gr" '("find references" . lsp-find-references)
+      "gt" '("find type definition" . lsp-find-type-definition)
 
-    ;; folders
-    "F" '(:ignore t :which-key "folders")
-    "Fa" '("add folder" . lsp-workspace-folders-add)
-    "Fb" '("un-blacklist folder" . lsp-workspace-blacklist-remove)
-    "Fr" '("remove folder" . lsp-workspace-folders-remove)
+      ;; peeks
+      "G" '(:ignore t :which-key "peek")
+      "Gg" '("peek definitions" . lsp-ui-peek-find-definitions)
+      "Gi" '("peek implementations" . lsp-ui-peek-find-implementation)
+      "Gr" '("peek references" . lsp-ui-peek-find-references)
+      "Gs" '("peek workspace symbol" . lsp-ui-peek-find-workspace-symbol)
 
-    ;; goto
-    "g" '(:ignore t :which-key "goto")
-    "ga" '("find symbol in workspace" . xref-find-apropos)
-    "gd" '("find declarations" . lsp-find-declaration)
-    "ge" '("show errors" . lsp-treemacs-errors-list)
-    "gg" '("find definitions" . lsp-find-definition)
-    "gh" '("call hierarchy" . lsp-treemacs-call-hierarchy)
-    "gi" '("find implementations" . lsp-find-implementation)
-    "gm" '("imenu" . lsp-ui-imenu)
-    "gr" '("find references" . lsp-find-references)
-    "gt" '("find type definition" . lsp-find-type-definition)
+      ;; help
+      "h" '(:ignore t :which-key "help")
+      "he" '("eldoc" . python-eldoc-at-point)
+      "hg" '("glance symbol" . lsp-ui-doc-glance)
+      "hh" '("describe symbol at point" . lsp-describe-thing-at-point)
+      "gH" '("describe python symbol" . python-describe-at-point)
+      "hs" '("signature help" . lsp-signature-activate)
 
-    ;; peeks
-    "G" '(:ignore t :which-key "peek")
-    "Gg" '("peek definitions" . lsp-ui-peek-find-definitions)
-    "Gi" '("peek implementations" . lsp-ui-peek-find-implementation)
-    "Gr" '("peek references" . lsp-ui-peek-find-references)
-    "Gs" '("peek workspace symbol" . lsp-ui-peek-find-workspace-symbol)
+      "i" 'imenu
 
-    ;; help
-    "h" '(:ignore t :which-key "help")
-    "he" '("eldoc" . python-eldoc-at-point)
-    "hg" '("glance symbol" . lsp-ui-doc-glance)
-    "hh" '("describe symbol at point" . lsp-describe-thing-at-point)
-    "gH" '("describe python symbol" . python-describe-at-point)
-    "hs" '("signature help" . lsp-signature-activate)
+      ;; refactoring
+      "r" '(:ignore t :which-key "refactor")
+      "ro" '("organize imports" . lsp-organize-imports)
+      "rr" '("rename" . lsp-rename)
 
-    "i" 'imenu
+      ;; toggles
+      "t" '(:ignore t :which-key "toggle")
+      "tD" '("toggle modeline diagnostics" . lsp-modeline-diagnostics-mode)
+      "tL" '("toggle log io" . lsp-toggle-trace-io)
+      "tS" '("toggle sideline" . lsp-ui-sideline-mode)
+      "tT" '("toggle treemacs integration" . lsp-treemacs-sync-mode)
+      "ta" '("toggle modeline code actions" . lsp-modeline-code-actions-mode)
+      "tb" '("toggle breadcrumb" . lsp-headerline-breadcrumb-mode)
+      "td" '("toggle documentation popup" . lsp-ui-doc-mode)
+      "tf" '("toggle on type formatting" . lsp-toggle-on-type-formatting)
+      "th" '("toggle highlighting" . lsp-toggle-symbol-highlight)
+      "tl" '("toggle lenses" . lsp-lens-mode)
+      "ts" '("toggle signature" . lsp-toggle-signature-auto-activate)
 
-    ;; refactoring
-    "r" '(:ignore t :which-key "refactor")
-    "ro" '("organize imports" . lsp-organize-imports)
-    "rr" '("rename" . lsp-rename)
-
-    ;; toggles
-    "t" '(:ignore t :which-key "toggle")
-    "tD" '("toggle modeline diagnostics" . lsp-modeline-diagnostics-mode)
-    "tL" '("toggle log io" . lsp-toggle-trace-io)
-    "tS" '("toggle sideline" . lsp-ui-sideline-mode)
-    "tT" '("toggle treemacs integration" . lsp-treemacs-sync-mode)
-    "ta" '("toggle modeline code actions" . lsp-modeline-code-actions-mode)
-    "tb" '("toggle breadcrumb" . lsp-headerline-breadcrumb-mode)
-    "td" '("toggle documentation popup" . lsp-ui-doc-mode)
-    "tf" '("toggle on type formatting" . lsp-toggle-on-type-formatting)
-    "th" '("toggle highlighting" . lsp-toggle-symbol-highlight)
-    "tl" '("toggle lenses" . lsp-lens-mode)
-    "ts" '("toggle signature" . lsp-toggle-signature-auto-activate)
-
-    ;; workspaces
-    "w" '(:ignore t :which-key "workspaces")
-    "wD" '("disconnect" . lsp-disconnect)
-    "wd" '("describe session" . lsp-describe-session)
-    "wq" '("shutdown server" . lsp-workspace-shutdown)
-    "wr" '("restart server" . lsp-workspace-restart)
-    "ws" '("start server" . lsp))
+      ;; workspaces
+      "w" '(:ignore t :which-key "workspaces")
+      "wD" '("disconnect" . lsp-disconnect)
+      "wd" '("describe session" . lsp-describe-session)
+      "wq" '("shutdown server" . lsp-workspace-shutdown)
+      "wr" '("restart server" . lsp-workspace-restart)
+      "ws" '("start server" . lsp)))
 #+END_SRC
 * Project Configuration
 I work with a lot of projects with my team where I need to /configure/ the project such that LSP and my Emacs setup works. Let's suppose I could point a function at a project directory, and have it /set it up/:
