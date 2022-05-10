@@ -46,11 +46,11 @@ as this can be pretty distracting."
   (beep--speak phrase))
 
 (defun compile-and-notify ()
-  "Call `counsel-compile' and notify us when finished.
+  "Call `compile' and notify us when finished.
 See `beep--when-finished' for details."
   (interactive)
-  (let ((root (projectile-project-root)))
-    (counsel-compile root)
+  (let ((default-directory (projectile-project-root)))
+    (call-interactively 'compile)
     (beep--when-finished "The compile command has finished.")))
 
 (defvar beep-func-too-long-time 5
