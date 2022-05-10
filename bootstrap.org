@@ -110,18 +110,23 @@ Getting tired off all the packages that I load spewing a bunch of warnings that 
 ** GNU Pretty Good Privacy
 On Linux, GPG is pretty straight-forward, but on the Mac, I often have troubles doing:
 #+BEGIN_SRC sh
-brew install gpg
+  brew install gpg
 #+END_SRC
-And I need to install the [[https://gpgtools.org/][GPG Suite]]. While very nice, isn't a GUI I really need, but can take advantage when installed:
+Next, on every reboot, start the agent:
+#+BEGIN_SRC sh
+  /usr/local/Cellar/gnupg/2.3.6/bin/gpg-agent --daemon
+#+END_SRC
+The only issue is that =brew link gpg= doesn’t always work, so maybe a helper function to find the executable:
 
 #+BEGIN_SRC emacs-lisp
   (defun executable (path)
     "Return PATH if it is executable, see `file-executable-p'."
-    (when (file-executable-p path) path))
+    (let ((epath (first (file-expand-wildcards path))))
+      (when (file-executable-p epath) epath)))
 
   (use-package epa-file
     :straight (:type built-in)
-    :custom (epg-gpg-program (or (executable "/usr/local/MacGPG2/bin/gpg")
+    :custom (epg-gpg-program (or (executable "/usr/local/Cellar/gnupg/*/bin/gpg")
                                  (executable "/usr/local/bin/gpg")
                                  (executable "/usr/local/opt/gpg")
                                  (executable "/usr/bin/pgp")))
