@@ -175,7 +175,8 @@ Sure the Emacs application will almost always have the =server-start= going, how
   Currently, this is the `emacs-plus@28' app that I have built with
   the native-comp model, but I reserve the right to change this."
     (and (f-dir? "~/work")
-         (string-match "emacs-plus@28" exec-directory)))
+         ;; (string-match "emacs-plus@28" exec-directory)
+         (not (string-match "Emacs.app" exec-directory))))
 #+END_SRC
 
 And now start the server with an appropriate tag name:
@@ -234,7 +235,8 @@ And we can now load everything:
     "Reload our entire ecosystem of configuration files."
     (interactive)
     (dolist (file ha-hamacs-files)
-      (ha-hamacs-load file)))
+      (unless (equal file "bootstrap.org")
+        (ha-hamacs-load file))))
 #+END_SRC
 
 And do it:
@@ -245,9 +247,11 @@ And do it:
 Once we have loaded /my world/, let’s add every other Org file in the project to the list, so that I can easily bring more stuff.
 #+BEGIN_SRC emacs-lisp
   (setq ha-hamacs-files
-        (-uniq
-         (append ha-hamacs-files
-                 (directory-files "~/other/hamacs" nil (rx ".org" eos)))))
+        (->> (rx ".org" string-end)
+             (directory-files "~/other/hamacs" nil)
+             (append ha-hamacs-files)
+             (--filter (not (string-match (rx "README") it)))
+             (-uniq)))
 #+END_SRC
 * Technical Artifacts :noexport:
 Let's provide a name so that the file can be required:
