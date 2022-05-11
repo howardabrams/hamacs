@@ -274,6 +274,24 @@ And a keybinding:
   (ha-prog-leader "c" '("comment line" . ha-comment-line))
 #+END_SRC
 ** Evaluation
+While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a bit of formatting in order to /keep the results/ in the file.
+#+BEGIN_SRC emacs-lisp
+  (defun ha-eval-print-last-sexp (&optional internal-arg)
+    "Evaluate the expression located before the point.
+  The results are inserted back into the buffer at the end
+  of the line after a comment."
+    (interactive)
+    (save-excursion
+      (eval-print-last-sexp internal-arg))
+    (end-of-line)
+    (insert "  ")
+    (insert comment-start)
+    (insert "⟹ ")
+    (dotimes (i 2)
+      (next-line)
+      (join-line)))
+#+END_SRC
+
 Typical keybindings for all programming modes:
 #+BEGIN_SRC emacs-lisp
   (ha-prog-leader
@@ -283,24 +301,23 @@ Typical keybindings for all programming modes:
      "e f" '("function" . eval-defun)
      "e r" '("region" . eval-region)
      "e e" '("last s-exp" . eval-last-sexp)
-     "e p" '("print s-exp" . eval-print-last-sexp))
+     "e p" '("print s-exp" . ha-eval-print-last-sexp))
 #+END_SRC
 ** Ligatures
 The idea of using math symbols for a programming languages keywords is /cute/, but can be confusing, so I use it sparingly:
 
 #+BEGIN_SRC emacs-lisp
-  (add-hook
-   'prog-mode-hook
-   (lambda ()
-     (mapc (lambda (pair) (push pair prettify-symbols-alist))
-           '(("lambda" . "𝝀")
-             (">=" . "≥")
-             ("<=" . "≤")
-             ("!=" . "≠")))))
+  (defun ha-prettyify-prog ()
+    "Extends the `prettify-symbols-alist' for programming."
+    (mapc (lambda (pair) (push pair prettify-symbols-aist))
+          '(("lambda" . "𝝀")
+            (">=" . "≥")
+            ("<=" . "≤")
+            ("!=" . "≠")))
+    (prettify-symbols-mode))
 
+  (add-hook 'prog-mode-hook 'ha-prettify-prog)
 #+END_SRC
-
-The rest of the ligature system in Doom is nice.
 
 ** Task Runner
 I've replaced my home-grown compilation list code with a more versatile [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]].
