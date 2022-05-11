@@ -305,11 +305,10 @@ Typical keybindings for all programming modes:
 #+END_SRC
 ** Ligatures
 The idea of using math symbols for a programming languages keywords is /cute/, but can be confusing, so I use it sparingly:
-
 #+BEGIN_SRC emacs-lisp
-  (defun ha-prettyify-prog ()
+  (defun ha-prettify-prog ()
     "Extends the `prettify-symbols-alist' for programming."
-    (mapc (lambda (pair) (push pair prettify-symbols-aist))
+    (mapc (lambda (pair) (push pair prettify-symbols-alist))
           '(("lambda" . "𝝀")
             (">=" . "≥")
             ("<=" . "≤")
@@ -318,7 +317,7 @@ The idea of using math symbols for a programming languages keywords is /cute/, b
 
   (add-hook 'prog-mode-hook 'ha-prettify-prog)
 #+END_SRC
-
+Eventually, I want to follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
 ** Task Runner
 I've replaced my home-grown compilation list code with a more versatile [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]].
 #+BEGIN_SRC emacs-lisp :tangle no

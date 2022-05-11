@@ -39,9 +39,27 @@ The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the col
   (use-package paren-face
     :hook (emacs-lisp-mode . paren-face-mode))
 #+END_SRC
-I'm going to play with the [[https://github.com/DogLooksGood/parinfer-mode][parinfer]] package.
 
+Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] package. This is really helpful.
+#+BEGIN_SRC emacs-lisp
+  (use-package elisp-demos
+    :config
+    (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
+#+END_SRC
 * Navigation and Editing
+** Goto Definitions
+F’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
+#+BEGIN_SRC emacs-lisp
+  (use-package elisp-def
+    :hook (emacs-lisp-mode . elisp-def-mode))
+#+END_SRC
+This /should work/ with [[help:evil-goto-definition][evil-goto-defintion]], as that calls this list from [[help:evil-goto-definition-functions][evil-goto-definition-functions]]:
+  - [[help:evil-goto-definition-imenu][evil-goto-definition-imenu]]
+  - [[help:evil-goto-definition-semantic][evil-goto-definition-semantic]]
+  - [[help:evil-goto-definition-xref][evil-goto-definition-xref]] … and here is where this package will be called
+  - [[help:evil-goto-definition-search][evil-goto-definition-search]]
+
+I love packages that add functionality but I don’t have to learn anything.
 ** Clever Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
 #+BEGIN_SRC emacs-lisp
@@ -70,21 +88,21 @@ The [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] solves h
 #+END_SRC
 
 The /trick/ to being effective with the [[https://www.emacswiki.org/emacs/ParEdit][paredit-family]] of extensions is learning the keys. The killer “app” is the slurp/barf sequence. Use the ~<~ key, in normal mode, to barf (or jettison)… in other words, /move/ the paren closer to the point. For instance:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (+ 41 (* ‖1 3))  ⟹  (+ 41 (* ‖1) 3)
 #+END_SRC
 Use the ~>~ key to /slurp/ in outside objects into the current expression… in other words, move the paren away from the point. For instance:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (+ 41 (* ‖1) 3)  ⟹  (+ 41 (* ‖1 3))
 #+END_SRC
 
 *Opening Parens.* Those two keys seem straight-forward, but they behave differently when the are on the opening parens.
 When the point (symbolized by ~‖~) is /on/ the opening paren, ~<~ moves the paren to the left. For instance:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (+ 41 ‖(* 1 3))  ⟹  (+ ‖(41 * 1 3))
 #+END_SRC
 And  the ~>~ moves the paren to the right. For instance:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (+ 41 ‖(* 1 3))  ⟹ (+ 41 * ‖(1 3))
 #+END_SRC
 
@@ -108,11 +126,11 @@ The other advantage is moving around by s-expressions. This takes a little getti
 - ~(~ and ~)~ move up to the parent s-expression
 
 We need a real-world example. Let’s suppose we entered this:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (format "The sum of %d %d is %d" a b (+ a b))
 #+END_SRC
 But we forgot to define the =a= and =b= variables. One approach, after Escaping into the normal state, is to hit ~(~ to just to the beginning of the s-expression, and then type,  ~M-(~ to wrap the expression, and type ~i~ to go into insert mode:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (‖ (format "The sum of %d %d is %d" a b (+ a b)))
 #+END_SRC
 And now we can enter the =let= expression.
@@ -127,8 +145,7 @@ Other nifty keybindings that I need to commit to muscle memory include:
 | ~M-r~ | =sp-raise-sexp=     |
 
 ** Eval Current Expression
-
-A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how how they made it, but cleverparens can help:
+A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but [[help:evil-cp-next-closing ][evil-cp-next-closing]] from cleverparens can help:
 
 #+BEGIN_SRC emacs-lisp
 (defun ha-eval-current-expression ()
