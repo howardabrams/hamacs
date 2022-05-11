@@ -204,6 +204,7 @@ The following loads the rest of my org-mode literate files. I add them as they a
                             "ha-passwords.org"
                             "ha-remoting.org"
                             "ha-programming.org"
+                            "ha-programming-elisp.org"
                             "ha-programming-python.org"
                             ,(if (ha-emacs-for-work?)
                                  '("ha-org-sprint.org" "ha-work.org")

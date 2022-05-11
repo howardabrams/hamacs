@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: general-key
+# key: gk
+# --
+:general
+(:states 'normal :keymaps '${1:global}-mode-map
+         "$2" '$0)
