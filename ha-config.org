@@ -775,6 +775,8 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
     ; (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
 
     :config
+    (rg-enable-default-bindings (kbd "M-R"))
+
     (ha-leader
        "s"  '(:ignore t :which-key "search")
        "s q" '("close" . ha-rg-close-results-buffer)
@@ -787,7 +789,6 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
        "s j" '("next results" . ha-rg-go-next-results)
        "s k" '("prev results" . ha-rg-go-previous-results)
        "s b" '("results buffer" . ha-rg-go-results-buffer))
-          (rg-enable-default-bindings (kbd "M-R"))
 
     (defun ha-rg-close-results-buffer ()
       "Close to the `*rg*' buffer that `rg' creates."
@@ -913,16 +914,15 @@ The [[https://github.com/minad/consult][consult project]] aims to use the librar
           xref-show-definitions-function #'consult-xref)
 
     :config
-    (define-key evil-normal-state-map (kbd "g p") 'consult-yank-pop)
-    (define-key evil-normal-state-map (kbd "g s") 'consult-line)
-
-    ;; And some leader keys since that seems to be the only place I remember:
     (ha-leader
         "RET" '("bookmark" . consult-bookmark)
         "o i" '("imenu" . consult-imenu)
-        "x y" '("preview yank" . consult-yank-pop)))
+        "x y" '("preview yank" . consult-yank-pop))
 
-
+    :general
+    (:states 'normal :keymaps 'global-mode-map
+             "gp" 'consult-yank-pop
+             "gs" 'consult-line))
 #+END_SRC
 *** Consult for Projects
 One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile. So let’s see what the [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can offer.
@@ -1021,10 +1021,11 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
     :after evil
     :init
     (setq evil-snipe-scope 'visible)
-    :config
-    (evil-define-key '(normal motion operator visual) global-map
-      "gs" #'evil-snipe-s
-      "gS" #'evil-snipe-S))
+
+    :general
+    (:states '(normal motion operator visual) :keymaps 'global-mode-map
+             "gs" 'evil-snipe-s
+             "gS" 'evil-snipe-S))
 #+END_SRC
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 ** Evil Surround
@@ -1065,10 +1066,14 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
           avy-orders-alist
           '((avy-goto-char . avy-order-closest)
             (avy-goto-word-0 . avy-order-closest)))
+
     :config (ha-leader "j" '("jump" . avy-goto-char-timer))
-    (evil-define-key '(normal motion operator visual) global-map
-      "go" #'avy-goto-char-timer)
-      :bind ("<f18>" . avy-goto-char-timer))
+
+    :general
+    (:states '(normal motion operator visual) :keymaps 'global-mode-map
+             "go" 'avy-goto-char-timer)
+
+    :bind ("<f18>" . avy-goto-char-timer))
 #+END_SRC
 *Note:* The links should be shorter near the point as opposed to starting from the top of the window.
 ** Link Hint, the Link Jumper
