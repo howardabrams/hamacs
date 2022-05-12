@@ -48,7 +48,7 @@ Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-d
 #+END_SRC
 * Navigation and Editing
 ** Goto Definitions
-F’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
+Wilfred’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
 #+BEGIN_SRC emacs-lisp
   (use-package elisp-def
     :hook (emacs-lisp-mode . elisp-def-mode))
@@ -59,7 +59,31 @@ This /should work/ with [[help:evil-goto-definition][evil-goto-defintion]], as t
   - [[help:evil-goto-definition-xref][evil-goto-definition-xref]] … and here is where this package will be called
   - [[help:evil-goto-definition-search][evil-goto-definition-search]]
 
-I love packages that add functionality but I don’t have to learn anything.
+I love packages that add functionality but I don’t have to learn anything. However, I’m running into an issue where I do a lot of my Emacs Lisp programming in org files, and would like to jump to the function definition where it is defined in the org file. Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-org-code-block-jump (str pos)
+    "Go to a literate org file containing a symbol, STR.
+  The POS is ignored."
+    (ignore-errors
+      (let* ((default-directory (projectile-project-root))
+             (command (format "rg --json '\\(def[^ ]+ %s ' *.org" str))
+             (results (->> command
+                           shell-command-to-list
+                           second
+                           json-parse-string))
+             (file    (->> results
+                           (gethash "data")
+                           (gethash "path")
+                           (gethash "text")))
+             (line    (->> results
+                           (gethash "data")
+                           (gethash "line_number"))))
+        (find-file file)
+        (goto-line line))))
+
+  (add-to-list 'evil-goto-definition-functions ' ha-org-code-block-jump)
+#+END_SRC
 ** Clever Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
 #+BEGIN_SRC emacs-lisp
