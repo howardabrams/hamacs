@@ -398,6 +398,8 @@ Can we change Evil at this point? Some tips:
     ;; Use escape to get out of visual mode, but hitting v again expands the selection.
     (evil-define-key 'visual global-map (kbd "v") 'er/expand-region)
 
+    ;; While I normally just use `link-hint', the gx keybinding is used by evil-exchange:
+    (evil-define-key 'normal global-map (kbd "gz") 'browse-url-at-point)
     (evil-mode))
 #+END_SRC
 
@@ -418,6 +420,29 @@ Using the key-chord project allows me to make Escape be on two key combo presses
   (key-chord-define-global "jk" 'evil-normal-state)
   (key-chord-define-global "JK" 'evil-normal-state))
 #+END_SRC
+*** Evil Exchange
+I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
+#+BEGIN_SRC emacs-lisp
+(use-package evil-exchange
+  :config (evil-exchange-install))
+#+END_SRC
+
+Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
+
+       The ball was red and the boy was blue.
+
+Move the point to the word, /red/, and type ~g x i w~ (anywhere since we are using the inner text object). Next, jump to the word /blue/, and type the sequence, ~g x i w~ again, and you have:
+
+       The ball was blue and the boy was red.
+
+The idea is that you can exchange anything. The ~g x~ marks something (like what we would normally do in /visual mode/), and then by marking something else with a ~g x~ sequence, it swaps them.
+*** Evil Commentary
+The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-commentary
+    :config (evil-commentary-mode))
+#+END_SRC
 *** Evil Collection
 Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
 
@@ -431,6 +456,16 @@ Dropping into Emacs state is better than pure Evil state for applications, howev
 Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
 '(eww magit dired notmuch term wdired)
+#+END_SRC
+*** Evil Owl
+Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-owl
+    :config
+    (setq evil-owl-display-method 'posframe
+          evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
+          evil-owl-max-string-length 50)
+    (evil-owl-mode))
 #+END_SRC
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
