@@ -68,15 +68,15 @@ I love packages that add functionality but I don’t have to learn anything. How
     (ignore-errors
       (let* ((default-directory (projectile-project-root))
              (command (format "rg --json '\\(def[^ ]+ %s ' *.org" str))
-             (results (->> command
+             (results (thread-last command
                            shell-command-to-list
                            second
                            json-parse-string))
-             (file    (->> results
+             (file    (thread-last results
                            (gethash "data")
                            (gethash "path")
                            (gethash "text")))
-             (line    (->> results
+             (line    (thread-last results
                            (gethash "data")
                            (gethash "line_number"))))
         (find-file file)
