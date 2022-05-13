@@ -179,8 +179,6 @@ Now I’m getting obsessive with elongating dashes:
        (t                        (insert "-")))))
 
   (define-key org-mode-map "-" #'ha-insert-long-dash)
-
-
 #+END_SRC
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).

@@ -1146,32 +1146,34 @@ While editing any file on disk is easy enough, I like the mental context switch 
 While I really don't /need/ all the features that [[https://github.com/bbatsov/projectile][projectile]] provides, it has all the features I do need, and is easy enough to install. I am referring to the fact that I /could/ use the built-in =project.el= system (see [[https://cestlaz.github.io/post/using-emacs-79-project/][this essay]] for details on what I mean as an alternative).
 
 #+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :custom
-  (projectile-sort-order 'recentf)
-  :config
-  (ha-leader
-   "p"  '(:ignore t :which-key "projects")
-   "p W" '("initialize workspace" . ha-workspace-initialize)
-   "p n" '("new project space" . ha-project-persp)
-   "p !" '("run cmd in project root" . projectile-run-shell-command-in-root)
-   "p &" '("async cmd in project root" . projectile-run-async-shell-command-in-root)
-   "p a" '("add new project" . projectile-add-known-project)
-   "p b" '("switch to project buffer" . projectile-switch-to-buffer)
-   "p c" '("compile in project" . projectile-compile-project)
-   "p C" '("repeat last command" . projectile-repeat-last-command)
-   "p d" '("remove known project" . projectile-remove-known-project)
-   "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
-   "p f" '("find file in project" . projectile-find-file)
-   "p g" '("configure project" . projectile-configure-project)
-   "p i" '("invalidate project cache" . projectile-invalidate-cache)
-   "p k" '("kill project buffers" . projectile-kill-buffers)
-   "p o" '("find other file" . projectile-find-other-file)
-   "p p" '("switch project" . projectile-switch-project)
-   "p r" '("find recent project files" . projectile-recentf)
-   "p R" '("run project" . projectile-run-project)
-   "p S" '("save project files" . projectile-save-project-buffers)
-   "p T" '("test project" . projectile-test-project)))
+  (use-package projectile
+    :custom
+    (projectile-sort-order 'recentf)
+    (projectile-project-root-functions '(projectile-root-bottom-up))
+
+    :config
+    (ha-leader
+     "p"  '(:ignore t :which-key "projects")
+     "p W" '("initialize workspace" . ha-workspace-initialize)
+     "p n" '("new project space" . ha-project-persp)
+     "p !" '("run cmd in project root" . projectile-run-shell-command-in-root)
+     "p &" '("async cmd in project root" . projectile-run-async-shell-command-in-root)
+     "p a" '("add new project" . projectile-add-known-project)
+     "p b" '("switch to project buffer" . projectile-switch-to-buffer)
+     "p c" '("compile in project" . projectile-compile-project)
+     "p C" '("repeat last command" . projectile-repeat-last-command)
+     "p d" '("remove known project" . projectile-remove-known-project)
+     "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
+     "p f" '("find file in project" . projectile-find-file)
+     "p g" '("configure project" . projectile-configure-project)
+     "p i" '("invalidate project cache" . projectile-invalidate-cache)
+     "p k" '("kill project buffers" . projectile-kill-buffers)
+     "p o" '("find other file" . projectile-find-other-file)
+     "p p" '("switch project" . projectile-switch-project)
+     "p r" '("find recent project files" . projectile-recentf)
+     "p R" '("run project" . projectile-run-project)
+     "p S" '("save project files" . projectile-save-project-buffers)
+     "p T" '("test project" . projectile-test-project)))
 #+END_SRC
 ** Workspaces
 A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
