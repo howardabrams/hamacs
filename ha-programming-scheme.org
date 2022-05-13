@@ -83,10 +83,6 @@ Let’s test it out by defining a variable:
 And simply using it:
 #+BEGIN_SRC scheme :var b=8
   (+ a b)
-
-
-  
-
 #+END_SRC
 
 #+RESULTS:
@@ -106,14 +102,9 @@ Let’s get the book available as an Info page:
 (use-package sicp)
 #+END_SRC
 
-And does this work?
-#+BEGIN_SRC scheme
-  (inc 42)
-#+END_SRC
-
 Still having difficulty getting the Scheme REPL to output the results back into this document. Let’s try Racket...
 
-If we want to read the [[file:~/.emacs.d/straight/build/sicp/sicp.info][sicp.info]] file, looks like we need this, at least, temporarily:
+Normally, I would just [[info:SICP][read the book]], however, if we want to read the [[file:~/.emacs.d/straight/build/sicp/sicp.info][sicp.info]] file, we need this, at least, temporarily:
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-mode))
 #+END_SRC

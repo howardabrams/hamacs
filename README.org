@@ -32,6 +32,7 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-irc.org][irc]] :: connection to IRC servers using rcirc and bitlbee.
   - [[file:ha-passwords.org][passwords]] :: code for generating passwords.
   - [[file:ha-programming.org][programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-programming-elisp.org][programming-elisp]] :: additions to Emacs Lisp programming.
   - [[file:ha-programming-python.org][programming-python]] :: configuration for working with Python and LSP.
   - [[file:ha-programming-scheme.org][programming-scheme]] :: configuration for Racket.
   - [[file:ha-aux-apps.org][aux-apps]] :: additional application configuration.

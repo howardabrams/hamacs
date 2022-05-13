@@ -169,6 +169,12 @@ Other nifty keybindings that I need to commit to muscle memory include:
 | ~M-r~ | =sp-raise-sexp=     |
 
 ** Eval Current Expression
+The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
+#+BEGIN_SRC emacs-lisp
+  (use-package eros
+    :hook (emacs-lisp-mode . eros-mode))
+#+END_SRC
+
 A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but [[help:evil-cp-next-closing ][evil-cp-next-closing]] from cleverparens can help:
 
 #+BEGIN_SRC emacs-lisp
