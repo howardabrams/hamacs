@@ -420,53 +420,6 @@ Using the key-chord project allows me to make Escape be on two key combo presses
   (key-chord-define-global "jk" 'evil-normal-state)
   (key-chord-define-global "JK" 'evil-normal-state))
 #+END_SRC
-*** Evil Exchange
-I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
-#+BEGIN_SRC emacs-lisp
-(use-package evil-exchange
-  :config (evil-exchange-install))
-#+END_SRC
-
-Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
-
-       The ball was red and the boy was blue.
-
-Move the point to the word, /red/, and type ~g x i w~ (anywhere since we are using the inner text object). Next, jump to the word /blue/, and type the sequence, ~g x i w~ again, and you have:
-
-       The ball was blue and the boy was red.
-
-The idea is that you can exchange anything. The ~g x~ marks something (like what we would normally do in /visual mode/), and then by marking something else with a ~g x~ sequence, it swaps them.
-*** Evil Commentary
-The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package evil-commentary
-    :config (evil-commentary-mode))
-#+END_SRC
-*** Evil Collection
-Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
-#+END_SRC
-
-Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
-#+BEGIN_SRC emacs-lisp :tangle no :eval no
-'(eww magit dired notmuch term wdired)
-#+END_SRC
-*** Evil Owl
-Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
-#+BEGIN_SRC emacs-lisp
-  (use-package evil-owl
-    :config
-    (setq evil-owl-display-method 'posframe
-          evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
-          evil-owl-max-string-length 50)
-    (evil-owl-mode))
-#+END_SRC
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
@@ -474,8 +427,12 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
 
 #+BEGIN_SRC emacs-lisp
   (use-package general
+    :custom
+    (general-use-package-emit-autoloads nil)
+
     :config
     (general-evil-setup t)
+
     (general-create-definer ha-leader
       :states '(normal visual motion)
       :keymaps 'override
@@ -1048,7 +1005,55 @@ In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, 
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
 #+END_SRC
-** Evil Snipe
+** Evil Extensions
+*** Evil Exchange
+I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
+#+BEGIN_SRC emacs-lisp
+(use-package evil-exchange
+  :config (evil-exchange-install))
+#+END_SRC
+
+Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
+
+       The ball was red and the boy was blue.
+
+Move the point to the word, /red/, and type ~g x i w~ (anywhere since we are using the inner text object). Next, jump to the word /blue/, and type the sequence, ~g x i w~ again, and you have:
+
+       The ball was blue and the boy was red.
+
+The idea is that you can exchange anything. The ~g x~ marks something (like what we would normally do in /visual mode/), and then by marking something else with a ~g x~ sequence, it swaps them.
+*** Evil Commentary
+The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-commentary
+    :config (evil-commentary-mode))
+#+END_SRC
+*** Evil Collection
+Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
+#+END_SRC
+
+Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
+'(eww magit dired notmuch term wdired)
+#+END_SRC
+*** Evil Owl
+Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-owl
+    :config
+    (setq evil-owl-display-method 'posframe
+          evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
+          evil-owl-max-string-length 50)
+    (evil-owl-mode))
+#+END_SRC
+*** Evil Snipe
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line. When I use it, I stop and analyze to see the two characters to work on, so I’ve changed from the default, single ~s~, to ~g s~ so as not to get it confused with the =evil-surround=.
 
 #+BEGIN_SRC emacs-lisp
@@ -1063,7 +1068,7 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
              "gS" 'evil-snipe-S))
 #+END_SRC
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
-** Evil Surround
+*** Evil Surround
 I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
 
 
@@ -1089,8 +1094,7 @@ Notes:
   - ~ysiw'~ :: puts single quotes around the word, no matter where the point is positioned.
   - ~yS$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
-** Jump, Jump, Jump!
-
+** Jump with Avy
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use, but ~g o~ seems obvious.
 
 #+BEGIN_SRC emacs-lisp
