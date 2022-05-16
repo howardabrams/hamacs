@@ -347,7 +347,7 @@ Oh, and let’s not close the frame, but instead, the window:
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "s-w") 'delete-window)
 #+END_SRC
-*** Undo
+** Undo
 I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but since I’m on the Mac quite a bit, I want to cover my bases.
 
 Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the built-in undo functionality? Well, there isn’t much to the project (that’s a good thing), but It basically doesn’t /cycle/ around the redo, which annoying.
@@ -360,12 +360,6 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
   (global-unset-key (kbd "s-z"))
   (global-set-key (kbd "s-z")   'undo-fu-only-undo)
   (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
-#+END_SRC
-*** Expand Region
-Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ repeatedly, having the selection grow by syntactical units.
-#+BEGIN_SRC emacs-lisp
-(use-package expand-region
-  :bind ("C-=" . er/expand-region))
 #+END_SRC
 ** Evil-Specific Keybindings
 Can we change Evil at this point? Some tips:
@@ -395,11 +389,6 @@ Can we change Evil at this point? Some tips:
       (let ((mode (make-symbol (format "%s-mode" name))))
         (add-to-list 'evil-emacs-state-modes mode)))
 
-    ;; Use escape to get out of visual mode, but hitting v again expands the selection.
-    (evil-define-key 'visual global-map (kbd "v") 'er/expand-region)
-
-    ;; While I normally just use `link-hint', the gx keybinding is used by evil-exchange:
-    (evil-define-key 'normal global-map (kbd "gz") 'browse-url-at-point)
     (evil-mode))
 #+END_SRC
 
@@ -428,7 +417,7 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
 #+BEGIN_SRC emacs-lisp
   (use-package general
     :custom
-    (general-use-package-emit-autoloads nil)
+    (general-use-package-emit-autoloads t)
 
     :config
     (general-evil-setup t)
@@ -895,7 +884,6 @@ Let's make Info behave a little more VI-like:
 The [[https://github.com/minad/consult][consult project]] aims to use the libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I particularly appreciate the feature that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
 #+BEGIN_SRC emacs-lisp
   (use-package consult
-    :after general
     ;; Enable automatic preview at point in the *Completions* buffer. This is
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -905,16 +893,17 @@ The [[https://github.com/minad/consult][consult project]] aims to use the librar
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
 
-    :config
-    (ha-leader
-        "RET" '("bookmark" . consult-bookmark)
-        "o i" '("imenu" . consult-imenu)
-        "x y" '("preview yank" . consult-yank-pop))
+    :bind ("s-v" . consult-yank-pop)
 
     :general
-    (:states 'normal :keymaps 'global-mode-map
+    (:states 'normal
              "gp" 'consult-yank-pop
-             "gs" 'consult-line))
+             "gs" 'consult-line)
+    :config
+    (ha-leader
+      "RET" '("bookmark" . consult-bookmark)
+      "o i" '("imenu" . consult-imenu)
+      "x y" '("preview yank" . consult-yank-pop)))
 #+END_SRC
 *** Consult for Projects
 One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile. So let’s see what the [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can offer.
@@ -1009,8 +998,11 @@ In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, 
 *** Evil Exchange
 I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
 #+BEGIN_SRC emacs-lisp
-(use-package evil-exchange
-  :config (evil-exchange-install))
+  (use-package evil-exchange
+    ;; While I normally just use `link-hint', the gx keybinding is used by evil-exchange:
+    :general (:states 'normal "gz" 'browse-url-at-point)
+
+    :config (evil-exchange-install))
 #+END_SRC
 
 Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
@@ -1054,8 +1046,7 @@ Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with 
     (evil-owl-mode))
 #+END_SRC
 *** Evil Snipe
-Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line. When I use it, I stop and analyze to see the two characters to work on, so I’ve changed from the default, single ~s~, to ~g s~ so as not to get it confused with the =evil-surround=.
-
+Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings.
 #+BEGIN_SRC emacs-lisp
   (use-package evil-snipe
     :after evil
@@ -1063,16 +1054,17 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
     (setq evil-snipe-scope 'visible)
 
     :general
-    (:states '(normal motion operator visual) :keymaps 'global-mode-map
-             "gs" 'evil-snipe-s
-             "gS" 'evil-snipe-S))
+    (:states '(normal motion operator visual)
+             "s" 'evil-snipe-s
+             "S" 'evil-snipe-S)
+    :config
+    (evil-snipe-mode +1)))
 #+END_SRC
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 *** Evil Surround
-I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
+I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when it calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
 
-
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package evil-surround
     :after evil-snipe
     :config
@@ -1085,16 +1077,32 @@ I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and H
     (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
     (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
     (push '(?~ . ("~" . "~")) evil-surround-pairs-alist)
+
+    :general
+    (:states 'operator :keymaps 'evil-surround-mode-map
+             "z" 'evil-surround-edit
+             "Z" 'evil-Surround-edit)
+
     :hook (text-mode . evil-surround-mode))  ; Don't globally use it on Magit, et. al
 #+END_SRC
 Notes:
-  - ~cs({~ :: to convert surrounding parens to curly braces.
-  - ~ds"~ :: to delete the surrounding *double* quotes.
-  - ~yse"~ :: puts double quotes around the next word… but only if you are at the beginning of the word, otherwise,
-  - ~ysiw'~ :: puts single quotes around the word, no matter where the point is positioned.
-  - ~yS$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
+  - ~cz'"~ :: to convert surrounding single quote string to double quotes.
+  - ~dz"~ :: to delete the surrounding double quotes.
+  - ~yze"~ :: puts single quotes around the next word.
+  - ~yziw'~ :: puts single quotes around the word, no matter where the point is positioned.
+  - ~yZ$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
-** Jump with Avy
+** Additional Global Packages
+*** Visual Replace with Visual Regular Expressions
+I really appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what will be changed /before/ executing the replace.
+#+BEGIN_SRC emacs-lisp
+  (use-package visual-regexp
+    :bind (("C-c r" . vr/replace)
+           ("C-c q" . vr/query-replace))
+    :general (:states 'normal "gR" '("replace" . vr/replace)))
+#+END_SRC
+
+*** Jump with Avy
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use, but ~g o~ seems obvious.
 
 #+BEGIN_SRC emacs-lisp
@@ -1109,13 +1117,15 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
     :config (ha-leader "j" '("jump" . avy-goto-char-timer))
 
     :general
-    (:states '(normal motion operator visual) :keymaps 'global-mode-map
-             "go" 'avy-goto-char-timer)
+    (:states 'normal "go" 'avy-goto-char-timer)
 
     :bind ("<f18>" . avy-goto-char-timer))
 #+END_SRC
 *Note:* The links should be shorter near the point as opposed to starting from the top of the window.
-** Link Hint, the Link Jumper
+
+Just realized that if you hit the following keys /before/ you select a target, you get a special action:
+  - ~n~ :: copies the matching target word
+*** Link Hint, the Link Jumper
 I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to work with hyperlinks on Org, EWW and Info pages, however, the [[https://github.com/noctuid/link-hint.el][link-hint]] project works with more types of links:
 #+BEGIN_SRC emacs-lisp
   (use-package link-hint
@@ -1124,26 +1134,25 @@ I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to wo
     ("C-c l o" . link-hint-open-link)
     ("C-c l c" . link-hint-copy-link)
     :general
+    (:states 'normal
+             "gl" 'link-hint-open-link
+             "gL" 'link-hint-copy-link)
     (:states 'normal :keymaps 'eww-mode-map
              "o" 'link-hint-open-link)
     (:states 'normal :keymaps 'Info-mode-map
-             "o" 'link-hint-open-link)
-    (:states 'normal :keymaps 'global-map
-             "gl" 'link-hint-open-link
-             "gL" 'link-hint-copy-link))
-
-
+             "o" 'link-hint-open-link))
 #+END_SRC
 
-** Miscellaneous Keys
-I really appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]]:
-
+*** Expand Region
+Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ repeatedly, having the selection grow by syntactical units.
 #+BEGIN_SRC emacs-lisp
-(use-package visual-regexp
-  :bind (("C-c r" . vr/replace)
-         ("C-c q" . vr/query-replace)))
-#+END_SRC
+  (use-package expand-region
+    :bind ("C-=" . er/expand-region)
 
+    :general
+    ;; Use escape to get out of visual mode, but hitting v again expands the selection.
+    (:states 'visual "v" 'er/expand-region))
+#+END_SRC
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
 ** Projects
@@ -1519,9 +1528,9 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
              "u" 'eww-top-url
              "p" 'eww-previous-url
              "n" 'eww-next-url
-             "q" 'eww-buffer-kill)
+             "q" 'bury-buffer)
     (:states 'normal :keymaps 'eww-buffers-mode-map
-             "q" 'eww-buffer-kill))
+             "q" 'bury-buffer))
 #+END_SRC
 
 This function allows Imenu to offer HTML headings in EWW buffers, which is especially helpful for navigating long, technical documents.
@@ -1562,35 +1571,37 @@ The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project con
 
     ;; Instead of jumping into Emacs mode to get the `pocket-mode-map',
     ;; we just add the keybindings to the normal mode that makes sense.
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "RET") 'pocket-reader-open-url)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "TAB") 'pocket-reader-pop-to-url)
+    :general
+    (:states 'normal :keymaps 'pocket-reader-mode-map
+             "RET" 'pocket-reader-open-url
+             "TAB" 'pocket-reader-pop-to-url
 
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "*") 'pocket-reader-toggle-favorite)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "B") 'pocket-reader-open-in-external-browser)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "D") 'pocket-reader-delete)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "E") 'pocket-reader-excerpt-all)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "F") 'pocket-reader-show-unread-favorites)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "M") 'pocket-reader-mark-all)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "R") 'pocket-reader-random-item)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "S") 'tabulated-list-sort)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "a") 'pocket-reader-toggle-archived)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "c") 'pocket-reader-copy-url)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "d") 'pocket-reader)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "e") 'pocket-reader-excerpt)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "f") 'pocket-reader-toggle-favorite)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "l") 'pocket-reader-limit)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "m") 'pocket-reader-toggle-mark)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "o") 'pocket-reader-more)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "q") 'quit-window)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "s") 'pocket-reader-search)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "u") 'pocket-reader-unmark-all)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "t a") 'pocket-reader-add-tags)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "t r") 'pocket-reader-remove-tags)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "t s") 'pocket-reader-tag-search)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "t t") 'pocket-reader-set-tags)
+             "*" 'pocket-reader-toggle-favorite
+             "B" 'pocket-reader-open-in-external-browser
+             "D" 'pocket-reader-delete
+             "E" 'pocket-reader-excerpt-all
+             "F" 'pocket-reader-show-unread-favorites
+             "M" 'pocket-reader-mark-all
+             "R" 'pocket-reader-random-item
+             "S" 'tabulated-list-sort
+             "a" 'pocket-reader-toggle-archived
+             "c" 'pocket-reader-copy-url
+             "d" 'pocket-reader
+             "e" 'pocket-reader-excerpt
+             "f" 'pocket-reader-toggle-favorite
+             "l" 'pocket-reader-limit
+             "m" 'pocket-reader-toggle-mark
+             "o" 'pocket-reader-more
+             "q" 'quit-window
+             "s" 'pocket-reader-search
+             "u" 'pocket-reader-unmark-all
+             "t a" 'pocket-reader-add-tags
+             "t r" 'pocket-reader-remove-tags
+             "t s" 'pocket-reader-tag-search
+             "t t" 'pocket-reader-set-tags
 
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "g s") 'pocket-reader-resort)
-    (evil-define-key 'normal pocket-reader-mode-map (kbd "g r") 'pocket-reader-refresh))
+             "g s" 'pocket-reader-resort
+             "g r" 'pocket-reader-refresh))
 #+END_SRC
 
 Use these special keywords when searching:
@@ -1605,14 +1616,12 @@ Use these special keywords when searching:
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
 #+BEGIN_SRC emacs-lisp
   (use-package neotree
-    ;; :bind (:neotree-mode-map ; Let evil-collection do its thing
-    ;;   ("j" . 'neotree-next-line)
-    ;;   ("k" . 'neotree-previous-line))
-    :config   				 ; evil-collection forget a couple:
-      (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
-      (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
-      (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
-      (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle))
+    :general ; evil-collection forgot a couple:
+    (:states 'normal :keymaps 'neotree-mode-map
+             "TAB" 'neotree-enter
+             "SPC" 'neotree-quick-look
+             "RET" 'neotree-enter
+             "H" 'neotree-hidden-file-toggle))
 #+END_SRC
 ** Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).

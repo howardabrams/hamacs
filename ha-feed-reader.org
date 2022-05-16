@@ -39,27 +39,29 @@ While I would like to share the /status/ of my reads, so ...
   (use-package elfeed
     :config
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "b") 'elfeed-show-visit)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "n") 'elfeed-show-next)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "p") 'elfeed-show-prev)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "y") 'elfeed-show-yank)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "q") 'evil-delete-buffer)
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "Q") 'delete-window)
-    (evil-define-key 'normal elfeed-search-mode-map (kbd "r") 'ha-elfeed-tag-unread)
-    (evil-define-key 'normal elfeed-search-mode-map (kbd "R") 'elfeed-search-update--force)
-    (evil-define-key 'normal elfeed-search-mode-map (kbd "u") 'elfeed-update)
-    (evil-define-key 'normal elfeed-search-mode-map (kbd "U") 'elfeed-unjam)
-
-    ;; This is why this package depends on link-hint:
-    (evil-define-key 'normal elfeed-show-mode-map (kbd "o") 'link-hint-open-link)
 
     ;; And let's make the Space pull of my general leader:
     (general-unbind elfeed-show-mode-map "SPC")
     (general-unbind elfeed-search-mode-map "SPC")
 
-    (use-package elfeed-org
-      :config
-      (elfeed-org)))
+    :general
+    (:states 'normal :keymaps 'elfeed-show-mode-map
+             "b" 'elfeed-show-visit
+             "n" 'elfeed-show-next
+             "p" 'elfeed-show-prev
+             "y" 'elfeed-show-yank
+             "q" 'evil-delete-buffer
+             "o" 'link-hint-open-link ; This is why this package depends on link-hint:
+             "Q" 'delete-window)
+    (:states 'normal :keymaps 'elfeed-search-mode-map
+             "r" 'ha-elfeed-tag-unread
+             "R" 'elfeed-search-update--force
+             "u" 'elfeed-update
+             "U" 'elfeed-unjam))
+
+  (use-package elfeed-org
+    :after elfeed
+    :config (elfeed-org))
 
   (defun ha-elfeed-tag-unread ()
     (interactive)

@@ -100,8 +100,7 @@ I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an exter
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dash-at-point
     :commands (dash-at-point)
-    :config
-    (define-key evil-normal-state-map (kbd "g D") 'dash-at-point))
+    :general (:states 'normal "gD" 'dash-at-point))
 #+END_SRC
 However, I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). There are seems to be two competing Emacs projects for this.
 
@@ -110,9 +109,9 @@ The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, a
 #+BEGIN_SRC emacs-lisp
   (use-package devdocs
     :after evil
-    :config
-    (define-key evil-normal-state-map (kbd "g D") 'devdocs-lookup)
+    :general (:states 'normal "gD" 'devdocs-lookup)
 
+    :config
     (ha-prog-leader
       "d"  '(:ignore t :which-key "docs")
       "d d" '("open" . devdocs-lookup)
@@ -127,9 +126,9 @@ The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] proje
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package devdocs-browser
-    :config
-    (define-key evil-normal-state-map (kbd "g D") 'devdocs-browser-open)
+    :general (:states 'normal "gD" 'devdocs-browser-open)
 
+    :config
     (ha-prog-leader
       "d"  '(:ignore t :which-key "docs")
       "d d" '("open" . devdocs-browser-open)

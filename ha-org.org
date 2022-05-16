@@ -551,6 +551,10 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
   (use-package flyspell
     :hook (text-mode . flyspell-mode)
     :bind ("M-S" . ha-fix-last-spelling)
+
+    :general
+    (:states 'insert :keymaps 'text-mode-map
+             "M-s M-s" 'ha-fix-last-spelling)
     :init
     ;; Tell ispell.el that ’ can be part of a word.
     (setq ispell-local-dictionary-alist
@@ -564,8 +568,6 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
       (save-excursion
         (evil-prev-flyspell-error count)
         (ispell-word)))
-
-    (evil-define-key  'insert text-mode-map (kbd "M-s M-s") 'ha-fix-last-spelling)
 
     (ha-local-leader :keymaps 'text-mode-map
       "s"  '(:ignore t :which-key "spellcheck")
@@ -749,10 +751,12 @@ Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://prote
                   logos-olivetti t)
     :config
     (ha-leader "t L" '("logos" . logos-focus-mode))
-    (let ((map global-map))
-      (define-key global-map [remap narrow-to-region] #'logos-narrow-dwim)
-      (evil-define-key 'normal map (kbd "g [") 'logos-backward-page-dwim)
-      (evil-define-key 'normal map (kbd "g ]") 'logos-forward-page-dwim)))
+    (define-key global-map [remap narrow-to-region] #'logos-narrow-dwim)
+
+    :general
+    (:states 'normal
+             "g [" 'logos-backward-page-dwim
+             "g ]" 'logos-forward-page-dwim))
 #+END_SRC
 * Technical Artifacts                                :noexport:
 Let's provide a name, to allow =require= to work:
