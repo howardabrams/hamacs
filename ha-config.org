@@ -97,6 +97,18 @@ More settings:
         debug-on-error t)
 #+END_SRC
 
+The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][excellent essay]] by Mickey Petersen):
+#+BEGIN_SRC emacs-lisp
+  (global-set-key [remap dabbrev-expand] 'hippie-expand)
+#+END_SRC
+Details? Check out its [[help:hippie-expand-try-functions-list][list of expanders]].
+
+What would be /really nice/ is to have it bound to ~TAB~ instead of the default ~M-/~. Normally, ~TAB~ re-indents the line, but I find that I usually want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
+#+BEGIN_SRC emacs-lisp
+  (advice-add #'indent-for-tab-command :after #'hippie-expand)
+#+END_SRC
+Now while we’re typing along, we can hit the ~TAB~ key after partially typing a word to have it completed.
+
 Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
 #+BEGIN_SRC emacs-lisp
   (defun save-all-buffers ()
