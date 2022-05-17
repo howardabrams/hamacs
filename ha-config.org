@@ -365,12 +365,13 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
 Can we change Evil at this point? Some tips:
  - [[https://github.com/noctuid/evil-guide]]
  - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html]]
+ - [[https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically][Evil insert state is really Emacs?]] Real answer to that is to set [[help:evil-disable-insert-state-bindings][evil-disable-insert-state-bindings]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package evil
     :init
     (setq evil-undo-system 'undo-fu
-          evil-want-fine-undo t  ; Be more like Emacs
+          evil-want-fine-undo t		; Be more like Emacs
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
           evil-want-integration t
@@ -378,16 +379,13 @@ Can we change Evil at this point? Some tips:
           evil-escape-unordered-key-sequence t)
 
     :config
-    (setq evil-insert-state-map (make-sparse-keymap))
-    (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
+    ;; Now that `evil-disable-insert-state-bindings' works to use Emacs
+    ;; keybindings in Evil's insert mode, we no longer need this code:
+    ;; (setq evil-insert-state-map (make-sparse-keymap))
+    ;; (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
 
-    (add-to-list 'evil-normal-state-modes 'shell-mode)
-
-    ;; A number of modes have very specific keys that I want to use the
-    ;; default (maybe adding `j' and `k' for up/down):
-    (dolist (name '(term flycheck-error-list elfeed-search elfeed-show))
-      (let ((mode (make-symbol (format "%s-mode" name))))
-        (add-to-list 'evil-emacs-state-modes mode)))
+    ;; In insert mode, type C-o to execute a single Evil command:
+    (define-key evil-insert-state-map (kbd "C-o") 'evil-execute-in-normal-state)
 
     (evil-mode))
 #+END_SRC
@@ -1058,7 +1056,7 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
              "s" 'evil-snipe-s
              "S" 'evil-snipe-S)
     :config
-    (evil-snipe-mode +1)))
+    (evil-snipe-mode +1))
 #+END_SRC
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 *** Evil Surround
