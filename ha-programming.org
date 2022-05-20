@@ -141,6 +141,32 @@ The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] proje
       "d o" '("download" . devdocs-browser-download-offline-data)
       "d O" '("remove download" . devdocs-browser-remove-offline-data)))
 #+END_SRC
+** Code Folding
+While Emacs has many options for viewing and moving around code, sometimes, it is nice to /collapse/ all functions, and then start to expand them one at a time. For this, we could enable the built-in [[https://www.emacswiki.org/emacs/HideShow][hide-show feature]]:
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package hide-show
+    :straight (:type built-in)
+    :init
+    (setq hs-hide-comments t
+          hs-hide-initial-comment-block t
+          hs-isearch-open t)
+    :hook (prog-mode . hs-minor-mode))
+#+END_SRC
+However, hide-show doesn’t work with complex YAML files. The [[https://github.com/gregsexton/origami.el][origami]] mode works better /out-of-the-box/, as it works with Python and Lisp, but falls back to indents as the format, which works really well.
+#+BEGIN_SRC emacs-lisp
+  (use-package origami
+    :init
+    (setq origami-fold-replacement "⤵")
+    :hook (prog-mode . origami-mode))
+#+END_SRC
+To take advantage of this, type:
+  - ~z m~ :: To collapse everything
+  - ~z r~ :: To open everything
+  - ~z o~ :: To open a particular section
+  - ~z c~ :: To collapse a /section/ (like a function)
+  - ~z a~ :: Toggles open to close
+
+Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
 ** Language Server Protocol (LSP) Integration
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
@@ -392,9 +418,13 @@ However, let’s have all YAML files able to access Ansible’s documentation us
 
 The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [[https://polymode.github.io/][polymode]], gluing [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] into [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
 #+BEGIN_SRC emacs-lisp
-(use-package poly-ansible
-  :straight (:host github :repo "emacsmirror/poly-ansible")
-  :hook (yaml-mode . poly-ansible-mode))
+  (use-package polymode)
+
+  (use-package poly-ansible
+    :after polymode
+    :straight (:host github :repo "emacsmirror/poly-ansible")
+    :hook ((yaml-mode . poly-ansible-mode)
+           (poly-ansible-mode . font-lock-update)))
 #+END_SRC
 
 ** Shell Scripts
