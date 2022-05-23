@@ -65,24 +65,27 @@ I love packages that add functionality but I don’t have to learn anything. How
   (defun ha-org-code-block-jump (str pos)
     "Go to a literate org file containing a symbol, STR.
   The POS is ignored."
+    ;; Sometimes I wrap a function name in `=' characters, and these should be removed:
+    (when (string-match (rx "=" (group (one-or-more any)) "=") str)
+      (setq str (match-string 1 str)))
     (ignore-errors
       (let* ((default-directory (projectile-project-root))
              (command (format "rg --json '\\(def[^ ]+ %s ' *.org" str))
              (results (thread-last command
-                           shell-command-to-list
-                           second
-                           json-parse-string))
+                                   shell-command-to-list
+                                   second
+                                   json-parse-string))
              (file    (thread-last results
-                           (gethash "data")
-                           (gethash "path")
-                           (gethash "text")))
+                                   (gethash "data")
+                                   (gethash "path")
+                                   (gethash "text")))
              (line    (thread-last results
-                           (gethash "data")
-                           (gethash "line_number"))))
+                                   (gethash "data")
+                                   (gethash "line_number"))))
         (find-file file)
         (goto-line line))))
 
-  (add-to-list 'evil-goto-definition-functions ' ha-org-code-block-jump)
+  (add-to-list 'evil-goto-definition-functions 'ha-org-code-block-jump)
 #+END_SRC
 ** Clever Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
