@@ -155,7 +155,7 @@ Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippe
 #+BEGIN_SRC emacs-lisp
   (use-package doom-snippets
     :after yasnippet
-    :straight (:type git :protocol ssh :host github :repo "hlissner/doom-snippets")
+    :straight (:type git :protocol ssh :host github :repo "doomemacs/snippets")
     :config
     (add-to-list 'yas-snippet-dirs (thread-last user-emacs-directory
                                                 (expand-file-name "straight")
@@ -894,6 +894,7 @@ Let's make Info behave a little more VI-like:
 The [[https://github.com/minad/consult][consult project]] aims to use the libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I particularly appreciate the feature that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
 #+BEGIN_SRC emacs-lisp
   (use-package consult
+    :after general
     ;; Enable automatic preview at point in the *Completions* buffer. This is
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -903,17 +904,17 @@ The [[https://github.com/minad/consult][consult project]] aims to use the librar
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
 
+    (ha-leader
+      "RET" '("bookmark" . consult-bookmark)
+      "o i" '("imenu" . consult-imenu)
+      "x y" '("preview yank" . consult-yank-pop))
+
     :bind ("s-v" . consult-yank-pop)
 
     :general
     (:states 'normal
              "gp" 'consult-yank-pop
-             "gs" 'consult-line)
-    :config
-    (ha-leader
-      "RET" '("bookmark" . consult-bookmark)
-      "o i" '("imenu" . consult-imenu)
-      "x y" '("preview yank" . consult-yank-pop)))
+             "gs" 'consult-line))
 #+END_SRC
 *** Consult for Projects
 One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile. So let’s see what the [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can offer.
