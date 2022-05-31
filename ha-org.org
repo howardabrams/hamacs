@@ -544,13 +544,60 @@ And we can install company support:
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package company-graphviz-dot)
 #+END_SRC
-** Spell Checking
-Let's hook some spell-checking into org files, and actually all text files. We'll use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and use the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting.
+** Focused Work
+:LOGBOOK:
+CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
+:END:
+I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-work.html][approach to focused work]],
 
+#+BEGIN_SRC emacs-lisp
+  (use-package async)
+
+  (use-package ha-focus
+    :straight (:type built-in)
+    :config
+    (ha-leader
+     "o f" '("begin focus" . ha-focus-begin)
+     "o F" '("break focus" . ha-focus-break)))
+#+END_SRC
+** Spell Checking
+Let's hook some spell-checking into org files, and actually all text files. I’m making this particularly delicious.
+
+First, we turn on =abbrev-mode=. While this package comes with Emacs, check out [[https://masteringemacs.org/article/correcting-typos-misspellings-abbrev][Mickey Petersen's overview]] of using this package for auto-correcting typos.
+#+BEGIN_SRC emacs-lisp
+  (setq-default abbrev-mode t)
+#+END_SRC
+In general, /fill/ the list, by moving the point to the /end/ of some word, and type ~C-x a g~ (or, in /normal state/, type ~SPC x d~):
+#+BEGIN_SRC emacs-lisp
+  (ha-leader "x d" '("add abbrev" . kadd-global-abbrev))
+#+END_SRC
+The idea is that you can correct a typo /and remember/ it. Perhaps calling [[help:edit-abbrevs][edit-abbrevs]] to making any fixes to that list.
+
+Next, I create a special /auto-correcting function/ that takes advantage of Evil’s [[help:evil-prev-flyspell-error][evil-prev-flyspell-error]] to jump back to the last spelling mistake (as I often notice the mistake after entering a few words), and call the interactive [[help:ispell-word][ispell-word]]. What makes this delicious is that I then call [[help:define-global-abbrev][define-global-abbrev]] to store both the mistake and the correction so that automatically typing that mistake again, is corrected.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-fix-last-spelling (count)
+    "Jump to the last misspelled word, and correct it.
+  This adds the correction to the global abbrev table so that any
+  other mistakes are automatically corrected."
+    (interactive "p")
+    (save-excursion
+      (evil-prev-flyspell-error count)
+      (when (looking-at (rx (one-or-more (any alnum "-" "_"))))
+        (let ((start-word (match-beginning 0))
+              (bad-word (match-string 0)))
+          (ispell-word)
+          (define-global-abbrev bad-word (buffer-substring-no-properties start-word (point)))))))
+#+END_SRC
+
+Since this auto-correction needs to happen in /insert/ mode, I have bound a few keys, including ~CMD-s~ and  ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am. If the spelling mistake is /obvious/, I use ~C-;~ to call [[help:flyspell-auto-correct-word][flyspell-auto-correct-word]]. However, I currently do not know how to use this cool feature with my =ha-fix-last-spelling= function (because I don’t know when that function is done).
+
+For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting.
 #+BEGIN_SRC emacs-lisp
   (use-package flyspell
     :hook (text-mode . flyspell-mode)
-    :bind ("M-S" . ha-fix-last-spelling)
+    :bind (("M-S" . ha-fix-last-spelling)     ; This is j-k-s on the Moonlander. Hrm.
+           ("s-s" . ha-fix-last-spelling))    ; This is Command-s or ;-s on Moonlander
 
     :general
     (:states 'insert :keymaps 'text-mode-map
@@ -562,13 +609,6 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
                  "['\x2019]" nil ("-B") nil utf-8)))
 
     :config
-    (defun ha-fix-last-spelling (count)
-      "Jump to the last misspelled word, and correct it."
-      (interactive "p")
-      (save-excursion
-        (evil-prev-flyspell-error count)
-        (ispell-word)))
-
     (ha-local-leader :keymaps 'text-mode-map
       "s"  '(:ignore t :which-key "spellcheck")
       "s s" '("correct last misspell" . ha-fix-last-spelling)
@@ -577,10 +617,7 @@ Let's hook some spell-checking into org files, and actually all text files. We'l
       "s p" '("previous misspell" . evil-prev-flyspell-error)
       "s n" '("next misspell" . evil-next-flyspell-error)))
 #+END_SRC
-
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
-
-A real issue I often face is I can be typing along and notice a mistake after entering a more words. Since this happens in /insert/ mode, I have bound ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am. If the spelling mistake is /obvious/, I use ~C-;~ to call =flyspell-auto-correct-word=.
 
 According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur Malabarba]], we can turn on rounded apostrophe's, like =‘= (left single quotation mark). The idea is to not send the quote to the sub-process:
 
@@ -627,22 +664,6 @@ The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice t
     (ha-local-leader :keymaps 'text-mode-map
       "s d" '("define this" . define-word-at-point)
       "s D" '("define word" . define-word)))
-#+END_SRC
-** Focused Work
-:LOGBOOK:
-CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
-:END:
-I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-work.html][approach to focused work]],
-
-#+BEGIN_SRC emacs-lisp
-  (use-package async)
-
-  (use-package ha-focus
-    :straight (:type built-in)
-    :config
-    (ha-leader
-     "o f" '("begin focus" . ha-focus-begin)
-     "o F" '("break focus" . ha-focus-break)))
 #+END_SRC
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
@@ -700,6 +721,7 @@ And tell [[https://www.flycheck.org/][flycheck]] to use this:
     :config (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
 ** Distraction-Free Writing
+Be inspired after reading [[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]].
 *** Write-room
 For a complete focused, /distraction-free/ environment, for writing or concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 
