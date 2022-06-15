@@ -263,7 +263,7 @@ I like being able to enable local variables in =.dir-local.el= files:
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
 *** Vertico
-The [[https://github.com/minad/vertico][vertico]] package puts the completing read in a vertical format, and seems to fit the bill. It seems to be similar to [[https://github.com/raxod502/selectrum#vertico][Selectrum]], and I'll use it (at least for a while), however, I may be jumping between the two.
+The [[https://github.com/minad/vertico][vertico]] package puts the completing read in a vertical format, and seems to fit the bill. It seems to be similar to [[https://github.com/raxod502/selectrum#vertico][Selectrum]].
 #+BEGIN_SRC emacs-lisp
   (use-package vertico
     :config (vertico-mode))
@@ -281,51 +281,43 @@ My only issue with using Vertico with =find-file= is that I really like having t
     ;; Tidy shadowed file names
     :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 #+END_SRC
-*** Selectrum
-While I've been /dabbling/ in some of the alternates for =completing-read=, after watching [[https://youtu.be/lfgQC540sNM][Rari Comninos' overview]], I decided to try [[https://github.com/raxod502/selectrum][selectrum]] for better narrowing and selecting (instead of Ivy) and [[https://github.com/raxod502/prescient.el][prescient]] to order the selection from history.
+*** Hotfuzz
+This fuzzy completion style is similar to the built-in =flex= style, but has a better scoring algorithm. Specifically, it is non-greedy and ranks completions that match at word; path component; or camelCase boundaries higher.
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package selectrum
-    :config
-    ;; Optional performance optimization by highlighting only the visible candidates.
-    (setq selectrum-highlight-candidates-function #'orderless-highlight-matches
-          orderless-skip-highlighting (lambda () selectrum-is-active))
-    (selectrum-mode +1))
-
-  (use-package selectrum-prescient
-    :init
-    (setq selectrum-prescient-enable-filtering nil  ; Use prescient on top of orderless
-          selectrum-prescient-enable-sorting t)
-    :config
-    (selectrum-prescient-mode +1)
-    (prescient-persist-mode +1))
-#+END_SRC
-Keybindings:
-  - ~RET~ :: Select the candidate (obviously), but if directory, opens =dired=
-  - ~M-# RET~ :: Select =#= candidate (where # is a number 0-9)
-  - ~C-j~ :: Submit what you've typed (even if it would select something else)
-  - ~TAB~ :: Move into a directory (for =find-file=)
-  - ~M-w~ :: Copy the candidate to the kill ring (clipboard)
-  - ~,~ :: Select multiple candidates
-  - ~M-BKSP~ :: To go up a directory
-  - ~M-p~ / ~M-n~ / ~M-r~ :: Select/Search the selection history
-
-Wouldn't it be swell if we could quickly select one of the items visually shown.
-#+BEGIN_SRC emacs-lisp :tangle no
-(define-key selectrum-minibuffer-map (kbd "C-l") 'selectrum-quick-select)
-#+END_SRC
-*** Orderless
-While the space can be use to separate words (acting a bit like a =.*= regular expression), the
-[[https://github.com/oantolin/orderless][orderless]] project allows those words to be in any order.
 #+BEGIN_SRC emacs-lisp
-(use-package orderless
-  :init
-  (setq completion-styles '(substring orderless)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
+  (use-package hotfuzz
+    :config
+    (setq completion-styles '(hotfuzz)
+           completion-ignore-case t))
+#+END_SRC
+While it is very flexible at matching, you have to get the /order/ correct. For instance, ~alireg~ matches with [[help:align-regexp][align-regexp]], but ~regali~ does not.
+*** Orderless
+While the space can be use to separate words (acting a bit like a =.*= regular expression), the [[https://github.com/oantolin/orderless][orderless]] project allows those words to be in any order.
+#+BEGIN_SRC emacs-lisp
+  (use-package orderless
+    :commands (orderless-filter)
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-ignore-case t)
+    (completion-category-defaults nil)
+    (completion-category-overrides '((file (styles partial-completion)))))
 #+END_SRC
 *Note:* Multiple files can be opened at once with =find-file= if you enter a wildcard. We may also give the =initials= completion style a try.
+*** Fussy Filtering and Matching
+The [[https://github.com/jojojames/fussy][fussy]] project is a fuzzy pattern matching extension for the normal [[help:completing-read][completing-read]] interface. By default, it uses [[https://github.com/lewang/flx][flx]], however, its goal is to allow multiple sorting and filtering algorithms to be used.
 
+How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-packages=, and when I switched to [[https://github.com/oantolin/orderless][orderless]], I would need to put a space between the words. While I will continue to play with the different mechanism, I’ll combine =hotfuzz= and =orderless=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package fussy
+    :straight (:host github :repo "jojojames/fussy")
+    :config
+    (push 'fussy completion-styles)
+    (setq completion-category-defaults nil
+          completion-category-overrides nil
+          fussy-filter-fn 'fussy-filter-orderless-flex
+          fussy-score-fn 'fussy-hotfuzz-score))
+#+END_SRC
 *** Savehist
 Persist history over Emacs restarts using the built-in [[https://www.emacswiki.org/emacs/SaveHist][savehist]] project. Since both Vertico and Selectrum sorts by history position, this should make the choice /smarter/ with time.
 #+BEGIN_SRC emacs-lisp
