@@ -37,12 +37,8 @@ While I would like to share the /status/ of my reads, so ...
 
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
-    :config
+    :init
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
-
-    ;; And let's make the Space pull of my general leader:
-    (general-unbind elfeed-show-mode-map "SPC")
-    (general-unbind elfeed-search-mode-map "SPC")
 
     :general
     (:states 'normal :keymaps 'elfeed-show-mode-map
