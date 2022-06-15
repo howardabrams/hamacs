@@ -1644,6 +1644,16 @@ Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allow
       "n k" '("prev"        . annotate-goto-previous-annotation)))
 #+END_SRC
 Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
+** Keepass
+Use the [[https://github.com/ifosch/keepass-mode][keepass-mode]] to view a /read-only/ version of my Keepass file in Emacs:
+#+BEGIN_SRC emacs-lisp
+  (use-package keepass-mode)
+#+END_SRC
+When having your point on a key entry, you can copy fields to kill-ring using:
+  - ~u~ :: URL
+  - ~b~ :: user name
+  - ~c~ :: password
+
 ** Demo It
 Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While it is on MELPA, I want to use my own cloned version to make sure I can keep debugging aspects of it. Especially since its use of [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] has separated so that I can use [[https://github.com/rlister/org-present][org-present]].
 #+BEGIN_SRC emacs-lisp
