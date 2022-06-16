@@ -87,6 +87,12 @@ I love packages that add functionality but I don’t have to learn anything. How
 
   (add-to-list 'evil-goto-definition-functions 'ha-org-code-block-jump)
 #+END_SRC
+And in case I need to call it directly:
+#+BEGIN_SRC emacs-lisp
+(defun ha-goto-definition ()
+  (interactive)
+  (evil-inner-WORD))
+#+END_SRC
 ** Clever Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
 #+BEGIN_SRC emacs-lisp
