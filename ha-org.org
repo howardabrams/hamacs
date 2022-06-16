@@ -349,6 +349,53 @@ And turn on ALL the languages:
                                  (css        . t)
                                  (plantuml   . t)))
 #+END_SRC
+*** REST Web Services
+:PROPERTIES:
+:header-args: :var user-agent="my-super-agent"
+:END:
+There are many ways in Emacs to query to investigate REST-oriented web services. The [[https://github.com/zweifisch/ob-http][ob-http]] adds HTTP calls to standard org blocks.
+#+begin_src emacs-lisp
+  (use-package ob-http
+    :init
+    (add-to-list 'org-babel-load-languages '(http . t)))
+#+end_src
+And let’s see how it works:
+#+begin_src http :pretty :results value replace :wrap src js
+  GET https://api.github.com/repos/zweifisch/ob-http/languages
+  Accept: application/json
+  User-Agent: ${user-agent}
+#+end_src
+
+#+results:
+#+begin_src js
+{
+  "Emacs Lisp": 15327,
+  "Shell": 139
+}
+#+end_src
+
+Another approach is [[https://github.com/alf/ob-restclient.el][ob-restclient]], that may be based on the [[https://github.com/pashky/restclient.el][restclient]] project.
+#+begin_src emacs-lisp
+  (use-package ob-restclient
+    :init
+    (add-to-list 'org-babel-load-languages '(restclient . t)))
+#+end_src
+
+And let’s try this:
+#+begin_src restclient :results value replace :wrap src js
+  GET https://api.github.com/repos/zweifisch/ob-http/languages
+  Accept: application/vnd.github.moondragon+json
+  User-Agent: ${user-agent}
+#+end_src
+
+#+results:
+#+begin_src js
+{
+  "Emacs Lisp": 15327,
+  "Shell": 139
+}
+#+end_src
+
 *** Graphviz
 The [[https://graphviz.org/][graphviz project]] can be written in org blocks, and then rendered as an image:
 #+NAME: ob-graphviz
