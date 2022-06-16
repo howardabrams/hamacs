@@ -206,8 +206,9 @@ Next, we just need to change the header sizes:
 While we are at it, let’s make sure the code blocks are using my fixed with font:
 #+BEGIN_SRC emacs-lisp
   (when window-system
-    (dolist (face '(org-block org-code org-verbatim org-table org-drawer org-table org-formula
-                    org-special-keyword org-property-value org-document-info-keyword))
+    (dolist (face '(org-block org-code org-verbatim org-table org-drawer
+                    org-table org-formula org-special-keyword org-block
+                    org-property-value org-document-info-keyword))
       (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9)))
 
   (set-face-attribute 'org-table nil :height 1.0)
@@ -235,68 +236,19 @@ This process allows us to use =variable-pitch= mode for all org documents.
   (use-package org
     :hook (org-mode . variable-pitch-mode))
 #+END_SRC
-* Superstar
-Now that headers are noticeable, I have no reason to see a number of asterisks. I would think that this would work:
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq org-hide-leading-stars t)
-#+END_SRC
-But since it doesn’t, I need to roll my own. I add a hook to standard Org, and since this is a Lisp-2, I can get away with using the same name as the variable:
-#+BEGIN_SRC emacs-lisp :tangle no
-(defun org-hide-leading-stars ()
-  (let* ((keyword
-          `(("^\\(\\*+ \\)\\s-*\\S-" ; Do not hide empty headings!
-             (1 (put-text-property (match-beginning 1) (match-end 1) 'invisible t)
-                nil)))))
-    (font-lock-add-keywords nil keyword)))
-
-  (add-hook 'org-mode-hook 'org-hide-leading-stars)
-#+END_SRC
-
-Once I used the [[https://github.com/sabof/org-bullets][org-bullets]] package, but we've replaced it with [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]], so the following is an improvement, especially with the sub-bullets:
-#+BEGIN_SRC emacs-lisp
-  (use-package org-superstar
-    :after org
-    :straight (:type git :protocol ssh :host github :repo "integral-dw/org-superstar-mode")
-    :hook (org-mode . org-superstar-mode)
-    :init
-    (setq ; org-superstar-headline-bullets-list '("▶")
-          org-superstar-special-todo-items nil
-          org-superstar-todo-bullet-alist t
-          org-superstar-prettify-item-bullets t
-          org-superstar-item-bullet-alist '((42 . "●")   ; *
-                                            (43 . "○")   ; +
-                                            (45 . "•"))))
-#+END_SRC
-
-If this works, then we get the prettier bulleted list:
-  * Top bullets
-  * Plus bullets:
-      + Apples
-      + Oranges
-      + Bananas
-  * Minus bullets:
-      - Dogs
-      - Cats
-      - Birds
+* Org Modern
+The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a lot of what I was doing in this file.
+#+begin_src emacs-lisp
+  (use-package org-modern
+    :straight (:host github :repo "minad/org-modern")
+    :hook
+    ((org-mode . org-modern-mode)
+     (org-agenda-finalize . org-modern-agenda)))
+#+end_src
+I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.
 * Checkboxes
-According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to-display-org-mode-checkboxes/][Huy Trần]], (and expanded by the [[https://github.com/minad/org-modern][org-modern]] project), we can prettify the list checkboxes as well:
-
 #+BEGIN_SRC emacs-lisp
-(defun ha-org-prettify-checkboxes ()
-  "Beautify Org Checkbox Symbol"
-  (push '("[ ]" . "☐") prettify-symbols-alist)
-  (push '("[X]" . "☐✓") prettify-symbols-alist)
-  (push '("[-]" . "☐-") prettify-symbols-alist)
-  (prettify-symbols-mode))
-#+END_SRC
-
-And now we can attach it to a newly loaded org files:
-#+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook 'ha-org-prettify-checkboxes)
-#+END_SRC
-
-To make it more distinguishable, he also changed the colors:
-#+BEGIN_SRC emacs-lisp
+According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to-display-org-mode-checkboxes/][Huy Trần]], (and expanded by the [[https://github.com/minad/org-modern][org-modern]] project), we can prettify the list checkboxes. To make completed tasks more distinguishable, he changed the colors:
 (defface org-checkbox-done-text
   '((t (:foreground "#71696A" :strike-through t)))
   "Face for the text part of a checked org-mode checkbox.")
@@ -306,134 +258,23 @@ To make it more distinguishable, he also changed the colors:
  `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
     1 'org-checkbox-done-text prepend))
  'append)
-#+END_SRC
-* SVG-Based Prettiness
-While I'm intrigued with [[https://github.com/rougier][Nicolas P. Rougier]]'s [[https://github.com/rougier/notebook-mode][notebook project]], I really just want to steal their [[https://github.com/rougier/svg-lib][svg-lib project]] that allows me to create and display various SVG objects, namely tags, progress bars, progress pies and icons.  Each object fits nicely in a text buffer ensuring width is an integer multiple of character width.
-
-#+BEGIN_SRC emacs-lisp
-  (when (image-type-available-p 'svg)
-    (use-package svg-lib
-      :straight (:type git :protocol ssh :host github :repo "rougier/svg-lib"))
-
-    (use-package svg-tag-mode
-      ;; :straight (:type git :protocol ssh :host github :repo "rougier/svg-tag-mode")
-      :straight (:type git :protocol ssh :host github :repo "howardabrams/svg-tag-mode")
-      :hook ((org-mode . svg-tag-mode)
-             (emacs-lisp-mode . svg-tag-mode)
-             (python-mode . svg-tag-mode))
-      :config
-      (setq svg-tag-tags
-            `(("NOTE:" .
-               ((lambda (tag)
-                  (svg-tag-make "NOTE" :face 'org-done
-                                :inverse nil :margin 0 :radius 2))))
-
-              ;; ------------------------------------------------------------
-              ;; Two definitions of TODO That include the single line message
-              ;; ------------------------------------------------------------
-              (,(rx word-start "TODO" word-end) .
-               ((lambda (tag)
-                  (svg-tag-make "TODO" :face 'org-todo
-                                :radius 2 :inverse t :margin 0 :padding 0 :crop-right t))))
-              (,(rx word-start "TODO"
-                    (group (one-or-more space) (zero-or-more not-newline)) line-end) .
-                    ((lambda (tag)
-                       (svg-tag-make tag :face 'org-todo
-                                     :radius 2 :margin 0 :padding 0 :crop-left t))))
-
-              ;; ------------------------------------------------------------
-              ;; Two definitions of tag combo, like :TAG:foobar:
-              ;; ------------------------------------------------------------
-              ;; Where the first is inversed:
-              ;; (,(rx (group ":" (one-or-more (any alpha "-")) ":")
-              ;;       (one-or-more (any alphanumeric "-" "_")) ":") .
-              ;;  ((lambda (tag)
-              ;;     (svg-tag-make tag :beg 1 :end -1 :inverse t :margin 0 :crop-right t))))
-              ;; And the second is not:
-              ;; (,(rx ":" (one-or-more (any alpha "-"))
-              ;;       (group ":" (one-or-more (any alphanumeric "-" "_")) ":")) .
-              ;;  ((lambda (tag)
-              ;;     (svg-tag-make tag :beg 1 :end -1 :margin 0 :crop-left t))))
-
-              ;; ------------------------------------------------------------
-              ;; Org-mode :TAGS: shown as a box:
-              ;; ------------------------------------------------------------
-              (,(rx (or line-start space)
-                    (group ":" (one-or-more (any alpha "-")) ":")
-                    (or space line-end)) .
-                    ((lambda (tag)
-                       (svg-tag-make tag :face 'org-drawer :beg 1 :end -1 :margin 0))))
-
-              ;; ------------------------------------------------------------
-              ;; Org-mode blocks #+BEGIN_SRC language ... #+END_SRC
-              ;; ------------------------------------------------------------
-              (,(rx line-start (zero-or-more space) "#+BEGIN_SRC") .
-               ((lambda (tag)
-                  (svg-tag-make "RUN" :face 'org-block-begin-line
-                                :inverse t :margin 0 :crop-right t))
-                (lambda () (interactive) (org-ctrl-c-ctrl-c))
-                "Run this block of code"))
-              (,(rx line-start (zero-or-more space) "#+BEGIN_SRC"
-                    (1+ space) (group (one-or-more (any alpha "-"))) word-end) .
-                    ((lambda (tag)
-                       (svg-tag-make tag :face 'org-block-begin-line
-                                     :margin 0 :crop-left t))
-                     (lambda () (interactive) (org-ctrl-c-ctrl-c))
-                     "Run this block of code"))
-              (,(rx line-start (zero-or-more space) "#+END_SRC" word-end) .
-               ((lambda (tag)
-                  (svg-tag-make "END" :face 'org-block-end-line :inverse t))))
-              ("^#\\+RESULTS:" .
-               ((lambda (tag)
-                  (svg-tag-make "RESULTS" :face 'org-block-end-line :inverse t))))
-
-              (,(rx line-start (zero-or-more space) "#+ATTR" (zero-or-more (any alpha "_")) ":") .
-               ((lambda (tag)
-                  (svg-tag-make "ATTR" :face 'org-block-begin-line :inverse t))))
-
-              ("^#\\+NAME:"         . ((lambda (tag) (svg-tag-make "NAME" :face 'org-meta-line))))
-              ("^#\\+HEADER:"       . ((lambda (tag) (svg-tag-make "HEADER" :face 'org-meta-line))))
-              ("^#\\+BEGIN_EXAMPLE" . ((lambda (tag) (svg-tag-make "CODE" :face 'org-block-begin-line))))
-              ("^#\\+END_EXAMPLE"   . ((lambda (tag) (svg-tag-make "END" :face 'org-block-end-line))))
-              ("^#\\+begin_quote"   . ((lambda (tag) (svg-tag-make "“" :face 'org-block-begin-line))))
-              ("^#\\+end_quote"     . ((lambda (tag) (svg-tag-make "”" :face 'org-block-end-line))))
-
-              ;; ------------------------------------------------------------
-              ;; Things like #+OPTIONS: and property definitions
-              ;; ------------------------------------------------------------
-              ("#\\+PROPERTY:" . ((lambda (tag) (svg-tag-make "PROPERTY" :face 'org-meta-line))))
-              ("#\\+OPTIONS:"  . ((lambda (tag) (svg-tag-make "OPTIONS" :face 'org-meta-line))))))))
-#+END_SRC
-
-What does do? Here are some examples:
-  TODO Marks comments for tasks (this can be in source files too).
-  NOTE: Highlights comments and other notes.
-  :PROP:tag: are highlighted as two parts of the same tag
-  And :TAG: with colons are highlighted, which include :PROPERTY: drawers.
-  Org-specific #+PROPERTY: entries are highlighted.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package notebook
-    :straight (:type git :protocol ssh :host github :repo "rougier/notebook-mode")
-    :after org
-    :hook (org-mode . notebook-mode))
-#+END_SRC
+#+end_src
 * Padding
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
 
-#+BEGIN_SRC emacs-lisp
-(use-package org-padding
-  :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
-  :hook
-  (org-mode . org-padding-mode)
-  :config
-  (setq org-padding-block-begin-line-padding '(0.5 . 0.3)
-        org-padding-block-end-line-padding '(0.1 . 0.5)
-        org-padding-heading-padding-alist
-        '((4.0 . 1.5) (3.0 . 0.5) (3.0 . 0.5) (3.0 . 0.5) (2.5 . 0.5) (2.0 . 0.5) (1.5 . 0.5) (0.5 . 0.5))))
-#+END_SRC
+#+begin_src emacs-lisp
+  (use-package org-padding
+    :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
+    :hook
+    (org-mode . org-padding-mode)
+    :config
+    (setq org-padding-block-begin-line-padding '(0.5 . 0.3)
+          org-padding-block-end-line-padding '(0.1 . 0.5)
+          org-padding-heading-padding-alist
+          '((4.0 . 1.5) (3.0 . 0.5) (3.0 . 0.5) (3.0 . 0.5) (2.5 . 0.5) (2.0 . 0.5) (1.5 . 0.5) (0.5 . 0.5))))
+#+end_src
 However, I'm just going to have to write a function to clean this.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (defun ha-remove-superfluous-org-padding ()
     (interactive)
     (goto-char (point-min))
@@ -531,9 +372,9 @@ Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for sho
 * Technical Artifacts                                :noexport:
 Let's provide a name so that the file can be required:
 #+BEGIN_SRC emacs-lisp :exports none
-(provide 'ha-org-word-processor)
-;;; ha-org-word-processor.el ends here
 #+END_SRC
+  (provide 'ha-org-word-processor)
+  ;;; ha-org-word-processor.el ends here
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 
 #+DESCRIPTION: A literate programming file for making Org file more readable.
