@@ -696,8 +696,8 @@ Now, let’s connect it to flycheck:
                              ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
                              :modes (markdown-mode org-mode text-mode))
 
-    (add-to-list 'flycheck-checkers 'vale 'append))
 #+END_SRC
+    (add-to-list 'flycheck-checkers 'write-good))
 *** Proselint
 With overlapping goals to =write-good=, the [[https://github.com/amperser/proselint/][proselint]] project, once installed, can check for some English phrasings. I like =write-good= better, but I want this available for its level of /pedantic-ness/.
 #+BEGIN_SRC sh
@@ -718,10 +718,55 @@ Next, create a configuration file, =~/.config/proselint/config= file, to turn on
 And tell [[https://www.flycheck.org/][flycheck]] to use this:
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
-    :config (add-to-list 'flycheck-checkers 'proselint))
 #+END_SRC
+    :config
+    (add-to-list 'flycheck-checkers 'proselint)
+    ;; And create the chain of checkers so that both work:
+    (flycheck-add-next-checker 'write-good 'proselint))
+#+end_src
+*** Textlint
+The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as long as there is an executable:
+#+begin_src sh
+  npm install -g textlint
+  # And all the rules
+  npm install -g textlint-rule-alex
+  npm install -g textlint-rule-diacritics
+  npm install -g textlint-rule-en-max-word-count
+  npm install -g textlint-rule-max-comma
+  npm install -g textlint-rule-no-start-duplicated-conjunction
+  npm install -g textlint-rule-period-in-list-item
+  npm install -g textlint-rule-stop-words
+  npm install -g textlint-rule-terminology
+  npm install -g textlint-rule-unexpanded-acronym
+#+end_src
+I create a configuration file in my home directory:
+#+begin_src js :tangle ~/.textlintrc
+{
+  "filters": {},
+  "rules": {
+    "abbr-within-parentheses": false,
+    "alex": true,
+    "common-misspellings": false,
+    "diacritics": true,
+    "en-max-word-count": true,
+    "max-comma": true,
+    "no-start-duplicated-conjunction": true,
+    "period-in-list-item": true,
+    "stop-words": true,
+    "terminology": true,
+    "unexpanded-acronym": true,
+    "write-good": false
+  }
+}
+#+end_src
+Add =textlint= to the /chain/ for Org files:
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :config
+    (setq flycheck-textlint-config (format "%s/.textlintrc" (getenv "HOME")))
+    (flycheck-add-next-checker 'proselint 'textlint))
 ** Distraction-Free Writing
-Be inspired after reading [[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]].
+[[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]] inspired me to clean my writing room.
 *** Write-room
 For a complete focused, /distraction-free/ environment, for writing or concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 
@@ -740,8 +785,8 @@ For a complete focused, /distraction-free/ environment, for writing or concentra
                 ("C-M-=" . writeroom-adjust-width)))
 #+END_SRC
 *** Olivetti
-The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and centers the text. It isn’t better than Writeroom, however, it works well with Logos (below).
 #+BEGIN_SRC emacs-lisp
+The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and centers the text. It isn’t better than Writeroom, but, it works well with Logos (below).
   (use-package olivetti
     :init
     (setq-default olivetti-body-width 100)
@@ -764,8 +809,7 @@ Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://prote
             (org-mode . "^\\*+ +")
             (t . ,(or outline-regexp logos--page-delimiter))))
 
-    ;; These apply when `logos-focus-mode' is enabled.  Their value is
-    ;; buffer-local.
+    ;; These apply when enabling `logos-focus-mode' as buffer-local.
     (setq-default logos-hide-mode-line t
                   logos-scroll-lock nil
                   logos-indicate-buffer-boundaries nil

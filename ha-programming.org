@@ -50,14 +50,14 @@ Farm off commands into /virtual environments/:
     (direnv-mode))
 #+END_SRC
 ** Spell Checking Comments
-The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] only checks for misspellings in comments.
+The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :hook (prog-mode . flyspell-prog-mode))
 #+END_SRC
 ** Flycheck
-Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, however, I’m now pushing this stuff to LSP, so speed is less of an issue. However, what about when I am not using LSP? Also, since I’ve hooked up grammar stuff to it, I need this with global keybindings.
+Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, but I’m now pushing much of this to LSP, so speed is less of an issue.  What about when I am not using LSP? Also, since I’ve hooked grammar checkers, I need this with global keybindings.
 
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
@@ -81,7 +81,9 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "P b" '("error buffer" . flycheck-buffer)
       "P c" '("clear" . flycheck-clear)
       "P n" '("next" . flycheck-next-error)
+      "P N" '("next" . flycheck-next-error)
       "P p" '("previous" . flycheck-previous-error)
+      "P P" '("previous" . flycheck-previous-error)
       "P l" '("list all" . flycheck-list-errors)
       "P y" '("copy errors" . flycheck-copy-errors-as-kill)
       "P s" '("select checker" . flycheck-select-checker)
@@ -96,15 +98,13 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "P t" '("toggle flycheck" . flycheck-mode)))
 #+END_SRC
 ** Documentation
-I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, however, this is only available for Mac.
+I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, available for Mac.
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dash-at-point
     :commands (dash-at-point)
     :general (:states 'normal "gD" 'dash-at-point))
 #+END_SRC
-However, I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). There are seems to be two competing Emacs projects for this.
-
-The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
+I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). Two Emacs projects compete for this position. The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
 
 #+BEGIN_SRC emacs-lisp
   (use-package devdocs
