@@ -1,15 +1,14 @@
 #+TITLE:  Configuring Emacs for Email with Notmuch
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-16
-#+FILETAGS: :emacs:
 
 A literate configuration file for email using Notmuch.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-email --- Email configuration using Notmuch. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,36 +22,36 @@ A literate configuration file for email using Notmuch.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
-To use this system, begin with ~SPC a m~ (after a ~SPC a n~ to asychronously download new mail ... which probably should be running regularly).
+To use this system, begin with ~SPC a m~ (after a ~SPC a n~ to asychronously download new mail … which probably should be running beforehand).
 
 When the Notmuch interface up, hit ~J~ to jump to one of the Search boxes (described below). Typically, this is ~i~ for the Imbox, check out the focused message from people I care). Hit ~q~ to return.
 
-Next type ~s~ to view and organize mail I've never seen before. We need to keep things focused, so regularly /making auto filtering rules/ is important. Move the point to the message and hit one of the following to automatically move the sender to a pre-defined box:
+Next type ~s~ to view and organize mail I've never seen before. We need to focus the display, so /creating auto filtering rules/ is important. Move the point to the message and hit one of the following to automatically move the sender to a pre-defined box:
 
-  - ~I~ :: screened stuff that important enough to go to my Imbox
-  - ~S~ :: spam ... so much goes here
+  - ~I~ :: screened email important enough to go to my Imbox
+  - ~S~ :: spam … so much goes here
   - ~P~ :: receipts go to this *Paper Trail*, which takes a *tag* as the name of the store
-  - ~f~ :: mailing lists and other things that might be nice to read go to *The Feed*
+  - ~f~ :: mailing lists and other email that might be nice to read go to *The Feed*
 
 ** Email Addresses
-The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /hardly/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
+The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /not/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
 
 #+NAME: email-address-1
-#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+#+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq.noenzf@tznvy.pbz")
-#+END_SRC
+#+end_src
 
 #+NAME: email-address-2
-#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+#+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq@ubjneqnoenzf.pbz")
-#+END_SRC
+#+end_src
 
 #+NAME: email-address-3
-#+BEGIN_SRC emacs-lisp :exports none :tangle no :results silent
+#+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq@shmmlgbnfg.pbz")
-#+END_SRC
+#+end_src
 
 To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance:
 #+begin_example
@@ -65,19 +64,19 @@ some-address: <<email-address-2()>>
 
 To begin, we need the code. On Ubuntu, this is:
 
-#+BEGIN_SRC shell :tangle no
+#+begin_src shell :tangle no
 sudo apt install -y notmuch
-#+END_SRC
+#+end_src
 
 And on MacOS, we use =brew=:
 
-#+BEGIN_SRC shell :tangle no
+#+begin_src shell :tangle no
 brew install notmuch
-#+END_SRC
+#+end_src
 
 Next, we need some basic configuration settings and some global keybindings:
 
-#+BEGIN_SRC emacs-lisp :noweb yes
+#+begin_src emacs-lisp :noweb yes
   (use-package notmuch
     :init
     (setq mail-user-agent 'notmuch-user-agent
@@ -109,26 +108,26 @@ Next, we need some basic configuration settings and some global keybindings:
                 "C" '("reply-later" . hey-notmuch-reply-later))
             <<hey-show-keybindings>>
             <<hey-search-keybindings>>)
-#+END_SRC
+#+end_src
 Also, let's do some basic configuration of Emacs' mail system:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq mm-text-html-renderer 'shr
         mail-specify-envelope-from t
         message-kill-buffer-on-exit t
         message-send-mail-function 'message-send-mail-with-sendmail
         message-sendmail-envelope-from 'header)
-#+END_SRC
+#+end_src
 * Configuration
 Do I want to sign messages by default? Nope.
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (add-hook 'message-setup-hook 'mml-secure-sign-pgpmime)
-#+END_SRC
+#+end_src
 ** Addresses
 
 I need to incorporate an address book again, but in the meantime, searching through a history of past email works well enough.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq notmuch-address-selection-function
       (lambda (prompt collection initial-input)
         (completing-read prompt
@@ -137,7 +136,7 @@ I need to incorporate an address book again, but in the meantime, searching thro
                          t
                          nil
                          'notmuch-address-history)))
-#+END_SRC
+#+end_src
 ** Sending Messages
 
 Do I need to set up [[https://marlam.de/msmtp/][MSMTP]]? No, as Notmuch will do that work.
@@ -147,19 +146,18 @@ To do this, type ~c~ and select an option (including ~r~ to reply).
 
 When we start notmuch, we need to retrieve the email and then process it. Most of this is actually contained in the Notmuch configuration.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun notmuch-retrieve-messages ()
   "Retrieve and process my mail messages."
   (interactive)
   (async-shell-command "notmuch new"))
-#+END_SRC
+#+end_src
 * iSync Configuration
-Using [[https://isync.sourceforge.io/][isync]] (or is it =mbsync=) for mail retrieval.
-Currently, I have a couple of Google Mail accounts that I want connected.
+Using [[https://isync.sourceforge.io/][isync]] (or is it =mbsync=) for mail retrieval. I have a couple of Google Mail accounts that I want connected.
 
-The file generally can have a =Pass= entry for the encrypted passcode, but in order to demonstrate how to connect to multiple accounts, I'm using a GPG daemon:
+The file generally can have a =Pass= entry for the encrypted passcode, but to show how to connect to more than one accounts, I'm using a GPG daemon:
 
-#+BEGIN_SRC conf :tangle ~/.mbsyncrc :noweb yes
+#+begin_src conf :tangle ~/.mbsyncrc :noweb yes
   # Note: We now tangle this file from ~/other/hamacs/ha-email.org
   Create Both
   SyncState *
@@ -169,7 +167,7 @@ The file generally can have a =Pass= entry for the encrypted passcode, but in or
   #  PERSONAL ACCOUNT
   IMAPAccount personal
   Host imap.gmail.com
-  User <<email-address-2()>>  # Obviously, you'd substitute your own email address here
+  User <<email-address-2()>>  # Substitute your own email address here
   PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
   SSLType IMAPS
   AuthMechs LOGIN
@@ -232,67 +230,63 @@ The file generally can have a =Pass= entry for the encrypted passcode, but in or
   Master :gmail-remote:"[Gmail]/Trash"
   Slave :gmail-local:trash
   ExpireUnread yes
-#+END_SRC
+#+end_src
 
 * Notmuch Configuration
-Notmuch requires a few configuration files.
+Notmuch requires these configuration files.
 ** =notmuch-config=
 The general settings file that goes into =~/.notmuch-config=:
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+begin_src conf-unix :tangle ~/.notmuch-config
 # .notmuch-config - Configuration file for the notmuch mail system
 # Note: We now tangle this file from ~/other/hamacs/ha-email.org
 #
 # For more information about notmuch, see https://notmuchmail.org
-#+END_SRC
+#+end_src
 
 The commentary for each of the subsections came from their man page.
 *** Database configuration
-The only value supported here is 'path' which should be the top-level directory where your mail currently exists and to where mail will be delivered in the future. Files should be individual email messages. Notmuch will store its database within a sub-directory of the path configured here named ".notmuch".
+The value supported here is =path= which should be the top-level directory where your mail exists and to where =mbsync= will new mail. Files should be individual email messages. Notmuch will store its database within a sub-directory of the path configured here named ".notmuch".
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+begin_src conf-unix :tangle ~/.notmuch-config
 [database]
 path=.mail
-#+END_SRC
+#+end_src
 *** User configuration
-Here is where you can let notmuch know how you would like to be addressed. Valid settings are
-
+Here is where you can let notmuch know how you address emails. Valid settings are
  - =name= :: Your full name.
  - =primary_email= :: Your primary email address.
  - =other_email= :: A list (separated by =;=) of other email addresses at which you receive email.
 
-Notmuch will use the various email addresses configured here when formatting replies. It will avoid including your own addresses in the recipient list of replies, and will set the From address based on the address to which the original email was addressed.
+Notmuch use the email addresses configured here when formatting replies. It will avoid including your own addresses in the recipient list of replies, and will set the From address based on the address in the original email.
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config :noweb yes
+#+begin_src conf-unix :tangle ~/.notmuch-config :noweb yes
 [user]
 name=Howard Abrams
 primary_email=<<email-address-1()>>
 other_email=<<email-address-2()>>;<<email-address-3()>>
-#+END_SRC
-*NB:* In the configuration above, you may see the addresses are all set to =nil=. If you are copying this from a rendered web page, just note that you need to substitute that with your own email address.
+#+end_src
+*NB:* In the configuration above, you may see the addresses are all set to =nil=. If you are copying this from a rendered web page, note that you need to substitute that with your own email address.
 *** Configuration for "notmuch new"
-The following options are supported here:
-
- - =tags= :: A list (separated by =;=) of the tags that will be added to all messages incorporated by "notmuch new".
-
+Note the following supported options:
+ - =tags= :: A list (separated by =;=) of the tags that added to all messages incorporated by "notmuch new".
  - =ignore= :: A list (separated by =;=) of file and directory names that will not be searched for messages by "notmuch new".
 
 NOTE: *Every* file/directory that goes by one of those names will be ignored, independent of its depth/location in the mail store.
-
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+begin_src conf-unix :tangle ~/.notmuch-config
 [new]
 tags=unread;inbox;
 ignore=
-#+END_SRC
+#+end_src
 *** Search configuration
 The following option is supported here:
 
  - =exclude_tags= :: A ;-separated list of tags that will be excluded from search results by default.  Using an excluded tag in a query will override that exclusion.
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+begin_src conf-unix :tangle ~/.notmuch-config
 [search]
 exclude_tags=deleted;spam;
-#+END_SRC
+#+end_src
 *** Maildir compatibility configuration
 The following option is supported here:
 
@@ -308,16 +302,16 @@ The following option is supported here:
 
 The =notmuch new= command will notice flag changes in filenames and update tags, while the =notmuch tag= and =notmuch restore= commands will notice tag changes and update flags in filenames.
 
-#+BEGIN_SRC conf-unix :tangle ~/.notmuch-config
+#+begin_src conf-unix :tangle ~/.notmuch-config
 [maildir]
 synchronize_flags=true
-#+END_SRC
+#+end_src
 
 That should complete the Notmuch configuration.
 ** =pre-new=
 Then we need a shell script called when beginning a retrieval, =pre-new= that simply calls =mbsync= to download all the messages:
 
-#+BEGIN_SRC shell :tangle ~/.mail/.notmuch/hooks/pre-new :shebang "#!/bin/bash"
+#+begin_src shell :tangle ~/.mail/.notmuch/hooks/pre-new :shebang "#!/bin/bash"
 # More info about hooks: https://notmuchmail.org/manpages/notmuch-hooks-5/
 # Note: We now tangle this file from ~/other/hamacs/ha-email.org
 
@@ -326,11 +320,11 @@ echo "Starting not-much 'pre-new' script"
 mbsync -a
 
 echo "Completing not-much 'pre-new' script"
-#+END_SRC
+#+end_src
 ** =post-new=
 And a =post-new= hook based on a filtering scheme that mimics the Hey.com workflow taken from [[https://gist.githubusercontent.com/frozencemetery/5042526/raw/57195ba748e336de80c27519fe66e428e5003ab8/post-new][this gist]] (note we have more to say on that later on) to filter and tag all messages after they have arrived:
 
-#+BEGIN_SRC shell :tangle ~/.mail/.notmuch/hooks/post-new :shebang "#!/bin/bash"
+#+begin_src shell :tangle ~/.mail/.notmuch/hooks/post-new :shebang "#!/bin/bash"
 # Based On: https://gist.githubusercontent.com/frozencemetery/5042526/raw/57195ba748e336de80c27519fe66e428e5003ab8/post-new
 # Note: We now tangle this file from ~/other/hamacs/ha-email.org
 #
@@ -422,7 +416,7 @@ timer_end "Old-Projects"
 notmuch tag +screened 'subject:[Web]'
 
 echo "Completing not-much 'post-new' script"
-#+END_SRC
+#+end_src
 * Hey
 I originally took the following configuration from [[https://youtu.be/wuSPssykPtE][Vedang Manerikar's video]], along with [[https://gist.github.com/vedang/26a94c459c46e45bc3a9ec935457c80f][the code]]. The ideas brought out were to mimic the hey.com email workflow, and while not bad, I thought that maybe I could improve upon it slowly over time.
 
@@ -431,7 +425,7 @@ To allow me to keep Vedang's and my code side-by-side in the same Emacs variable
 
 A list of pre-defined searches act like "Folder buttons" at the top to quickly see files that match those /buckets/:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq notmuch-saved-searches '((:name "Imbox"
                                       :query "tag:inbox AND tag:screened AND tag:unread"
                                       :key "i"
@@ -464,12 +458,12 @@ A list of pre-defined searches act like "Folder buttons" at the top to quickly s
                                (:name "Old Projects"
                                       :query "tag:old-project AND NOT tag:unread"
                                       :key "X")))
-#+END_SRC
+#+end_src
 ** Helper Functions
 
 With good bucket definitions, we should be able to scan the mail quickly and deal with the entire lot of them:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun hey-notmuch-archive-all ()
   "Archive all the emails in the current view."
   (interactive)
@@ -495,11 +489,11 @@ When called directly, BEG and END provide the region."
   (interactive (notmuch-search-interactive-tag-changes))
   (notmuch-search-tag tag-changes beg end)
   (notmuch-search-archive-thread nil beg end))
-#+END_SRC
+#+end_src
 
 A key point in organizing emails with the Hey model, is looking at the "from" address:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun hey-notmuch-search-find-from ()
   "A helper function to find the email address for the given email."
   (let ((notmuch-addr-sexp (first
@@ -509,11 +503,11 @@ A key point in organizing emails with the Hey model, is looking at the "from" ad
                                                        "--output=sender"
                                                        (notmuch-search-find-thread-id)))))
     (plist-get notmuch-addr-sexp :address)))
-#+END_SRC
+#+end_src
 
 And we can create a filter, /search/ and tagging based on this "from" function:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun hey-notmuch-filter-by-from ()
   "Filter the current search view to show all emails sent from the sender of the current thread."
   (interactive)
@@ -546,13 +540,13 @@ search."
     (when refresh
       (set-buffer this-buf)
       (notmuch-refresh-this-buffer))))
-#+END_SRC
+#+end_src
 
 ** Moving Mail to Buckets
 
 We based the Hey buckets on notmuch databases, we combine the =hey-notmuch-add-addr-to-db= with the =hey-notmuch-tag-by-from= functions to move messages.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun hey-notmuch-add-addr-to-db (nmaddr nmdbfile)
   "Add the email address NMADDR to the db-file NMDBFILE."
   (append-to-file (format "%s\n" nmaddr) nil nmdbfile))
@@ -626,12 +620,12 @@ This means:
                              (substring (notmuch-show-get-from) 0 15)))
          (email-string (format "%s (From: %s)" email-subject email-from)))
     (message "Noted! Reply Later: %s" email-string)))
-#+END_SRC
+#+end_src
 ** Bucket Keybindings
 In /Emacs/ mode, we can just call =define-key=, but since it starts in Evil state (and we may want to use Evil keybindings, let's create some local leaders:
 
 #+NAME: local-leader-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (general-create-definer ha-mail-hello-leader
       :states '(normal visual motion)
       :keymaps 'notmuch-hello-mode-map
@@ -652,23 +646,23 @@ In /Emacs/ mode, we can just call =define-key=, but since it starts in Evil stat
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
-#+END_SRC
+#+end_src
 
 A series of keybindings to quickly send messages to one of the pre-defined buckets.
 
 #+NAME: hey-show-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (ha-mail-show-leader
       "c" '("compose"     . notmuch-mua-new-mail)
       "C" '("reply-later" . hey-notmuch-reply-later))
 
   (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
-#+END_SRC
+#+end_src
 
 The bindings in =notmuch-search-mode= are available when looking at a list of messages:
 
 #+NAME: hey-search-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (ha-mail-search-leader
       "r" '("reply"              . notmuch-search-reply-to-thread)
       "R" '("reply-all"          . notmuch-search-reply-to-thread-sender)
@@ -700,19 +694,19 @@ The bindings in =notmuch-search-mode= are available when looking at a list of me
   (define-key notmuch-search-mode-map (kbd "P") 'hey-notmuch-move-sender-to-papertrail)
   (define-key notmuch-search-mode-map (kbd "f") 'hey-notmuch-move-sender-to-thefeed)
   (define-key notmuch-search-mode-map (kbd "C") 'hey-notmuch-reply-later)
-#+END_SRC
+#+end_src
 ** Org Integration
 The gods ordained that Mail and Org should dance together, so step one is composing mail with org:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org-mime
     :config
     (ha-local-leader
        :keymaps 'notmuch-message-mode-map
       "s" '("send" . notmuch-mua-send-and-exit)
       "m" '("mime it" . org-mime-htmlize)))
-#+END_SRC
+#+end_src
 A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]], so let's try it:
-#+BEGIN_SRC emacs-lisp :noweb yes
+#+begin_src emacs-lisp :noweb yes
   (use-package org-msg
     :init
     (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
@@ -733,30 +727,29 @@ A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]
    ,*Howard*
    /One Emacs to rule them all/
    ,#+end_signature"))
-#+END_SRC
+#+end_src
 
 The idea of linking org documents to email could be nice, however, the =ol-notmuch= package in the [[https://elpa.nongnu.org/nongnu/org-contrib.html][org-contrib]] package needs a maintainer.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package ol-notmuch
     :after org
     :straight (:type built-in)
     :config (add-to-list 'org-modules 'ol-notmuch))
-#+END_SRC
+#+end_src
 To use, read a message and save a link to it with ~SPC o l~. Next, in an org document, create a link with ~SPC m l~. Now, you can return to the message from that document with ~SPC m o~.  Regardless, I may need to store a local copy when I upgrade Org.
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package doom-modeline
     :config
     (setq doom-modeline-mu4e t))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
-Let's provide a name so that the file can be required:
-
-#+BEGIN_SRC emacs-lisp :exports none
+Let's =provide= a name so we can =require= this file:
+#+begin_src emacs-lisp :exports none
   (provide 'ha-email)
   ;;; ha-email.el ends here
-#+END_SRC
+#+end_src
 
 #+DESCRIPTION: A literate configuration file for email using Notmuch.
 

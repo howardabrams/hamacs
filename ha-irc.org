@@ -1,15 +1,14 @@
 #+TITLE:  IRC and Bitlbee Interface
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-12-10
-#+FILETAGS: :emacs:
 
 A literate programming configuration file for IRC communiction.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-irc.el --- configuration for IRC communication. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,11 +22,11 @@ A literate programming configuration file for IRC communiction.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 My IRC /needs/ are basic, but I'm not sure which I want to use.
 ** ERC
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package erc-hl-nicks
     :after erc)
 
@@ -71,20 +70,20 @@ My IRC /needs/ are basic, but I'm not sure which I want to use.
       (erc :server "howardabrams.com" :port 7777)
       (sit-for 2)
       (erc-cmd-QUOTE (format "PASS %s:%s" username password))))
-#+END_SRC
+#+end_src
 
 I like to make sure the text formats to the size of the window:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-erc-resize-text ()
     "Resize the ERC text to fill the current window."
     (interactive)
     (setq erc-fill-column (1- (window-width))))
-#+END_SRC
+#+end_src
 
 * ZNC Server
 I'm using my own ZNC server, and I need to log in with a password stored in my GPG auth storage:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-erc-reconnect-password ()
     "Send the reconnection password string."
     (interactive)
@@ -94,11 +93,11 @@ I'm using my own ZNC server, and I need to log in with a password stored in my G
            (username     (plist-get auth-first :user))
            (password     (funcall (plist-get auth-first :secret))))
       (erc-cmd-QUOTE (format "PASS %s:%s" username password))))
-#+END_SRC
+#+end_src
 
 * Key Bindings
 Quick way to start and jump to my IRC world.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-irc-persp-start ()
     "Create an IRC workspace and start my IRC client."
     (interactive)
@@ -110,46 +109,46 @@ Quick way to start and jump to my IRC world.
     (interactive)
     (persp-switch "irc")
     (call-interactively 'erc-track-switch-buffer))
-#+END_SRC
+#+end_src
 
 And some global keys to display them:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader
   "a i" '("irc switch" . ha-irc-persp-switch)
   "a I" '("irc start"  . ha-irc-persp-start))
-#+END_SRC
+#+end_src
 
 Let's create a leader for this mode:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-create-definer ha-irc-leader
       :states '(normal visual motion)
       :keymaps '(erc-mode-map)
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
-#+END_SRC
+#+end_src
 
 And a quick shortcut to call it:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-irc-leader
    "o" '("next channel" . erc-track-switch-buffer)
    "w" '("resize text" . ha-erc-resize-text)
    "r" '("reconnect" . ha-erc-connect-irc)
    "p" '("send password" . ha-erc-reconnect-password))
-#+END_SRC
+#+end_src
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq doom-modeline-irc t
         doom-modeline-irc-stylize 'identity)
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 This will =provide= a code name, so that we can =require= this.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-irc)
 ;;; ha-irc.el ends here
-#+END_SRC
+#+end_src
 
 #+DESCRIPTION: A literate programming configuration file for IRC.
 

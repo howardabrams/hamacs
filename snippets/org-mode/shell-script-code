@@ -2,6 +2,6 @@
 # name: shell-script-code
 # key: <ss
 # --
-#+BEGIN_SRC sh
+#+begin_src sh
 $0
-#+END_SRC
+#+end_src

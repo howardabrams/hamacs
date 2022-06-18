@@ -1,15 +1,14 @@
 #+TITLE:  My RSS Feeds
 #+AUTHOR: Howard Abrams
 #+DATE:   2018-08-08 August
-#+FILETAGS: :elfeed:
 
 A literate programming file for configuring =elfeed= in Emacs.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-config --- ElFeed configuration. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,19 +22,19 @@ A literate programming file for configuring =elfeed= in Emacs.
   ;;       Using `find-file-at-point', and tangle the file to recreate this one .
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Configuring Elfeed
 Let's get our feeds from a collection of org mode files. By default, Doom configures =rmh-elfeed-org-files= to [[file:~/Dropbox/org/elfeed.org][elfeed.org]] in =org-directory=, so that will be fine.
 
 By setting this variable, we configure elfeed to use elfeed:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq rmh-elfeed-org-files (list (f-join hamacs-source-dir "ha-feed-reader.org")))
-#+END_SRC
+#+end_src
 
 While I would like to share the /status/ of my reads, so ...
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package elfeed
     :init
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
@@ -63,11 +62,11 @@ While I would like to share the /status/ of my reads, so ...
     (interactive)
     (elfeed-search-untag-all 'unread)
     (elfeed-search-update))
-#+END_SRC
+#+end_src
 
 According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-eww/][this Pragmatic Emacs essay]], we could easily browse an article in the GUI browser instead of EWW with capital B:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package elfeed
     :config
     (defun elfeed-show-visit-gui ()
@@ -78,10 +77,10 @@ According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-
 
     :bind (:map elfeed-show-mode-map
                 ("B" . elfeed-show-visit-gui)))
-#+END_SRC
+#+end_src
 
 Quick way to start and jump to my world of feeds.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-elfeed-persp-start ()
     "Create an ELFEED workspace and start my ELFEED client."
     (interactive)
@@ -92,15 +91,15 @@ Quick way to start and jump to my world of feeds.
     "Switch to the ELFEED workspace and load the next buffer."
     (interactive)
     (persp-switch "feeds"))
-#+END_SRC
+#+end_src
 
 And some global keys to display them in the =apps= menu:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader
   "a f" '("elfeed switch" . ha-elfeed-persp-switch)
   "a F" '("elfeed start"  . ha-elfeed-persp-start))
-#+END_SRC
+#+end_src
 * The Feeds :elfeed:
 ** Personal :personal:
 *** [[http://www.howardism.org/index.xml][Howardisms]] :mustread:
@@ -250,10 +249,10 @@ Has some good, thought-provoking essays.
 * Technical Artifacts :noexport:
 Let's /provide/ a name so we can =require= the file:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-feed-reader)
 ;;; ha-feed-reader.el ends here
-#+END_SRC
+#+end_src
 
 #+DESCRIPTION: A literate programming file for configuring elfeed.
 

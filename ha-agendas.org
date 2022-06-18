@@ -1,15 +1,14 @@
 #+TITLE:  Org Agenda Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-18
-#+FILETAGS: :emacs:
 
 A literate programming configuration for fancy agenda and todo lists.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-agendas --- Configuration for fancy agenda and todo lists. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,20 +22,20 @@ A literate programming configuration for fancy agenda and todo lists.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 All the code we describe in this file needs loading /after/ org.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (with-eval-after-load "org"
   (add-to-list 'org-modules 'org-protocol))
-#+END_SRC
+#+end_src
 * Grouping
 Typical agendas have an /order/ to them, but the [[https://github.com/alphapapa/org-super-agenda][org-super-agenda project]] allows you to get specific as well as group them under headings.
 
 Unless you specify otherwise, this is the grouping we'll use:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org-super-agenda
     :after org
     :init
@@ -62,12 +61,12 @@ Unless you specify otherwise, this is the grouping we'll use:
              :todo "TODO"
              :scheduled future
              :order 3))))
-#+END_SRC
+#+end_src
 
 The task matches a group based on the /code order/, but the =:order= tag allows me to display them in a different order.
 
 The following super agenda is just for /today/ and should be smaller:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (setq ha-org-super-agenda-today
         '((:name "Finished"
                  :todo ("DONE" "CANCELED")
@@ -80,13 +79,13 @@ The following super agenda is just for /today/ and should be smaller:
                  :scheduled past
                  :date today
                  :order 0)))
-#+END_SRC
+#+end_src
 * Query Views
 The [[https://github.com/alphapapa/org-ql][org-ql project]] gives us a /query language/ of sorts (based on s-expressions).
 
 By putting all queries under =org-ql-views=, we can then call ~M-x query~ and select the view to display:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org-ql
     :after org
     :config
@@ -137,27 +136,27 @@ By putting all queries under =org-ql-views=, we can then call ~M-x query~ and se
                             :title "Today"
                             :super-groups 'ha-org-super-agenda-today
                             :sort '(priority))))))
-#+END_SRC
+#+end_src
 * Agenda Interface
 We can create a function to start this:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-todays-agenda ()
   "Display an agenda for today, including tasks and scheduled entries."
   (interactive)
   (org-ql-view "Overview: Today"))
-#+END_SRC
+#+end_src
 
 And of course, a keybinding:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader "a a" '("my agenda" . ha-todays-agenda))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's provide a name so that the file can be required:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-agendas)
 ;;; ha-agendas.el ends here
-#+END_SRC
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

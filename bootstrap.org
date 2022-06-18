@@ -1,15 +1,14 @@
 #+TITLE:  My Emacs Bootstrap
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2021-10-08
-#+FILETAGS: :emacs:
 
 A literate programming file for bootstraping my Emacs Configuration.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; bootstrap.el --- file for bootstraping my Emacs Configuration
   ;;
   ;; © 2021-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,13 +22,13 @@ A literate programming file for bootstraping my Emacs Configuration.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 This file contains all the variable definitions and library loading for the other files in my project.
 ** Straight Package Installer
-I'm going to be installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. However, before I could tangle these org files, I needed to have =straight= grab the latest =org=, so the following initialization code is actually in [[file:initialize][initialize]], but the good stuff is:
+I'm going to be installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. Before I can /tangle/ these files, I need =straight= to grab the latest =org=, so the following initialization code is actually in [[file:initialize][initialize]], but if you are reading this online, configuring =straight= amounts to the following:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (defvar bootstrap-version)
 
   (let ((bootstrap-file
@@ -43,24 +42,24 @@ I'm going to be installing everything using the [[https://github.com/raxod502/st
 	(goto-char (point-max))
 	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
-#+END_SRC
-Let's get the Straight project working with =use-package=:
+#+end_src
 
-#+BEGIN_SRC emacs-lisp :tangle no
+To get the Straight project working with =use-package=:
+#+begin_src emacs-lisp :tangle no
 (straight-use-package 'use-package)
-#+END_SRC
+#+end_src
 
-While that enables the =:straight t= extension to =use-package=, let's just have that be the default:
-#+BEGIN_SRC emacs-lisp :tangle no
+While the above code enables the =:straight t= extension to =use-package=, let's have that as the default:
+#+begin_src emacs-lisp :tangle no
 (use-package straight
   :custom (straight-use-package-by-default t
            straight-default-vc 'git))
-#+END_SRC
+#+end_src
 See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
 
 ** OS Path and Native Compilation
 Helper functions to allow code for specific operating systems:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-running-on-macos? ()
     "Return non-nil if running on Mac OS systems."
     (equal system-type 'darwin))
@@ -68,17 +67,16 @@ Helper functions to allow code for specific operating systems:
   (defun ha-running-on-linux? ()
     "Return non-nil if running on Linux systems."
     (equal system-type 'gnu/linux))
-#+END_SRC
+#+end_src
 
-With the way I start Emacs, I may not have the PATH I /actually/ use (from the shell) available, so we'll force it (code taken [[https://www.emacswiki.org/emacs/ExecPath][from here]]):
+With the way I start Emacs, I may not have the =PATH= I /actually/ use (from the shell) available, so we'll force it (code taken [[https://www.emacswiki.org/emacs/ExecPath][from here]]):
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun set-exec-path-from-shell ()
     "Set up Emacs' `exec-path' and PATH environment variable to match
   that used by the user's shell.
 
-  This is particularly useful under Mac OS X and macOS, where GUI
-  apps are not started from a shell."
+  The MacOS, where GUI apps are not started from a shell, requires this."
     (interactive)
     (let* ((path-from-shell (shell-command-to-string "echo $PATH"))
            (trimmed-path    (replace-regexp-in-string (rx (zero-or-more space) eol)
@@ -90,35 +88,35 @@ With the way I start Emacs, I may not have the PATH I /actually/ use (from the s
       (message "PATH=%s" path-from-shell)
       (setenv "PATH" env-path)
       (setq exec-path (split-string trimmed-path separator))))
-#+END_SRC
+#+end_src
 
 Clear up a Mac-specific issue that sometimes arises since I'm switching to [[http://akrl.sdf.org/gccemacs.html][native compilation project]], as the =Emacs.app= that I use doesn't have its =bin= directory, e.g. =Emacs.app/Contents/MacOS/bin=:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (ha-running-on-macos?)
       (add-to-list 'exec-path "/usr/local/bin")
       (add-to-list 'exec-path (concat invocation-directory "bin") t))
-#+END_SRC
+#+end_src
 
 Getting tired off all the packages that I load spewing a bunch of warnings that I can't do anything about:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (and (fboundp 'native-comp-available-p)
              (native-comp-available-p))
     (setq native-comp-async-report-warnings-errors nil
           native-comp-deferred-compilation t))
-#+END_SRC
+#+end_src
 ** GNU Pretty Good Privacy
 On Linux, GPG is pretty straight-forward, but on the Mac, I often have troubles doing:
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install gpg
-#+END_SRC
+#+end_src
 Next, on every reboot, start the agent:
-#+BEGIN_SRC sh
+#+begin_src sh
   /usr/local/Cellar/gnupg/2.3.6/bin/gpg-agent --daemon
-#+END_SRC
-The only issue is that =brew link gpg= doesn’t always work, so maybe a helper function to find the executable:
+#+end_src
 
-#+BEGIN_SRC emacs-lisp
+Since =brew link gpg= doesn’t always work, this helper function may find the executable:
+#+begin_src emacs-lisp
   (defun executable (path)
     "Return PATH if it is executable, see `file-executable-p'."
     (let ((epath (first (file-expand-wildcards path))))
@@ -131,56 +129,56 @@ The only issue is that =brew link gpg= doesn’t always work, so maybe a helper 
                                  (executable "/usr/local/opt/gpg")
                                  (executable "/usr/bin/pgp")))
     :config (epa-file-enable))
-#+END_SRC
+#+end_src
 ** Basic Libraries
 The following packages come with Emacs, but seems like they still need loading:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package cl-lib
     :straight (:type built-in)
     :init (defun first (elt) (car elt))
     :commands (first))
 
   (require 'subr-x)
-#+END_SRC
+#+end_src
 Ugh. Why am I getting a missing =first= function error? I define a simple implementation, that the CL library will overwrite ... at some point.
 
-While most libraries will take care of their dependencies, I want to install /my dependent libraries/. Especially, [[https://github.com/magnars/.emacs.d/][Magnar Sveen]]'s Clojure-inspired [[https://github.com/magnars/dash.el][dash.el]] project:
-#+BEGIN_SRC emacs-lisp
+While most libraries will take care of their dependencies, I want to install /my dependent libraries/, e.g, [[https://github.com/magnars/.emacs.d/][Magnar Sveen]]'s Clojure-inspired [[https://github.com/magnars/dash.el][dash.el]] project:
+#+begin_src emacs-lisp
 (use-package dash)
-#+END_SRC
+#+end_src
 Sure this package is essentially syntactic sugar, and to help /share/ my configuration, I attempt to use =thread-last= instead of =->>=, but, I still like it.
 
 The [[https://github.com/magnars/s.el][s.el]] project is a simpler string manipulation library that I (and other projects) use:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package s)
-#+END_SRC
+#+end_src
 
 Manipulate file paths with the [[https://github.com/rejeep/f.el][f.el]] project:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package f)
-#+END_SRC
+#+end_src
 ** My Code Location
-Much of my more complicated code comes from my website essays and other projects. The destination, however, shows up here:
-#+BEGIN_SRC emacs-lisp
+Much of my more complicated code comes from my website essays and other projects. The destination shows up here:
+#+begin_src emacs-lisp
 (add-to-list 'load-path (f-expand "~/.emacs.d/elisp"))
-#+END_SRC
+#+end_src
 
 Hopefully, this will tie me over while I transition.
 ** Emacs Server Control
-Sure the Emacs application will almost always have the =server-start= going, however, I need to control it just a bit (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
+Sure the Emacs application will almost always have the =server-start= going, but I need to control it (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-emacs-for-work? ()
     "Return non-nil when the Emacs application's location matches as one for work.
-  Currently, this is the `emacs-plus@28' app that I have built with
+  This is the `emacs-plus@28' app that I have built with
   the native-comp model, but I reserve the right to change this."
     (and (f-dir? "~/work")
          ;; (string-match "emacs-plus@28" exec-directory)
          (not (string-match "Emacs.app" exec-directory))))
-#+END_SRC
+#+end_src
 
 And now start the server with an appropriate tag name:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (if (not (ha-emacs-for-work?))
       (setq server-name "personal")
     (setq server-name "work")
@@ -188,15 +186,16 @@ And now start the server with an appropriate tag name:
       (set-exec-path-from-shell)))
 
   (server-start)
-#+END_SRC
+#+end_src
 * Load the Rest
-The following loads the rest of my org-mode literate files. I add them as they are /ready/, but eventually, I'll trim this up into a nicer pattern.
-#+BEGIN_SRC emacs-lisp
-  (defvar ha-hamacs-files (flatten-list `("ha-private.org"
-                            "ha-config.org"
+The following loads the rest of my org-mode literate files. I add  new filesas they are /ready/:
+#+begin_src emacs-lisp
+  (defvar ha-hamacs-files (flatten-list
+                           `("ha-private.org"
+                             "ha-config.org"
                             ,(when (display-graphic-p)
                                "ha-display.org")
-                            "ha-org.org"
+                             "ha-org.org"
                             ,(when (display-graphic-p)
                                "ha-org-word-processor.org")
                             "ha-org-clipboard.org"
@@ -217,49 +216,48 @@ The following loads the rest of my org-mode literate files. I add them as they a
                                  "ha-aux-apps.org"
                                  "ha-feed-reader.org"))))
     "List of org files that complete the hamacs project.")
-#+END_SRC
+#+end_src
 
 We can test/debug/reload any individual file, via:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-hamacs-load (file)
     "Load or reload an org-mode FILE containing literate Emacs configuration code."
     (interactive (list (completing-read "Org file: " ha-hamacs-files)))
     (let ((full-file (f-join hamacs-source-dir file)))
       (when (f-exists? full-file)
         (org-babel-load-file full-file))))
-#+END_SRC
+#+end_src
 
 And we can now load everything:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-hamacs-reload-all ()
     "Reload our entire ecosystem of configuration files."
     (interactive)
     (dolist (file ha-hamacs-files)
       (unless (equal file "bootstrap.org")
         (ha-hamacs-load file))))
-#+END_SRC
+#+end_src
 
 And do it:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-hamacs-reload-all)
-#+END_SRC
+#+end_src
 
-Once we have loaded /my world/, let’s add every other Org file in the project to the list, so that I can easily bring more stuff.
-#+BEGIN_SRC emacs-lisp
+Once we have loaded /my world/, let’s add every other Org file in the project to the list, so that I can load newly created files that I don’t want to commit:
+#+begin_src emacs-lisp
   (setq ha-hamacs-files
         (->> (rx ".org" string-end)
              (directory-files "~/other/hamacs" nil)
              (append ha-hamacs-files)
              (--filter (not (string-match (rx "README") it)))
              (-uniq)))
-#+END_SRC
+#+end_src
 * Technical Artifacts :noexport:
-Let's provide a name so that the file can be required:
-
-#+BEGIN_SRC emacs-lisp :exports none
-(provide 'bootstrap)
-;;; bootstrap.el ends here
-#+END_SRC
+Let's provide a name so we can =require= this file:
+#+begin_src emacs-lisp :exports none
+  (provide 'bootstrap)
+  ;;; bootstrap.el ends here
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

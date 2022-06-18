@@ -1,15 +1,14 @@
 #+TITLE:  Publishing my Website with Org
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-12-22
-#+FILETAGS: :emacs:
 
 A literate programming file for publishing my website using org.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; org-publishing --- Publishing my website using org. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,24 +22,24 @@ A literate programming file for publishing my website using org.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
-While the Emacs community have a plethora of options for generating a static website from org-formatted files, I keep my pretty simple, and just use the standard =org-publish= feature.
+While the Emacs community have a plethora of options for generating a static website from org-formatted files, I keep my pretty simple, and use the standard =org-publish= feature.
 
 While the following packages come with Emacs, they aren't necessarily loaded:
 
-#+BEGIN_SRC emacs-lisp :results silent
+#+begin_src emacs-lisp :results silent
 (require 'ox-rss)
 (require 'ox-publish)
-#+END_SRC
+#+end_src
 
 Variable settings:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq org-export-with-broken-links t
       org-mode-websrc-directory "/Volumes/Personal/dropbox/website"
       org-mode-publishing-directory (concat (getenv "HOME") "/website-public/"))
-#+END_SRC
+#+end_src
 * The Projects
 I separate my /website/ into distinct projects separately built:
 
@@ -49,7 +48,7 @@ I separate my /website/ into distinct projects separately built:
   - =blog-rss= :: Regenerate the feeder files
   - =org-notes= :: Optionally render a non-web site collection of notes.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq org-publish-project-alist
         `(("all"
            :components ("blog-content" "blog-static" "org-notes" "blog-rss"))
@@ -134,11 +133,11 @@ I separate my /website/ into distinct projects separately built:
            :publishing-directory ,(concat org-mode-publishing-directory "/other/")
            :recursive            t
            :publishing-function  org-publish-attachment)))
-#+END_SRC
+#+end_src
 * Including Sections
 In the project definitions, I reference a =pre-= and =postamble= that allow me to inject some standard HTML file headers and footers:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun org-mode-blog-preamble (options)
   "The function that creates the preamble top section for the blog.
     OPTIONS contains the property list from the org-mode export."
@@ -151,10 +150,10 @@ In the project definitions, I reference a =pre-= and =postamble= that allow me t
   OPTIONS contains the property list from the org-mode export."
   (let ((base-directory (plist-get options :base-directory)))
     (org-babel-with-temp-filebuffer (expand-file-name "bottom.html" base-directory) (buffer-string))))
-#+END_SRC
+#+end_src
 
 Another helper function for the content of website is to make sure to update =index.org=, so that the RSS gets generated.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun org-mode-blog-prepare (&optional options)
   "`index.org' should always be exported so touch the file before publishing."
   (let* ((base-directory (plist-get options :base-directory))
@@ -163,31 +162,31 @@ Another helper function for the content of website is to make sure to update =in
       (set-buffer-modified-p t)
       (save-buffer 0))
     (kill-buffer buffer)))
-#+END_SRC
+#+end_src
 * Keybindings
 Make it easy to publish all or just some of my website:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-org-leader
       "p"  '(:ignore t :which-key "publishing")
       "p a" '("all" . org-publish-all)
       "p p" '("project" . org-publish-project)))
-#+END_SRC
+#+end_src
 
 And let's put a /leader key/ sequence for my favorite file on my website:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
         "f h"  '(:ignore t :which-key "howards")
         "f h i" '("website index" . (lambda ()
                                       (find-file (expand-file-name "index.org" "~/website")))))
-#+END_SRC
+#+end_src
 * Technical Artifacts :noexport:
 Let's =provide= a name so we can =require= it:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-org-publishing)
 ;;; ha-org-publishing.el ends here
-#+END_SRC
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

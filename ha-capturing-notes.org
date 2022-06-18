@@ -1,15 +1,14 @@
 #+TITLE:  Capturing Notes with Org
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-18
-#+FILETAGS: :emacs:
 
 A literate programming file for configuring org for capturing notes.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; capturing-notes --- Configuring org for capturing notes. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,188 +22,183 @@ A literate programming file for configuring org for capturing notes.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 Capturing (or collecting) notes from files, browsers, and meetings, is a great way to get organized.
 
 I even have external commands that kick-off the capturing process, and without a command this is what gets called:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-capture-default-template "c")
-#+END_SRC
+#+begin_src emacs-lisp
+  (setq org-capture-default-template "c")
+#+end_src
 
 Let's now define my templates.
 * Templates
-Just make sure we can execute this code anytime, let's just define the variable that will hold all the templates:
-
-#+BEGIN_SRC emacs-lisp
-(defvar org-capture-templates (list))
-#+END_SRC
+To make sure we can execute this code anytime, let's define the variable that will hold all the templates:
+#+begin_src emacs-lisp
+  (defvar org-capture-templates (list))
+#+end_src
 
 Some templates put the information /in front/ of other information (as opposed to the default of appending), so I define a helper function:
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-first-header ()
-  (goto-char (point-min))
-  (search-forward-regexp "^\* ")
-  (beginning-of-line 1)
-  (point))
-#+END_SRC
+#+begin_src emacs-lisp
+  (defun ha-first-header ()
+    (goto-char (point-min))
+    (search-forward-regexp "^\* ")
+    (beginning-of-line 1)
+    (point))
+#+end_src
 ** General Notes
 Capturing text into the =org-default-notes-file= is something I don't do much:
 
-#+BEGIN_SRC emacs-lisp
-    (add-to-list 'org-capture-templates
-                 '("n" "Thought or Note"  entry
-                   (file org-default-notes-file)
-                   "* %?\n\n  %i\n\n  See: %a" :empty-lines 1))
-    (add-to-list 'org-capture-templates
-                 '("w" "Website Announcement" entry
-                   (file+function "~/website/index.org" ha-first-header)
-                   (file "~/.spacemacs.d/templates/website-announcement.org")
-                   :empty-lines 1))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               '("n" "Thought or Note"  entry
+                 (file org-default-notes-file)
+                 "* %?\n\n  %i\n\n  See: %a" :empty-lines 1))
+  (add-to-list 'org-capture-templates
+               '("w" "Website Announcement" entry
+                 (file+function "~/website/index.org" ha-first-header)
+                 (file "~/.spacemacs.d/templates/website-announcement.org")
+                 :empty-lines 1))
+#+end_src
 Before we go too far, we should create a publishing file for the website announcement, and something for the journal.
 ** Clock in Tasks
-Org has one task at a time that can be /clocked in/ keeping a timer. I use that as a /destination/ for collecting notes. For instance, capturing with a =c= allows me to just enter stuff in under that task without switching to it:
+Org has one task at a time that can be /clocked in/ keeping a timer. I use that as a /destination/ for collecting notes. For instance, capturing with a =c= allows me to just enter details under that task without switching to it:
 
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-capture-templates
-             '("c" "Currently clocked in task"))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               '("c" "Currently clocked in task"))
+#+end_src
 
 Let's put a bullet item under that task:
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-capture-templates
-             `("cc" "Item to Current Clocked Task" item
-               (clock)
-               "%i%?" :empty-lines 1))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               `("cc" "Item to Current Clocked Task" item
+                 (clock)
+                 "%i%?" :empty-lines 1))
+#+end_src
 
 We can select a /region/ and copy that using =c r=:
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-capture-templates
-             `("cr" "Contents to Current Clocked Task" plain
-               (clock)
-               "%i" :immediate-finish t :empty-lines 1))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               `("cr" "Contents to Current Clocked Task" plain
+                 (clock)
+                 "%i" :immediate-finish t :empty-lines 1))
+#+end_src
 
 If we have copied anything into the clipboard, that information can be add to the current task using =c k=:
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-capture-templates
-             `("ck" "Kill-ring to Current Clocked Task" plain
-               (clock)
-               "%c" :immediate-finish t :empty-lines 1))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               `("ck" "Kill-ring to Current Clocked Task" plain
+                 (clock)
+                 "%c" :immediate-finish t :empty-lines 1))
+#+end_src
 
 Instead, if I am looking at some code, I can copy some code from a region, but use a helper function to create a /link/ to the original source code using =c f=:
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-capture-templates
-             `("cf" "Code Reference with Comments to Current Task"
-               plain (clock)
-               "%(ha-org-capture-code-snippet \"%F\")\n\n   %?"
-               :empty-lines 1))
-#+END_SRC
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates
+               `("cf" "Code Reference with Comments to Current Task"
+                 plain (clock)
+                 "%(ha-org-capture-code-snippet \"%F\")\n\n   %?"
+                 :empty-lines 1))
+#+end_src
 
 If I want a reference to the code, without any comments, I call ~c l~:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (add-to-list 'org-capture-templates
              `("cl" "Link to Code Reference to Current Task"
                plain (clock)
                "%(ha-org-capture-code-snippet \"%F\")"
                :empty-lines 1 :immediate-finish t))
-#+END_SRC
+#+end_src
 
 ** Capture Helper Functions
 
-In order to have a capture back-ref to a function and its code, we need to use this:
-
-#+BEGIN_SRC emacs-lisp
-(require 'which-func)
-#+END_SRC
+To have a capture back-ref to a function and its code, we need to use this:
+#+begin_src emacs-lisp
+  (require 'which-func)
+#+end_src
 
 This helper function given a code /type/ and the /function/, analyzes the current buffer in order to collects data about the source code file.  It then creates a nice-looking template:
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-org-capture-fileref-snippet (f type headers func-name)
-  (let* ((code-snippet
-          (buffer-substring-no-properties (mark) (- (point) 1)))
-         (file-name   (buffer-file-name))
-         (file-base   (file-name-nondirectory file-name))
-         (line-number (line-number-at-pos (region-beginning)))
-         (initial-txt (if (null func-name)
-                          (format "From [[file:%s::%s][%s]]:"
-                                  file-name line-number file-base)
-                        (format "From ~%s~ (in [[file:%s::%s][%s]]):"
-                                func-name file-name line-number
-                                file-base))))
-    (format "
-   %s
+#+begin_src emacs-lisp
+  (defun ha-org-capture-fileref-snippet (f type headers func-name)
+    (let* ((code-snippet
+            (buffer-substring-no-properties (mark) (- (point) 1)))
+           (file-name   (buffer-file-name))
+           (file-base   (file-name-nondirectory file-name))
+           (line-number (line-number-at-pos (region-beginning)))
+           (initial-txt (if (null func-name)
+                            (format "From [[file:%s::%s][%s]]:"
+                                    file-name line-number file-base)
+                          (format "From ~%s~ (in [[file:%s::%s][%s]]):"
+                                  func-name file-name line-number
+                                  file-base))))
+      (format "
+     %s
 
-   #+BEGIN_%s %s
-%s
-   #+END_%s" initial-txt type headers code-snippet type)))
-#+END_SRC
+     ,#+BEGIN_%s %s
+  %s
+     ,#+END_%s" initial-txt type headers code-snippet type)))
+#+end_src
 
-For typical code references, we can get the label for Org's =SRC= block by taking the =major-mode= and removing the =-mode= part. We can then call the formatter we previously defined:
+For typical code references, we can get the label for Org's =SRC= block by taking the =major-mode= and removing the =-mode= part. We can then call the formatter previously defined:
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-org-capture-code-snippet (f)
-  "Given a file, F, this captures the currently selected text
-within an Org SRC block with a language based on the current mode
-and a backlink to the function and the file."
-  (with-current-buffer (find-buffer-visiting f)
-    (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
-          (func-name (which-function)))
-      (ha-org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
-#+END_SRC
+#+begin_src emacs-lisp
+  (defun ha-org-capture-code-snippet (f)
+    "Given a file, F, this captures the currently selected text
+  within an Org SRC block with a language based on the current mode
+  and a backlink to the function and the file."
+    (with-current-buffer (find-buffer-visiting f)
+      (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
+            (func-name (which-function)))
+        (ha-org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
+#+end_src
 
 Let's assume that we want to copy some text from a file, but it isn't source code, then this function makes an =EXAMPLE= of it.
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-org-capture-clip-snippet (f)
-  "Given a file, F, this captures the currently selected text
-within an Org EXAMPLE block and a backlink to the file."
-  (with-current-buffer (find-buffer-visiting f)
-    (ha-org-capture-fileref-snippet f "EXAMPLE" "" nil)))
-#+END_SRC
+#+begin_src emacs-lisp
+  (defun ha-org-capture-clip-snippet (f)
+    "Given a file, F, this captures the currently selected text
+  within an Org EXAMPLE block and a backlink to the file."
+    (with-current-buffer (find-buffer-visiting f)
+      (ha-org-capture-fileref-snippet f "EXAMPLE" "" nil)))
+#+end_src
 
 ** Code Capturing Functions
 
-In order to easily call a capture for code, let's make two interactive functions, one just copies the stuff, and the other pulls up a capturing window for comments:
+To easily call a capture for code, let's make two interactive functions, one just copies the stuff, and the other pulls up a capturing window for comments:
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-code-to-clock (&optional start end)
-  "Send the currently selected code to the currently clocked-in org-mode task."
-  (interactive)
-  (org-capture nil "F"))
+#+begin_src emacs-lisp
+  (defun ha-code-to-clock (&optional start end)
+    "Send the currently selected code to the currently clocked-in org-mode task."
+    (interactive)
+    (org-capture nil "F"))
 
-(defun ha-code-comment-to-clock (&optional start end)
-  "Send the currently selected code (with comments) to the
-currently clocked-in org-mode task."
-  (interactive)
-  (org-capture nil "f"))
-#+END_SRC
+  (defun ha-code-comment-to-clock (&optional start end)
+    "Send the currently selected code (with comments) to the
+  currently clocked-in org-mode task."
+    (interactive)
+    (org-capture nil "f"))
+#+end_src
 
 * External Capturing
 If we put something on the clipboard using =xclip= or something, and then
 perhaps =emacsclient= could call this function to put those contents into clocked in task.
 
-#+BEGIN_SRC emacs-lisp
-(defun ha-external-capture-to-org ()
-  "Calls `org-capture-string' on the contents of the Apple clipboard."
-  (interactive)
-  (org-capture-string (ha-org-clipboard) "ck")
-  (ignore-errors
-    (delete-frame)))
-#+END_SRC
+#+begin_src emacs-lisp
+  (defun ha-external-capture-to-org ()
+    "Calls `org-capture-string' on the contents of the Apple clipboard."
+    (interactive)
+    (org-capture-string (ha-org-clipboard) "ck")
+    (ignore-errors
+      (delete-frame)))
+#+end_src
 
 The =en= script is used as the last pipe entry on the command line, this displays the output, and then copies the contents into the Emacs-based engineering notebook at the currently clocked in task.
 
-#+BEGIN_SRC shell :shebang "#!/bin/bash" :tangle ~/bin/en
+#+begin_src shell :shebang "#!/bin/bash" :tangle ~/bin/en
   #  Interface to my Engineering Notebook.
   #
   #  Used as the last pipe entry on the command line, this displays the output,
@@ -292,10 +286,10 @@ The =en= script is used as the last pipe entry on the command line, this display
   emacsclient -s work -e '(org-capture-string "" "ck")'
 
   rm -f $FILE
-#+END_SRC
+#+end_src
 * Keybindings
 Along with kicking off the org-capture, I want to be able to clock-in and out:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-org-leader
       "X" '("org capture" . org-capture)
@@ -313,15 +307,15 @@ Along with kicking off the org-capture, I want to be able to clock-in and out:
       "c t" '("eval range" . org-evaluate-time-range)
       "c =" '("timestamp up" . org-clock-timestamps-up)
       "c -" '("timestamp down" . org-clock-timestamps-down)))
-#+END_SRC
+#+end_src
 
 * Technical Artifacts                                :noexport:
 
 Let's provide a name so we can =require= this file.
-#+BEGIN_SRC emacs-lisp :exports none
-(provide 'ha-capturing-notes)
-;;; ha-capturing-notes.el ends here
-#+END_SRC
+#+begin_src emacs-lisp :exports none
+  (provide 'ha-capturing-notes)
+  ;;; ha-capturing-notes.el ends here
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

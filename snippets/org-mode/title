@@ -2,4 +2,4 @@
 # name: title
 # key: title
 # --
-#+TITLE: ${0}
+#+title: ${0}

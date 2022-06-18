@@ -1,15 +1,14 @@
 #+TITLE:  Emacs Lisp Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2022-05-11
-#+FILETAGS: :emacs:
 
 A literate programming file for configuring Emacs for Lisp programming.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-lisp --- configuring Emacs for Lisp programming. -*- lexical-binding: t; -*-
   ;;
   ;; © 2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,45 +22,45 @@ A literate programming file for configuring Emacs for Lisp programming.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-  #+END_SRC
+  #+end_src
 * Introduction
-While I program in a lot of languages, I seem to be writing all my helper tools and scripts in … Emacs Lisp. So I’m cranking this up to 11.
+While I program in a lot of languages, I seem to be writing all my helper tools and scripts in … Emacs Lisp. I’m cranking this up to 11.
 
 New, /non-literal/ source code comes from [[file:templates/emacs-lisp-mode.el][emacs-lisp-mode template]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-auto-insert-file (rx ".el" eol) "emacs-lisp-mode.el")
-#+END_SRC
+#+end_src
 * Syntax Display
 ** Dim those Parenthesis
 The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I find better.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package paren-face
     :hook (emacs-lisp-mode . paren-face-mode))
-#+END_SRC
+#+end_src
 
-Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] package. This is really helpful.
-#+BEGIN_SRC emacs-lisp
+Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] package.
+#+begin_src emacs-lisp
   (use-package elisp-demos
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
-#+END_SRC
+#+end_src
 * Navigation and Editing
 ** Goto Definitions
 Wilfred’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package elisp-def
     :hook (emacs-lisp-mode . elisp-def-mode))
-#+END_SRC
+#+end_src
 This /should work/ with [[help:evil-goto-definition][evil-goto-defintion]], as that calls this list from [[help:evil-goto-definition-functions][evil-goto-definition-functions]]:
   - [[help:evil-goto-definition-imenu][evil-goto-definition-imenu]]
   - [[help:evil-goto-definition-semantic][evil-goto-definition-semantic]]
-  - [[help:evil-goto-definition-xref][evil-goto-definition-xref]] … and here is where this package will be called
+  - [[help:evil-goto-definition-xref][evil-goto-definition-xref]] … to show what calls a function
   - [[help:evil-goto-definition-search][evil-goto-definition-search]]
 
-I love packages that add functionality but I don’t have to learn anything. However, I’m running into an issue where I do a lot of my Emacs Lisp programming in org files, and would like to jump to the function definition where it is defined in the org file. Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
+While I love packages that add functionality and I don’t have to learn anything, I’m running into an issue where I do a lot of my Emacs Lisp programming in org files, and would like to jump to the function definition /defined in the org file/. Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-org-code-block-jump (str pos)
     "Go to a literate org file containing a symbol, STR.
   The POS is ignored."
@@ -86,25 +85,25 @@ I love packages that add functionality but I don’t have to learn anything. How
         (goto-line line))))
 
   (add-to-list 'evil-goto-definition-functions 'ha-org-code-block-jump)
-#+END_SRC
+#+end_src
 And in case I need to call it directly:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-goto-definition ()
   (interactive)
   (evil-inner-WORD))
-#+END_SRC
+#+end_src
 ** Clever Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package smartparens
     :custom
     (smartparens-global-strict-mode t)
     :hook
     (prog-mode . smartparens-strict-mode))
-#+END_SRC
+#+end_src
 
 The [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] solves having me create keybindings to the [[https://github.com/Fuco1/smartparens][smartparens]] project by updating the evil states with Lisp-specific bindings.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-cleverparens
     :after smartparens
     :custom
@@ -118,26 +117,26 @@ The [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] solves h
     :hook
     (prog-mode . evil-cleverparens-mode))  ;; All the languages!
     ;; Otherwise: (emacs-lisp-mode . evil-cleverparens-mode)
-#+END_SRC
+#+end_src
 
 The /trick/ to being effective with the [[https://www.emacswiki.org/emacs/ParEdit][paredit-family]] of extensions is learning the keys. The killer “app” is the slurp/barf sequence. Use the ~<~ key, in normal mode, to barf (or jettison)… in other words, /move/ the paren closer to the point. For instance:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (+ 41 (* ‖1 3))  ⟹  (+ 41 (* ‖1) 3)
-#+END_SRC
+#+end_src
 Use the ~>~ key to /slurp/ in outside objects into the current expression… in other words, move the paren away from the point. For instance:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (+ 41 (* ‖1) 3)  ⟹  (+ 41 (* ‖1 3))
-#+END_SRC
+#+end_src
 
 *Opening Parens.* Those two keys seem straight-forward, but they behave differently when the are on the opening parens.
 When the point (symbolized by ~‖~) is /on/ the opening paren, ~<~ moves the paren to the left. For instance:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (+ 41 ‖(* 1 3))  ⟹  (+ ‖(41 * 1 3))
-#+END_SRC
+#+end_src
 And  the ~>~ moves the paren to the right. For instance:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (+ 41 ‖(* 1 3))  ⟹ (+ 41 * ‖(1 3))
-#+END_SRC
+#+end_src
 
 I would like to have a list of what keybindings that work in =normal= mode:
 - ~M-h~ / ~M-l~ move back/forward by functions
@@ -159,13 +158,13 @@ The other advantage is moving around by s-expressions. This takes a little getti
 - ~(~ and ~)~ move up to the parent s-expression
 
 We need a real-world example. Let’s suppose we entered this:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (format "The sum of %d %d is %d" a b (+ a b))
-#+END_SRC
+#+end_src
 But we forgot to define the =a= and =b= variables. One approach, after Escaping into the normal state, is to hit ~(~ to just to the beginning of the s-expression, and then type,  ~M-(~ to wrap the expression, and type ~i~ to go into insert mode:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (‖ (format "The sum of %d %d is %d" a b (+ a b)))
-#+END_SRC
+#+end_src
 And now we can enter the =let= expression.
 
 Other nifty keybindings that I need to commit to muscle memory include:
@@ -179,14 +178,14 @@ Other nifty keybindings that I need to commit to muscle memory include:
 
 ** Eval Current Expression
 The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package eros
     :hook (emacs-lisp-mode . eros-mode))
-#+END_SRC
+#+end_src
 
 A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but [[help:evil-cp-next-closing ][evil-cp-next-closing]] from cleverparens can help:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-eval-current-expression ()
   "Evaluates the expression the point is currently 'in'.
 It does this, by jumping to the end of the current
@@ -197,21 +196,20 @@ finds at that point."
     (evil-cp-next-closing)
     (evil-cp-forward-sexp)
     (call-interactively 'eval-last-sexp)))
-#+END_SRC
+#+end_src
 
 And we just need to bind it.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-prog-leader
     "e c" '("current" . ha-eval-current-expression))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
-
 Let's =provide= a name so we can =require= this file:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   (provide 'ha-programming-elisp)
   ;;; ha-programming-elisp.el ends here
-  #+END_SRC
+  #+end_src
 
 #+DESCRIPTION: configuring Emacs for Lisp programming.
 

@@ -1,15 +1,14 @@
 #+TITLE:  Configuring Python in Emacs
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2021-11-16
-#+FILETAGS: :emacs:
 
 A literate programming file for configuring Python.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-programming-python --- Python configuration. -*- lexical-binding: t; -*-
   ;;
   ;; © 2021-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,21 +22,21 @@ A literate programming file for configuring Python.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-  #+END_SRC
+  #+end_src
 * Introduction
-The critical part of Python integration with Emacs is running LSP in Python using [[file:ha-programming.org::*direnv][direnv]]. And the only question to ask is if the Python we run it in Docker or in a virtual environment.
+The critical part of Python integration with Emacs is running LSP in Python using [[file:ha-programming.org::*direnv][direnv]]. And the question to ask is if the Python we run it in Docker or in a virtual environment.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-create-definer ha-python-leader
       :states '(normal visual motion)
       :keymaps 'python-mode-map
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
-#+END_SRC
+#+end_src
 While Emacs supplies a Python editing environment, we’ll still use =use-package= to grab the latest:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package python
     :after projectile
     :mode ("[./]flake8\\'" . conf-mode)
@@ -53,7 +52,7 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     ;; create these files for my Python projects:
     (add-to-list 'projectile-project-root-files "requirements-dev.txt")
     (add-to-list 'projectile-project-root-files "requirements-test.txt"))
-#+END_SRC
+#+end_src
 ** Virtual Environment
 For a local virtual machine, simply put the following in your =.envrc= file:
 #+begin_src conf
@@ -62,9 +61,9 @@ layout_python3
 That is pretty slick and simple.
 
 The old way, that we still use if you need a particular version of Python, is to install [[https://github.com/pyenv/pyenv][pyenv]] globally:
-#+BEGIN_SRC sh
+#+begin_src sh
 pip install pyenv
-#+END_SRC
+#+end_src
 
 And have this in your =.envrc= file:
 #+begin_src conf
@@ -86,12 +85,12 @@ use_python() {
 #+end_src
 ** Editing Python Code
 Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-text-object-python
     :hook (python-mode . evil-text-object-python-add-bindings))
 
 
-#+END_SRC
+#+end_src
 This allows me to delete a Python “block” using ~dal~.
 ** Docker Environment
 Docker really allows you to isolate your project's environment. The downside is that you are using Docker and probably a bloated container. On my work laptop, a Mac, this creates a behemoth virtual machine that immediately spins the fans like a wind tunnel.
@@ -109,7 +108,7 @@ CONTAINER_EXTRA_ARGS="--env SOME_ENV_VAR=${SOME_ENV_VAR}"
 container_layout
 #+end_src
 ** Unit Tests
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package python-pytest
     :after python
     :commands python-pytest-dispatch
@@ -123,7 +122,7 @@ container_layout
       "t T" '("function" . python-pytest-function)
       "t r" '("repeat" . python-pytest-repeat)
       "t p" '("dispatch" . python-pytest-dispatch)))
-#+END_SRC
+#+end_src
 ** Python Dependencies
 Each Python project's =requirements-dev.txt= file would reference the [[https://pypi.org/project/python-lsp-server/][python-lsp-server]] (not the /unmaintained/ project, =python-language-server=):
 
@@ -132,7 +131,7 @@ python-lsp-server[all]
 #+end_src
 
 *Note:* This does mean, you would have a =tox.ini= with this line:
-#+BEGIN_SRC conf
+#+begin_src conf
   [tox]
   minversion = 1.6
   skipsdist = True
@@ -146,7 +145,7 @@ python-lsp-server[all]
   commands = stestr run {posargs}
              stestr slowest
   # ...
-#+END_SRC
+#+end_src
 *** Pyright
 I’m using the Microsoft-supported [[https://github.com/Microsoft/pyright][pyright]] package instead. Adding this to my =requirements.txt= files:
 #+begin_src conf :tangle no
@@ -155,16 +154,16 @@ pyright
 
 The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package lsp-pyright
     :hook (python-mode . (lambda () (require 'lsp-pyright)))
     :init (when (executable-find "python3")
               (setq lsp-pyright-python-executable-cmd "python3")))
-#+END_SRC
+#+end_src
 * LSP Integration of Python
 Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I turn it on with ~SPC m w s~.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-mode
     ;; :hook ((python-mode . lsp)))
     :config
@@ -258,11 +257,11 @@ Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integrat
       "wq" '("shutdown server" . lsp-workspace-shutdown)
       "wr" '("restart server" . lsp-workspace-restart)
       "ws" '("start server" . lsp)))
-#+END_SRC
+#+end_src
 * Project Configuration
 I work with a lot of projects with my team where I need to /configure/ the project such that LSP and my Emacs setup works. Let's suppose I could point a function at a project directory, and have it /set it up/:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-python-configure-project (proj-directory)
     "Configure PROJ-DIRECTORY for LSP and Python."
     (interactive "DPython Project: ")
@@ -302,14 +301,14 @@ I work with a lot of projects with my team where I need to /configure/ the proje
       (unless (f-exists? ".dir-locals.el")
         (with-temp-file ".dir-locals.el"
           (insert "((nil . ((projectile-enable-caching . t))))")))))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   (provide 'ha-programming-python)
   ;;; ha-programming-python.el ends here
-  #+END_SRC
+  #+end_src
 
 #+DESCRIPTION: A literate programming file for configuring Python.
 

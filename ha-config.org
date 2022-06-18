@@ -1,15 +1,14 @@
 #+TITLE:  General Emacs Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-10
-#+FILETAGS: :emacs:
 
 A literate programming file for configuring Emacs.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-config --- Emacs configuration. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,64 +22,63 @@ A literate programming file for configuring Emacs.
   ;;       Using `find-file-at-point', and tangle the file to recreate this one .
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Basic Configuration
 I hate a fat-finger that stop Emacs:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq confirm-kill-emacs 'yes-or-no-p)
-#+END_SRC
+#+end_src
 
-New way to display line-numbers. I set mine to =relative= so that I can easily jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
+New way to display line-numbers. I set mine to =relative= so that I can jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq display-line-numbers t
         display-line-numbers-type 'relative)
-#+END_SRC
+#+end_src
 
 As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-every-edited-file/][Phil Jackson]] mentioned, Emacs has a lot of file backup strategy, and either change the [[help:backup-directory-alist][backup-directory-alist]] to put individual file backups elsewhere, e.g.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
-#+END_SRC
+#+end_src
 
 Oh, and let’s see if I will use the =recentf= feature more:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (recentf-mode 1)
-#+END_SRC
+#+end_src
 
-Or leave them in the current directory, but create an alias to =ls= to normally not see them, e.g.
-
-#+BEGIN_SRC sh
+Or leave them in the current directory, but create an alias so =ls= doesn’t display them, e.g.
+#+begin_src sh
   alias ls="ls --color=auto --hide='*~'"
-#+END_SRC
+#+end_src
 
 I'm leaving them side-by-side, but I am keeping some extra copies:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq create-lockfiles nil   ; Having .# files around ain't helpful
         auto-save-default t
         delete-old-versions t
         kept-new-versions 6
         kept-old-versions 2
         version-control t)
-#+END_SRC
+#+end_src
 The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
 
 I like the rendering to curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq text-quoting-style 'curve)
-#+END_SRC
+#+end_src
 
 Changes and settings I like introduced in Emacs 28:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq use-short-answers t
         describe-bindings-outline t
         completions-detailed t)
-#+END_SRC
+#+end_src
 
 As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package epa-file
     :config
     (defvar epa-pinentry-mode)
@@ -88,71 +86,71 @@ As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to
 	  epa-pinentry-mode 'loopback
 	  auth-sources '("~/.authinfo.gpg")
 	  auth-source-cache-expiry nil))
-#+END_SRC
+#+end_src
 
 More settings:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq truncate-string-ellipsis "…" ; Unicode ellispis are nicer than "..."
         debug-on-error t)
-#+END_SRC
+#+end_src
 
-The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][excellent essay]] by Mickey Petersen):
-#+BEGIN_SRC emacs-lisp
+The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen):
+#+begin_src emacs-lisp
   (global-set-key [remap dabbrev-expand] 'hippie-expand)
-#+END_SRC
+#+end_src
 Details? Check out its [[help:hippie-expand-try-functions-list][list of expanders]].
 
-What would be /really nice/ is to have it bound to ~TAB~ instead of the default ~M-/~. Normally, ~TAB~ re-indents the line, but I find that I usually want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
-#+BEGIN_SRC emacs-lisp
+Let’s bind ~TAB~ instead of the default ~M-/~. By default, ~TAB~ re-indents the line, but I find that I want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
+#+begin_src emacs-lisp
   (advice-add #'indent-for-tab-command :after #'hippie-expand)
-#+END_SRC
+#+end_src
 Now while we’re typing along, we can hit the ~TAB~ key after partially typing a word to have it completed.
 
 Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun save-all-buffers ()
     "Saves all buffers, because, why not?"
     (interactive)
     (save-some-buffers t))
 
   (add-hook 'focus-out-hook 'save-all-buffers)
-#+END_SRC
+#+end_src
 
 And some Mac-specific settings:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (ha-running-on-macos?)
     (setq mac-option-modifier 'meta
           mac-command-modifier 'super)
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
-#+END_SRC
+#+end_src
 * Support Packages
 ** Piper
 
 Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabrams/emacs-piper][emacs-piper project]], and this code spills into my configuration code, so let's load it now:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package piper
     :straight (:type git :protocol ssh :host gitlab :repo "howardabrams/emacs-piper")
-    :commands piper shell-command-to-list    ; I use this function quite a bit
+    :commands piper shell-command-to-list    ; I use this function often
     :bind (:map evil-normal-state-map
            ("C-M-|" . piper)
            ("C-|" . piper-user-interface)))
-#+END_SRC
+#+end_src
 ** Yet Another Snippet System (YASnippets)
 Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package yasnippet
     :config
     (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
     (yas-global-mode +1))
-#+END_SRC
+#+end_src
 Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writing them.
 
 Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippets]] is what Henrik Lissner has made for Doom (otherwise, we should use [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package):
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package doom-snippets
     :after yasnippet
     :straight (:type git :protocol ssh :host github :repo "doomemacs/snippets")
@@ -161,46 +159,45 @@ Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippe
                                                 (expand-file-name "straight")
                                                 (expand-file-name "repos")
                                                 (expand-file-name "doom-snippets"))))
-#+END_SRC
+#+end_src
 *Note:* Including his snippets also includes some [[https://github.com/hlissner/doom-snippets#snippets-api][helper functions]] and other features.
 ** Auto Insert Templates
-The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but maybe simpler?
-#+BEGIN_SRC emacs-lisp
+The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but simpler?
+#+begin_src emacs-lisp
 (use-package autoinsert
   :init
   (setq auto-insert-directory (expand-file-name "templates" user-emacs-directory))
-  ;; Don't want to be prompted before insertion:
+  ;; Don't prompt before insertion:
   (setq auto-insert-query nil)
 
   (add-hook 'find-file-hook 'auto-insert)
   (auto-insert-mode t))
-#+END_SRC
-However, auto insertion requires entering data for particular fields, and for that Yasnippet is better, so in this case, we combine them:
-#+BEGIN_SRC emacs-lisp
+#+end_src
+Since auto insertion requires entering data for particular fields, and for that Yasnippet is better, so in this case, we combine them:
+#+begin_src emacs-lisp
 (defun ha-autoinsert-yas-expand()
   "Replace text in yasnippet template."
   (yas-expand-snippet (buffer-string) (point-min) (point-max)))
-#+END_SRC
+#+end_src
 
 And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-auto-insert-file (filename-re snippet-name)
     "Autofill file buffer matching FILENAME-RE regular expression.
     The contents inserted from the YAS SNIPPET-NAME."
     ;; The define-auto-insert takes a regular expression and an ACTION:
-    ;; ACTION may also be a vector containing several successive single
-    ;; actions as described above, e.g. ["header.insert" author-update].
+    ;; ACTION may also be a vector containing successive single actions.
     (define-auto-insert filename-re
       (vector snippet-name 'ha-autoinsert-yas-expand)))
-#+END_SRC
+#+end_src
 
 As an example of its use, any Org files loaded in /this project/ should insert my config file:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
-#+END_SRC
+#+end_src
 ** Request System
-The above code (and other stuff) needs the [[https://github.com/tkf/emacs-request][request]] package:
-#+BEGIN_SRC emacs-lisp
+The above code needs the [[https://github.com/tkf/emacs-request][request]] package:
+#+begin_src emacs-lisp
   (use-package request
     :init
     (defvar ha-dad-joke nil "Holds the latest dad joke.")
@@ -230,46 +227,46 @@ The above code (and other stuff) needs the [[https://github.com/tkf/emacs-reques
         :complete (cl-function
                    (lambda (&key data &allow-other-keys)
                      (setq ha-dad-joke data))))))
-#+END_SRC
+#+end_src
 *** Dad Jokes!
-The /critical part/ here, is the [[https://icanhazdadjoke.com/][Dad Joke]] function, which is just a =curl= call:
-#+BEGIN_SRC sh
+The /critical part/ here, is the [[https://icanhazdadjoke.com/][Dad Joke]] function, a =curl= call to a web service:
+#+begin_src sh
 curl -sH "Accept: text/plain" https://icanhazdadjoke.com/
-#+END_SRC
+#+end_src
 For this, I use the =request= package, which is /asynchronous/
-#+BEGIN_SRC emacs-lisp
-#+END_SRC
+#+begin_src emacs-lisp
+#+end_src
 
 * Configuration Changes
 ** Initial Settings and UI
-Let's turn off the menu and other things:
-#+BEGIN_SRC emacs-lisp
+Let's turn off the menu and other settings:
+#+begin_src emacs-lisp
 (when (display-graphic-p)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (horizontal-scroll-bar-mode -1)
   (setq visible-bell 1))
-#+END_SRC
+#+end_src
 I dislike forgetting to trim trailing white-space:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
-#+END_SRC
+#+end_src
 
 I like being able to enable local variables in =.dir-local.el= files:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (setq enable-local-variables t)
-#+END_SRC
+#+end_src
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
 *** Vertico
-The [[https://github.com/minad/vertico][vertico]] package puts the completing read in a vertical format, and seems to fit the bill. It seems to be similar to [[https://github.com/raxod502/selectrum#vertico][Selectrum]].
-#+BEGIN_SRC emacs-lisp
+The [[https://github.com/minad/vertico][vertico]] package puts the completing read in a vertical format, and like [[https://github.com/raxod502/selectrum#vertico][Selectrum]], it extends Emacs’ built-in functionality, instead of adding a new process. This means all these projects work together.
+#+begin_src emacs-lisp
   (use-package vertico
     :config (vertico-mode))
-#+END_SRC
-My only issue with using Vertico with =find-file= is that I really like having the Return key insert the directory at point, and not open =dired=. Seems like this is addressed with this extension /installed with Vertico/:
-#+BEGIN_SRC emacs-lisp
+#+end_src
+My issue with Vertico is when calling =find-file=, the Return key opens =dired=, instead of inserting the directory at point. This package addresses this:
+#+begin_src emacs-lisp
   (use-package vertico-directory
     :straight (el-patch :files ("~/.emacs.d/straight/repos/vertico/extensions/vertico-directory.el"))
     ;; More convenient directory navigation commands
@@ -280,20 +277,17 @@ My only issue with using Vertico with =find-file= is that I really like having t
                 ("M-TAB" . minibuffer-complete))
     ;; Tidy shadowed file names
     :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
-#+END_SRC
+#+end_src
 *** Hotfuzz
-This fuzzy completion style is similar to the built-in =flex= style, but has a better scoring algorithm. Specifically, it is non-greedy and ranks completions that match at word; path component; or camelCase boundaries higher.
+This fuzzy completion style is like the built-in =flex= style, but has a better scoring algorithm, non-greedy and ranks completions that match at word; path component; or camelCase boundaries higher.
 
-#+BEGIN_SRC emacs-lisp
-  (use-package hotfuzz
-    :config
-    (setq completion-styles '(hotfuzz)
-           completion-ignore-case t))
-#+END_SRC
-While it is very flexible at matching, you have to get the /order/ correct. For instance, ~alireg~ matches with [[help:align-regexp][align-regexp]], but ~regali~ does not.
+#+begin_src emacs-lisp
+  (use-package hotfuzz)
+#+end_src
+While flexible at matching, you have to get the /order/ correct. For instance, ~alireg~ matches with [[help:align-regexp][align-regexp]], but ~regali~ does not, so we will use =hotfuzz= for scoring, and not use this as a completion-project (see the =fussy= project below).
 *** Orderless
 While the space can be use to separate words (acting a bit like a =.*= regular expression), the [[https://github.com/oantolin/orderless][orderless]] project allows those words to be in any order.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package orderless
     :commands (orderless-filter)
     :custom
@@ -301,14 +295,14 @@ While the space can be use to separate words (acting a bit like a =.*= regular e
     (completion-ignore-case t)
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion)))))
-#+END_SRC
-*Note:* Multiple files can be opened at once with =find-file= if you enter a wildcard. We may also give the =initials= completion style a try.
+#+end_src
+*Note:* Open more than one file at once with =find-file= with a wildcard. We may also give the =initials= completion style a try.
 *** Fussy Filtering and Matching
-The [[https://github.com/jojojames/fussy][fussy]] project is a fuzzy pattern matching extension for the normal [[help:completing-read][completing-read]] interface. By default, it uses [[https://github.com/lewang/flx][flx]], however, its goal is to allow multiple sorting and filtering algorithms to be used.
+The [[https://github.com/jojojames/fussy][fussy]] project is a fuzzy pattern matching extension for the normal [[help:completing-read][completing-read]] interface. By default, it uses [[https://github.com/lewang/flx][flx]], but we can specify other sorting and filtering algorithms.
 
 How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-packages=, and when I switched to [[https://github.com/oantolin/orderless][orderless]], I would need to put a space between the words. While I will continue to play with the different mechanism, I’ll combine =hotfuzz= and =orderless=.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package fussy
     :straight (:host github :repo "jojojames/fussy")
     :config
@@ -317,46 +311,46 @@ How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-
           completion-category-overrides nil
           fussy-filter-fn 'fussy-filter-orderless-flex
           fussy-score-fn 'fussy-hotfuzz-score))
-#+END_SRC
+#+end_src
 *** Savehist
 Persist history over Emacs restarts using the built-in [[https://www.emacswiki.org/emacs/SaveHist][savehist]] project. Since both Vertico and Selectrum sorts by history position, this should make the choice /smarter/ with time.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package savehist
   :init
   (savehist-mode))
-#+END_SRC
+#+end_src
 *** Marginalia
 The [[https://github.com/minad/marginalia][marginalia]] package gives a preview of =M-x= functions with a one line description, extra information when selecting files, etc. Nice enhancement without learning any new keybindings.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   ;; Enable richer annotations using the Marginalia package
   (use-package marginalia
     :init
     (setq marginalia-annotators-heavy t)
     :config
     (marginalia-mode))
-#+END_SRC
+#+end_src
 * Key Bindings
 To begin my binding changes, let's turn on [[https://github.com/justbur/emacs-which-key][which-key]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package which-key
   :init   (setq which-key-popup-type 'minibuffer)
   :config (which-key-mode))
-#+END_SRC
+#+end_src
 Why would I ever quit Emacs with a simple keybinding? Let’s override it:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (global-set-key (kbd "s-q") 'bury-buffer)
-#+END_SRC
+#+end_src
 Oh, and let’s not close the frame, but instead, the window:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (global-set-key (kbd "s-w") 'delete-window)
-#+END_SRC
+#+end_src
 ** Undo
-I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but since I’m on the Mac quite a bit, I want to cover my bases.
+I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but when I’m on the Mac, I need to cover my bases.
 
 Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the built-in undo functionality? Well, there isn’t much to the project (that’s a good thing), but It basically doesn’t /cycle/ around the redo, which annoying.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package undo-fu
   :config
   (global-set-key [remap undo] 'undo-fu-only-undo)
@@ -364,14 +358,14 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
   (global-unset-key (kbd "s-z"))
   (global-set-key (kbd "s-z")   'undo-fu-only-undo)
   (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
-#+END_SRC
+#+end_src
 ** Evil-Specific Keybindings
 Can we change Evil at this point? Some tips:
  - [[https://github.com/noctuid/evil-guide]]
  - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html]]
  - [[https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically][Evil insert state is really Emacs?]] Real answer to that is to set [[help:evil-disable-insert-state-bindings][evil-disable-insert-state-bindings]]
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil
     :init
     (setq evil-undo-system 'undo-fu
@@ -392,7 +386,7 @@ Can we change Evil at this point? Some tips:
     (define-key evil-insert-state-map (kbd "C-o") 'evil-execute-in-normal-state)
 
     (evil-mode))
-#+END_SRC
+#+end_src
 
 While I’m pretty good with the VIM keybindings, I would like to play around with the text objects and how it compares to others (including the surround), for instance:
   - ~diw~ :: deletes a word, but can be anywhere in it, while ~de~ deletes to the end of the word.
@@ -403,20 +397,20 @@ While I’m pretty good with the VIM keybindings, I would like to play around wi
   - Surrounding punctuation, like quotes, parenthesis, brackets, etc. Also work, so ~ci)~ changes all the parameters to a function call.
 
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package key-chord
   :config
   (key-chord-mode t)
   (key-chord-define-global "fd" 'evil-normal-state)
   (key-chord-define-global "jk" 'evil-normal-state)
   (key-chord-define-global "JK" 'evil-normal-state))
-#+END_SRC
+#+end_src
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
 I'm not trying an experiment where specially-placed function keys on my fancy ergodox keyboard can kick these off using [[https://github.com/noctuid/general.el][General Leader]] project. Essentially, I want a set of leader keys for Evil's /normal state/ as well as a global leader in all modes.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package general
     :custom
     (general-use-package-emit-autoloads t)
@@ -436,10 +430,10 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC"))
-#+END_SRC
+#+end_src
 *** Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
     "SPC" '("M-x" . execute-extended-command)
     "."   '("repeat" . repeat)
@@ -452,9 +446,9 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "o i" 'imenu
     "m"   '(:ignore t :which-key "mode")
     "u"   'universal-argument)
-#+END_SRC
+#+end_src
 And ways to stop the system:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
      "q"  '(:ignore t :which-key "quit/session")
      "q b" '("bury buffer" . bury-buffer)
@@ -462,49 +456,48 @@ And ways to stop the system:
      "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
      "q q" '("quit emacs" . save-buffers-kill-terminal)
      "q Q" '("quit without saving" . evil-quit-all-with-error-code))
-#+END_SRC
+#+end_src
 *** File Operations
-Obviously, =find-file= is still my bread and butter, but I do like getting information about the file associated with the buffer. For instance, the file path:
-#+BEGIN_SRC emacs-lisp
-(defun ha-relative-filepath (filepath)
-  "Return the FILEPATH without the HOME directory and typical filing locations.
-The expectation is that this will return a filepath with the proejct name."
-  (let* ((home-re (rx (literal (getenv "HOME")) "/"))
-         (work-re (rx (regexp home-re)
-                      (or "work" "other" "projects") ; Typical organization locations
-                      "/"
-                      (optional (or "4" "5" "xway") "/") ; Sub-organization locations
-                      )))
-    (cond
-     ((string-match work-re filepath) (substring filepath (match-end 0)))
-     ((string-match home-re filepath) (substring filepath (match-end 0)))
-     (t filepath))))
+While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
+#+begin_src emacs-lisp
+  (defun ha-relative-filepath (filepath)
+    "Return the FILEPATH without the HOME directory and typical filing locations.
+  The expectation is that this will return a filepath with the proejct name."
+    (let* ((home-re (rx (literal (getenv "HOME")) "/"))
+           (work-re (rx (regexp home-re)
+                        (or "work" "other" "projects") ; Typical organization locations
+                        "/"
+                        (optional (or "4" "5" "xway") "/") ; Sub-organization locations
+                        )))
+      (cond
+       ((string-match work-re filepath) (substring filepath (match-end 0)))
+       ((string-match home-re filepath) (substring filepath (match-end 0)))
+       (t filepath))))
 
-(defun ha-yank-buffer-path (&optional root)
-  "Copy the file path of the buffer relative to my 'work' directory, ROOT."
-  (interactive)
-  (if-let (filename (buffer-file-name (buffer-base-buffer)))
-      (message "Copied path to clipboard: %s"
-               (kill-new (abbreviate-file-name
-                          (if root
-                              (file-relative-name filename root)
-                            (ha-relative-filepath filename)))))
-    (error "Couldn't find filename in current buffer")))
+  (defun ha-yank-buffer-path (&optional root)
+    "Copy the file path of the buffer relative to my 'work' directory, ROOT."
+    (interactive)
+    (if-let (filename (buffer-file-name (buffer-base-buffer)))
+        (message "Copied path to clipboard: %s"
+                 (kill-new (abbreviate-file-name
+                            (if root
+                                (file-relative-name filename root)
+                              (ha-relative-filepath filename)))))
+      (error "Couldn't find filename in current buffer")))
 
-(defun ha-yank-project-buffer-path (&optional root)
-  "Copy the file path of the buffer relative to the file's project.
-If ROOT is given, they copies the filepath relative to that."
-  (interactive)
-  (if-let (filename (buffer-file-name (buffer-base-buffer)))
-      (message "Copied path to clipboard: %s"
-               (kill-new
-                (f-relative filename (or root (projectile-project-root filename)))))
-    (error "Couldn't find filename in current buffer")))
-#+END_SRC
+  (defun ha-yank-project-buffer-path (&optional root)
+    "Copy the file path of the buffer relative to the file's project.
+  When given ROOT, this copies the filepath relative to that."
+    (interactive)
+    (if-let (filename (buffer-file-name (buffer-base-buffer)))
+        (message "Copied path to clipboard: %s"
+                 (kill-new
+                  (f-relative filename (or root (projectile-project-root filename)))))
+      (error "Couldn't find filename in current buffer")))
+#+end_src
 
-Perhaps my OCD is out-of-control, but I really want to load a file in another window, but want to control which window.
-
-#+BEGIN_SRC emacs-lisp
+Perhaps my OCD is out-of-control, but I want to load a file in another window, but want to control which window.
+#+begin_src emacs-lisp
   (defmacro ha-create-find-file-window (winum)
     (let ((func-name (intern (format "ha-find-file-window-%s" winum)))
           (call-func (intern (format "winum-select-window-%s" winum))))
@@ -516,10 +509,10 @@ Perhaps my OCD is out-of-control, but I really want to load a file in another wi
 
   (dolist (winum (number-sequence 1 9))
     (ha-create-find-file-window winum))
-#+END_SRC
+#+end_src
 
 With these helper functions in place, I can create a leader collection for file-related functions:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
      "f"  '(:ignore t :which-key "files")
      "f f" '("load" . find-file)
@@ -543,20 +536,20 @@ With these helper functions in place, I can create a leader collection for file-
      "f 7" '("load win-7" . ha-find-file-window-7)
      "f 8" '("load win-8" . ha-find-file-window-8)
      "f 9" '("load win-9" . ha-find-file-window-9))
-#+END_SRC
+#+end_src
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
 
 Putting the entire visible contents of the buffer on the clipboard is often useful:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-yank-buffer-contents ()
   "Copy narrowed contents of the buffer to the clipboard."
   (interactive)
   (kill-new (buffer-substring-no-properties
              (point-min) (point-max))))
-#+END_SRC
+#+end_src
 And the collection of useful operations:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader
    "b"  '(:ignore t :which-key "buffers")
    "b B" '("switch" . persp-switch-to-buffer)
@@ -579,10 +572,10 @@ And the collection of useful operations:
    ;; And double up on the bookmarks:
    "b m" '("set bookmark" . bookmark-set)
    "b M" '("delete mark" . bookmark-delete))
-#+END_SRC
+#+end_src
 *** Toggle Switches
 The goal here is toggle switches and other miscellaneous settings.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
      "t"   '(:ignore t :which-key "toggles")
      "t a" '("abbrev"         . abbrev-mode)
@@ -592,24 +585,24 @@ The goal here is toggle switches and other miscellaneous settings.
      "t t" '("truncate"       . toggle-truncate-lines)
      "t v" '("visual"         . visual-line-mode)
      "t w" '("whitespace"     . whitespace-mode))
-#+END_SRC
+#+end_src
 **** Line Numbers
-Really? We can't automatically toggle between relative and absolute line numbers?
-#+BEGIN_SRC emacs-lisp
+Since we can't automatically toggle between relative and absolute line numbers, we create this function:
+#+begin_src emacs-lisp
   (defun ha-toggle-relative-line-numbers ()
     (interactive)
     (if (eq display-line-numbers 'relative)
         (setq display-line-numbers t)
       (setq display-line-numbers 'relative)))
-#+END_SRC
+#+end_src
 Add it to the toggle menu:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
      "t r" '("relative lines" . ha-toggle-relative-line-numbers))
-#+END_SRC
+#+end_src
 **** Narrowing
 I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but what a /dwim/ aspect:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-narrow-dwim ()
     "Narrow to region or org-tree or widen if already narrowed."
     (interactive)
@@ -621,24 +614,24 @@ I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but wha
       (logos-narrow-dwim))
      ((eq major-mode 'org-mode) (org-narrow-to-subtree))
      (t  (narrow-to-defun))))
-#+END_SRC
+#+end_src
 And put it on the toggle menu:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
     (ha-leader "t n" '("narrow" . ha-narrow-dwim))
-#+END_SRC
+#+end_src
 *** Window Operations
 While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]] to undo window-related changes:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package winner
   :custom
   (winner-dont-bind-my-keys t)
   :config
   (winner-mode +1))
-#+END_SRC
+#+end_src
 Use the [[https://github.com/abo-abo/ace-window][ace-window]] project to jump to any window you see:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package ace-window)
-#+END_SRC
+#+end_src
 This package, bound to ~SPC w w~, also allows operations specified before choosing the window:
   - ~x~ - delete window
   - ~m~ - swap windows
@@ -647,21 +640,21 @@ This package, bound to ~SPC w w~, also allows operations specified before choosi
   - ~j~ - select buffer
   - ~n~ - select the previous window
   - ~u~ - select buffer in the other window
-  - ~c~ - split window fairly, either vertically or horizontally
+  - ~c~ - split window, either vertically or horizontally
   - ~v~ - split window vertically
   - ~b~ - split window horizontally
   - ~o~ - maximize current window
   - ~?~ - show these command bindings
-Keep in mind, these shortcuts only work with lots of windows open. For instance, ~SPC w w x 3~ closes the "3" window.
+Keep in mind, these shortcuts work with more than two windows open. For instance, ~SPC w w x 3~ closes the "3" window.
 
 To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winum][winum package]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package winum
   :config
   (winum-mode +1))
-#+END_SRC
+#+end_src
 And when creating new windows, why isn't the new window selected?
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun jump-to-new-window (&rest _arg)
     "Advice function to jump to newly spawned window."
     (other-window 1))
@@ -669,18 +662,18 @@ And when creating new windows, why isn't the new window selected?
   (dolist (command '(split-window-below split-window-right
                      evil-window-split evil-window-vsplit))
     (advice-add command :after #'jump-to-new-window))
-#+END_SRC
-This is nice since the window numbers are always present on a Doom modeline, however, they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
+#+end_src
+This is nice since the window numbers are always present on a Doom modeline, but they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
 
 The ~0~ key/window should be always associated with a project-specific tree window:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (add-to-list 'winum-assign-functions
              (lambda ()
                (when (string-match-p (buffer-name) ".*\\*NeoTree\\*.*") 10)))
-#+END_SRC
+#+end_src
 
-Let's try this out with a Hydra since some commands (enlarge window), I want to repeatedly call. It also allows me to organize the helper text.
-#+BEGIN_SRC emacs-lisp
+Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. enlarge window). It also allows me to organize the helper text.
+#+begin_src emacs-lisp
   (use-package hydra
     :config
     (defhydra hydra-window-resize (:color blue :hint nil) "
@@ -698,7 +691,7 @@ Let's try this out with a Hydra since some commands (enlarge window), I want to 
       ("d" delete-window)
       ("D" ace-delete-window)
 
-      ("z" ace-window-swap)
+      ("z" ace-swap-window)
       ("u" winner-undo)
       ("U" winner-undo :color pink)
       ("C-r" winner-redo)
@@ -748,11 +741,11 @@ Let's try this out with a Hydra since some commands (enlarge window), I want to 
       ("q" nil :color blue)))
 
   (ha-leader "w" '("windows" . hydra-window-resize/body))
-#+END_SRC
+#+end_src
 *** Search Operations
 Ways to search for information goes under the ~s~ key. This primarily depends on the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package rg
     :init                 		; I sometimes call `grep`:
     ; (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
@@ -796,52 +789,43 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
       (ha-rg-go-results-buffer)
       (previous-error-no-select)
       (compile-goto-error)))
-#+END_SRC
+#+end_src
 
-The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with ripgrep. Typically, you can just his ~i~ to automatically go into =wgrep-mode= and edit away, however, I typically want to edit everything at the same time, so I have a toggle that should work as well:
+The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package wgrep
     :after rg
     :commands wgrep-rg-setup
     :hook (rg-mode-hook . wgrep-rg-setup)
     :config
       (ha-leader
-       :keymaps 'rg-mode-map  ; Actually, just `i` works!
+       :keymaps 'rg-mode-map  ; Actually, `i` works!
        "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
        "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
-#+END_SRC
+#+end_src
 *** Text Operations
 Stealing much of this from Spacemacs.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader
      "x"  '(:ignore t :which-key "text")
      "x a" '("align"            . align-regexp)
      "x q" '("fill paragraph"   . fill-paragraph)
      "x p" '("unfill paragraph" . unfill-paragraph))
-#+END_SRC
-Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] ... I use this all the time:
+#+end_src
+Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] … I use this all the time:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun unfill-paragraph ()
   "Convert a multi-line paragraph into a single line of text."
   (interactive)
   (let ((fill-column (point-max)))
     (fill-paragraph nil)))
-#+END_SRC
+#+end_src
 *** Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
-Sure, I believe I should have grabbed /all/ the help functions:
-#+BEGIN_SRC emacs-lisp :tangle no
-  (ha-leader "h" `("help" . ,(lookup-key global-map (kbd "C-h"))))
-#+END_SRC
-Or simply connect the =help-map= (not that we wants it /value/):
-#+BEGIN_SRC emacs-lisp :tangle no
-  (ha-leader "'" `("help" . ,help-map))
-#+END_SRC
-
-Since I decided to tweak the help menu, so I craft my own:
-#+BEGIN_SRC emacs-lisp
+Since I tweaked the help menu, I craft my own menu:
+#+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
     "h a" '("apropos" . apropos-command)
@@ -860,14 +844,14 @@ Since I decided to tweak the help menu, so I craft my own:
     "h i" '("info" . info)
     "h I" '("info manual" . info-display-manual)
     "h j" '("info jump" . info-apropos))
-#+END_SRC
+#+end_src
 
 Remember these keys in the *Help* buffer:
   - ~s~ :: view source of the function
   - ~i~ :: view info manual of the function
 
 Let's make Info behave a little more VI-like:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package info
     :straight (:type built-in)
     :general
@@ -881,10 +865,10 @@ Let's make Info behave a little more VI-like:
              "T" 'Info-top-node
              "p" 'Info-backward-node
              "n" 'Info-forward-node))    ; Old habit die hard
-#+END_SRC
+#+end_src
 *** Consult
-The [[https://github.com/minad/consult][consult project]] aims to use the libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I particularly appreciate the feature that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
-#+BEGIN_SRC emacs-lisp
+The [[https://github.com/minad/consult][consult project]] aims to use libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I appreciate this project that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
+#+begin_src emacs-lisp
   (use-package consult
     :after general
     ;; Enable automatic preview at point in the *Completions* buffer. This is
@@ -907,10 +891,10 @@ The [[https://github.com/minad/consult][consult project]] aims to use the librar
     (:states 'normal
              "gp" 'consult-yank-pop
              "gs" 'consult-line))
-#+END_SRC
+#+end_src
 *** Consult for Projects
-One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile. So let’s see what the [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can offer.
-#+BEGIN_SRC emacs-lisp
+One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile.  The [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can help with this.
+#+begin_src emacs-lisp
   (use-package consult-projectile
     :after consult general
     :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
@@ -921,12 +905,11 @@ One of the reasons that Consult hasn’t been too important to me, is that I oft
       "p p" '("switch project" . consult-projectile-switch-project)
       "p f" '("find file" . consult-projectile-find-file)
       "p r" '("find recent file" . consult-projectile-recentf)))
-
-#+END_SRC
+#+end_src
 The advantage of [[help:persp-switch-to-buffer][persp-switch-to-buffer]] over =consult-projectile-switch-to-buffer= is that is shows non-file buffers.
 *** Embark
-The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/, however, I'm primarily thinking of acting on selected items in the minibuffer, however, they actually act anywhere. Consequently, I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
-#+BEGIN_SRC emacs-lisp
+The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/. I'm primarily thinking of acting on selected items in the minibuffer, but these commands act anywhere.  I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
+#+begin_src emacs-lisp
   (use-package embark
     :bind
     (("s-;" . embark-act)		; Work in minibuffer and elsewhere
@@ -938,11 +921,11 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 
     :config
     (ha-leader "h K" '("keybindings" . embark-bindings)))
-#+END_SRC
+#+end_src
 
 According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package embark-consult
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
@@ -950,7 +933,7 @@ According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][thi
   ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
-#+END_SRC
+#+end_src
 
 According to the [[https://elpa.gnu.org/packages/embark-consult.html][Embark-Consult page]]:
 #+begin_quote
@@ -958,7 +941,7 @@ Users of the popular [[https://github.com/justbur/emacs-which-key][which-key]] p
 #+end_quote
 In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, but the following code puts them in a smaller configuration directly above the selections.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun embark-which-key-indicator ()
     "An embark indicator that displays keymaps using which-key.
   The which-key help message will show the type and value of the
@@ -996,17 +979,17 @@ In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, 
 
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
-#+END_SRC
+#+end_src
 ** Evil Extensions
 *** Evil Exchange
 I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-exchange
     ;; While I normally just use `link-hint', the gx keybinding is used by evil-exchange:
     :general (:states 'normal "gz" 'browse-url-at-point)
 
     :config (evil-exchange-install))
-#+END_SRC
+#+end_src
 
 Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
 
@@ -1020,37 +1003,37 @@ The idea is that you can exchange anything. The ~g x~ marks something (like what
 *** Evil Commentary
 The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-commentary
     :config (evil-commentary-mode))
-#+END_SRC
+#+end_src
 *** Evil Collection
 Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-collection
     :after evil
     :config
     (evil-collection-init))
-#+END_SRC
+#+end_src
 
 Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
-#+BEGIN_SRC emacs-lisp :tangle no :eval no
+#+begin_src emacs-lisp :tangle no :eval no
 '(eww magit dired notmuch term wdired)
-#+END_SRC
+#+end_src
 *** Evil Owl
 Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-owl
     :config
     (setq evil-owl-display-method 'posframe
           evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
           evil-owl-max-string-length 50)
     (evil-owl-mode))
-#+END_SRC
+#+end_src
 *** Evil Snipe
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-snipe
     :after evil
     :init
@@ -1062,12 +1045,12 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
              "S" 'evil-snipe-S)
     :config
     (evil-snipe-mode +1))
-#+END_SRC
+#+end_src
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 *** Evil Surround
 I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when it calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package evil-surround
     :after evil-snipe
     :config
@@ -1087,28 +1070,28 @@ I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and H
              "Z" 'evil-Surround-edit)
 
     :hook (text-mode . evil-surround-mode))  ; Don't globally use it on Magit, et. al
-#+END_SRC
+#+end_src
 Notes:
   - ~cz'"~ :: to convert surrounding single quote string to double quotes.
   - ~dz"~ :: to delete the surrounding double quotes.
   - ~yze"~ :: puts single quotes around the next word.
-  - ~yziw'~ :: puts single quotes around the word, no matter where the point is positioned.
+  - ~yziw'~ :: puts single quotes around the word, no matter the points position.
   - ~yZ$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
 ** Additional Global Packages
 *** Visual Replace with Visual Regular Expressions
-I really appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what will be changed /before/ executing the replace.
-#+BEGIN_SRC emacs-lisp
+I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
+#+begin_src emacs-lisp
   (use-package visual-regexp
     :bind (("C-c r" . vr/replace)
            ("C-c q" . vr/query-replace))
     :general (:states 'normal "gR" '("replace" . vr/replace)))
-#+END_SRC
+#+end_src
 
 *** Jump with Avy
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use, but ~g o~ seems obvious.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package avy
     :init
     (setq avy-all-windows t
@@ -1123,14 +1106,14 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
     (:states 'normal "go" 'avy-goto-char-timer)
 
     :bind ("<f18>" . avy-goto-char-timer))
-#+END_SRC
+#+end_src
 *Note:* The links should be shorter near the point as opposed to starting from the top of the window.
 
-Just realized that if you hit the following keys /before/ you select a target, you get a special action:
+If you hit the following keys /before/ you select a target, you get a special action:
   - ~n~ :: copies the matching target word
 *** Link Hint, the Link Jumper
-I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to work with hyperlinks on Org, EWW and Info pages, however, the [[https://github.com/noctuid/link-hint.el][link-hint]] project works with more types of links:
-#+BEGIN_SRC emacs-lisp
+I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to work with hyperlinks on Org, EWW and Info pages, but the [[https://github.com/noctuid/link-hint.el][link-hint]] project works with more types of links:
+#+begin_src emacs-lisp
   (use-package link-hint
     :bind
     ("s-o" . link-hint-open-link)
@@ -1144,24 +1127,24 @@ I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to wo
              "o" 'link-hint-open-link)
     (:states 'normal :keymaps 'Info-mode-map
              "o" 'link-hint-open-link))
-#+END_SRC
+#+end_src
 
 *** Expand Region
-Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ repeatedly, having the selection grow by syntactical units.
-#+BEGIN_SRC emacs-lisp
+Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ in =visual= mode, and have the selection grow by syntactical units.
+#+begin_src emacs-lisp
   (use-package expand-region
     :bind ("C-=" . er/expand-region)
 
     :general
     ;; Use escape to get out of visual mode, but hitting v again expands the selection.
     (:states 'visual "v" 'er/expand-region))
-#+END_SRC
+#+end_src
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
 ** Projects
-While I really don't /need/ all the features that [[https://github.com/bbatsov/projectile][projectile]] provides, it has all the features I do need, and is easy enough to install. I am referring to the fact that I /could/ use the built-in =project.el= system (see [[https://cestlaz.github.io/post/using-emacs-79-project/][this essay]] for details on what I mean as an alternative).
+While I don't /need/ all the features that [[https://github.com/bbatsov/projectile][projectile]] provides, it has all the features I do need, and is easy enough to install. I am referring to the fact that I /could/ use the built-in =project.el= system (see [[https://cestlaz.github.io/post/using-emacs-79-project/][this essay]] for details on what I mean as an alternative).
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package projectile
     :custom
     (projectile-sort-order 'recentf)
@@ -1190,14 +1173,14 @@ While I really don't /need/ all the features that [[https://github.com/bbatsov/p
      "p R" '("run project" . projectile-run-project)
      "p S" '("save project files" . projectile-save-project-buffers)
      "p T" '("test project" . projectile-test-project)))
-#+END_SRC
+#+end_src
 ** Workspaces
 A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
 
 I build a Hydra to dynamically list the current projects as well as select the project.
 To do this, we need a way to generate a string of the perspectives in alphabetical order:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha--persp-label (num names)
     "Return string of numbered elements. NUM is the starting
   number and NAMES is a list of strings."
@@ -1212,11 +1195,11 @@ To do this, we need a way to generate a string of the perspectives in alphabetic
   (defun ha-persp-labels ()
     "Return a string of numbered elements from a list of names."
     (ha--persp-label 1 (sort (hash-table-keys (perspectives-hash)) 's-less?)))
-#+END_SRC
+#+end_src
 
 Build the hydra as well as configure the =perspective= project.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package perspective
     :custom
     (persp-modestring-short t)
@@ -1261,25 +1244,25 @@ Build the hydra as well as configure the =perspective= project.
       ("C-g" nil))
 
     :bind ("C-<tab>" . hydra-workspace-leader/body))
-#+END_SRC
+#+end_src
 
 I have no idea why this binding doesn’t work /within/ the =use-package= declaration, but oh well…
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
-#+END_SRC
+#+end_src
 
 The /special/ perspective is a nice shortcut to the one I use the most:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-switch-to-special ()
   "Change to the projects perspective."
   (interactive)
   (persp-switch "projects"))
-#+END_SRC
+#+end_src
 *** Predefined Workspaces
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
 Granted, this list is essentially a list of projects that I'm currently developing, so I expect this to change often.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defvar ha-workspace-projects-personal nil "List of default projects with a name.")
 
   (add-to-list 'ha-workspace-projects-personal
@@ -1290,13 +1273,12 @@ Granted, this list is essentially a list of projects that I'm currently developi
                '("technical" "~/technical" ("ansible.org")))
   (add-to-list 'ha-workspace-projects-personal
                '("hamacs" "~/other/hamacs" ("README.org" "ha-config.org")))
-#+END_SRC
+#+end_src
 
-Given a list of information about project-workspaces, can we just create them all?
-
-#+BEGIN_SRC emacs-lisp
+Given a list of information about project-workspaces, can we create them all?
+#+begin_src emacs-lisp
   (defun ha-persp-exists? (name)
-    "Return non-nill is a perspective of NAME has been created."
+    "Return non-nill if a perspective of NAME exists."
     (when (fboundp 'perspectives-hash)
       (seq-contains (hash-table-keys (perspectives-hash)) name)))
 
@@ -1315,10 +1297,10 @@ Given a list of information about project-workspaces, can we just create them al
         (unless (ha-persp-exists? name)
           (message "Creating workspace: %s (from %s)" name root)
           (ha-project-persp root name files)))))
-#+END_SRC
-Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Projectile keeps state of a "project" based on the current file loaded, so we /combine/ the two projects by first choosing from a list of /known projects/ and then creating a perspective based on the name. To pin the perspective to a project, we just need to load a file from it, e.g. Like a README or something.
+#+end_src
+Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Projectile keeps state of a "project" based on the current file loaded, so we /combine/ the two projects by first choosing from a list of /known projects/ and then creating a perspective based on the name. To pin the perspective to a project, we load a file from it, e.g. Like a README or something.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-project-persp (project &optional name files)
     "Create a new perspective, and then switch to the PROJECT using projectile.
   If NAME is not given, then figure it out based on the name of the
@@ -1345,10 +1327,10 @@ Often, but not always, I want a perspective based on an actual Git repository, e
          ((f-exists? readme-org) (find-file readme-org))
          ((f-exists? readme-md)  (find-file readme-md))
          (t                      (dired project))))))
-#+END_SRC
-Displaying a few files? Well, when /starting/ I am only showing one or two files (maybe three), so we will split the window horizontally for each file.
+#+end_src
 
-#+BEGIN_SRC emacs-lisp
+When starting a new perspective, and I specify more than one file, this function splits the window horizontally for each file.
+#+begin_src emacs-lisp
   (defun ha--project-show-files (root files)
     "Display a list of FILES in a project ROOT directory.
   Each file gets its own window (so don't make the list of files
@@ -1361,23 +1343,23 @@ Displaying a few files? Well, when /starting/ I am only showing one or two files
       (when more
         (split-window-horizontally)
         (ha--project-show-files root more))))
-#+END_SRC
+#+end_src
 
 The =persp-switch= allows me to select or create a new project, but what if we insisted on a new workspace?
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-new-persp (name)
     (interactive "sNew Workspace: ")
     (persp-switch name)
     (cond
      ((s-ends-with? "mail" name) (notmuch))
      ((s-starts-with? "twit" name) (twit))))
-#+END_SRC
+#+end_src
 Once we create the new perspective workspace, if it matches a particular name, I pretty much know what function I would like to call.
 * Applications
-Can we really call these /applications/?
+Can we call these /applications/?
 ** Magit
 Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I stole the bulk of this work from Doom Emacs.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package magit
     :config
     ;; The following code re-instates my General Leader key in Magit.
@@ -1417,14 +1399,14 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g c c" '("Commit"                   . magit-commit-create)
       "g c f" '("Fixup"                    . magit-commit-fixup)
       "g c b" '("Branch"                   . magit-branch-and-checkout)))
-#+END_SRC
+#+end_src
 
 The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project is cool:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package git-timemachine
   :config
   (ha-leader "g t" '("git timemachine" . git-timemachine)))
-#+END_SRC
+#+end_src
 *** Gist
 Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
    (use-package gist
@@ -1440,18 +1422,18 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
        "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
        "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
 
-#+BEGIN_SRC emacs-lisp :tangle no
-#+END_SRC
+#+begin_src emacs-lisp :tangle no
+#+end_src
 
 The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package gh
     :straight (:type git :host :github :repo "sigma/gh.el"))
-#+END_SRC
+#+end_src
 
 *** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package forge
     :after magit
     :config
@@ -1473,24 +1455,24 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
 
       "g c i" '("Issue"                    . forge-create-issue)
       "g c p" '("Pull request"             . forge-create-pullreq)))
-#+END_SRC
+#+end_src
 
 Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
   - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
  and make sure this works:
 
-#+BEGIN_SRC emacs-lisp :tangle no :results replace
+#+begin_src emacs-lisp :tangle no :results replace
   (ghub-request "GET" "/user" nil
                 :forge 'github
                 :host "api.github.com"
                 :username "howardabrams"
                 :auth 'forge)
-#+END_SRC
+#+end_src
 *** Pushing is Bad
 Pushing directly to the upstream branch is /bad form/, as one should create a pull request, etc. To prevent an accidental push, we /double-check/ first:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (define-advice magit-push-current-to-upstream (:before (args) query-yes-or-no)
   "Prompt for confirmation before permitting a push to upstream."
   (when-let ((branch (magit-get-current-branch)))
@@ -1499,12 +1481,12 @@ Pushing directly to the upstream branch is /bad form/, as one should create a pu
                                  (or (magit-get-upstream-branch branch)
                                      (magit-get "branch" branch "remote"))))
       (user-error "Push to upstream aborted by user"))))
-#+END_SRC
+#+end_src
 ** Web Browsing
 *** EWW
 Web pages look pretty good with EWW, but I'm having difficulty getting it to render a web search from DuckDuck.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package eww
     :init
     (setq browse-url-browser-function 'eww-browse-url
@@ -1534,11 +1516,10 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
              "q" 'bury-buffer)
     (:states 'normal :keymaps 'eww-buffers-mode-map
              "q" 'bury-buffer))
-#+END_SRC
+#+end_src
 
-This function allows Imenu to offer HTML headings in EWW buffers, which is especially helpful for navigating long, technical documents.
-
-#+BEGIN_SRC emacs-lisp
+This function allows Imenu to offer HTML headings in EWW buffers, helpful for navigating long, technical documents.
+#+begin_src emacs-lisp
   (use-package eww
     :config
     (defun unpackaged/imenu-eww-headings ()
@@ -1561,11 +1542,11 @@ This function allows Imenu to offer HTML headings in EWW buffers, which is espec
     :hook (eww-mode .
                     (lambda ()
                       (setq-local imenu-create-index-function #'unpackaged/imenu-eww-headings))))
-#+END_SRC
+#+end_src
 *** Get Pocket
 The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project connects to the [[https://getpocket.com/en/][Get Pocket]] service.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package pocket-reader
     :init
     (setq org-web-tools-pandoc-sleep-time 1)
@@ -1573,7 +1554,7 @@ The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project con
     (ha-leader "o p" '("get pocket" . pocket-reader))
 
     ;; Instead of jumping into Emacs mode to get the `pocket-mode-map',
-    ;; we just add the keybindings to the normal mode that makes sense.
+    ;; we add the keybindings to the normal mode that makes sense.
     :general
     (:states 'normal :keymaps 'pocket-reader-mode-map
              "RET" 'pocket-reader-open-url
@@ -1605,19 +1586,19 @@ The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project con
 
              "g s" 'pocket-reader-resort
              "g r" 'pocket-reader-refresh))
-#+END_SRC
+#+end_src
 
 Use these special keywords when searching:
 
-  - =:*=, =:favorite= Return only favorited items.
-  - =:archive= Return only archived items.
-  - =:unread= Return only unread items (default).
+  - =:*=, =:favorite= Return favorited items.
+  - =:archive= Return archived items.
+  - =:unread= Return unread items (default).
   - =:all= Return all items.
-  - =:COUNT= Return at most /COUNT/ (a number) items. This limit persists until a new search is run.
-  - =:t:TAG=, =t:TAG= Return items with /TAG/ (only one tag may be searched for, a limitation of the Pocket API).
+  - =:COUNT= Return at most /COUNT/ (a number) items. This limit persists until you start a new search.
+  - =:t:TAG=, =t:TAG= Return items with /TAG/ (you can search for one tag at a time, a limitation of the Pocket API).
 ** Neotree
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package neotree
     :general ; evil-collection forgot a couple:
     (:states 'normal :keymaps 'neotree-mode-map
@@ -1625,11 +1606,11 @@ I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am s
              "SPC" 'neotree-quick-look
              "RET" 'neotree-enter
              "H" 'neotree-hidden-file-toggle))
-#+END_SRC
+#+end_src
 ** Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package annotate
     :config
     (ha-leader
@@ -1641,35 +1622,39 @@ Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allow
       "n d" '("delete"      . annotate-delete)
       "n s" '("summary"     . annotate-show-annotation-summary)
       "n j" '("next"        . annotate-goto-next-annotation)
-      "n k" '("prev"        . annotate-goto-previous-annotation)))
-#+END_SRC
+      "n k" '("prev"        . annotate-goto-previous-annotation)
+
+      ;; If a shift binding isn't set, it defaults to non-shift version
+      ;; Use SPC N N to jump to the next error:
+      "n N" '("next error"  . flycheck-next-error)))
+#+end_src
 Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
 ** Keepass
 Use the [[https://github.com/ifosch/keepass-mode][keepass-mode]] to view a /read-only/ version of my Keepass file in Emacs:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package keepass-mode)
-#+END_SRC
+#+end_src
 When having your point on a key entry, you can copy fields to kill-ring using:
   - ~u~ :: URL
   - ~b~ :: user name
   - ~c~ :: password
 
 ** Demo It
-Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While it is on MELPA, I want to use my own cloned version to make sure I can keep debugging aspects of it. Especially since its use of [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] has separated so that I can use [[https://github.com/rlister/org-present][org-present]].
-#+BEGIN_SRC emacs-lisp
+Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While on MELPA, I want to use my own cloned version to make sure I can keep debugging it.
+#+begin_src emacs-lisp
   (use-package demo-it
     :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
-#+END_SRC
+#+end_src
 ** PDF Viewing
 Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? To do this, first install the following on a Mac:
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install poppler automake
-#+END_SRC
-And the equivalent on Linux. Actually, it is better to run [[help:pdf-tools-install][pdf-tools-install]], as it will do the above for the system.
+#+end_src
+Instead run [[help:pdf-tools-install][pdf-tools-install]], as this command will do the above for the system.
 
-Finally, let’s install the Emacs connection to the =pdfinfo= program:
-#+BEGIN_SRC emacs-lisp
+Let’s install the Emacs connection to the =pdfinfo= program:
+#+begin_src emacs-lisp
   (use-package pdf-tools
     :mode ("\\.pdf\\'" . pdf-view-mode)
     :init
@@ -1678,16 +1663,15 @@ Finally, let’s install the Emacs connection to the =pdfinfo= program:
     (:states 'normal :keymaps 'pdf-view-mode-map
              "gp" 'pdf-view-goto-page
              ">"  'doc-view-fit-window-to-page))
-#+END_SRC
+#+end_src
 
 Make sure the [[help:pdf-info-check-epdfinfo][pdf-info-check-epdfinfo]] function works.
 * Technical Artifacts :noexport:
-Let's provide a name so that the file can be required:
-
-#+BEGIN_SRC emacs-lisp :exports none
+Let's provide a name so we can =require= this file:
+#+begin_src emacs-lisp :exports none
 (provide 'ha-config)
 ;;; ha-config.el ends here
-#+END_SRC
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

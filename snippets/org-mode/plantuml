@@ -5,12 +5,12 @@
 # group: plantuml
 # --
 
-#+BEGIN_SRC plantuml :file ${1:`(ha-org-next-image-number)`}.${2:png} :exports file :results file
+#+begin_src plantuml :file ${1:`(ha-org-next-image-number)`}.${2:png} :exports file :results file
 @startuml
 !include https://raw.githubusercontent.com/ptrkcsk/one-dark-plantuml-theme/v1.0.0/theme.puml
 $0
 @enduml
-#+END_SRC
+#+end_src
 
-#+ATTR_ORG: :width 800px
+#+attr_org: :width 800px
 [[file:$1.$2]]

@@ -1,15 +1,14 @@
 #+TITLE:  General Programming Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-10-26
-#+FILETAGS: :emacs:
 
 A literate programming file for helping me program.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; general-programming --- Configuration for general languages. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,24 +22,22 @@ A literate programming file for helping me program.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
-
+#+end_src
 * Introduction
-
-Seems that all programming interfaces and workflows behave similarly. However, one other helper routine is a =general= macro for org-mode files:
-#+BEGIN_SRC emacs-lisp
+Seems that all programming interfaces and workflows behave similarly. One other helper routine is a =general= macro for org-mode files:
+#+begin_src emacs-lisp
   (general-create-definer ha-prog-leader
       :states '(normal visual motion)
       :keymaps 'prog-mode-map
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
-#+END_SRC
+#+end_src
 * General
 The following work for all programming languages.
 ** direnv
 Farm off commands into /virtual environments/:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package direnv
     :init
     (setq direnv--executable "/usr/local/bin/direnv"
@@ -48,18 +45,18 @@ Farm off commands into /virtual environments/:
           direnv-show-paths-in-summary t)
     :config
     (direnv-mode))
-#+END_SRC
+#+end_src
 ** Spell Checking Comments
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package flyspell
   :hook (prog-mode . flyspell-prog-mode))
-#+END_SRC
+#+end_src
 ** Flycheck
 Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, but I’m now pushing much of this to LSP, so speed is less of an issue.  What about when I am not using LSP? Also, since I’ve hooked grammar checkers, I need this with global keybindings.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package flycheck
     :init
     (setq next-error-message-highlight t)
@@ -96,17 +93,17 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "P v" '("verify-setup" . flycheck-verify-setup)
       "P x" '("disable-checker" . flycheck-disable-checker)
       "P t" '("toggle flycheck" . flycheck-mode)))
-#+END_SRC
+#+end_src
 ** Documentation
 I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, available for Mac.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package dash-at-point
     :commands (dash-at-point)
     :general (:states 'normal "gD" 'dash-at-point))
-#+END_SRC
+#+end_src
 I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). Two Emacs projects compete for this position. The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package devdocs
     :after evil
     :general (:states 'normal "gD" 'devdocs-lookup)
@@ -120,11 +117,11 @@ I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is sim
       "d u" '("update" . devdocs-update-all)
       "d x" '("uninstall" . devdocs-delete)
       "d s" '("search" . devdocs-search)))
-#+END_SRC
+#+end_src
 
 The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] project acts similar, but with slightly different command names. Its advantage is that it allows for downloading docs and having it available offline, in fact, you can’t search for a function, until you download its pack. This is slightly faster because of this.
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package devdocs-browser
     :general (:states 'normal "gD" 'devdocs-browser-open)
 
@@ -140,10 +137,10 @@ The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] proje
       "d U" '("upgrade" . devdocs-browser-upgrade-doc)
       "d o" '("download" . devdocs-browser-download-offline-data)
       "d O" '("remove download" . devdocs-browser-remove-offline-data)))
-#+END_SRC
+#+end_src
 ** Code Folding
-While Emacs has many options for viewing and moving around code, sometimes, it is nice to /collapse/ all functions, and then start to expand them one at a time. For this, we could enable the built-in [[https://www.emacswiki.org/emacs/HideShow][hide-show feature]]:
-#+BEGIN_SRC emacs-lisp :tangle no
+While Emacs has options for viewing and moving around code, sometimes, we could /collapse/ all functions, and then start to expand them one at a time. For this, we could enable the built-in [[https://www.emacswiki.org/emacs/HideShow][hide-show feature]]:
+#+begin_src emacs-lisp :tangle no
   (use-package hide-show
     :straight (:type built-in)
     :init
@@ -151,14 +148,14 @@ While Emacs has many options for viewing and moving around code, sometimes, it i
           hs-hide-initial-comment-block t
           hs-isearch-open t)
     :hook (prog-mode . hs-minor-mode))
-#+END_SRC
-However, hide-show doesn’t work with complex YAML files. The [[https://github.com/gregsexton/origami.el][origami]] mode works better /out-of-the-box/, as it works with Python and Lisp, but falls back to indents as the format, which works really well.
-#+BEGIN_SRC emacs-lisp
+#+end_src
+Note that =hide-show= doesn’t work with complex YAML files. The [[https://github.com/gregsexton/origami.el][origami]] mode works better /out-of-the-box/, as it works with Python and Lisp, but falls back to indents as the format, which works well.
+#+begin_src emacs-lisp
   (use-package origami
     :init
     (setq origami-fold-replacement "⤵")
     :hook (prog-mode . origami-mode))
-#+END_SRC
+#+end_src
 To take advantage of this, type:
   - ~z m~ :: To collapse everything
   - ~z r~ :: To open everything
@@ -171,7 +168,7 @@ Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
 Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and friends), which simplifies my configuration:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-mode
     :commands lsp
     :init
@@ -181,12 +178,12 @@ Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and fri
           company-idle-delay 0.0 ; Are thing fast enough to do this?
           lsp-keymap-prefix "s-m")
     :hook ((lsp-mode . lsp-enable-which-key-integration)))
-#+END_SRC
+#+end_src
 I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
 *** UI
 The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-ui
     :commands lsp-ui-mode
     :config
@@ -194,15 +191,15 @@ The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the d
           lsp-ui-sideline-show-hover t
           lsp-ui-sideline-show-diagnostics t)
     :hook (lsp-mode . lsp-ui-mode))
-#+END_SRC
+#+end_src
 *** Company Completion
 The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package company-lsp
     :config
     (push 'company-lsp company-backends))
-#+END_SRC
+#+end_src
 To options that might be interesting:
   - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
   - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
@@ -210,7 +207,7 @@ To options that might be interesting:
 *** iMenu
 The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] project offers a =lsp-ui-imenu= function for jumping to functions:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-ui-imenu
       :straight nil
       :after lsp-ui
@@ -219,35 +216,35 @@ The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu
         "g"  '(:ignore t :which-key "goto")
         "g m" '("imenu" . lsp-ui-imenu))
       (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
-#+END_SRC
+#+end_src
 *** Treemacs
 The [[https://github.com/emacs-lsp/lsp-treemacs][lsp-treemacs]] offers a project-specific structure oriented to the code:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-treemacs
     :config
     (ha-prog-leader
           "0" '("treemacs" . lsp-treemacs-symbols)))
-#+END_SRC
+#+end_src
 *** Origami Folding
 The [[https://github.com/emacs-lsp/lsp-origami][lsp-origami]] project integrates the [[https://github.com/gregsexton/origami.el][origami]] project with LSP for /better code folding/:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-origami
     :hook (lsp-after-open . lsp-origami-try-enable))
-#+END_SRC
+#+end_src
 *** Debugging
 Do we want to use a debugger?
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package dap-mode
      :init
      (require 'dap-python))
-#+END_SRC
+#+end_src
 ** Function Call Notifications
 As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package alert
     :init
     (setq alert-default-style
@@ -265,20 +262,20 @@ As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html
                     compile
                     shell-command))
       (advice-add func :around #'beep-when-runs-too-long)))
-#+END_SRC
+#+end_src
 While that code /advices/ the publishing and compile commands, I may want to add more.
 ** iEdit
 While there are language-specific ways to rename variables and functions, [[https://github.com/victorhge/iedit][iedit]] is often sufficient.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package iedit
     :config
     (ha-leader "s e" '("iedit" . iedit-mode)))
-#+END_SRC
+#+end_src
 ** Commenting
 I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd personal style that I like to codify:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-comment-line (&optional start end)
   (interactive "r")
   (when (or (null start) (not (region-active-p)))
@@ -293,14 +290,14 @@ I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd perso
     (insert "\n------------------------------------------------------------------------")
     (comment-region (point-min) (point-max))
     (widen)))
-#+END_SRC
+#+end_src
 And a keybinding:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-prog-leader "c" '("comment line" . ha-comment-line))
-#+END_SRC
+#+end_src
 ** Evaluation
 While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a bit of formatting in order to /keep the results/ in the file.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-eval-print-last-sexp (&optional internal-arg)
     "Evaluate the expression located before the point.
   The results are inserted back into the buffer at the end
@@ -315,10 +312,10 @@ While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a
     (dotimes (i 2)
       (next-line)
       (join-line)))
-#+END_SRC
+#+end_src
 
 Typical keybindings for all programming modes:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-prog-leader
      "e"  '(:ignore t :which-key "eval")
      "e ;" '("expression" . eval-expression)
@@ -327,10 +324,10 @@ Typical keybindings for all programming modes:
      "e r" '("region" . eval-region)
      "e e" '("last s-exp" . eval-last-sexp)
      "e p" '("print s-exp" . ha-eval-print-last-sexp))
-#+END_SRC
+#+end_src
 ** Ligatures
 The idea of using math symbols for a programming languages keywords is /cute/, but can be confusing, so I use it sparingly:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-prettify-prog ()
     "Extends the `prettify-symbols-alist' for programming."
     (mapc (lambda (pair) (push pair prettify-symbols-alist))
@@ -341,83 +338,83 @@ The idea of using math symbols for a programming languages keywords is /cute/, b
     (prettify-symbols-mode))
 
   (add-hook 'prog-mode-hook 'ha-prettify-prog)
-#+END_SRC
+#+end_src
 Eventually, I want to follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
 ** Task Runner
 I've replaced my home-grown compilation list code with a more versatile [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]].
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (setq ivy-taskrunner-notifications-on t
       ivy-taskrunner-doit-bin-path "/usr/local/bin/doit")
-#+END_SRC
+#+end_src
 
 Doom provides basic support, but we need more keybindings:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (map! :leader :prefix "p"
       :desc "Project tasks" "Z" 'ivy-taskrunner
       :desc "Reun last task" "z" 'ivy-taskrunner-rerun-last-command)
-#+END_SRC
+#+end_src
 
 While my company is typically using =Rakefile= and =Makefile= in the top-level project, I want to have my personal tasks set per-project as well. For that, I thought about using [[https://pydoit.org/][doit]], where I would just create a =dodo.py= file that contains:
 
-#+BEGIN_SRC python :tangle no
+#+begin_src python :tangle no
  def hello():
      """This command greets you."""
      return {
          'actions': [ 'echo hello' ],
      }
-#+END_SRC
+#+end_src
 
 ** Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package doom-modeline
     :config
     (setq doom-modeline-lsp t
           doom-modeline-env-version t))
-#+END_SRC
+#+end_src
 * Languages
 Simple to configure languages go here. More advanced stuff will go in their own files… eventually.
 ** Ansible
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package yaml-mode
   :mode (rx ".y" (optional "a") "ml" string-end))
-#+END_SRC
+#+end_src
 
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package jinja2-mode
   :mode (rx ".j2" string-end))
-#+END_SRC
+#+end_src
 
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]?
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package ansible
     :init
     (setq ansible-vault-password-file "~/.ansible-vault-passfile")
     ;; :hook (yaml-mode . ansible-mode)
     :config
     (ha-leader "t y" 'ansible))
-#+END_SRC
+#+end_src
 The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable needs to change /per project/, so let’s use the =.dir-locals.el= file, for instance:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   ((nil . ((ansible-vault-password-file . "playbooks/.vault-password"))))
 
-#+END_SRC
+#+end_src
 
 However, let’s have all YAML files able to access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package ansible-doc
     :hook (yaml-mode . ansible-doc-mode)
     :config
     (ha-local-leader :keymaps 'yaml-mode-map
       "d"  '(:ignore t :which-key "docs")
       "d d" 'ansible-doc))
-#+END_SRC
+#+end_src
 
 The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [[https://polymode.github.io/][polymode]], gluing [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] into [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package polymode)
 
   (use-package poly-ansible
@@ -425,7 +422,7 @@ The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [
     :straight (:host github :repo "emacsmirror/poly-ansible")
     :hook ((yaml-mode . poly-ansible-mode)
            (poly-ansible-mode . font-lock-update)))
-#+END_SRC
+#+end_src
 
 ** Shell Scripts
 
@@ -433,7 +430,7 @@ While I don't like writing them, I can't get away from them.
 
 While filename extensions work fine most of the time, I don't like to pre-pend =.sh= to the few shell scripts I write, and instead, would like to associate =shell-mode= with all files in a =bin= directory:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package sh-mode
     :straight (:type built-in)
     :mode (rx (or (seq ".sh" eol)
@@ -443,24 +440,23 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
                   "/bin/")) "sh-mode.sh")
     :hook
     (after-save . executable-make-buffer-file-executable-if-script-p))
-#+END_SRC
+#+end_src
 *Note:* we make the script /executable/ by default. See [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this essay]] for details, but it appears that the executable bit is only turned on if the script has a shebang at the top of the file.
 ** Fish Shell
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package fish-mode
     :mode (rx ".fish" eol)
     :config
     (ha-auto-insert-file (rx ".fish") "fish-mode.sh")
     :hook
     (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
-Provide a name in order to =require= this code.
-
-#+BEGIN_SRC emacs-lisp :exports none
-(provide 'ha-programming)
-;;; ha-programming.el ends here
-#+END_SRC
+Provide a name to =require= this code.
+#+begin_src emacs-lisp :exports none
+  (provide 'ha-programming)
+  ;;; ha-programming.el ends here
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

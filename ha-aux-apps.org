@@ -1,15 +1,14 @@
 #+TITLE:  Auxillary and Optional Applications
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2021-11-18
-#+FILETAGS: :emacs:
 
 A literate programming file for helper apps in Emacs.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-aux-apps --- Configuring helper apps in Emacs. -*- lexical-binding: t; -*-
   ;;
   ;; © 2021-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,13 +22,13 @@ A literate programming file for helper apps in Emacs.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-  #+END_SRC
+  #+end_src
 * Introduction
-The following applications are not really needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and simply using a stand-alone app on my Workday computer.
+The following applications are not needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and using a stand-alone app on my Workday computer.
 * Twitter
 The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package twittering-mode
     :init
     (setq twittering-use-master-password t
@@ -37,11 +36,11 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     :config
     (defalias 'epa--decode-coding-string 'decode-coding-string)
     (ha-leader "a t" '("twitter" . twit)))
-#+END_SRC
+#+end_src
 * Telega
-I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, but only if I've cloned it.
+I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, if I've cloned it.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (file-exists-p "~/other/telega.el")
     (use-package telega
       :straight (:local-repo "~/other/telega.el")
@@ -50,22 +49,22 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
       (setq telega-use-images nil)
       :config
       (ha-leader "a T" 'telega)))
-#+END_SRC
+#+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 * RPG DM
 Been working on a project for getting Emacs helping as a /Dungeon Master's Assistant/, and I must say, it is coming along nicely. In case you are reading this, let me know, and I'll start to share it.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (f-directory? "~/other/rpgdm")
     (use-package rpgdm
       :straight (:local-repo "~/other/rpgdm")
       :commands (rpgdm-mode rpgdm-tables-load)
       :init (setq rpgdm-base (expand-file-name "~/other/rpgdm"))
       :config (ha-leader "t D" '("rpg dm" . rpgdm-mode))))
-#+END_SRC
+#+end_src
 And my new Ironsworn project:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when (f-directory? "~/other/emacs-ironsworn")
     (use-package rpgdm-ironsworn
       :after rpgdm
@@ -76,14 +75,14 @@ And my new Ironsworn project:
             org-link-elisp-skip-confirm-regexp (rx string-start (optional "(") "rpgdm-"
                                                    (or "tables-" "ironsworn-")
                                                    (one-or-more any)))))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   (provide 'ha-aux-apps)
   ;;; ha-aux-apps.el ends here
-  #+END_SRC
+  #+end_src
 
 #+DESCRIPTION: A literate programming file for helper apps in Emacs.
 

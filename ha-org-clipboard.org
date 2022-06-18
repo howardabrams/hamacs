@@ -1,15 +1,14 @@
 #+TITLE:  Pasting the Org Clipboard
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-15
-#+FILETAGS: :emacs:
 
 A literate programming file of functions for formatting the clipboard.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; org-clipboard --- Functions for formatting the clipboard. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,7 +22,7 @@ A literate programming file of functions for formatting the clipboard.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 I would like to paste the formatted contents of the clipboard into an Org file /as org-formatted text/.
 * The Clipboard
@@ -32,18 +31,18 @@ Functions to help convert content from the operating system's clipboard into org
 
 Each operating system as a different way of working with the clipboard, so let's create an operating-system abstraction:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-get-clipboard ()
   "Returns a list where the first entry is the content type,
 either :html or :text, and the second is the clipboard contents."
   (if (ha-running-on-macos?)
       (ha-get-mac-clipboard)
     (ha-get-linux-clipboard)))
-#+END_SRC
+#+end_src
 
 Let's define the clipboard for a Mac. The challenge here is that we need to binary unpack the data from a call to Applescript.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-get-mac-clipboard ()
     "Returns a list where the first entry is the content type,
   either :html or :text, and the second is the clipboard contents."
@@ -65,11 +64,11 @@ Let's define the clipboard for a Mac. The challenge here is that we need to bina
                             (mapcar #'hex-pack-bytes))))
         (decode-coding-string
          (mapconcat #'byte-to-string byte-seq "") 'utf-8))))
-#+END_SRC
+#+end_src
 
 And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (that really should go into the piper project).
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-get-linux-clipboard ()
   "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."
   (cl-destructuring-bind (exit-code contents)
@@ -83,13 +82,13 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
   (with-temp-buffer
     (list (apply 'call-process program nil (current-buffer) nil args)
           (buffer-string))))
-#+END_SRC
+#+end_src
 
 * Converting from Slack
 
 We can assume that most non-HTML text could be Slack-like:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-slack-to-markdown-buffer ()
   "Odd function that converts Slack’s version of Markdown (where
 code is delimited with triple backticks) into a more formal
@@ -116,23 +115,23 @@ four-space indent markdown style."
               (next-line)
               (beginning-of-line)
               (insert "    ")))))))
-#+END_SRC
+#+end_src
 
 * Converting to Org
 
 Let's work top-down at this point with the interactive function that inserts the clipboard into the current buffer:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-org-yank-clipboard ()
   "Yanks (pastes) the contents of the Apple Mac clipboard in an
 org-mode-compatible format."
   (interactive)
   (insert (ha-org-clipboard)))
-#+END_SRC
+#+end_src
 
 The heavy lifting, however is done by this function. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-org-clipboard ()
   "Return the contents of the clipboard in org-mode format."
   (seq-let (type contents) (ha-get-clipboard)
@@ -161,22 +160,22 @@ The heavy lifting, however is done by this function. Note that I will need anoth
       (goto-char (point-min))
       (while (re-search-forward search nil t)
         (replace-match replace)))))
-#+END_SRC
+#+end_src
 
 * Keybinding to Paste into Org Files
 We just need to bind it to the /local/ mode key sequence:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-org-leader "y" 'ha-org-yank-clipboard))
-#+END_SRC
+#+end_src
 
 * Technical Artifacts                                :noexport:
 Let's provide a name so we can =require= this file:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (provide 'ha-org-clipboard)
 ;;; ha-org-clipboard.el ends here
-#+END_SRC
+#+end_src
 
 #+DESCRIPTION: A literate programming version of functions for formatting the clipboard.
 

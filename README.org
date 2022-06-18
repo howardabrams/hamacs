@@ -1,13 +1,12 @@
 #+TITLE:  My Emacs Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2021-11-01 November
-#+TAGS:   emacs
 
 My Emacs configuration, that I'm cheekily calling /hamacs/ is a literate programming model heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  I used both extensively, but decided that I would /roll my own/ as Emacs people tend to be /control freaks/ (at least a little bit).
 
-The other advantage to rolling yer own is that you are more likely to /use/ what you add, leading to less bloat, and a more fun experience.
+The other advantage to rolling yer own is that you may /use/ what you add, leading to less bloat, and a more fun experience.
 
-Why yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, however, everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)... meaning that most blocks of code should /just work/ on its own.
+Why yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, but everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)… meaning that most blocks of code should work on its own.
 Hit me up with questions, =@howardabrams=.  If you want to try this out, after installing Emacs, and cloning this repo, run:
 #+BEGIN_SRC sh
 ./initialize
@@ -17,7 +16,7 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:bootstrap.org][bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order:
   - [[file:ha-config.org][config]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
   - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes, fonts and the dashboard.
-  - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features, however, come from their own files, however.
+  - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
   - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
   - [[file:ha-org-clipboard.org][org-clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
   - [[file:ha-org-journaling.org][org-journaling]] :: for writing journal entries and tasks.
@@ -35,6 +34,5 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
   - [[file:ha-programming-elisp.org][programming-elisp]] :: additions to Emacs Lisp programming.
   - [[file:ha-programming-python.org][programming-python]] :: configuration for working with Python and LSP.
   - [[file:ha-programming-scheme.org][programming-scheme]] :: configuration for Racket.
-  - [[file:ha-aux-apps.org][aux-apps]] :: additional application configuration.
 
 *Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]].  To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.

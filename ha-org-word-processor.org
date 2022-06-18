@@ -5,11 +5,11 @@
 
 A literate programming file for making Org file more readable.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-org-word-processor --- Making Org file more readable. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,13 +23,13 @@ A literate programming file for making Org file more readable.
   ;;       Using `find-file-at-point', and tangle the file to recreate this one .
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
-I like having org-mode files look more like a word processor than having it look like programming code. But that is just me.
+I like having org-mode files look more like a word processor than having it look like programming code. But that is me.
 * General Org Settings
 Since I use ellipsis in my writing… to /change/ how org renders a collapsed heading.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq org-pretty-entities t
         org-ellipsis "⤵"     ; …, ➡, ⚡, ▼, ↴, , ∞, ⬎, ⤷, ⤵
         org-agenda-breadcrumbs-separator " ❱ "
@@ -37,24 +37,24 @@ Since I use ellipsis in my writing… to /change/ how org renders a collapsed he
         org-special-ctrl-a/e t     ; Note: Need to get this working with Evil!
         org-src-fontify-natively t ; Pretty code blocks
         org-hide-emphasis-markers t)
-#+END_SRC
-Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I just stay with dashed bullets. Numeric bullets should cycle:
+#+end_src
+Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I stay with dashed bullets. Numeric bullets should cycle:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq org-list-demote-modify-bullet '(("*" . "+") ("+" . "-") ("-" . "-")
                                         ("1." . "a.") ("a." . "1.")))
-#+END_SRC
+#+end_src
 
 The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really work well with variable-width fonts, so let’s make the spaces at the beginning of the line fixed:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org
     :custom-face (org-indent ((t (:inherit fixed-pitch)))))
-#+END_SRC
+#+end_src
 ** Typographic Quotes
 According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type either a /straight single or double quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
 
-Stealing his function, and updating it a bit, so that “quotes” just work to insert /rounded/ quotation marks:
-#+BEGIN_SRC emacs-lisp
+Stealing his function, and updating it a bit, so that “quotes” work to insert /rounded/ quotation marks:
+#+begin_src emacs-lisp
   (defun ha--insert-round-quotes (opening closing)
     "Insert rounded quotes in prose but not inside code.
   The OPENING and CLOSING variables are either or .
@@ -93,11 +93,11 @@ Stealing his function, and updating it a bit, so that “quotes” just work to 
            ((looking-back starting-anew) (insert-pair))
            ((looking-at   existing-endq) (goto-char (match-end 0)))
            (t                            (insert closing)))))))
-#+END_SRC
+#+end_src
 
 Now we can take advantage of the abstraction for “double quotes”:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-round-quotes ()
     "Insert “” and leave point in the middle.
   Inside a code-block, just call `self-insert-command'.
@@ -106,11 +106,11 @@ Now we can take advantage of the abstraction for “double quotes”:
     (ha--insert-round-quotes "“" "”"))
 
   (define-key org-mode-map "\"" #'ha-round-quotes)
-#+END_SRC
+#+end_src
 
 And something similar for single quotes:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-apostrophe ()
     "Insert ‘’ and leave point in the middle.
   Inside a code-block, just call `self-insert-command'.
@@ -119,13 +119,13 @@ And something similar for single quotes:
     (ha--insert-round-quotes "‘" "’"))
 
   (define-key org-mode-map "'" #'ha-apostrophe)
-#+END_SRC
+#+end_src
 
 *Note:* I still need to worry about how quotes affect [[file:ha-org.org::*Spell Checking][spell checking]].
 
 What would be nice, is that if I end quotes using the functions above, that if I immediately delete, I delete both pairs.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-delete-quote-pairs (&optional N)
     "If positioned between two quote symbols, delete the last.
   Used as advice to `org-delete-backward-char' function."
@@ -135,10 +135,10 @@ What would be nice, is that if I end quotes using the functions above, that if I
 
   (advice-add #'org-delete-backward-char :before #'ha-delete-quote-pairs)
 
-#+END_SRC
+#+end_src
 
 Can we do the same with ellipses?
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-insert-dot-or-ellipsis ()
     "Insert a `.' unless two have already be inserted.
   In this case, insert an ellipsis instead."
@@ -156,10 +156,10 @@ Can we do the same with ellipses?
   (define-key org-mode-map "." #'ha-insert-dot-or-ellipsis)
 
 
-#+END_SRC
+#+end_src
 
 Now I’m getting obsessive with elongating dashes:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-insert-long-dash ()
     "Insert a `.' unless two have already be inserted.
   In this case, insert an ellipsis instead."
@@ -179,32 +179,32 @@ Now I’m getting obsessive with elongating dashes:
        (t                        (insert "-")))))
 
   (define-key org-mode-map "-" #'ha-insert-long-dash)
-#+END_SRC
+#+end_src
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 
 First step is to make all Org header levels to use the variable font, and be the same color as the default text:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when window-system
     (let ((default-color (face-attribute 'default :foreground)))
       (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
         (set-face-attribute face nil :height 1.1
                             :foreground default-color :weight 'bold :font ha-variable-font))))
-#+END_SRC
+#+end_src
 
 Next, we just need to change the header sizes:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when window-system
     (set-face-attribute 'org-level-1 nil :height 2.2)
     (set-face-attribute 'org-level-2 nil :height 1.8)
     (set-face-attribute 'org-level-3 nil :height 1.4)
     (set-face-attribute 'org-level-4 nil :height 1.2))
-#+END_SRC
+#+end_src
 
 While we are at it, let’s make sure the code blocks are using my fixed with font:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when window-system
     (dolist (face '(org-block org-code org-verbatim org-table org-drawer
                     org-table org-formula org-special-keyword org-block
@@ -214,28 +214,28 @@ While we are at it, let’s make sure the code blocks are using my fixed with fo
   (set-face-attribute 'org-table nil :height 1.0)
   (set-face-attribute 'org-formula nil :height 1.0)
 
-#+END_SRC
+#+end_src
 Not sure why the above code removes the color of =org-verbatim=, so let’s make it stand out slightly:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (set-face-attribute 'org-verbatim nil :foreground "#aaaacc")
-#+END_SRC
+#+end_src
 And some slight adjustments to the way blocks are displayed:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (set-face-attribute 'org-block-begin-line nil :background "#282828")
   (set-face-attribute 'org-block nil :height 0.95)
   (set-face-attribute 'org-block-end-line nil :background "#262626")
-#+END_SRC
+#+end_src
 And decrease the prominence of the property drawers:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (set-face-attribute 'org-drawer nil :height 0.8)
   (set-face-attribute 'org-property-value nil :height 0.85)
   (set-face-attribute 'org-special-keyword nil :height 0.85)
-#+END_SRC
+#+end_src
 This process allows us to use =variable-pitch= mode for all org documents.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org
     :hook (org-mode . variable-pitch-mode))
-#+END_SRC
+#+end_src
 * Org Modern
 The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a lot of what I was doing in this file.
 #+begin_src emacs-lisp
@@ -247,8 +247,8 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
 #+end_src
 I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.
 * Checkboxes
-#+BEGIN_SRC emacs-lisp
 According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to-display-org-mode-checkboxes/][Huy Trần]], (and expanded by the [[https://github.com/minad/org-modern][org-modern]] project), we can prettify the list checkboxes. To make completed tasks more distinguishable, he changed the colors:
+#+begin_src emacs-lisp
 (defface org-checkbox-done-text
   '((t (:foreground "#71696A" :strike-through t)))
   "Face for the text part of a checked org-mode checkbox.")
@@ -297,20 +297,12 @@ However, I'm just going to have to write a function to clean this.
                                          bol (zero-or-more space) "#+END" (zero-or-more any) eol "\n")
                                   (optional bol (zero-or-more space) eol "\n")) nil t)
       (replace-match (match-string 1) nil :no-error)))
-#+END_SRC
+#+end_src
 Now that is some complicated regular expressions.
-* Pasting
-I like the idea that I will paste HTML text from the clipboard and have it converted to org-formatted text:
-#+BEGIN_SRC emacs-lisp
-(defun ha-org-paste ()
-  (interactive)
-  (if (eq system-type 'gnu/linux)
-      (shell-command "xclip -t text/html -o | pandoc -r html -w org" t)))
-#+END_SRC
 * Presentations
 Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for showing org files as presentations. Converted to use [[https://github.com/rlister/org-present][org-present]]. I love the /hooks/ as that makes it easier to pull out much of my =demo-it= configuration. My concern with =org-present= is that it only jumps from one top-level to another top-level header.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org-present
     :init
     (defvar ha-org-present-mode-line mode-line-format "Cache previous mode-line format state")
@@ -328,8 +320,8 @@ Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for sho
 
       (defun hide-these (patterns)
         (when patterns
-            (hide-this (car patterns))
-            (hide-these (cdr patterns))))
+          (hide-this (car patterns))
+          (hide-these (cdr patterns))))
 
       (save-excursion
         (hide-these (list (rx bol (zero-or-more space)
@@ -368,13 +360,42 @@ Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for sho
     :hook
     (org-present-mode . org-present-start)
     (org-present-mode-quit . org-present-end))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
-Let's provide a name so that the file can be required:
-#+BEGIN_SRC emacs-lisp :exports none
-#+END_SRC
+Note, according to [[https://www.reddit.com/r/emacs/comments/vahsao/orgmode_use_capitalized_property_keywords_or/][this discussion]] (and especially [[https://scripter.co/org-keywords-lower-case/][this essay]]), I’m switching over to lower-case version of org properties. Using this helper function:
+#+begin_src emacs-lisp
+  (defun modi/lower-case-org-keywords ()
+    "Lower case Org keywords and block identifiers.
+
+  Example: \"#+TITLE\" -> \"#+title\"
+           \"#+BEGIN_EXAMPLE\" -> \"#+begin_example\"
+
+  Inspiration:
+  https://code.orgmode.org/bzg/org-mode/commit/13424336a6f30c50952d291e7a82906c1210daf0."
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((case-fold-search nil)
+            (count 0)
+            ;; All keywords can be found with this expression:
+            ;; (org-keyword-re "\\(?1:#\\+[A-Z_]+\\(?:_[[:alpha:]]+\\)*\\)\\(?:[ :=~’”]\\|$\\)")
+            ;; Match examples: "#+foo bar", "#+foo:", "=#+foo=", "~#+foo~",
+            ;;                 "‘#+foo’", "“#+foo”", ",#+foo bar",
+            ;;                 "#+FOO_bar<eol>", "#+FOO<eol>".
+            ;;
+            ;; Perhap I want the #+begin_src and whatnot:
+            (org-keyword-re (rx line-start (optional (zero-or-more space))
+                                "#+" (group (or "BEGIN" "END") "_" (one-or-more alpha)))))
+        (while (re-search-forward org-keyword-re nil :noerror)
+          (setq count (1+ count))
+          (replace-match (downcase (match-string-no-properties 1)) :fixedcase nil nil 1))
+        (message "Lower-cased %d matches" count))))
+#+end_src
+Let's provide a name so we can =require= this file:
+#+begin_src emacs-lisp :exports none
   (provide 'ha-org-word-processor)
   ;;; ha-org-word-processor.el ends here
+#+end_src
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 
 #+DESCRIPTION: A literate programming file for making Org file more readable.

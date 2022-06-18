@@ -5,7 +5,7 @@
 
 A literate programming configuration file for extending the Journaling capabilities.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; org-journaling --- Configuring journals in org. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
@@ -23,11 +23,11 @@ A literate programming configuration file for extending the Journaling capabilit
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-#+END_SRC
+#+end_src
 * Introduction
 Using the [[https://github.com/bastibe/org-journal][org-journal]] project to easily create /daily/ journal entries:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package org-journal
   :init
   (setq org-journal-dir "~/journal"
@@ -36,45 +36,45 @@ Using the [[https://github.com/bastibe/org-journal][org-journal]] project to eas
         org-journal-file-type 'daily
         org-journal-file-format "%Y%m%d")
   :config
-#+END_SRC
+#+end_src
 Notice that the rest of this file's contents is /contained/ in this =config= section!
 
 And let's put a /leader key/ sequence for it (Doom-specific):
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader "f j" '("journal" . org-journal-new-entry))
-#+END_SRC
+#+end_src
 
 In normal Org file, I like large headers, but in my Journal, where each task is a header, I want them smaller:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (add-hook 'org-journal-mode-hook
           (lambda ()
             (set-face-attribute 'org-level-1 nil :height 1.2)
             (set-face-attribute 'org-level-2 nil :height 1.1)
             (set-face-attribute 'org-level-3 nil :height 1.0)))
-#+END_SRC
+#+end_src
 
 But new files could use /my formatting/ (which is different than the options available in the project):
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-auto-insert-file (rx "journal/" (zero-or-more any) (= 8 digit)) "journal")
-#+END_SRC
+#+end_src
 
 This depends on the following [[file:~/.doom.d/snippets/org-journal-mode/__journal][snippet/template file]]:
 
-#+BEGIN_SRC snippet :tangle ~/other/hamacs/templates/journal
+#+begin_src snippet :tangle ~/other/hamacs/templates/journal
 #+TITLE: Journal Entry- `(ha-journal-file-datestamp)`
 
 $0
 
-#+END_SRC
+#+end_src
 
 Note that when I create a new journal entry, I want a title that should insert a date to match the file's name, not necessarily the current date (see below).
 * Journal Filename to Date
 Since the Journal's filename represents a date, I should be able to get the "date" associated with a file.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-journal-file-date (&optional datename)
   "Returns a Lisp date-timestamp based on the format of the current filename,
 or DATENAME if given."
@@ -89,24 +89,24 @@ or DATENAME if given."
          (month (string-to-number (match-string 2 datename)))
          (year(string-to-number (match-string 1 datename))))
     (encode-time 0 0 0 day month year)))
-#+END_SRC
+#+end_src
 
 Using the "date" associated with a file, we can create our standard timestamp:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-journal-file-datestamp (&optional datename)
   "Return a string of the buffer's date (based on the file's name)."
   (format-time-string "%e %b %Y (%A)" (ha-journal-file-date datename)))
-#+END_SRC
+#+end_src
 
 Close the =use-package= call:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 )
-#+END_SRC
+#+end_src
 * Journal Capture
 Capturing a task (that when uncompleted, would then spillover to following days) could go to the daily journal entry. This requires a special function that opens today's journal, but specifies a non-nil prefix argument in order to inhibit inserting the heading, as =org-capture= will insert the heading.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun org-journal-find-location ()
   (org-journal-new-entry t)
   (org-narrow-to-subtree)
@@ -118,11 +118,11 @@ Capturing a task (that when uncompleted, would then spillover to following days)
                (function org-journal-find-location)
                "* %?\n\n  %i\n\n  From: %a"
                :empty-lines 1 :jump-to-captured t :immediate-finish t))
-#+END_SRC
+#+end_src
 * Next and Previous File
 Sometimes it is obvious what is the /next file/ based on the one I'm currently reading. For instance, in my journal entries, the filename is a number that can be incremented. Same with presentation files...
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun split-string-with-number (string)
   "Returns a list of three components of the string, the first is
   the text prior to any numbers, the second is the embedded number,
@@ -133,22 +133,22 @@ Sometimes it is obvious what is the /next file/ based on the one I'm currently r
         (list (substring string 0 start)
               (substring string start end)
               (if end  (substring string end)  "")))))
-#+END_SRC
+#+end_src
 
 Which means that the following defines this function:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (ert-deftest split-string-with-number-test ()
   (should (equal (split-string-with-number "abc42xyz") '("abc" "42" "xyz")))
   (should (equal (split-string-with-number "42xyz")    '("" "42" "xyz")))
   (should (equal (split-string-with-number "abc42")    '("abc" "42" "")))
   (should (equal (split-string-with-number "20140424") '("" "20140424" "")))
   (should (null  (split-string-with-number "abcxyz"))))
-#+END_SRC
+#+end_src
 
 Given this splitter function, we create a function that takes some sort of operator and return a new filename based on the conversion that happens:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun find-file-number-change (f)
   (let* ((filename (buffer-file-name))
          (parts    (split-string-with-number
@@ -159,11 +159,11 @@ Given this splitter function, we create a function that takes some sort of opera
             (nth 0 parts)
             new-name
             (nth 2 parts))))
-#+END_SRC
+#+end_src
 
 And this allows us to create two simple functions that can load the "next" and "previous" files:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun find-file-increment ()
   "Takes the current buffer, and loads the file that is 'one
   more' than the file contained in the current buffer. This
@@ -171,9 +171,9 @@ And this allows us to create two simple functions that can load the "next" and "
   incremented."
   (interactive)
   (find-file (find-file-number-change '1+)))
-#+END_SRC
+#+end_src
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun find-file-decrement ()
   "Takes the current buffer, and loads the file that is 'one
   less' than the file contained in the current buffer. This
@@ -181,14 +181,14 @@ And this allows us to create two simple functions that can load the "next" and "
   decremented."
   (interactive)
   (find-file (find-file-number-change '1-)))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-org-journaling)
 ;;; ha-org-journaling.el ends here
-#+END_SRC
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 

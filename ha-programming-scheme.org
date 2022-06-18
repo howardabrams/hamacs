@@ -1,15 +1,14 @@
 #+TITLE:  Programming in Scheme for SICP
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2022-03-01
-#+FILETAGS: :emacs:
 
 A literate programming file configuring Emacs.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha-programming-scheme --- Configuration for Scheme. -*- lexical-binding: t; -*-
   ;;
   ;; © 2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -23,22 +22,21 @@ A literate programming file configuring Emacs.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-  #+END_SRC
+  #+end_src
 * Introduction
 First, install MIT-Scheme, the Lisp dialect used throughout the SICP book:
 =brew install mit-scheme= or =sudo apt install mit-scheme= .
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install mit-scheme
-#+END_SRC
+#+end_src
 
 Or better yet, let’s use Guile:
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install guile
-#+END_SRC
+#+end_src
 * Geiser (Scheme Interface)
-The [[https://www.nongnu.org/geiser/][geiser project]] attempts to be the interface between Emacs and various Schemes. Since I can’t decide which to use, I’ll install/configure them all.
-
-#+BEGIN_SRC emacs-lisp
+The [[https://www.nongnu.org/geiser/][geiser project]] attempts to be the interface between Emacs and all the Schemes in the world. Since I can’t decide which to use, I’ll install/configure them all.
+#+begin_src emacs-lisp
   (use-package geiser
     :init
     (setq geiser-mit-binary "/usr/local/bin/scheme"
@@ -50,22 +48,22 @@ The [[https://www.nongnu.org/geiser/][geiser project]] attempts to be the interf
     (use-package geiser-mit)
     (use-package geiser-guile)
     (use-package geiser-racket))
-#+END_SRC
+#+end_src
 ** Org Mode
 :PROPERTIES:
 :header-args:scheme:    :session *scheming* :results value replace
 :END:
 Do we need a Scheme work for Org Babel? According to [[https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-scheme.html][this document]], we just need to make sure we add the =:session= variable to start the REPL.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package ob-scheme
     :straight (:type built-in)
     :config
     (add-to-list 'org-babel-load-languages '(scheme . t)))
 
-#+END_SRC
+#+end_src
 
 Since the version of Scheme hasn't been updated with the deprecation, and subsequent removal of =org-babel-get-header=, we include it here:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun org-babel-get-header (params key &optional others)
     (delq nil
           (mapcar
@@ -73,80 +71,80 @@ Since the version of Scheme hasn't been updated with the deprecation, and subseq
            params)))
 
 
-#+END_SRC
+#+end_src
 
 Let’s test it out by defining a variable:
-#+BEGIN_SRC scheme
+#+begin_src scheme
   (define a 42)
-#+END_SRC
+#+end_src
 
 And simply using it:
-#+BEGIN_SRC scheme :var b=8
+#+begin_src scheme :var b=8
   (+ a b)
-#+END_SRC
+#+end_src
 
 #+RESULTS:
 : ;Value: 50
 
 And what about Scheme-specific stuff needed for SICP?
-#+BEGIN_SRC scheme
+#+begin_src scheme
   (inc 42)
-#+END_SRC
+#+end_src
 
 ** Install SICP
 :PROPERTIES:
 :header-args:scheme: :session sicp :results value replace
 :END:
 Let’s get the book available as an Info page:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package sicp)
-#+END_SRC
+#+end_src
 
 Still having difficulty getting the Scheme REPL to output the results back into this document. Let’s try Racket...
 
 Normally, I would just [[info:SICP][read the book]], however, if we want to read the [[file:~/.emacs.d/straight/build/sicp/sicp.info][sicp.info]] file, we need this, at least, temporarily:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-mode))
-#+END_SRC
+#+end_src
 * Racket
 Actually, let’s do this with [[https://racket-lang.org/][Racket]]:
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install racket
-#+END_SRC
+#+end_src
 
 While Racket, as a Scheme, should work with Geiser (below), let’s also get [[https://racket-mode.com/][racket-mode]] working:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package racket-mode
     :config (setq racket-program "/usr/local/bin/racket"))
-#+END_SRC
+#+end_src
 
 Can we get Racket working with Org?
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package ob-racket
     :straight (:type git :protocol ssh :host github :repo "DEADB17/ob-racket")
     :after org
     :config
     (add-to-list 'org-babel-load-languages '(racket . t)))
-#+END_SRC
+#+end_src
 ** Try It Out
 :PROPERTIES:
 :HEADER-ARGS:racket: :session racketeering :results value replace :lang racket
 :END:
 Working for values?
-#+BEGIN_SRC racket
+#+begin_src racket
   (* 6 7)
-#+END_SRC
+#+end_src
 
 #+RESULTS:
 : 42
 
 Working for output?
-#+BEGIN_SRC racket :results output replace
+#+begin_src racket :results output replace
   (define str-1 "hello")
   (define str-2 "world")
   (define all (string-join (list str-1 str-2) ", "))
   (display (string-titlecase all))
-#+END_SRC
+#+end_src
 
 #+RESULTS:
 : Hello, World
@@ -158,16 +156,16 @@ The interface is horrendously slow, as the =:session= doesn’t seem to work, an
 :header-args:racket: :session *rsicp* :results value replace :lang sicp
 :END:
 If using [[https://docs.racket-lang.org/sicp-manual/SICP_Language.html][Racket for SICP]], install the SICP language:
-#+BEGIN_SRC sh
+#+begin_src sh
   raco pkg install --auto --update-deps sicp
-#+END_SRC
+#+end_src
 
 We now can give it a =#lang sicp= (or better yet, use the =:lang= header) to define certain SICP-specify features:
 
 Let’s try this now:
-#+BEGIN_SRC racket
+#+begin_src racket
 (inc 42)
-#+END_SRC
+#+end_src
 
 #+RESULTS:
 : 43
@@ -175,10 +173,10 @@ Let’s try this now:
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   (provide 'ha-programming-scheme)
   ;;; ha-programming-scheme.el ends here
-  #+END_SRC
+  #+end_src
 
 #+DESCRIPTION: A literate programming file configuring Emacs.
 

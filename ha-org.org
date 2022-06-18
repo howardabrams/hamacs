@@ -1,15 +1,14 @@
 #+TITLE:  General Org-Mode Configuration
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-18
-#+FILETAGS: :emacs:
 
 A literate programming file for configuring org-mode and those files.
 
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
   ;;; ha --- Org configuration. -*- lexical-binding: t; -*-
   ;;
   ;; © 2020-2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -24,10 +23,10 @@ A literate programming file for configuring org-mode and those files.
   ;;
   ;;; Code:
 
-#+END_SRC
+#+end_src
 * Use Package
 Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org
     :mode ("\\.org" . org-mode)    ; Addresses an odd warning
     :init
@@ -47,22 +46,22 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     <<org-return-key>>
     <<global-keybindings>>
     <<org-keybindings>>)
-#+END_SRC
+#+end_src
 
 One other helper routine is a =general= macro for org-mode files:
-#+NAME: ha-org-leader
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: ha-org-leader
+#+begin_src emacs-lisp :tangle no
   (general-create-definer ha-org-leader
       :states '(normal visual motion)
       :keymaps 'org-mode-map
       :prefix "SPC m"
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
-#+END_SRC
+#+end_src
 * Initialization Section
 Begin by initializing these org variables:
-#+NAME: variables
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: variables
+#+begin_src emacs-lisp :tangle no
   (setq org-return-follows-link t
         org-adapt-indentation nil   ; Don't physically change files
         org-startup-indented t      ; Visually show paragraphs indented
@@ -90,28 +89,28 @@ Begin by initializing these org variables:
         org-confirm-babel-evaluate nil
         org-src-fontify-natively t
         org-src-tab-acts-natively t)
-#+END_SRC
+#+end_src
 
 * Configuration Section
 I pretend that my org files are word processing files that wrap automatically:
-#+NAME: visual-hook
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: visual-hook
+#+begin_src emacs-lisp :tangle no
 (add-hook 'org-mode-hook #'visual-line-mode)
-#+END_SRC
+#+end_src
 
 Files that end in =.txt= are still org files to me:
-#+NAME: text-files
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: text-files
+#+begin_src emacs-lisp :tangle no
   (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
 
   (add-to-list 'safe-local-variable-values '(org-content . 2))
-#+END_SRC
+#+end_src
 *Note:* Org mode files with the =org-content= variable setting will collapse two levels headers. Let's allow that without the need to approve that.
 ** Better Return
 Hitting the ~Return~ key in an org file should format the following line based on context. For instance, at the end of a list, insert a new item.
 We begin with the interactive function that calls our code if we are at the end of the line.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-org-return ()
     "If at the end of a line, do something special based on the
    information about the line by calling `ha-org-special-return',
@@ -120,13 +119,13 @@ We begin with the interactive function that calls our code if we are at the end 
     (if (eolp)
         (ha-org-special-return)
       (org-return)))
-#+END_SRC
+#+end_src
 
 And bind it to the Return key:
-#+NAME: org-return-key
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: org-return-key
+#+begin_src emacs-lisp :tangle no
 (define-key org-mode-map (kbd "RET")  #'ha-org-return)
-#+END_SRC
+#+end_src
 
 What should we do if we are at the end of a line?
   - Given a prefix, call =org-return= as usual in an org file.
@@ -137,7 +136,7 @@ What should we do if we are at the end of a line?
 
 I should break this function into smaller bits ...
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-org-special-return (&optional ignore)
     "Add new list item, heading or table row with RET.
   A double return on an empty element deletes it.
@@ -177,11 +176,11 @@ I should break this function into smaller bits ...
 
        (t
         (org-return)))))
-#+END_SRC
+#+end_src
 
 How do we know if we are in a list item? Lists end with two blank lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with one blank line.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun org-really-in-item-p ()
     "Return item beginning position when in a plain list, nil otherwise.
   Unlike `org-in-item-p', this works around an issue where the
@@ -192,30 +191,30 @@ How do we know if we are in a list item? Lists end with two blank lines, so we n
         (when location
           (goto-char location))
         (org-in-item-p))))
-#+END_SRC
+#+end_src
 
 The org API allows getting the context associated with the /current element/. This could be a line-level symbol, like paragraph or =list-item=, but always when the point isn't /inside/ a bold or italics item. You know how HTML distinguishes between /block/ and /inline/ elements, org doesn't. So, let's make a function that makes that distinction:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun org-line-element-context ()
   "Return the symbol of the current block element, e.g. paragraph or list-item."
   (let ((context (org-element-context)))
     (while (member (car context) '(verbatim code bold italic underline))
       (setq context (org-element-property :parent context)))
     context))
-#+END_SRC
+#+end_src
 ** Tasks
 I need to add a /blocked/ state:
 
-#+NAME: org-todo
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: org-todo
+#+begin_src emacs-lisp :tangle no
 (setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)")
                           (sequence "BLOCKED(b)" "|" "CANCELLED(c)")))
-#+END_SRC
+#+end_src
 
 And I would like to have cute little icons for those states:
 
-#+NAME: org-font-lock
-#+BEGIN_SRC emacs-lisp
+#+name: org-font-lock
+#+begin_src emacs-lisp
   (dolist (m '(org-mode org-journal-mode))
     (font-lock-add-keywords m                        ; A bit silly but my headers are now
                             `(("^\\*+ \\(TODO\\) "   ; shorter, and that is nice canceled
@@ -233,11 +232,11 @@ And I would like to have cute little icons for those states:
                               ;; file or the behavior).
                               ("^ +\\([-*]\\) "
                                (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
-#+END_SRC
+#+end_src
 ** Meetings
 I've notice that while showing a screen while taking meeting notes, I don't always like showing other windows, so I created this function to remove distractions during a meeting.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun meeting-notes ()
     "Call this after creating an org-mode heading for where the notes for the meeting
      should be. After calling this function, call 'meeting-done' to reset the environment."
@@ -249,11 +248,11 @@ I've notice that while showing a screen while taking meeting notes, I don't alwa
       (text-scale-set 2)                                 ; readable by others
       (fringe-mode 0)
       (message "When finished taking your notes, run meeting-done."))
-#+END_SRC
+#+end_src
 
 Of course, I need an 'undo' feature when the meeting is over…
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun meeting-done ()
       "Attempt to 'undo' the effects of taking meeting notes."
       (interactive)
@@ -261,10 +260,10 @@ Of course, I need an 'undo' feature when the meeting is over…
       (text-scale-set 0)         ; Reset the font size increase
       (fringe-mode 1)
       (winner-undo))             ; Put the windows back in place
-#+END_SRC
+#+end_src
 ** Searching
 Now that my paragraphs in an org file are on a single line, I need this less, but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results that line-oriented search systems, like =grep=. Let’s create operating-system functions the command line for searching:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-search-notes--macos (phrase path)
     "Return the indexed search system command on MACOS, mdfind.
   Including the parameters using the PHRASE on the PATH(s)."
@@ -279,10 +278,10 @@ Now that my paragraphs in an org file are on a single line, I need this less, bu
       (format "recoll -t -a -b %s" phrase))
 
 
-#+END_SRC
+#+end_src
 
 This function calls these operating-system functions, but returns the matching files as a /single string/ (where each file is wrapped in single quotes, and all joined together, separated by spaces. This function also allows me to /not-match/ backup files and whatnot.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-search-notes--files (phrase path)
     "Return an escaped string of all files matching PHRASE.
   On a Mac, this search is limited by PATH"
@@ -296,11 +295,11 @@ This function calls these operating-system functions, but returns the matching f
            (--map (format "'%s'" it))
            (s-join " "))))
 
-#+END_SRC
+#+end_src
 
 The =ha-search-notes= function prompts for the phrase to search, and then searches through the =org-directory= path to acquire the matching files. It then feeds that list to =grep= (and the [[help:grep][grep function]] in order to display a list of matches that I can jump to.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-search-notes (phrase &optional path)
     "Search files in PATH for PHRASE and display in a grep mode buffer."
     (interactive "sSearch notes for: ")
@@ -311,33 +310,33 @@ The =ha-search-notes= function prompts for the phrase to search, and then search
       (grep (format "%s -ni -m 1 '%s' %s" command regexp files))))
 
 
-#+END_SRC
+#+end_src
 Eventually, I would like to change the output so that the title of the Org mode is displayed instead of the first match, but that is good enough.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (ha-leader "f n" '("find notes" . ha-search-notes))
-#+END_SRC
+#+end_src
 ** Misc
 *** Babel Blocks
 I use [[https://orgmode.org/worg/org-contrib/babel/intro.html][org-babel]] (obviously) and don’t need confirmation before evaluating a block:
-#+NAME: ob-configuration
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: ob-configuration
+#+begin_src emacs-lisp :tangle no
     (setq org-confirm-babel-evaluate nil
           org-src-fontify-natively t
           org-src-tab-acts-natively t)
-#+END_SRC
+#+end_src
 Whenever I edit Emacs Lisp blocks from my tangle-able configuration files, I get a lot of superfluous warnings. Let's turn them off.
-#+NAME: no-flycheck-in-org
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: no-flycheck-in-org
+#+begin_src emacs-lisp :tangle no
 (defun disable-flycheck-in-org-src-block ()
   (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 
 (add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
-#+END_SRC
+#+end_src
 
 And turn on ALL the languages:
-#+NAME: ob-languages
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: ob-languages
+#+begin_src emacs-lisp :tangle no
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((shell      . t)
                                  (js         . t)
@@ -348,7 +347,7 @@ And turn on ALL the languages:
                                  (dot        . t)
                                  (css        . t)
                                  (plantuml   . t)))
-#+END_SRC
+#+end_src
 *** REST Web Services
 :PROPERTIES:
 :header-args: :var user-agent="my-super-agent"
@@ -398,13 +397,13 @@ And let’s try this:
 
 *** Graphviz
 The [[https://graphviz.org/][graphviz project]] can be written in org blocks, and then rendered as an image:
-#+NAME: ob-graphviz
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: ob-graphviz
+#+begin_src emacs-lisp :tangle no
     (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
-#+END_SRC
+#+end_src
 
 For example:
-#+BEGIN_SRC dot :file support/ha-org-graphviz-example.png :exports file :results replace file
+#+begin_src dot :file support/ha-org-graphviz-example.png :exports file :results replace file
   digraph G {
     graph [bgcolor=transparent];
     edge [color=white];
@@ -419,25 +418,25 @@ For example:
     A -> H;
     E -> G;
   }
-#+END_SRC
+#+end_src
 
-#+ATTR_ORG: :width 400px
-#+RESULTS:
+#+attr_org: :width 400px
+#+results:
 [[file:support/ha-org-graphviz-example.png]]
 *** PlantUML
 Need to install and configure Emacs to work with [[https://plantuml.com/][PlantUML]]. Granted, this is easier now that [[http://orgmode.org/worg/org-contrib/babel][Org-Babel]] natively supports [[http://eschulte.github.io/babel-dev/DONE-integrate-plantuml-support.html][blocks of plantuml code]]. First, [[https://plantuml.com/download][download the Jar]].
 
-#+BEGIN_SRC sh
+#+begin_src sh
   curl -o ~/bin/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2022.4/plantuml-1.2022.4.jar
-#+END_SRC
+#+end_src
 
 After installing the [[https://github.com/skuro/plantuml-mode][plantuml-mode]], we need to reference the location:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package plantuml-mode
     :straight (:host github :repo "skuro/plantuml-mode")
     :init
     (setq org-plantuml-jar-path (expand-file-name "~/bin/plantuml.jar")))
-#+END_SRC
+#+end_src
 
 With some [[file:snippets/org-mode/plantuml][YASnippets]], I have =<p= to start a general diagram, and afterwards (while still in the org-mode file), type one of the following to expand as an example:
   - =activity= :: https://plantuml.com/activity-diagram-betastart
@@ -451,12 +450,12 @@ With some [[file:snippets/org-mode/plantuml][YASnippets]], I have =<p= to start 
 
 You may be wondering how such trivial terms can be used as expansions in an org file. Well, the trick is that each snippets has a =condition= that calls the following predicate function, that make the snippets context aware:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-org-nested-in-plantuml-block ()
   "Predicate is true if point is inside a Plantuml Source code block in org-mode."
   (equal "plantuml"
          (plist-get (cadr (org-element-at-point)) :language)))
-#+END_SRC
+#+end_src
 
 Here is a sequence diagram example to show how is looks/works:
 #+begin_src plantuml :file ha-org-plantuml-example.png :exports file :results file
@@ -471,12 +470,12 @@ Here is a sequence diagram example to show how is looks/works:
   @enduml
   #+end_src
 
-#+ATTR_ORG: :width 800px
+#+attr_org: :width 800px
 [[file:ha-org-plantuml-example.png]]
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (defun ha-org-next-image-number (&optional prefix)
   (when (null prefix)
     (if (null (buffer-file-name))
@@ -490,20 +489,20 @@ When I create images or other artifacts that I consider /part/ of the org docume
       (while (re-search-forward png-reg nil t)
         (setq largest (max largest (string-to-number (match-string-no-properties 1)))))
       (format "%s-%02d" prefix (1+ largest)))))
-#+END_SRC
+#+end_src
 ** Keybindings
 Global keybindings available to all file buffers:
-#+NAME: global-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: global-keybindings
+#+begin_src emacs-lisp :tangle no
   (ha-leader
     "o l" '("store link" . org-store-link)
     "o x" '("org capture" . org-capture)
     "o c" '("clock out" . org-clock-out))
-#+END_SRC
+#+end_src
 
 Bindings specific to org files:
-#+NAME: org-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
+#+name: org-keybindings
+#+begin_src emacs-lisp :tangle no
   (evil-define-key '(normal motion operator visual) org-mode-map "gu" #'org-up-element)
 
   (ha-org-leader
@@ -557,27 +556,27 @@ Bindings specific to org files:
       "n b" '("block"   . org-narrow-to-block)
       "n e" '("element" . org-narrow-to-element)
       "n w" '("widen"   . widen))
-#+END_SRC
+#+end_src
 * Supporting Packages
 ** Exporters
 Limit the number of exporters to the ones that I would use:
-#+NAME: ox-exporters
-#+BEGIN_SRC emacs-lisp
+#+name: ox-exporters
+#+begin_src emacs-lisp
 (setq org-export-backends '(ascii html icalendar md odt))
-#+END_SRC
+#+end_src
 
 I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence exporter]] for my org files:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package ox-confluence
     :after org
     :straight nil   ; Located in my "elisp" directory
     :config
       (ha-org-leader
         "E" '("to confluence"     . ox-export-to-confluence)))
-#+END_SRC
+#+end_src
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package graphviz-dot-mode
     :mode "\\.dot\\'"
     :init
@@ -586,18 +585,18 @@ And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode]
           graphviz-dot-auto-indent-on-newline t
           graphviz-dot-auto-indent-on-braces t
           graphviz-dot-auto-indent-on-semi t))
-#+END_SRC
+#+end_src
 And we can install company support:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (use-package company-graphviz-dot)
-#+END_SRC
+#+end_src
 ** Focused Work
 :LOGBOOK:
 CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
 :END:
 I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-work.html][approach to focused work]],
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package async)
 
   (use-package ha-focus
@@ -606,23 +605,23 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
     (ha-leader
      "o f" '("begin focus" . ha-focus-begin)
      "o F" '("break focus" . ha-focus-break)))
-#+END_SRC
+#+end_src
 ** Spell Checking
 Let's hook some spell-checking into org files, and actually all text files. I’m making this particularly delicious.
 
 First, we turn on =abbrev-mode=. While this package comes with Emacs, check out [[https://masteringemacs.org/article/correcting-typos-misspellings-abbrev][Mickey Petersen's overview]] of using this package for auto-correcting typos.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq-default abbrev-mode t)
-#+END_SRC
+#+end_src
 In general, /fill/ the list, by moving the point to the /end/ of some word, and type ~C-x a g~ (or, in /normal state/, type ~SPC x d~):
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (ha-leader "x d" '("add abbrev" . kadd-global-abbrev))
-#+END_SRC
+#+end_src
 The idea is that you can correct a typo /and remember/ it. Perhaps calling [[help:edit-abbrevs][edit-abbrevs]] to making any fixes to that list.
 
 Next, I create a special /auto-correcting function/ that takes advantage of Evil’s [[help:evil-prev-flyspell-error][evil-prev-flyspell-error]] to jump back to the last spelling mistake (as I often notice the mistake after entering a few words), and call the interactive [[help:ispell-word][ispell-word]]. What makes this delicious is that I then call [[help:define-global-abbrev][define-global-abbrev]] to store both the mistake and the correction so that automatically typing that mistake again, is corrected.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun ha-fix-last-spelling (count)
     "Jump to the last misspelled word, and correct it.
   This adds the correction to the global abbrev table so that any
@@ -635,12 +634,12 @@ Next, I create a special /auto-correcting function/ that takes advantage of Evil
               (bad-word (match-string 0)))
           (ispell-word)
           (define-global-abbrev bad-word (buffer-substring-no-properties start-word (point)))))))
-#+END_SRC
+#+end_src
 
 Since this auto-correction needs to happen in /insert/ mode, I have bound a few keys, including ~CMD-s~ and  ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am. If the spelling mistake is /obvious/, I use ~C-;~ to call [[help:flyspell-auto-correct-word][flyspell-auto-correct-word]]. However, I currently do not know how to use this cool feature with my =ha-fix-last-spelling= function (because I don’t know when that function is done).
 
 For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting.
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package flyspell
     :hook (text-mode . flyspell-mode)
     :bind (("M-S" . ha-fix-last-spelling)     ; This is j-k-s on the Moonlander. Hrm.
@@ -663,12 +662,12 @@ For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] 
       "s c" '("correct word" . flyspell-auto-correct-word)
       "s p" '("previous misspell" . evil-prev-flyspell-error)
       "s n" '("next misspell" . evil-next-flyspell-error)))
-#+END_SRC
+#+end_src
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
 
 According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur Malabarba]], we can turn on rounded apostrophe's, like =‘= (left single quotation mark). The idea is to not send the quote to the sub-process:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun endless/replace-apostrophe (args)
     "Don't send ’ to the subprocess."
     (cons (replace-regexp-in-string
@@ -686,13 +685,13 @@ According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur 
             (cdr args))))
 
   (advice-add #'ispell-parse-output :filter-args #'endless/replace-quote)
-#+END_SRC
+#+end_src
 
 The end result? No misspellings. Isn‘t this nice?
 
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package powerthesaurus
     :bind ("M-T" . powerthesaurus-lookup-dwim)
     :config
@@ -702,37 +701,38 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "s a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
       "s r" '("related" . powerthesaurus-lookup-related-dwim)
       "s S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
-#+END_SRC
+#+end_src
 The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package define-word
     :config
     (ha-local-leader :keymaps 'text-mode-map
       "s d" '("define this" . define-word-at-point)
       "s D" '("define word" . define-word)))
-#+END_SRC
+#+end_src
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
 *** Writegood
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words, but isn’t integrated into =flycheck=:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no
   (use-package writegood-mode
       :hook ((org-mode . writegood-mode)))
-#+END_SRC
+#+end_src
+And it reports obnoxious messages.
 
 We install the =write-good= NPM:
-#+BEGIN_SRC shell
+#+begin_src shell
   npm install -g write-good
-#+END_SRC
+#+end_src
 
 And check that the following works:
-#+BEGIN_SRC sh :results output
+#+begin_src sh :results output
   write-good --text="So it is what it is."
-#+END_SRC
+#+end_src
 
 Now, let’s connect it to flycheck:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package flycheck
     :config
     (flycheck-define-checker write-good
@@ -743,16 +743,16 @@ Now, let’s connect it to flycheck:
                              ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
                              :modes (markdown-mode org-mode text-mode))
 
-#+END_SRC
     (add-to-list 'flycheck-checkers 'write-good))
+#+end_src
 *** Proselint
 With overlapping goals to =write-good=, the [[https://github.com/amperser/proselint/][proselint]] project, once installed, can check for some English phrasings. I like =write-good= better, but I want this available for its level of /pedantic-ness/.
-#+BEGIN_SRC sh
+#+begin_src sh
   brew install proselint
-#+END_SRC
+#+end_src
 
 Next, create a configuration file, =~/.config/proselint/config= file, to turn on/off checks:
-#+BEGIN_SRC js :tangle ~/.config/proselint/config.json :mkdirp yes
+#+begin_src js :tangle ~/.config/proselint/config.json :mkdirp yes
   {
     "checks": {
       "typography.diacritical_marks": false,
@@ -760,12 +760,11 @@ Next, create a configuration file, =~/.config/proselint/config= file, to turn on
       "consistency.spacing": false
     }
   }
-#+END_SRC
+#+end_src
 
 And tell [[https://www.flycheck.org/][flycheck]] to use this:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package flycheck
-#+END_SRC
     :config
     (add-to-list 'flycheck-checkers 'proselint)
     ;; And create the chain of checkers so that both work:
@@ -812,15 +811,16 @@ Add =textlint= to the /chain/ for Org files:
     :config
     (setq flycheck-textlint-config (format "%s/.textlintrc" (getenv "HOME")))
     (flycheck-add-next-checker 'proselint 'textlint))
+#+end_src
 ** Distraction-Free Writing
 [[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]] inspired me to clean my writing room.
 *** Write-room
 For a complete focused, /distraction-free/ environment, for writing or concentrating, I'm using [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package writeroom-mode
     :hook (writeroom-mode-disable . winner-undo)
-    :config
+    :init
     (ha-leader "t W" '("writeroom" . writeroom-mode))
     (ha-leader :keymaps 'writeroom-mode-map
       "=" '("adjust width" . writeroom-adjust-width)
@@ -830,23 +830,22 @@ For a complete focused, /distraction-free/ environment, for writing or concentra
                 ("C-M-<" . writeroom-decrease-width)
                 ("C-M->" . writeroom-increase-width)
                 ("C-M-=" . writeroom-adjust-width)))
-#+END_SRC
+#+end_src
 *** Olivetti
-#+BEGIN_SRC emacs-lisp
 The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and centers the text. It isn’t better than Writeroom, but, it works well with Logos (below).
+#+begin_src emacs-lisp
   (use-package olivetti
     :init
     (setq-default olivetti-body-width 100)
-    :config
     (ha-leader "t O" '("olivetti" . olivetti-mode))
     :bind (:map olivetti-mode-map
                 ("C-M-<" . olivetti-shrink)
                 ("C-M->" . olivetti-expand)
                 ("C-M-=" . olivetti-set-width)))
-#+END_SRC
+#+end_src
 *** Logos
 Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://protesilaos.com/emacs/logos][logos project]] as a replacement for [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package logos
     :straight (:type git :protocol ssh :host gitlab :repo "protesilaos/logos")
     :init
@@ -870,13 +869,13 @@ Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://prote
     (:states 'normal
              "g [" 'logos-backward-page-dwim
              "g ]" 'logos-forward-page-dwim))
-#+END_SRC
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's provide a name, to allow =require= to work:
-#+BEGIN_SRC emacs-lisp :exports none
+#+begin_src emacs-lisp :exports none
 (provide 'ha-org)
 ;;; ha-org.el ends here
-#+END_SRC
+#+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 
