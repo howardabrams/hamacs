@@ -2,7 +2,7 @@
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2020-09-15
 
-A literate programming file of functions for formatting the clipboard.
+A literate programming file of functions for formatting Emacs text and code into and out to the system clipboard.
 
 #+begin_src emacs-lisp :exports none
   ;;; org-clipboard --- Functions for formatting the clipboard. -*- lexical-binding: t; -*-
@@ -24,13 +24,102 @@ A literate programming file of functions for formatting the clipboard.
   ;;; Code:
 #+end_src
 * Introduction
-I would like to paste the formatted contents of the clipboard into an Org file /as org-formatted text/.
-* The Clipboard
+Sure, I try to keep my text editing world /inside/ the internal consistency and mouse-less world of Emacs. But life is more complicated, especially on my Mac system given to me for work. The code shown before allows me to interact with other applications, including:
+  - Copying code from Emacs to the clipboard that I can paste into apps like Slack
+  - Copying Org notes to the clipboard so that when I paste them into web apps and Slack, they maintain their formatting
+  - Copying formatted text from web pages and Slack and pasting them in Org files /as org-formatted text/.
+* Into the Clipboard
+[[http://mbork.pl/2022-06-20_Copying_the_current_location][This essay]] from =mbork= has an interesting idea of being able to select code, and copy it to the clipboard with /extra information/ about the location. The location is the filename (relative to the project), as well as the project name and line number, but since every buffer may not have all this information, we’ll make some best guesses:
+#+begin_src emacs-lisp
+  (defun current-location (&optional start-line)
+    "Show the current location and put it into the kill ring.
+  Use the filename relative to the current projectile root directory.
+  If called non-interactively, return the location as a string."
+    (interactive)
+    (let* ((project-name (projectile-project-name))
+           (file-name (when (and buffer-file-name (projectile-project-root))
+                        (file-relative-name buffer-file-name (projectile-project-root))))
+           (line-number (or start-line (line-number-at-pos nil t)))
 
-Functions to help convert content from the operating system's clipboard into org-mode-compatible text.
+           (location (cond
+                      ((and project-name file-name)
+                       (format "%s :: %s : %s" project-name file-name line-number))
+                      (file-name
+                       (format "%s : %d" file-name line-number))
+                      (project-name
+                       (format "project: %s" project-name))
+                      (t ""))))
+      (if (not (called-interactively-p))
+          location
+        (kill-new location)
+        (message location))))
+#+end_src
+Use the =current-location= function, along with the /region/ or /function/ and copy it into the clipboard:
+#+begin_src emacs-lisp
+  (defun code-region-to-clipboard (start end)
+    "Copy the active region along with a location header to kill ring.
+  Calls `current-location' to get the header."
+    (interactive "r")
+    (kill-new
+     (format "From %s …\n%s" (current-location start) (buffer-substring-no-properties start end)))
+    (message "Copied code to clipboard, %s" (current-location start)))
+#+end_src
+And if there is no active region, let’s attempt to copy the /function/ (whatever that may mean), that we get with the [[help:which-function-mode][which-function-mode]] (see [[https://www.emacswiki.org/emacs/WhichFuncMode][the Emacs wiki]] for details):
+#+begin_src emacs-lisp
+  (defun code-function-to-clipboard ()
+    "Copy the current function along with a location header to kill ring.
+  Calls `current-location' to get the header, and uses the `which-function'
+  for the name of the function."
+    (interactive)
+    (let ((func-name (which-function))
+          (func-start (save-excursion (beginning-of-defun) (point)))
+          (func-end (save-excursion (end-of-defun) (point))))
+      (kill-new
+       (format "%s (%s)…\n%s"
+               (current-location func-start) func-name (buffer-substring-no-properties func-start func-end)))
+      (message "Copied `%s' to clipboard" func-name)))
+#+end_src
+
+Code is easy to paste, but what about org, as we could formatted it to HTML first, before putting it on the clipboard. For this, I’m going to use the illustrious [[https://pandoc.org/][pandoc project]] to convert my org file to either Markdown (for Slack) or rich-text (for highly formatted text for the MacOS clipboard). This function is MacOS specific, since it uses [[https://www.unix.com/man-page/osx/1/pbcopy/][pbcopy]]. I will convert it to also use [[https://linux.die.net/man/1/xclip][xclip]].
+#+begin_src emacs-lisp
+  (defun org-to-clipboard (rich-text-p)
+    "Copy the region or Org subtree to the clipboard as Rich Text."
+    (interactive "cDo you want Rich Text conversion? [y/n] ")
+    (save-excursion
+      (unless (region-active-p) (org-mark-subtree))
+      (let* ((contents
+              (buffer-substring-no-properties (region-beginning) (region-end)))
+             (tmp-file (make-temp-file "ha-clipboard-"))
+             (text-cmd (format "pandoc --from org --to markdown --standalone %s | pbcopy" tmp-file))
+             (rich-cmd (format "pandoc --from org --to rtf --standalone %s | pbcopy -Prefer rtf" tmp-file)))
+        (with-temp-file tmp-file
+          (insert contents))
+        (cond
+         ((or (eq rich-text-p ?y) (eq rich-text-p 13)) (shell-command rich-cmd))
+         (t                                            (shell-command text-cmd))))))
+#+end_src
+
+And a do-what-I-mean function to call these guys based on context:
+#+begin_src emacs-lisp
+  (defun code-to-clipboard-dwim ()
+    "Puts the region or function on the kill-ring along with location details.
+  The location details includes the project and file name along with line number."
+    (interactive)
+    (cond
+     ((eq major-mode 'org-mode) (call-interactively 'org-to-clipboard))
+     ((region-active-p)         (call-interactively 'code-region-to-clipboard))
+     (t                         (code-function-to-clipboard))))
+#+end_src
+And we need a keybinding:
+#+begin_src emacs-lisp
+  (ha-leader
+    "y" '("copy location" . current-location)
+    "Y" '("copy code" . code-to-clipboard-dwim))
+#+end_src
+* From The Clipboard
+Copying regular text into buffers if well supported in Emacs, but this section describes functions to help convert content from the operating system's clipboard into org-mode-compatible text.
 
 Each operating system as a different way of working with the clipboard, so let's create an operating-system abstraction:
-
 #+begin_src emacs-lisp
 (defun ha-get-clipboard ()
   "Returns a list where the first entry is the content type,
@@ -41,7 +130,6 @@ either :html or :text, and the second is the clipboard contents."
 #+end_src
 
 Let's define the clipboard for a Mac. The challenge here is that we need to binary unpack the data from a call to Applescript.
-
 #+begin_src emacs-lisp
   (defun ha-get-mac-clipboard ()
     "Returns a list where the first entry is the content type,
@@ -66,8 +154,7 @@ Let's define the clipboard for a Mac. The challenge here is that we need to bina
          (mapconcat #'byte-to-string byte-seq "") 'utf-8))))
 #+end_src
 
-And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (that really should go into the piper project).
-
+And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (which I should move into the piper project).
 #+begin_src emacs-lisp
 (defun ha-get-linux-clipboard ()
   "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."
@@ -84,43 +171,8 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
           (buffer-string))))
 #+end_src
 
-* Converting from Slack
-
-We can assume that most non-HTML text could be Slack-like:
-
-#+begin_src emacs-lisp
-(defun ha-slack-to-markdown-buffer ()
-  "Odd function that converts Slack’s version of Markdown (where
-code is delimited with triple backticks) into a more formal
-four-space indent markdown style."
-  (goto-char (point-min))
-  ;; Begin by converting all Carriage Returns to line feeds:
-  (while (re-search-forward "" nil t)
-    (replace-match "
-"))
-
-  (goto-char (point-min))
-  (while (re-search-forward "```" nil t)
-    (replace-match "
-
-    ")
-    (let ((starting-bounds (point)))
-      (if (re-search-forward "```[ \t]*" nil t)
-          (let ((ending-bounds (point)))
-            (replace-match "
-
-")
-            (goto-char starting-bounds)
-            (while (< (point) ending-bounds)
-              (next-line)
-              (beginning-of-line)
-              (insert "    ")))))))
-#+end_src
-
-* Converting to Org
-
+** Converting to Org
 Let's work top-down at this point with the interactive function that inserts the clipboard into the current buffer:
-
 #+begin_src emacs-lisp
 (defun ha-org-yank-clipboard ()
   "Yanks (pastes) the contents of the Apple Mac clipboard in an
@@ -129,49 +181,68 @@ org-mode-compatible format."
   (insert (ha-org-clipboard)))
 #+end_src
 
-The heavy lifting, however is done by this function. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.
-
+This function does the heavy lifting. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.
 #+begin_src emacs-lisp
-(defun ha-org-clipboard ()
-  "Return the contents of the clipboard in org-mode format."
-  (seq-let (type contents) (ha-get-clipboard)
-    (with-temp-buffer
-      (insert contents)
-      (if (eq :html type)
-          (shell-command-on-region (point-min) (point-max) "pandoc -f html -t org" t t)
-        (ha-slack-to-markdown-buffer)
-        (shell-command-on-region (point-min) (point-max) "pandoc -f markdown -t org" t t))
-      (ha-html-paste-touchup)
-      (buffer-substring-no-properties (point-min) (point-max)))))
+  (defun ha-org-clipboard ()
+    "Return the contents of the clipboard in org-mode format."
+    (seq-let (type contents) (ha-get-clipboard)
+      (with-temp-buffer
+        (insert contents)
+        (if (eq :html type)
+            (shell-command-on-region (point-min) (point-max)
+                                     "pandoc -f html -t org --wrap=none --ascii" t t)
+          (shell-command-on-region (point-min) (point-max)
+                                   "pandoc -f markdown -t org --wrap=none --ascii" t t))
+        (ha-html-paste-touchup)
+        (buffer-substring-no-properties (point-min) (point-max)))))
 
-(defun ha-html-paste-touchup ()
-  "Attempts to fix the org produced by `pandoc'' that seems to plague us."
-  (interactive)
-  (dolist (combo '((" (edited) " " ")   ; Slack appends this phrase that is never needed
-                   (" " " ")             ; Pandoc's fixed space needs to go
-                   ("\\\\\\\\$" "")     ; Pandoc's fixed space needs to go
-                   ("\\[\\[https://slack-imgs\\.com/.*\\.png\\]\\]" "") ;; Emoticons associated with a user
-                   ("\\[\\[https://.*\\.slack\\.com/archives.*\\]\\[\\(.*\n.*\\)\\]\\]" "")
-                   ("\\[\\[https://app\.slack\.com/team.*\\]\\[\\(.*\\)\n\\(.*\\)\\]\\]" "  - *\\1 \\2:* ")
-                   ("\\[\\[https://app\.slack\.com/team.*\\]\\[\\(.*\n.*\\)\\]\\]" "  - *\\1:* ")
-                   ("^- \\(.*\\)\\n  " "- \\1 ")
-                   ("^ *<<[0-9\.]+>>\n\n" ""))) ;; Slack includes these time things?
-    (seq-let (search replace) combo
-      (goto-char (point-min))
-      (while (re-search-forward search nil t)
-        (replace-match replace)))))
+  (defun ha-html-paste-touchup ()
+    "Attempts to fix the org produced by `pandoc''.
+  Much of this is also spurious characters from Slack.
+  Note that this isn't perfect, but a good beginning."
+    (interactive)
+    (dolist (combo `((" " " ")	    ; Pandoc's fixed space needs to go
+                     ;; Convert links to a user to an item element:
+                     (,(rx "[[https://app.slack.com/team" (one-or-more (not "]")) "]["
+                           (group (one-or-more (not "]"))) "]]")
+                      "  - *\\1*: ")
+                     ;; Make the link to the original more obvious:
+                     (,(rx "[[" (group  "https://" (one-or-more any) ".slack.com/archives/"
+                                        (one-or-more (not "]"))) "]["
+                                        (group (one-or-more (not "]"))) "]]")
+                      "  [[\\1][(Link to original message)]]")
+                     (,(rx "[[https://slack-imgs.com" (one-or-more (not "]"))
+                           "][" (one-or-more (not "]")) "]]")
+
+                      "  - *\\1*: ")
+                     (,(rx "[[data:" (one-or-more (not "]"))
+                           (optional "][" (one-or-more (not "]"))) "]]") "")
+                     (,(rx "[[https://slack-imgs.com" (one-or-more (not "]"))
+                           (optional "][" (one-or-more (not "]"))) "]]") "")
+                     (,(rx "\\" line-end) "")   ; Doing this twice covers both
+                     (,(rx "\\" line-end) "")   ; single and double backslashes
+                     (,(rx "(edited)") "")
+                     (,(rx line-start "Last reply" (one-or-more any)) "")
+                     (,(rx line-start "New" line-end) "")
+                     (,(rx line-start "//" line-end) "") ; Odd choice of a separator
+                     (,(rx line-start "<<" (one-or-more any) ">>" line-end) "")
+                     ;; Shrink multiple blank lines into a single one:
+                     (,(rx line-start
+                           (zero-or-more space) (regex "\n")
+                           (zero-or-more space) (regex "\n")) "")))
+      (seq-let (search replace) combo
+        (goto-char (point-min))
+        (while (re-search-forward search nil t)
+          (replace-match replace)))))
 #+end_src
 
-* Keybinding to Paste into Org Files
-We just need to bind it to the /local/ mode key sequence:
+Bind these functions to the /local/ mode key sequence:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-org-leader "y" 'ha-org-yank-clipboard))
 #+end_src
-
 * Technical Artifacts                                :noexport:
 Let's provide a name so we can =require= this file:
-
 #+begin_src emacs-lisp
 (provide 'ha-org-clipboard)
 ;;; ha-org-clipboard.el ends here
