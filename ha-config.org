@@ -438,8 +438,8 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "SPC" '("M-x" . execute-extended-command)
     "."   '("repeat" . repeat)
     "!"   'shell-command
-    "X"   'org-capture
-    "L"   'org-store-link
+    "X"   '("org capture" . org-capture)
+    "L"   '("store org link" . org-store-link)
     "RET" 'bookmark-jump
     "a"  '(:ignore t :which-key "apps")
     "o"  '(:ignore t :which-key "org/open")
