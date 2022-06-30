@@ -251,8 +251,7 @@ But the following Applescript does the work:
   say "Capture complete"
 #+end_src
 
-Now we have some goodies on the clipboard, and the script uses
-=emacsclient= to call these functions to put those contents into clocked in task.
+Now we have some goodies on the clipboard, and the script uses =emacsclient= to call these functions to put those contents into clocked in task.
 #+begin_src emacs-lisp
   (defun ha-external-capture-to-org ()
     "Calls `org-capture-string' on the contents of the Apple clipboard."
@@ -272,7 +271,8 @@ Oh, and it this is from the Terminal program, let’s wrap it in a block:
     (ignore-errors
       (delete-frame)))
 #+end_src
-The command that I can use to call it:
+Configure the *ICanHazShortcut* shortcuts to call these scripts, as in this screenshot:
+[[file:screenshots/icanhazshortcuts.png]]
 ** Push Terminal Results
 I use this =en= script to copy command line output into the Emacs-based engineering notebook to the current clocked-in task. I have two use cases.
 
