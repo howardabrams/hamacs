@@ -262,6 +262,11 @@ Of course, I need an 'undo' feature when the meeting is over…
       (winner-undo))             ; Put the windows back in place
 #+end_src
 ** Searching
+On the Mac, we need to change the =locate= command:
+#+begin_src emacs-lisp
+  (when (equal system-type 'darwin)
+    (setq locate-command "mdfind"))
+#+end_src
 Now that my paragraphs in an org file are on a single line, I need this less, but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results that line-oriented search systems, like =grep=. Let’s create operating-system functions the command line for searching:
 #+begin_src emacs-lisp
   (defun ha-search-notes--macos (phrase path)
@@ -276,15 +281,21 @@ Now that my paragraphs in an org file are on a single line, I need this less, bu
     "Return the indexed search system command on Linux, recoll.
   Including the parameters using the PHRASE on the PATH(s)."
       (format "recoll -t -a -b %s" phrase))
-
-
 #+end_src
 
-This function calls these operating-system functions, but returns the matching files as a /single string/ (where each file is wrapped in single quotes, and all joined together, separated by spaces. This function also allows me to /not-match/ backup files and whatnot.
+And let’s see how that works:
+#+begin_src emacs-lisp :tangle no :results replace
+  (ha-search-notes--macos "crossway stream" "~/Notes")
+#+end_src
+
+#+RESULTS:
+: mdfind -onlyin ~/Notes -interpret crossway stream
+
+This function calls the above-mentioned operating-system-specific functions, but returns the matching files as a /single string/ (where single quotes wrap each file, and all joined together, separated by spaces). This function also allows me to /not-match/ backup files and whatnot.
 #+begin_src emacs-lisp
   (defun ha-search-notes--files (phrase path)
     "Return an escaped string of all files matching PHRASE.
-  On a Mac, this search is limited by PATH"
+  On a Mac, the PATH limits the scope of the search."
     (let ((command (if (equal system-type 'darwin)
                        (ha-search-notes--macos phrase path)
                      (ha-search-notes--linux phrase path))))
@@ -294,10 +305,18 @@ This function calls these operating-system functions, but returns the matching f
            (--remove (s-matches? "#" it))
            (--map (format "'%s'" it))
            (s-join " "))))
-
+#+end_src
+Let’s see it in action:
+#+begin_src emacs-lisp :tangle no :results replace
+  (ha-search-notes--files "openstack grafana" '("~/Notes")))
 #+end_src
 
-The =ha-search-notes= function prompts for the phrase to search, and then searches through the =org-directory= path to acquire the matching files. It then feeds that list to =grep= (and the [[help:grep][grep function]] in order to display a list of matches that I can jump to.
+Returns this string:
+#+begin_example
+ "'/Users/howard.abrams/Notes/Sprint-2022-25.org' '/Users/howard.abrams/Notes/Sprint-2022-03.org' '/Users/howard.abrams/Notes/Sprint-2020-45.org' '/Users/howard.abrams/Notes/Sprint-2022-09.org' '/Users/howard.abrams/Notes/Sprint-2022-05.org' '/Users/howard.abrams/Notes/Sprint-2022-01.org' '/Users/howard.abrams/Notes/Sprint-2022-19.org'"
+#+end_example
+
+The =ha-search-notes= function prompts for the phrase to search, and then searches through the =org-directory= path, acquiring matching files, to feed to =grep= (and the [[help:grep][grep function]]) to display a list of matches that I can jump to.
 
 #+begin_src emacs-lisp
   (defun ha-search-notes (phrase &optional path)
@@ -305,16 +324,21 @@ The =ha-search-notes= function prompts for the phrase to search, and then search
     (interactive "sSearch notes for: ")
     (let* ((command   (if (equal system-type 'darwin) "ggrep" "grep"))
            (regexp    (string-replace " " "\\|" phrase))
-           (use-paths (if path path (list org-directory org-journal-dir)))
-           (files     (ha-search-notes--files phrase use-paths)))
-      (grep (format "%s -ni -m 1 '%s' %s" command regexp files))))
-
-
+           (use-paths (or path (list org-directory org-journal-dir)))
+           (files     (ha-search-notes--files phrase use-paths))
+           (cmd-line  (format "%s -ni -m 1 '%s' %s" command regexp files)))
+      (grep cmd-line))))
 #+end_src
-Eventually, I would like to change the output so that the title of the Org mode is displayed instead of the first match, but that is good enough.
 
+Add a keybinding to the function:
 #+begin_src emacs-lisp
-(ha-leader "f n" '("find notes" . ha-search-notes))
+  (ha-leader "f n" '("find notes" . ha-search-notes))
+#+end_src
+
+I might replace my code with the [[https://github.com/benmaughan/spotlight.el][spotlight]] project, as it has a slick interface for selecting files:
+#+begin_src emacs-lisp
+  (use-package spotlight
+    :config (ha-leader "f /" '("search files" . spotlight)))
 #+end_src
 ** Misc
 *** Babel Blocks
