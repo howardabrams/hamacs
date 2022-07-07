@@ -413,6 +413,14 @@ Using the key-chord project allows me to make Escape be on two key combo presses
   (key-chord-define-global "jk" 'evil-normal-state)
   (key-chord-define-global "JK" 'evil-normal-state))
 #+end_src
+*** Evil Easy Motion
+The [[https://github.com/PythonNut/evil-easymotion][evil-easymotion]] project combines [[Jump with Avy][avy]] and evil keybindings, where ~SPC j~ shows labels for all the lines below the cursor, so that you can jump right there. This doesn’t work well with a leader, but what about using Key Chords?
+#+begin_src emacs-lisp
+  (use-package evil-easymotion
+    :config (evilem-default-keybindings "<f19>"))
+#+end_src
+My ~F19~ key is within easy reach of my [[https://configure.zsa.io/moonlander/layouts/L4laD/latest/0][Moonlander configuration]], so this might be a good, if somewhat distracting, feature. Perhaps a better solution is to use [[Jump with Avy][avy]] (see below).
+
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
