@@ -1400,8 +1400,28 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g c f" '("Fixup"                    . magit-commit-fixup)
       "g c b" '("Branch"                   . magit-branch-and-checkout)))
 #+end_src
-
-The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project is cool:
+*** Git Delta
+The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses [[https://github.com/dandavison/delta][git-delta]] for colorized diffs.
+#+begin_src emacs-lisp
+  (use-package magit-delta
+    :ensure t
+    :hook (magit-mode . magit-delta-mode))
+#+end_src
+I also need to append the following to my [[file:~/.gitconfig][~/.gitconfig]] file:
+#+begin_src conf
+[delta]
+	minus-style                   = normal "#8f0001"
+	minus-non-emph-style          = normal "#8f0001"
+	minus-emph-style              = normal bold "#d01011"
+	minus-empty-line-marker-style = normal "#8f0001"
+	zero-style                    = syntax
+	plus-style                    = syntax "#006800"
+	plus-non-emph-style           = syntax "#006800"
+	plus-emph-style               = syntax "#009000"
+	plus-empty-line-marker-style  = normal "#006800"
+#+end_src
+*** Time Machine
+The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project visually shows how a code file changes with each iteration:
 #+begin_src emacs-lisp
 (use-package git-timemachine
   :config
@@ -1409,6 +1429,8 @@ The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project 
 #+end_src
 *** Gist
 Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
+
+#+begin_src emacs-lisp :tangle no
    (use-package gist
      :config
      (ha-leader
@@ -1421,8 +1443,6 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
        "g G B" '("private buffer" . gist-buffer-private)           ; Explicitly create a private gist.
        "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
        "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
-
-#+begin_src emacs-lisp :tangle no
 #+end_src
 
 The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
