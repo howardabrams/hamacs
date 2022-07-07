@@ -388,14 +388,22 @@ Can we change Evil at this point? Some tips:
     (evil-mode))
 #+end_src
 
-While I’m pretty good with the VIM keybindings, I would like to play around with the text objects and how it compares to others (including the surround), for instance:
+While I’m pretty good with the VIM keybindings, I would like to play around with the [[https://evil.readthedocs.io/en/latest/extension.html#text-objects][text objects]] and how it compares to others (including the surround), for instance:
   - ~diw~ :: deletes a word, but can be anywhere in it, while ~de~ deletes to the end of the word.
   - ~daw~ :: deletes a word, plus the surrounding space, but not punctuation.
-  - ~xi,w~ :: changes a word that is snake or camel-cased, as in programming languages. The ~x~ can be ~c~ to change, ~d~ to delete, ~y~ to copy, etc.
   - ~xis~ :: changes a /sentence,/ and if ~i~ is ~a~, it gets rid of the surrounding whitespace as well. Probably ~das~ and ~cis~.
   - ~xip~ :: changes a /paragraph/.
-  - Surrounding punctuation, like quotes, parenthesis, brackets, etc. Also work, so ~ci)~ changes all the parameters to a function call.
+  - ~xio~ :: changes a /symbol/, which can change for each mode, but works with =snake_case= and other larger-than-word variables.
+  - Surrounding punctuation, like quotes, parenthesis, brackets, etc. also work, so ~ci)~ changes all the parameters to a function call, for instance
+     - ~a”~ :: a double quoted string
+     - ~i”~ :: inner double quoted string
+     - ~a'~ :: a single quoted string
+     - ~i'~ :: inner single quoted string
+     - ~a`~ :: a back quoted string
+     - ~i`~ :: inner back quoted string
 
+*Note:* The ~x~ in the above examples are ~d~ for delete, ~v~ for select, ~y~ for copying and ~c~ for changing.
+*** Key Chord
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
 #+begin_src emacs-lisp
 (use-package key-chord
@@ -1032,7 +1040,7 @@ Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with 
     (evil-owl-mode))
 #+end_src
 *** Evil Snipe
-Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] which is similar to =f= and =t=, but does two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings.
+Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]], like =f= and =t=, but with two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings. Since surround doesn’t work in /normal/ and /visual/ states, we’ll bind snipe only for those:
 #+begin_src emacs-lisp
   (use-package evil-snipe
     :after evil
@@ -1040,7 +1048,7 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
     (setq evil-snipe-scope 'visible)
 
     :general
-    (:states '(normal motion operator visual)
+    (:states '(normal visual)
              "s" 'evil-snipe-s
              "S" 'evil-snipe-S)
     :config
@@ -1048,36 +1056,40 @@ Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]] whi
 #+end_src
 It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 *** Evil Surround
-I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], however, they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when it calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
+I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], but they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when it calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package evil-surround
-    :after evil-snipe
     :config
-    (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
-    (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
-    (push '(?\` . ("`" . "'")) evil-surround-pairs-alist)
-    (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
-    (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
-    (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
-    (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
-    (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
-    (push '(?~ . ("~" . "~")) evil-surround-pairs-alist)
+    (defun evil-surround-elisp ()
+      (push '(?\` . ("`" . "'")) evil-surround-pairs-alist))
+    (defun evil-surround-org ()
+      (push '(?\" . ("“" . "”")) evil-surround-pairs-alist)
+      (push '(?\' . ("‘" . "’")) evil-surround-pairs-alist)
+      (push '(?b . ("*" . "*")) evil-surround-pairs-alist)
+      (push '(?* . ("*" . "*")) evil-surround-pairs-alist)
+      (push '(?i . ("/" . "/")) evil-surround-pairs-alist)
+      (push '(?/ . ("/" . "/")) evil-surround-pairs-alist)
+      (push '(?= . ("=" . "=")) evil-surround-pairs-alist)
+      (push '(?~ . ("~" . "~")) evil-surround-pairs-alist))
 
-    :general
-    (:states 'operator :keymaps 'evil-surround-mode-map
-             "z" 'evil-surround-edit
-             "Z" 'evil-Surround-edit)
+    (global-evil-surround-mode 1)
 
-    :hook (text-mode . evil-surround-mode))  ; Don't globally use it on Magit, et. al
+    :hook
+    (org-mode . evil-surround-org)
+    (emacs-lisp-mode . evil-surround-elisp))
 #+end_src
 Notes:
-  - ~cz'"~ :: to convert surrounding single quote string to double quotes.
-  - ~dz"~ :: to delete the surrounding double quotes.
-  - ~yze"~ :: puts single quotes around the next word.
-  - ~yziw'~ :: puts single quotes around the word, no matter the points position.
-  - ~yZ$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
+  - ~cs'"~ :: to convert surrounding single quote string to double quotes.
+  - ~ds"~ :: to delete the surrounding double quotes.
+  - ~yse"~ :: puts single quotes around the next word.
+  - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
+  - ~yS$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
+  - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
+    #+begin_src emacs-lisp
+      here is a line
+    #+end_src
 ** Additional Global Packages
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
