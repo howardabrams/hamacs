@@ -308,7 +308,7 @@ This function calls the above-mentioned operating-system-specific functions, but
 #+end_src
 Let’s see it in action:
 #+begin_src emacs-lisp :tangle no :results replace
-  (ha-search-notes--files "openstack grafana" '("~/Notes")))
+  (ha-search-notes--files "openstack grafana" '("~/Notes"))
 #+end_src
 
 Returns this string:
@@ -327,7 +327,7 @@ The =ha-search-notes= function prompts for the phrase to search, and then search
            (use-paths (or path (list org-directory org-journal-dir)))
            (files     (ha-search-notes--files phrase use-paths))
            (cmd-line  (format "%s -ni -m 1 '%s' %s" command regexp files)))
-      (grep cmd-line))))
+      (grep cmd-line)))
 #+end_src
 
 Add a keybinding to the function:
