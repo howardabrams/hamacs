@@ -76,8 +76,8 @@ cat > $HAMACS_DEST/init.el <<EOF
 ;; Let's rock:
 (org-babel-load-file "$HAMACS_DIR/bootstrap.org")
 
-(provide 'init.el)
-;;; init ends here
+(provide 'init)
+;;; init.el ends here
 EOF
 
 echo Created $HAMACS_DEST/init.el

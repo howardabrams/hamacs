@@ -1095,9 +1095,6 @@ Notes:
   - ~yS$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
   - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
-    #+begin_src emacs-lisp
-      here is a line
-    #+end_src
 ** Additional Global Packages
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
@@ -1473,7 +1470,7 @@ The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. 
 
 *** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package forge
     :after magit
     :config
