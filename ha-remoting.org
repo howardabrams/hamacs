@@ -119,6 +119,56 @@ Add my org-specific predicates, see this [[http://www.howardism.org/Technical/Em
     "A list of predicates than can be applied to a globbing pattern.")
   (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags)))
 #+end_src
+* Remote Editing with Tramp
+[[https://www.emacswiki.org/emacs/TrampMode][Tramp]] allows almost all Emacs features to execute on a remote system.
+#+begin_src emacs-lisp
+  (use-package tramp
+    :straight (:type built-in)
+
+    :config
+    ;; Use remote PATH on tramp (handy for eshell).
+    (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
+    ;; Make sure version control system doesn't slow tramp:
+    (setq vc-ignore-dir-regexp
+          (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp)))
+#+end_src
+
+Will Schenk has [[https://willschenk.com/articles/2020/tramp_tricks/][a simple extension]] to allow editing of files /inside/ a Docker container:
+#+begin_src emacs-lisp
+  (use-package tramp
+    :straight (:type built-in)
+    :config
+    (push '("docker" . ((tramp-login-program "docker")
+                        (tramp-login-args (("exec" "-it") ("%h") ("/bin/sh")))
+                        (tramp-remote-shell "/bin/sh")
+                        (tramp-remote-shell-args ("-i") ("-c"))))
+          tramp-methods)
+
+    (defadvice tramp-completion-handle-file-name-all-completions
+        (around dotemacs-completion-docker activate)
+      "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\" returns
+      a list of active Docker container names, followed by colons."
+      (if (equal (ad-get-arg 1) "/docker:")
+          (let* ((command "docker ps --format '{{.Names}}:'")
+                 (dockernames-raw (shell-command-to-string command))
+                 (dockernames (split-string dockernames-raw "\n")))
+            (setq ad-return-value dockernames))
+        ad-do-it)))
+#+end_src
+Keep in mind you need to /name/ your Docker session, with the =—name= option. I actually do more docker work on remote systems (as Docker seems to make my fans levitate my laptop over the desk). Granted, the =URL= is a bit lengthy, for instance:
+#+begin_example
+/ssh:kolla-compute1.cedev13.d501.eng.pdx.wd|sudo:kolla-compute1.cedev13.d501.eng.pdx.wd|docker:kolla_toolbox:/
+#+end_example
+Which means, I need to put it as a link in an org file.
+
+*Note:* That we need to have Tramp SSH option comes from my personal [[file:~/.ssh/config][.ssh/config]] file instead of its internal cache:
+ #+begin_src emacs-lisp
+  (use-package tramp-sh
+    :after tramp
+    :straight (:type built-in)
+    :custom (tramp-use-ssh-controlmaster-options nil))
+#+end_src
 * Remote Terminals
 Sure =iTerm= is nice for connecting and running commands on remote systems, however, it lacks a command line option that allows you to select and manipulate the displayed text without a mouse. This is where Emacs can shine.
 
