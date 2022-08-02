@@ -36,34 +36,6 @@ New way to display line-numbers. I set mine to =relative= so that I can jump up 
         display-line-numbers-type 'relative)
 #+end_src
 
-As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-every-edited-file/][Phil Jackson]] mentioned, Emacs has a lot of file backup strategy, and either change the [[help:backup-directory-alist][backup-directory-alist]] to put individual file backups elsewhere, e.g.
-
-#+begin_src emacs-lisp
-  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
-#+end_src
-
-Oh, and let’s see if I will use the =recentf= feature more:
-
-#+begin_src emacs-lisp
-  (recentf-mode 1)
-#+end_src
-
-Or leave them in the current directory, but create an alias so =ls= doesn’t display them, e.g.
-#+begin_src sh
-  alias ls="ls --color=auto --hide='*~'"
-#+end_src
-
-I'm leaving them side-by-side, but I am keeping some extra copies:
-#+begin_src emacs-lisp
-  (setq create-lockfiles nil   ; Having .# files around ain't helpful
-        auto-save-default t
-        delete-old-versions t
-        kept-new-versions 6
-        kept-old-versions 2
-        version-control t)
-#+end_src
-The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
-
 I like the rendering to curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
 #+begin_src emacs-lisp
 (setq text-quoting-style 'curve)
@@ -106,16 +78,6 @@ Let’s bind ~TAB~ instead of the default ~M-/~. By default, ~TAB~ re-indents th
   (advice-add #'indent-for-tab-command :after #'hippie-expand)
 #+end_src
 Now while we’re typing along, we can hit the ~TAB~ key after partially typing a word to have it completed.
-
-Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
-#+begin_src emacs-lisp
-  (defun save-all-buffers ()
-    "Saves all buffers, because, why not?"
-    (interactive)
-    (save-some-buffers t))
-
-  (add-hook 'focus-out-hook 'save-all-buffers)
-#+end_src
 
 And some Mac-specific settings:
 #+begin_src emacs-lisp
@@ -252,8 +214,9 @@ I like being able to enable local variables in =.dir-local.el= files:
 #+begin_src emacs-lisp
   (setq enable-local-variables t)
 #+end_src
-** Changes on Save
-Always spaces and never tabs. Note that we use =setq-default= since [[elisp:(describe-variable 'indent-tabs-mode)][indent-tabs-mode]] is a /buffer-local/ variable, meaning that if we set it with =setq=, it will only be set in /that buffer file/. We want this globally the default:
+** File Access
+*** Changes on Save
+Always spaces and never tabs. Note that we use =setq-default= since [[elisp:(describe-variable 'indent-tabs-mode)][indent-tabs-mode]] is a /buffer-local/ variable, meaning using =setq=,  sets it for /that buffer file/. We want this globally the default:
 #+begin_src emacs-lisp
   (setq-default indent-tabs-mode nil)
 #+end_src
@@ -263,10 +226,53 @@ When I push changes to my files to Gerrit and other code review, I don’t want 
   (defun ha-cleanup-buffer-file ()
     "Cleanup a file, often done before a file save."
     (interactive)
-    (untabify (point-min) (point-max)
-              (delete-trailing-whitespace)))
+    (ignore-errors
+      (untabify (point-min) (point-max))
+      (delete-trailing-whitespace)))
 
   (add-hook 'before-save-hook #'ha-cleanup-buffer-file)
+#+end_src
+*** Recent Files
+The [[https://www.emacswiki.org/emacs/RecentFiles][recentf]] feature has been in Emacs for a long time, but it has a problem with Tramp, as we need to turn off the cleanup feature that attempts to =stat= all the files and remove them from the =recent= accessed list if they are readable. The requires recentf to open up a remote files which blocks Emacs at the most inopportune times… like when trying to reboot the machine.
+#+begin_src emacs-lisp
+  (use-package recentf
+    :straight (:type built-in)
+    :config
+    (setq recentf-auto-cleanup 'never) ;; disable before we start recentf!
+    (recentf-mode 1))
+#+end_src
+*** File Backups
+While I use git as much as I can, sometimes Emacs’ built-in file backup and versioning feature has saved me for files that aren’t.
+
+As [[https://philjackson.github.io//emacs/backups/2022/01/31/keeping-backups-of-every-edited-file/][Phil Jackson]] mentioned, Emacs has a lot of variations to its file backup strategy, and either change the [[help:backup-directory-alist][backup-directory-alist]] to put individual file backups elsewhere, e.g.
+#+begin_src emacs-lisp
+  (setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+#+end_src
+
+Or leave them in the current directory, but create an alias so =ls= doesn’t display them, e.g.
+#+begin_src sh
+  alias ls="ls --color=auto --hide='*~'"
+#+end_src
+
+I'm leaving them side-by-side, but I am keeping some extra copies:
+#+begin_src emacs-lisp
+  (setq create-lockfiles nil   ; Having .# files around ain't helpful
+        auto-save-default t
+        delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+#+end_src
+The [[help:version-control][version-control]] variable affect backups (not some sort of global VC setting), this makes numeric backups.
+*** Auto Save of Files
+Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
+#+begin_src emacs-lisp
+  (defun save-all-buffers ()
+    "Saves all buffers, because, why not?"
+    (interactive)
+    (save-some-buffers t))
+
+  (add-hook 'focus-out-hook 'save-all-buffers)
 #+end_src
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
