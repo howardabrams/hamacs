@@ -273,6 +273,114 @@ Oh, and it this is from the Terminal program, let’s wrap it in a block:
 #+end_src
 Configure the *ICanHazShortcut* shortcuts to call these scripts, as in this screenshot:
 [[file:screenshots/icanhazshortcuts.png]]
+And here is the configuration file for that:
+#+begin_src conf :tangle ~/.config/iCanHazShortcut/config.ini
+[main]
+config version = 2
+shell = /bin/bash -l
+populate_menu_with_actions = yes
+show_hotkeys_in_menu = yes
+check_for_updates = yes
+start_on_login = yes
+show_icon_in_statusbar = yes
+set_workdir_with_cd = no
+window_x = -988
+window_y = 172
+window_width = 600
+window_height = 361
+shortcut_column_enabled = yes
+action_column_enabled = yes
+command_column_enabled = yes
+workdir_column_enabled = no
+shortcut_column_width = 80
+action_column_width = 160
+command_column_width = 173
+workdir_column_width = 100
+
+[shortcut1]
+shortcut = ⇧⌃⌥⌘E
+action = Personal Emacs
+command = open -a Emacs
+workdir =
+enabled = yes
+
+[shortcut2]
+shortcut = ⇧⌃⌥E
+action = Work Emacs
+command = open -a /usr/local/Cellar/emacs-plus@28/28.1/Emacs.app
+workdir =
+enabled = yes
+
+[shortcut3]
+shortcut = ⇧⌃⌥⌘X
+action = Emacs Capture
+command = ~/bin/emacs-capture
+workdir =
+enabled = yes
+
+[shortcut4]
+shortcut = ⇧⌃⌥X
+action = Emacs Capture Clipboard
+command = ~/bin/emacs-capture-clock
+workdir =
+enabled = yes
+
+[shortcut5]
+shortcut = ⇧⌃⌥T
+action = iTerm
+command = open -a iTerm
+workdir =
+enabled = yes
+
+[shortcut6]
+shortcut = ⇧⌃⌥S
+action = Slack
+command = open -a Slack
+workdir =
+enabled = yes
+
+[shortcut7]
+shortcut = ⇧⌃⌥W
+action = Spotify
+command = open -a Spotify
+workdir =
+enabled = yes
+
+[shortcut8]
+shortcut = ⇧⌃⌥F
+action = Firefox
+command = open -a Firefox
+workdir =
+enabled = yes
+
+[shortcut9]
+shortcut = ⇧⌃⌥C
+action = Chome
+command = ~/bin/chrome.scr
+workdir =
+enabled = yes
+
+[shortcut10]
+shortcut = ⇧⌃⌥Q
+action = Keepass
+command = open -a KeepassXC
+workdir =
+enabled = yes
+
+[shortcut11]
+shortcut = ⇧⌃⌥Z
+action = Zoom
+command = open -a zoom.us
+workdir =
+enabled = yes
+
+[shortcut12]
+shortcut = ⌃F1
+action = Mute Zoom
+command = ~/bin/zoom-muter
+workdir =
+enabled = yes
+#+end_src
 ** Push Terminal Results
 I use this =en= script to copy command line output into the Emacs-based engineering notebook to the current clocked-in task. I have two use cases.
 
