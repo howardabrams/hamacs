@@ -83,9 +83,9 @@ As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to
     :config
     (defvar epa-pinentry-mode)
     (setq epa-file-select-keys nil
-	  epa-pinentry-mode 'loopback
-	  auth-sources '("~/.authinfo.gpg")
-	  auth-source-cache-expiry nil))
+          epa-pinentry-mode 'loopback
+          auth-sources '("~/.authinfo.gpg")
+          auth-source-cache-expiry nil))
 #+end_src
 
 More settings:
@@ -241,21 +241,32 @@ For this, I use the =request= package, which is /asynchronous/
 ** Initial Settings and UI
 Let's turn off the menu and other settings:
 #+begin_src emacs-lisp
-(when (display-graphic-p)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (horizontal-scroll-bar-mode -1)
-  (setq visible-bell 1))
-#+end_src
-I dislike forgetting to trim trailing white-space:
-
-#+begin_src emacs-lisp
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (when (display-graphic-p)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (horizontal-scroll-bar-mode -1)
+    (setq visible-bell 1))
 #+end_src
 
 I like being able to enable local variables in =.dir-local.el= files:
 #+begin_src emacs-lisp
-(setq enable-local-variables t)
+  (setq enable-local-variables t)
+#+end_src
+** Changes on Save
+Always spaces and never tabs. Note that we use =setq-default= since [[elisp:(describe-variable 'indent-tabs-mode)][indent-tabs-mode]] is a /buffer-local/ variable, meaning that if we set it with =setq=, it will only be set in /that buffer file/. We want this globally the default:
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode nil)
+#+end_src
+
+When I push changes to my files to Gerrit and other code review, I don’t want trailing spaces or any tabs to appear, so let’s fix all files when I [[elisp:(describe-variable 'before-save-hook)][save them]]:
+#+begin_src emacs-lisp
+  (defun ha-cleanup-buffer-file ()
+    "Cleanup a file, often done before a file save."
+    (interactive)
+    (untabify (point-min) (point-max)
+              (delete-trailing-whitespace)))
+
+  (add-hook 'before-save-hook #'ha-cleanup-buffer-file)
 #+end_src
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
@@ -369,7 +380,7 @@ Can we change Evil at this point? Some tips:
   (use-package evil
     :init
     (setq evil-undo-system 'undo-fu
-          evil-want-fine-undo t		; Be more like Emacs
+          evil-want-fine-undo t         ; Be more like Emacs
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
           evil-want-integration t
@@ -763,7 +774,7 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
 
 #+begin_src emacs-lisp
   (use-package rg
-    :init                 		; I sometimes call `grep`:
+    :init                               ; I sometimes call `grep`:
     ; (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
 
     :config
@@ -928,7 +939,7 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 #+begin_src emacs-lisp
   (use-package embark
     :bind
-    (("s-;" . embark-act)		; Work in minibuffer and elsewhere
+    (("s-;" . embark-act)               ; Work in minibuffer and elsewhere
      ("s-/" . embark-dwim))
 
     :init
@@ -1427,15 +1438,16 @@ The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses
 I also need to append the following to my [[file:~/.gitconfig][~/.gitconfig]] file:
 #+begin_src conf
 [delta]
-	minus-style                   = normal "#8f0001"
-	minus-non-emph-style          = normal "#8f0001"
-	minus-emph-style              = normal bold "#d01011"
-	minus-empty-line-marker-style = normal "#8f0001"
-	zero-style                    = syntax
-	plus-style                    = syntax "#006800"
-	plus-non-emph-style           = syntax "#006800"
-	plus-emph-style               = syntax "#009000"
-	plus-empty-line-marker-style  = normal "#006800"
+        minus-style                   = normal "#8f0001"
+        minus-non-emph-style          = normal "#8f0001"
+        minus-emph-style              = normal bold "#d01011"
+        minus-empty-line-marker-style = normal "#8f0001"
+        zero-style                    = syntax
+        plus-style                    = syntax "#006800"
+        plus-non-emph-style           = syntax "#006800"
+        plus-emph-style               = syntax "#009000"
+        plus-empty-line-marker-style  = normal "#006800"
+#+end_src
 #+end_src
 *** Time Machine
 The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project visually shows how a code file changes with each iteration:
