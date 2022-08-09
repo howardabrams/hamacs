@@ -31,21 +31,26 @@ Sure, I try to keep my text editing world /inside/ the internal consistency and 
 * Into the Clipboard
 [[http://mbork.pl/2022-06-20_Copying_the_current_location][This essay]] from =mbork= has an interesting idea of being able to select code, and copy it to the clipboard with /extra information/ about the location. The location is the filename (relative to the project), as well as the project name and line number, but since every buffer may not have all this information, we’ll make some best guesses:
 #+begin_src emacs-lisp
-  (defun current-location (&optional start-line)
+  (defun current-location (start-line)
     "Show the current location and put it into the kill ring.
   Use the filename relative to the current projectile root directory.
   If called non-interactively, return the location as a string."
-    (interactive)
+    (interactive "P")
     (let* ((project-name (projectile-project-name))
            (file-name (when (and buffer-file-name (projectile-project-root))
                         (file-relative-name buffer-file-name (projectile-project-root))))
-           (line-number (or start-line (line-number-at-pos nil t)))
+           (line-number (if (and (called-interactively-p) start-line)
+                            (line-number-at-pos nil t)
+                          start-line))
 
            (location (cond
-                      ((and project-name file-name)
+                      ((and project-name file-name line-number)
                        (format "%s :: %s : %s" project-name file-name line-number))
-                      (file-name
+                      ((and project-name file-name)
+                       (format "%s :: %s" project-name file-name))
+                      ((and file-name line-number)
                        (format "%s : %d" file-name line-number))
+                      (file-name file-name)
                       (project-name
                        (format "project: %s" project-name))
                       (t ""))))
@@ -60,9 +65,10 @@ Use the =current-location= function, along with the /region/ or /function/ and c
     "Copy the active region along with a location header to kill ring.
   Calls `current-location' to get the header."
     (interactive "r")
-    (kill-new
-     (format "From %s …\n%s" (current-location start) (buffer-substring-no-properties start end)))
-    (message "Copied code to clipboard, %s" (current-location start)))
+    (let ((location (current-location start)))
+      (kill-new
+       (format "From %s …\n%s" location (buffer-substring-no-properties start end)))
+      (message "Copied code to clipboard, %s" location)))
 #+end_src
 And if there is no active region, let’s attempt to copy the /function/ (whatever that may mean), that we get with the [[help:which-function-mode][which-function-mode]] (see [[https://www.emacswiki.org/emacs/WhichFuncMode][the Emacs wiki]] for details):
 #+begin_src emacs-lisp
@@ -201,7 +207,7 @@ This function does the heavy lifting. Note that I will need another function to 
   Much of this is also spurious characters from Slack.
   Note that this isn't perfect, but a good beginning."
     (interactive)
-    (dolist (combo `((" " " ")	    ; Pandoc's fixed space needs to go
+    (dolist (combo `((" " " ")      ; Pandoc's fixed space needs to go
                      ;; Convert links to a user to an item element:
                      (,(rx "[[https://app.slack.com/team" (one-or-more (not "]")) "]["
                            (group (one-or-more (not "]"))) "]]")
