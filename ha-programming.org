@@ -35,6 +35,21 @@ Seems that all programming interfaces and workflows behave similarly. One other 
 #+end_src
 * General
 The following work for all programming languages.
+** Markdown
+All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :mode ("README\\.md\\'" . gfm-mode)
+    :init (setq markdown-command "multimarkdown")
+    :general
+    (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
+             "SPC m l" '("insert link" . markdown-insert-link)
+             ;; SPC u 3 SPC m h for a third-level header:
+             "SPC m h" '("insert header" . markdown-insert-header-dwim)
+             "SPC m e" '("export" . markdown-export)
+             "SPC m p" '("preview" . markdown-export-and-preview)))
+#+end_src
+Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
 ** direnv
 Farm off commands into /virtual environments/:
 #+begin_src emacs-lisp
