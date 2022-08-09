@@ -121,7 +121,7 @@ While Racket, as a Scheme, should work with Geiser (below), let’s also get [[h
 Can we get Racket working with Org?
 #+begin_src emacs-lisp
   (use-package ob-racket
-    :straight (:type git :protocol ssh :host github :repo "DEADB17/ob-racket")
+    :straight (:host github :repo "DEADB17/ob-racket")
     :after org
     :config
     (add-to-list 'org-babel-load-languages '(racket . t)))

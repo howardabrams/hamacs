@@ -264,7 +264,7 @@ The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks pla
 
 #+begin_src emacs-lisp
   (use-package org-padding
-    :straight (:type git :protocol ssh :host github :repo "TonCherAmi/org-padding")
+    :straight (:host github :repo "TonCherAmi/org-padding")
     :hook
     (org-mode . org-padding-mode)
     :config

@@ -871,7 +871,7 @@ The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and
 Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://protesilaos.com/emacs/logos][logos project]] as a replacement for [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 #+begin_src emacs-lisp
   (use-package logos
-    :straight (:type git :protocol ssh :host gitlab :repo "protesilaos/logos")
+    :straight (:host gitlab :repo "protesilaos/logos")
     :init
     (setq logos-outlines-are-pages t
           logos-outline-regexp-alist

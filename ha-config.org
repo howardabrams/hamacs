@@ -94,7 +94,7 @@ Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabra
 
 #+begin_src emacs-lisp
   (use-package piper
-    :straight (:type git :protocol ssh :host gitlab :repo "howardabrams/emacs-piper")
+    :straight (:host gitlab :repo "howardabrams/emacs-piper")
     :commands piper shell-command-to-list    ; I use this function often
     :bind (:map evil-normal-state-map
            ("C-M-|" . piper)
@@ -115,7 +115,7 @@ Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippe
 #+begin_src emacs-lisp
   (use-package doom-snippets
     :after yasnippet
-    :straight (:type git :protocol ssh :host github :repo "doomemacs/snippets")
+    :straight (:host github :repo "doomemacs/snippets")
     :config
     (add-to-list 'yas-snippet-dirs (thread-last user-emacs-directory
                                                 (expand-file-name "straight")
@@ -930,7 +930,7 @@ One of the reasons that Consult hasn’t been too important to me, is that I oft
 #+begin_src emacs-lisp
   (use-package consult-projectile
     :after consult general
-    :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
+    :straight (:host gitlab :repo "OlMon/consult-projectile" :branch "master")
     :config
     (ha-leader
       "p ." '("switch to..." . consult-projectile)
@@ -1483,7 +1483,7 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
 The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
 #+begin_src emacs-lisp :tangle no
   (use-package gh
-    :straight (:type git :host :github :repo "sigma/gh.el"))
+    :straight (:host github :repo "sigma/gh.el"))
 #+end_src
 
 *** Forge
@@ -1698,7 +1698,7 @@ When having your point on a key entry, you can copy fields to kill-ring using:
 Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While on MELPA, I want to use my own cloned version to make sure I can keep debugging it.
 #+begin_src emacs-lisp
   (use-package demo-it
-    :straight (:type git :protocol ssh :host github :repo "howardabrams/demo-it")
+    :straight (:host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
 #+end_src
 ** PDF Viewing
