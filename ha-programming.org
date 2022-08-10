@@ -182,79 +182,32 @@ Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (
 ** Language Server Protocol (LSP) Integration
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
-Instead, we install [[https://emacs-lsp.github.io/lsp-mode/][LSP Mode]] (and friends), which simplifies my configuration:
+Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don’t have heavy IDE requirements, I am finding that [[eglot]] to be simpler.
+*** eglot
+The [[https://github.com/joaotavora/eglot][eglot]] package usually connects to Emacs’ standard command interface, so the eglot-specific code is mostly in controlling the backend servers. That said, it has a couple of =eglot-= commands that I want easy access to:
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :commands lsp
-    :init
-    ;; Let's make lsp-doctor happy with these settings:
-    (setq gc-cons-threshold (* 100 1024 1024)
-          read-process-output-max (* 1024 1024)
-          company-idle-delay 0.0 ; Are thing fast enough to do this?
-          lsp-keymap-prefix "s-m")
-    :hook ((lsp-mode . lsp-enable-which-key-integration)))
-#+end_src
-I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
-*** UI
-The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP:
-
-#+begin_src emacs-lisp
-  (use-package lsp-ui
-    :commands lsp-ui-mode
-    :config
-    (setq lsp-ui-sideline-ignore-duplicate t
-          lsp-ui-sideline-show-hover t
-          lsp-ui-sideline-show-diagnostics t)
-    :hook (lsp-mode . lsp-ui-mode))
-#+end_src
-*** Company Completion
-The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
-
-#+begin_src emacs-lisp
-  (use-package company-lsp
-    :config
-    (push 'company-lsp company-backends))
-#+end_src
-To options that might be interesting:
-  - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
-  - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
-
-*** iMenu
-The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] project offers a =lsp-ui-imenu= function for jumping to functions:
-
-#+begin_src emacs-lisp
-  (use-package lsp-ui-imenu
-      :straight nil
-      :after lsp-ui
-      :config
-      (ha-prog-leader
-        "g"  '(:ignore t :which-key "goto")
-        "g m" '("imenu" . lsp-ui-imenu))
-      (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
-#+end_src
-*** Treemacs
-The [[https://github.com/emacs-lsp/lsp-treemacs][lsp-treemacs]] offers a project-specific structure oriented to the code:
-
-#+begin_src emacs-lisp
-  (use-package lsp-treemacs
+  (use-package eglot
     :config
     (ha-prog-leader
-          "0" '("treemacs" . lsp-treemacs-symbols)))
-#+end_src
-*** Origami Folding
-The [[https://github.com/emacs-lsp/lsp-origami][lsp-origami]] project integrates the [[https://github.com/gregsexton/origami.el][origami]] project with LSP for /better code folding/:
+      "w"  '(:ignore t :which-key "eglot")
+      "ws" '("start" . eglot)
+      "wr" '("restart" . eglot-reconnect)
+      "wb" '("events" . eglot-events-buffer)
+      "we" '("errors" . eglot-stderr-buffer)
+      "wq" '("quit" . eglot-shutdown)
+      "wQ" '("quit all" . eglot-shutdown-all)
 
+      "r" '("rename" . eglot-rename)
+      "=" '("format" . eglot-format)
+      "a" '("code actions" . eglot-code-actions)
+      "i" '("imports" . eglot-code-action-organize-imports)))
+#+end_src
+This requires the [[http://company-mode.github.io/][company]] completion backend:
 #+begin_src emacs-lisp
-  (use-package lsp-origami
-    :hook (lsp-after-open . lsp-origami-try-enable))
-#+end_src
-*** Debugging
-Do we want to use a debugger?
-
-#+begin_src emacs-lisp :tangle no
-  (use-package dap-mode
-     :init
-     (require 'dap-python))
+  (use-package company
+    :after eglot
+    :hook (after-init . global-company-mode)
+    :bind ("s-." . company-complete))
 #+end_src
 ** Function Call Notifications
 As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.
