@@ -110,22 +110,15 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "P t" '("toggle flycheck" . flycheck-mode)))
 #+end_src
 ** Documentation
-I’ve used the [[http://kapeli.com/][Dash]] API Documentation browser (an external application) with Emacs, available for Mac.
-#+begin_src emacs-lisp :tangle no
-  (use-package dash-at-point
-    :commands (dash-at-point)
-    :general (:states 'normal "gD" 'dash-at-point))
-#+end_src
 I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). Two Emacs projects compete for this position. The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
-
 #+begin_src emacs-lisp
   (use-package devdocs
-    :after evil
     :general (:states 'normal "gD" 'devdocs-lookup)
 
     :config
     (ha-prog-leader
       "d"  '(:ignore t :which-key "docs")
+      "d e" '("eldoc" . eldoc)
       "d d" '("open" . devdocs-lookup)
       "d p" '("peruse" . devdocs-peruse)
       "d i" '("install" . devdocs-install)
@@ -135,7 +128,6 @@ I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is sim
 #+end_src
 
 The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] project acts similar, but with slightly different command names. Its advantage is that it allows for downloading docs and having it available offline, in fact, you can’t search for a function, until you download its pack. This is slightly faster because of this.
-
 #+begin_src emacs-lisp :tangle no
   (use-package devdocs-browser
     :general (:states 'normal "gD" 'devdocs-browser-open)
