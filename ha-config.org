@@ -1067,7 +1067,10 @@ Do I want to specify the list of modes to change for =evil-collection-init=, e.g
 *** Evil Owl
 Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
 #+begin_src emacs-lisp
+  (use-package posframe)
+
   (use-package evil-owl
+    :after posframe
     :config
     (setq evil-owl-display-method 'posframe
           evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
