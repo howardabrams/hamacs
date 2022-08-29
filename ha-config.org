@@ -487,7 +487,6 @@ The [[https://github.com/PythonNut/evil-easymotion][evil-easymotion]] project co
     :config (evilem-default-keybindings "<f19>"))
 #+end_src
 My ~F19~ key is within easy reach of my [[https://configure.zsa.io/moonlander/layouts/L4laD/latest/0][Moonlander configuration]], so this might be a good, if somewhat distracting, feature. Perhaps a better solution is to use [[Jump with Avy][avy]] (see below).
-
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
@@ -1466,6 +1465,7 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g C" '("Magit clone"                . magit-clone)
       "g F" '("Magit fetch"                . magit-fetch)
       "g L" '("Magit buffer log"           . magit-log-buffer-file)
+      "g r" '("Revert file"                . magit-file-checkout)
       "g R" '("Revert file"                . vc-revert)
       "g S" '("Git stage file"             . magit-stage-file)
       "g U" '("Git unstage file"           . magit-unstage-file)
