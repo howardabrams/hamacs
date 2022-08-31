@@ -29,7 +29,7 @@ The following section configures my Terminal experience, both inside and outside
 I used to use [[http://www.howardism.org/Technical/Emacs/eshell.html][Eshell all the time]], but now I've migrated most of /work/ directly into Emacs (rewriting all those shell scripts a Emacs Lisp code). A shell is pretty good for my brain at organizing files (old habits, maybe).
 
 First, my /aliases/ follow me around, and the following creates the alias file, =~/.emacs.d/eshell/alias=:
-#+begin_src shell :tangle (identity eshell-aliases-file)  :mkdirp yes
+#+begin_src shell :tangle elisp:(identity eshell-aliases-file)  :mkdirp yes
   alias ll ls -l $*
   alias clear recenter 0
   alias emacs 'find-file $1'
@@ -60,7 +60,8 @@ I usually want a new window running Eshell, that is smaller than the current buf
                                 (split-string "/" t)
                                 (last)
                                 (car)))
-          (height (/ (window-total-height) 3)))
+          (height (/ (window-total-height) 3))
+          (default-directory parent))
       (split-window-vertically (- height))
       (eshell "new")
       (rename-buffer (concat "*eshell: " name "*"))
