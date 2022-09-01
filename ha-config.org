@@ -826,28 +826,45 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
   (ha-leader "w" '("windows" . hydra-window-resize/body))
 #+end_src
 *** Search Operations
-Ways to search for information goes under the ~s~ key. This primarily depends on the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.
+Ways to search for information goes under the ~s~ key. The venerable sage has always been =grep=, but we now have new-comers, like [[https://github.com/BurntSushi/ripgrep][ripgrep]], which are really fast.
+**** ripgrep
+Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.
 
 #+begin_src emacs-lisp
   (use-package rg
-    :init                               ; I sometimes call `grep`:
-    ; (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
+    :general (:states 'normal "gr" 'rg-dwim)
 
     :config
+    ;; Make an interesting Magit-like menu of options, which I don't use much:
     (rg-enable-default-bindings (kbd "M-R"))
 
+    ;; In case I call (or something else) calls `grep':
+    (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
+
+    ;; Old habits die hard ...
+    (define-key global-map [remap xref-find-references] 'rg-dwim)
+
+    (advice-add 'wgrep-change-to-wgrep-mode :after #'evil-normal-state)
+    (advice-add 'wgrep-to-original-mode :after #'evil-motion-state)
+    (defvar rg-mode-map)
+    (add-to-list 'evil-motion-state-modes 'rg-mode)
+    (evil-add-hjkl-bindings rg-mode-map 'motion
+      "e" #'wgrep-change-to-wgrep-mode
+      "g" #'rg-recompile
+      "t" #'rg-rerun-change-literal)
+
     (ha-leader
-       "s"  '(:ignore t :which-key "search")
-       "s q" '("close" . ha-rg-close-results-buffer)
-       "s r" '("dwim" . rg-dwim)
-       "s s" '("search" . rg)
-       "s S" '("literal" . rg-literal)
-       "s p" '("project" . rg-project) ; or projectile-ripgrep
-       "s d" '("directory" . rg-dwim-project-dir)
-       "s f" '("file only" . rg-dwim-current-file)
-       "s j" '("next results" . ha-rg-go-next-results)
-       "s k" '("prev results" . ha-rg-go-previous-results)
-       "s b" '("results buffer" . ha-rg-go-results-buffer))
+      "s"  '(:ignore t :which-key "search")
+      "s q" '("close" . ha-rg-close-results-buffer)
+      "s r" '("dwim" . rg-dwim)
+      "s s" '("search" . rg)
+      "s S" '("literal" . rg-literal)
+      "s p" '("project" . rg-project) ; or projectile-ripgrep
+      "s d" '("directory" . rg-dwim-project-dir)
+      "s f" '("file only" . rg-dwim-current-file)
+      "s j" '("next results" . ha-rg-go-next-results)
+      "s k" '("prev results" . ha-rg-go-previous-results)
+      "s b" '("results buffer" . ha-rg-go-results-buffer))
 
     (defun ha-rg-close-results-buffer ()
       "Close to the `*rg*' buffer that `rg' creates."
@@ -873,9 +890,9 @@ Ways to search for information goes under the ~s~ key. This primarily depends on
       (previous-error-no-select)
       (compile-goto-error)))
 #+end_src
-
+Note we bind the key ~M-R~ to the [[help:rg-menu][rg-menu]], which is a Magit-like interface to =ripgrep=.
+**** wgrep
 The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
-
 #+begin_src emacs-lisp
   (use-package wgrep
     :after rg
