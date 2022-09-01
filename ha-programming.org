@@ -156,22 +156,32 @@ To take advantage of this, type:
   - ~z a~ :: Toggles open to close
 
 Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
-** Navigation
+** Navigation with dumb-jump
 Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should just be able to use them.  but I want to:
   - Be in a function, and see its callers. For this, the [[help:rg-dwim][rg-dwim]] function is my bread-and-butter.
   - Be on a function, and jump to the definition. For this, I use [[https://github.com/jacktasia/dumb-jump][dumb-jump]], which uses the above utilities.
 
 #+begin_src emacs-lisp
   (use-package dumb-jump
+    :init
+    (setq dumb-jump-prefer-searcher 'rg)
+
     :config
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
-#+end_src
+    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 
-Remember the following:
-  - ~g d~ jumps to definition of symbol at point … which is amazeballs.
-  - ~g r~ shows us all entries of the symbol at point, like [[help:xref-find-references][xref-find-references]]
-  - ~M-,~ to go back along the jump history
+    (ha-prog-leader
+      "s"  '(:ignore t :which-key "search")
+      "s s" '("search" . xref-find-apropos)
+      "s d" '("definitions" . xref-find-definitions)
+      "s o" '("other window" . xref-find-definitions-other-window)
+      "s r" '("references" . xref-find-references)
+      "s b" '("back" . xref-pop-marker-stack))
+
+    :general (:states 'normal
+                      "gh" 'xref-find-apropos
+                      "gb" 'xref-pop-marker-stack))
+#+end_src
 ** Language Server Protocol (LSP) Integration
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
