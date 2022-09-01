@@ -32,15 +32,15 @@ I'm going to be installing everything using the [[https://github.com/raxod502/st
   (defvar bootstrap-version)
 
   (let ((bootstrap-file
-	 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	(bootstrap-version 5))
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
     (unless (file-exists-p bootstrap-file)
       (with-current-buffer
-	  (url-retrieve-synchronously
-	   "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	   'silent 'inhibit-cookies)
-	(goto-char (point-max))
-	(eval-print-last-sexp)))
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
 #+end_src
 
@@ -174,7 +174,7 @@ Sure the Emacs application will almost always have the =server-start= going, but
   the native-comp model, but I reserve the right to change this."
     (and (f-dir? "~/work")
          ;; (string-match "emacs-plus@28" exec-directory)
-         (not (string-match "Emacs.app" exec-directory))))
+         (string-match "Emacs-Work" exec-directory)))
 #+end_src
 
 And now start the server with an appropriate tag name:
