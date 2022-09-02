@@ -218,22 +218,36 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
     "List of org files that complete the hamacs project.")
 #+end_src
 
-We can test/debug/reload any individual file, via:
+The list of /hamacs/ org-formatted files stored in =ha-hamacs-files= is selectively short, and doesn’t include all files, for instance, certain languages that I’m learning aren’t automatically included. The function, =ha-hamacs-files= will return the list loaded at startup, as well as with an optional parameter, return them all.
+#+begin_src emacs-lisp
+  (defun ha-hamacs-files (&optional all)
+    "Return a list of my org files in my `hamacs' directory."
+    (if (not all)
+        ha-hamacs-files
+
+      (thread-last (rx ".org" string-end)
+                   (directory-files "~/other/hamacs" nil)
+                   (append ha-hamacs-files)
+                   (--filter (not (string-match (rx "README") it)))
+                   (-uniq))))
+#+end_src
+
+With this function, we can test/debug/reload any individual file, via:
 #+begin_src emacs-lisp
   (defun ha-hamacs-load (file)
     "Load or reload an org-mode FILE containing literate Emacs configuration code."
-    (interactive (list (completing-read "Org file: " ha-hamacs-files)))
+    (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
     (let ((full-file (f-join hamacs-source-dir file)))
       (when (f-exists? full-file)
         (org-babel-load-file full-file))))
 #+end_src
 
-And we can now load everything:
+And we can now reload /all/ startup files:
 #+begin_src emacs-lisp
   (defun ha-hamacs-reload-all ()
     "Reload our entire ecosystem of configuration files."
     (interactive)
-    (dolist (file ha-hamacs-files)
+    (dolist (file (ha-hamacs-files))
       (unless (equal file "bootstrap.org")
         (ha-hamacs-load file))))
 #+end_src
@@ -243,15 +257,6 @@ And do it:
   (ha-hamacs-reload-all)
 #+end_src
 
-Once we have loaded /my world/, let’s add every other Org file in the project to the list, so that I can load newly created files that I don’t want to commit:
-#+begin_src emacs-lisp
-  (setq ha-hamacs-files
-        (->> (rx ".org" string-end)
-             (directory-files "~/other/hamacs" nil)
-             (append ha-hamacs-files)
-             (--filter (not (string-match (rx "README") it)))
-             (-uniq)))
-#+end_src
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
