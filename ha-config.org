@@ -400,6 +400,10 @@ Can we change Evil at this point? Some tips:
           evil-escape-unordered-key-sequence t)
 
     :config
+    ;; Underscores are part of a symbolic word in programming languages:
+    ;; Sure, I could use capital `W' and `B', but I often forget that.
+    (modify-syntax-entry ?_ "w")
+
     ;; Now that `evil-disable-insert-state-bindings' works to use Emacs
     ;; keybindings in Evil's insert mode, we no longer need this code:
     ;; (setq evil-insert-state-map (make-sparse-keymap))
