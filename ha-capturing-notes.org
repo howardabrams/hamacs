@@ -197,7 +197,7 @@ Using =emacsclient=, the operating system or other applications can trigger a ca
     ;;   (toggle-frame-fullscreen))
 
     (delete-other-windows)
-    (flet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+    (cl-flet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
       (org-capture)))
 
   (defadvice org-capture-finalize

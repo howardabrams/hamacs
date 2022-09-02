@@ -138,7 +138,7 @@ I should break this function into smaller bits ...
 
 #+begin_src emacs-lisp
   (defun ha-org-special-return (&optional ignore)
-    "Add new list item, heading or table row with RET.
+    "Add new list item with RET.
   A double return on an empty element deletes it.
   Use a prefix arg to get regular RET."
     (interactive "P")
@@ -156,30 +156,11 @@ I should break this function into smaller bits ...
               (org-insert-item))
           (delete-region (line-beginning-position) (line-end-position))))
 
-       ;; ((org-at-heading-p)
-       ;;  (if (string= "" (org-element-property :title (org-element-context)))
-       ;;      (delete-region (line-beginning-position) (line-end-position))
-       ;;    (org-insert-heading-after-current)))
-
-       ((org-at-table-p)
-        (if (-any?
-             (lambda (x) (not (string= "" x)))
-             (nth
-              (- (org-table-current-dline) 1)
-              (org-table-to-lisp)))
-            (org-return)
-          ;; empty row
-          (beginning-of-line)
-          (setf (buffer-substring
-          (line-beginning-position) (line-end-position)) "")
-          (org-return)))
-
        (t
         (org-return)))))
 #+end_src
 
 How do we know if we are in a list item? Lists end with two blank lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with one blank line.
-
 #+begin_src emacs-lisp
   (defun org-really-in-item-p ()
     "Return item beginning position when in a plain list, nil otherwise.
@@ -373,17 +354,14 @@ And turn on ALL the languages:
                                  (plantuml   . t)))
 #+end_src
 *** REST Web Services
-:PROPERTIES:
-:header-args: :var user-agent="my-super-agent"
-:END:
-There are many ways in Emacs to query to investigate REST-oriented web services. The [[https://github.com/zweifisch/ob-http][ob-http]] adds HTTP calls to standard org blocks.
+Emacs has two ways to query and investigate REST-oriented web services. The [[https://github.com/zweifisch/ob-http][ob-http]] adds HTTP calls to standard org blocks.
 #+begin_src emacs-lisp
   (use-package ob-http
     :init
     (add-to-list 'org-babel-load-languages '(http . t)))
 #+end_src
 And let’s see how it works:
-#+begin_src http :pretty :results value replace :wrap src js
+#+begin_src http :pretty :results value replace :wrap src js :var user-agent="my-super-agent"
   GET https://api.github.com/repos/zweifisch/ob-http/languages
   Accept: application/json
   User-Agent: ${user-agent}
@@ -405,7 +383,7 @@ Another approach is [[https://github.com/alf/ob-restclient.el][ob-restclient]], 
 #+end_src
 
 And let’s try this:
-#+begin_src restclient :results value replace :wrap src js
+#+begin_src restclient :results value replace :wrap src js :var user-agent="my-super-agent"
   GET https://api.github.com/repos/zweifisch/ob-http/languages
   Accept: application/vnd.github.moondragon+json
   User-Agent: ${user-agent}

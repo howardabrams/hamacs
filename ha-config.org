@@ -24,13 +24,12 @@ A literate programming file for configuring Emacs.
   ;;; Code:
 #+end_src
 * Basic Configuration
-I hate a fat-finger that stop Emacs:
+I begin with configuration of Emacs that isn’t /package-specific/. For instance, I hate a fat-finger that stop Emacs:
 #+begin_src emacs-lisp
   (setq confirm-kill-emacs 'yes-or-no-p)
 #+end_src
 
 New way to display line-numbers. I set mine to =relative= so that I can jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
-
 #+begin_src emacs-lisp
   (setq display-line-numbers t
         display-line-numbers-type 'relative)
@@ -38,7 +37,7 @@ New way to display line-numbers. I set mine to =relative= so that I can jump up 
 
 I like the rendering to curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
 #+begin_src emacs-lisp
-(setq text-quoting-style 'curve)
+  (setq text-quoting-style 'curve)
 #+end_src
 
 Changes and settings I like introduced in Emacs 28:
@@ -49,7 +48,6 @@ Changes and settings I like introduced in Emacs 28:
 #+end_src
 
 As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
-
 #+begin_src emacs-lisp
   (use-package epa-file
     :config
@@ -60,11 +58,15 @@ As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to
           auth-source-cache-expiry nil))
 #+end_src
 
+Unicode ellispis are nicer than three dots:
+#+begin_src emacs-lisp
+  (setq truncate-string-ellipsis "…")
+#+end_src
 More settings:
 
+When I get an error, I need a stack trace to figure out the problem. Yeah, when I stop fiddling with Emacs, this should go off:
 #+begin_src emacs-lisp
-  (setq truncate-string-ellipsis "…" ; Unicode ellispis are nicer than "..."
-        debug-on-error t)
+  (setq debug-on-error t)
 #+end_src
 
 The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen):
@@ -123,12 +125,7 @@ Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippe
 #+begin_src emacs-lisp
   (use-package doom-snippets
     :after yasnippet
-    :straight (:host github :repo "doomemacs/snippets")
-    :config
-    (add-to-list 'yas-snippet-dirs (thread-last user-emacs-directory
-                                                (expand-file-name "straight")
-                                                (expand-file-name "repos")
-                                                (expand-file-name "doom-snippets"))))
+    :straight (:host github :repo "doomemacs/snippets"))
 #+end_src
 *Note:* Including his snippets also includes some [[https://github.com/hlissner/doom-snippets#snippets-api][helper functions]] and other features.
 ** Auto Insert Templates
@@ -832,26 +829,16 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
 
 #+begin_src emacs-lisp
   (use-package rg
-    :general (:states 'normal "gr" 'rg-dwim)
-
     :config
+    ;; In case I call (or something else) calls `grep':
+    (grep-apply-setting 'grep-command "rg")  ;  -n -H --no-heading -e
+
     ;; Make an interesting Magit-like menu of options, which I don't use much:
     (rg-enable-default-bindings (kbd "M-R"))
 
-    ;; In case I call (or something else) calls `grep':
-    (grep-apply-setting 'grep-command "rg -n -H --no-heading -e ")
 
     ;; Old habits die hard ...
     (define-key global-map [remap xref-find-references] 'rg-dwim)
-
-    (advice-add 'wgrep-change-to-wgrep-mode :after #'evil-normal-state)
-    (advice-add 'wgrep-to-original-mode :after #'evil-motion-state)
-    (defvar rg-mode-map)
-    (add-to-list 'evil-motion-state-modes 'rg-mode)
-    (evil-add-hjkl-bindings rg-mode-map 'motion
-      "e" #'wgrep-change-to-wgrep-mode
-      "g" #'rg-recompile
-      "t" #'rg-rerun-change-literal)
 
     (ha-leader
       "s"  '(:ignore t :which-key "search")
@@ -891,6 +878,12 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
       (compile-goto-error)))
 #+end_src
 Note we bind the key ~M-R~ to the [[help:rg-menu][rg-menu]], which is a Magit-like interface to =ripgrep=.
+
+I don’t understand the bug associated with the =:general= extension to =use-package=, but it /works/, but stops everything else from working, so pulling it out into its own =use-package= section addresses that issue:
+#+begin_src emacs-lisp
+  (use-package rg
+    :general (:states 'normal "gr" 'rg-dwim))
+#+end_src
 **** wgrep
 The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
 #+begin_src emacs-lisp
@@ -900,7 +893,7 @@ The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates wi
     :hook (rg-mode-hook . wgrep-rg-setup)
     :config
       (ha-leader
-       :keymaps 'rg-mode-map  ; Actually, `i` works!
+       :keymaps 'rg-mode-map  ; Actually, `i' works!
        "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
        "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
 #+end_src
