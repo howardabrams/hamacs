@@ -118,7 +118,7 @@ Next, on every reboot, start the agent:
 Since =brew link gpg= doesn’t always work, this helper function may find the executable:
 #+begin_src emacs-lisp
   (defun executable (path)
-    "Return PATH if it is executable, see `file-executable-p'."
+    "Return PATH if executable, see `file-executable-p'."
     (let ((epath (first (file-expand-wildcards path))))
       (when (file-executable-p epath) epath)))
 
@@ -174,7 +174,7 @@ Sure the Emacs application will almost always have the =server-start= going, but
   the native-comp model, but I reserve the right to change this."
     (and (f-dir? "~/work")
          ;; (string-match "emacs-plus@28" exec-directory)
-         (string-match "Emacs-Work" exec-directory)))
+         (string-match "emacs-plus@29" exec-directory)))
 #+end_src
 
 And now start the server with an appropriate tag name:
