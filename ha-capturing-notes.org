@@ -190,29 +190,24 @@ Using =emacsclient=, the operating system or other applications can trigger a ca
                   (width . 80)
                   (height . 25)))
     (select-frame-by-name "capture")
-
-    ;; I am always in fullscreen mode for Emacs, so it doesn't always honor
-    ;; the original settings specified above.
-    ;; (when (...)
-    ;;   (toggle-frame-fullscreen))
-
     (delete-other-windows)
-    (cl-flet ((switch-to-buffer-other-window (buf) (switch-to-buffer buf)))
+    (cl-letf (((symbol-function 'switch-to-buffer-other-window) 'switch-to-buffer))
       (org-capture)))
-
-  (defadvice org-capture-finalize
-      (after delete-capture-frame activate)
-    "Advise capture-finalize to close the frame."
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
-
-  (defadvice org-capture-destroy
-      (after delete-capture-frame activate)
-    "Advise capture-destroy to close the frame."
-    (if (equal "capture" (frame-parameter nil 'name))
-        (delete-frame)))
 #+end_src
-Which can have an external shell script:
+When I call [[help:org-capture][org-capture]] in its own frame, I don’t want any other windows around, so we /rebind/ =org-capture= ’s call to switch the buffer to another window, to switch to the capture buffer.
+
+Wouldn’t it be grand if when we finished capturing, the frame automatically closed:
+#+begin_src emacs-lisp
+  (defun org-capture-delete-frame ()
+    "Hook for `org-capture-after-finalize-hook' to delete the frame."
+    (message "Finished with the org-capture-after-finalize-hook")
+    (when (equal "capture" (frame-parameter nil 'name))
+      (delete-frame)))
+
+  (add-hook 'org-capture-after-finalize-hook 'org-capture-delete-frame)
+#+end_src
+
+This external shell script calls the function to kick everything off from applications that aren’t Emacs:
 #+begin_src sh :shebang "#!/bin/bash" :tangle ~/bin/emacs-capture
   /usr/local/bin/emacsclient -s work -n -e "(start-capture-frame)"
 #+end_src
