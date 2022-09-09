@@ -814,6 +814,134 @@ Add =textlint= to the /chain/ for Org files:
     (setq flycheck-textlint-config (format "%s/.textlintrc" (getenv "HOME")))
     (flycheck-add-next-checker 'proselint 'textlint))
 #+end_src
+** Perfect Sentence
+Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] demonstrates the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. Similar to how org-mode edits blocks.
+
+The idea is based on Jordan Peterson's writing app, Essay.  Love the idea, and thought I might work on it. The difference is that I want my version more resilient and not as dependent on the context.
+
+ When we create a new buffer, we want a number of /buffer-local/ variables, so that we know where to return:
+#+begin_src emacs-lisp
+  (defvar-local ha-sentence-buffer nil
+    "The name of the buffer to return when completed.")
+  (defvar-local ha-sentence-begin nil
+    "The beginning position in the original buffer to replace text.")
+  (defvar-local ha-sentence-end nil
+    "The ending position in the original buffer to replace text.")
+#+end_src
+
+My first thought is how to select the sentence. Sure, sometimes that should be the /region/, but we can also use the help:bounds-of-thing-at-point to define the start and the end of the current sentence:
+#+begin_src emacs-lisp
+  (defun ha-sentence--select-region (type-of-thing &optional start end)
+    "Return a tuple of the start and end of the selected sentence."
+    (cond
+     ((region-active-p) (cons (region-beginning) (region-end)))
+     ((and start end)   (cons start end))
+     (t                 (bounds-of-thing-at-point type-of-thing))))
+#+end_src
+In the original buffer, we want to edit a /sentence/, but in the editing buffer, a single sentence may expand to multiple sentences, so we need to change whether we select a ='sentence= or a ='defun= (for a paragraph).
+
+With this function, we can call [[help:cl-destructuring-bind][destructuring-bind]] to define what section we want to edit by assigning the =start= and =end= values. Now we create another buffer window, set the local variables, and insert the region/sentence we requested:
+
+#+begin_src emacs-lisp
+  (defun ha-sentence-break (&optional start end)
+    "Break a sentence out and work it in a new buffer.
+    A sentence chosen is based on the location of a point,
+    or the active region."
+    (interactive)
+    (cl-destructuring-bind (start . end) (ha-sentence--select-region 'sentence start end)
+      (let ((orig-mode major-mode)
+            (orig-buffer (current-buffer))
+            (orig-sentence (buffer-substring-no-properties start end)))
+
+        (switch-to-buffer-other-window "**sentence-breakout**")
+        (funcall orig-mode)
+        (ha-sentence-buffer-mode)
+
+        ;; Store some breadcrumbs so we can return where we left off:
+        (setq-local ha-sentence-buffer orig-buffer
+                    ha-sentence-begin start
+                    ha-sentence-end end)
+        (erase-buffer)
+        (insert orig-sentence)
+
+        ;; Because we might want to duplicate the sentence in the
+        ;; buffer, let's put it on the kill ring:
+        (kill-new orig-sentence))))
+#+end_src
+
+With the new buffer displayed, the sentence to edit is shown, and the idea is to write different versions of that sentence. When we have the version we like, we hit ~C-c C-c~ which calls [[help:ha-sentence-choose][ha-sentence-choose]] /to choose/ the version that replaces the old one. But what if a sentence becomes multiple sentences? Well, in that case, we need to select the text before hitting the ~C-c C-c~ sequence. The buffer-local variables tell us which buffer to return, and what text to replace.
+#+begin_src emacs-lisp
+  (defun ha-sentence-choose (&optional start end)
+    "Choose a sentence and go back to the other window."
+    (interactive)
+
+    ;; By default, our "region" is a paragraph using 'defun symbol of `thing-at-point'
+    ;; It doesn't work on the last sentence if it doesn't include a
+    ;; newline, so hackily, we insert one.
+    (save-excursion
+      (goto-char (point-max))
+      (insert "\n"))
+
+    (cl-destructuring-bind (start . end) (ha-sentence--select-region 'defun start end)
+      (let ((chosen-sentence (buffer-substring-no-properties start end))
+            (orig-buffer     ha-sentence-buffer)
+            (orig-start      ha-sentence-begin)
+            (orig-end        ha-sentence-end))
+
+        (kill-buffer-and-window)
+        (switch-to-buffer orig-buffer)
+        (delete-region orig-start orig-end) ; Or call `kill-region' to put on clipboard?
+        (insert chosen-sentence))))
+#+end_src
+The [[help:kill-region][kill-region]] function takes the original text and places it on the [[help:kill-ring][kill-ring]] (the clipboard). But since we already copied that when we created the buffer, we call [[help:delete-region][delete-region]] instead. Especially since if we felt like we made a mistake, we could just undo the changes.
+
+With my limited experience, I seldom enter completely difference sentences. Instead, I want to /copy/ the sentence and work on that. Let’s make a function to duplicate it.
+#+begin_src emacs-lisp
+  (defun ha-sentence-duplicate ()
+    (interactive)
+    (let ((current (thing-at-point 'defun)))
+      (goto-char (point-max))
+      (insert "\n\n")
+      (let ((starting-point (point)))
+        (insert current)
+        (goto-char starting-point))))
+#+end_src
+
+When creating this new editing buffer, we need keybindings that exist only for this buffer, in other words, a [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Minor-Modes.html][minor mode]]:
+#+begin_src emacs-lisp
+  (defvar ha-sentence-buffer-mode-map (make-sparse-keymap) "Keymap for `my-mode'.")
+  (define-key ha-sentence-buffer-mode-map (kbd "C-c C-c") #'ha-sentence-choose)
+  (define-key ha-sentence-buffer-mode-map (kbd "C-c C-k") #'kill-buffer-and-window)
+  (define-key ha-sentence-buffer-mode-map (kbd "C-c C-d") #'ha-sentence-duplicate)
+
+  (define-minor-mode ha-sentence-buffer-mode
+    "Toggle the Perfect Sentence mode.
+  Interactively with no argument, this command toggles the mode.
+  A positive prefix argument enables the mode, any other prefix
+  argument disables it.  From Lisp, argument omitted or nil enables
+  the mode, `toggle' toggles the state.
+
+  When this mode is enabled, `C-c C-c' calls `ha-sentence-choose',
+  and `C-c C-k' cancels and buries the buffer."
+    ;; :interactive nil
+    :init-value nil
+    :lighter " PS"
+    :keymap ha-sentence-buffer-mode-map)
+#+end_src
+
+Let’s bind a couple key sequences for Emacs mode:
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-s b") 'ha-sentence-break)
+#+end_src
+I am making this global, as it may be nice in both org-mode and programming modes.
+
+And something else while in Evil mode:
+#+begin_src emacs-lisp
+  (ha-leader "x b" '("edit sentence" . ha-sentence-break))
+#+end_src
+Perhaps he might get around to turning [[https://git.chrismaiorana.com/?p=sentinel.git;a=blob;f=sentin.el;h=2738eff6ac2b0877576bafe88878683a7eff3125;hb=refs/heads/master][his code]] into a package. Features needed include:
+  - Adding an overlay to the original text, ala help:org-src--make-source-overlay
+
 ** Distraction-Free Writing
 [[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]] inspired me to clean my writing room.
 *** Write-room
