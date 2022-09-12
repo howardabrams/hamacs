@@ -147,6 +147,8 @@ A self-proclaimed Emacs addict and Free Software enthusiast from Koblenz, German
 An Emacs-learning blog by Junji Zhi.
 **** [[https://lepisma.xyz/atom.xml][(car nil)]]
 Abhinav Tushar's blog is heavily Emacs and org-focused.
+**** [[https://olddeuteronomy.github.io/index.xml][Emacs Cat]]
+A new blog about Emacs.
 *** Programming :programming:
 **** [[http://swannodette.github.com/atom.xml][David Nolen]] :clojure:clojurescript:
 While he hasn't updated the blog in a while, keep an eye on his [[http://swannodette.github.com][Github projects]].
