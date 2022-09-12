@@ -1186,7 +1186,10 @@ I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp pac
   (use-package visual-regexp
     :bind (("C-c r" . vr/replace)
            ("C-c q" . vr/query-replace))
-    :general (:states 'normal "gR" '("replace" . vr/replace)))
+    :general (:states 'normal "gR" '("replace" . vr/replace))
+    :config (ha-leader
+              "r" '("replace" . vr/replace)
+              "R" '("query replace" . vr/query-replace)))
 #+end_src
 
 *** Jump with Avy
