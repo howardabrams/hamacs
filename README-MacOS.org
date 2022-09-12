@@ -12,11 +12,11 @@ Best success comes from using the [[https://github.com/d12frosted/homebrew-emacs
 #+end_src
 I find that I need to … at least, on my work computer, install two different versions of Emacs that I use to distinguish one for “work” and the other for other activities, like IRC and [[file:ha-feed-reader.org][elfeed]]. To that end, I run the following commands to install Emacs:
 #+begin_src sh
-  brew install emacs-plus@28 --with-native-comp --with-mailutils --with-imagemagick
+  brew install emacs-plus@28 --with-native-comp --with-mailutils --with-imagemagick --with-elrumo2-icon
 #+end_src
 And the following for “work”:
 #+begin_src sh
-  brew install emacs-plus@29 --with-native-comp
+  brew install emacs-plus@29 --with-native-comp --with-elrumo1-icon
 #+end_src
 * Supporting Packages
 Now install all the extras:

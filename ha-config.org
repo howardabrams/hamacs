@@ -471,6 +471,7 @@ And the keybindings:
   (define-key evil-inner-text-objects-map "g" #'ha-evil-inner-paren)
   (define-key evil-outer-text-objects-map "g" #'ha-evil-a-paren)
 #+end_src
+
 *** Key Chord
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
 #+begin_src emacs-lisp
@@ -488,6 +489,45 @@ The [[https://github.com/PythonNut/evil-easymotion][evil-easymotion]] project co
     :config (evilem-default-keybindings "<f19>"))
 #+end_src
 My ~F19~ key is within easy reach of my [[https://configure.zsa.io/moonlander/layouts/L4laD/latest/0][Moonlander configuration]], so this might be a good, if somewhat distracting, feature. Perhaps a better solution is to use [[Jump with Avy][avy]] (see below).
+*** Evil Lion
+The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper around Emacs’ [[help:align][align]] function. Just a little easier to use. Primary sequence is ~g a i p =~ to align along all the equal characters in the paragraph (block), or ~g a i b RET~ to use a built in rule to align (see below), or ~g a i b /~ to specify a regular expression, similar to [[help:align-regexp][align-regexp]].
+
+ #+begin_src emacs-lisp
+   (use-package evil-lion
+     :after evil
+     :bind (:map evil-normal-state-map
+                 ("g a" . evil-lion-left)
+                 ("g A" . evil-lion-right)
+                 :map evil-visual-state-map
+                 ("g a" . evil-lion-left)
+                 ("g A" . evil-lion-right)))
+#+end_src
+Lion sounds like /align/ … get it?
+
+Where I like to align, is on variable assignments, e.g.
+#+begin_src emacs-lisp :tangle no
+  (let ((foobar        "Something something")
+        (a             42)
+        (very-long-var "odd string"))
+    ;;
+    )
+#+end_src
+
+If you press ~RETURN~ for the /character/ to align, =evil-lion= package simply calls the built-in [[help:align][align]] function. This function chooses a regular expression based on a list of /rules/, and aligning Lisp variables requires a complicated regular expression. Extend [[elisp:(describe-variable 'align-rules-list)][align-rules-list]]:
+#+begin_src emacs-lisp
+  (use-package align
+    :straight (:type built-in)
+    :config
+    (add-to-list 'align-rules-list
+                 `("lisp-assignments"
+                   (regexp . ,(rx (group (one-or-more space))
+                                  (or
+                                   (seq "\"" (zero-or-more any) "\"")
+                                   (one-or-more (not space)))
+                                  (one-or-more ")") (zero-or-more space) eol))
+                   (group . 1)
+                   (modes . align-lisp-modes))))
+#+end_src
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
@@ -905,10 +945,10 @@ The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates wi
 Stealing much of this from Spacemacs.
 #+begin_src emacs-lisp
   (ha-leader
-     "x"  '(:ignore t :which-key "text")
-     "x a" '("align"            . align-regexp)
-     "x q" '("fill paragraph"   . fill-paragraph)
-     "x p" '("unfill paragraph" . unfill-paragraph))
+    "x"  '(:ignore t :which-key "text")
+    "x a" '("align"            . align-regexp)
+    "x q" '("fill paragraph"   . fill-paragraph)
+    "x p" '("unfill paragraph" . unfill-paragraph))
 #+end_src
 Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] … I use this all the time:
 
