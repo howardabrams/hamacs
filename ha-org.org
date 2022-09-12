@@ -326,10 +326,12 @@ I might replace my code with the [[https://github.com/benmaughan/spotlight.el][s
 I use [[https://orgmode.org/worg/org-contrib/babel/intro.html][org-babel]] (obviously) and don’t need confirmation before evaluating a block:
 #+name: ob-configuration
 #+begin_src emacs-lisp :tangle no
-    (setq org-confirm-babel-evaluate nil
-          org-src-fontify-natively t
-          org-src-tab-acts-natively t)
+  (setq org-confirm-babel-evaluate nil
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-src-window-setup 'current-window)
 #+end_src
+
 Whenever I edit Emacs Lisp blocks from my tangle-able configuration files, I get a lot of superfluous warnings. Let's turn them off.
 #+name: no-flycheck-in-org
 #+begin_src emacs-lisp :tangle no
