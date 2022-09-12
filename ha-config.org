@@ -439,7 +439,7 @@ What text objects are known?
   - ~o~ :: symbol, like a variable
   - ~’~ :: a string, surround by quotes, also ~`~ for backticks
   - ~)~ :: parenthesis, also ~}~ and ~]~, see ~g~
-  - ~g~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ for similar
+  - ~g~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ and ~f~ for similar functionality.
   - ~d~ :: a /defun/, or code block, similar to ~p~.
   - ~i~ :: indention area, for YAML and Python, with the [[Text Objects based on Indentation][evil-indent-plus]] package
   - ~t~ :: an HTML tag
@@ -457,7 +457,35 @@ The [[https://github.com/TheBB/evil-indent-plus][evil-indent-plus]] project crea
 #+begin_src emacs-lisp
   (use-package evil-indent-plus)
 #+end_src
-This can be handy for Python, YAML, and lists in org files.
+This can be handy for Python, YAML, and lists in org files. Note that ~i~ works for the current indent, but ~k~ includes one line above and ~j~ includes one line above and below.
+*** Arguments as Text Objects
+The [[https://github.com/wcsmith/evil-args][evil-args]] projects creates text objects for symbols, but with trailing ~,~ or other syntax.
+#+begin_src emacs-lisp
+  (use-package evil-args
+    :config
+    ;; bind evil-args text objects
+    (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+    (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
+
+    ;; bind evil-forward/backward-args
+    (define-key evil-normal-state-map "L" 'evil-forward-arg)
+    (define-key evil-normal-state-map "H" 'evil-backward-arg)
+    (define-key evil-motion-state-map "L" 'evil-forward-arg)
+    (define-key evil-motion-state-map "H" 'evil-backward-arg)
+
+    ;; bind evil-jump-out-args
+    (define-key evil-normal-state-map "K" 'evil-jump-out-args))
+#+end_src
+For a function, like this Python example, with the cursor on =b=:
+#+begin_src python :tangle no
+  def foobar(a, b, c):
+    return a + b + c
+#+end_src
+Typing ~d a a~ will delete the argument leaving:
+#+begin_src python :tangle no
+  def foobar(a, c):
+    return a + b + c
+#+end_src
 *** Better Parenthesis with Text Object
 I took the following clever idea and code from [[http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/][this essay]] from Chen Bin for creating a ~xig~ to grab code within any grouping characters, like parens, braces and brackets. For instance, ~dig~ cuts the content inside brackets, etc. First, we need a function to do the work (I changed the original from =my-= to =ha-= so that it is easier for me to distinguish functions from my configuration):
 #+begin_src emacs-lisp
