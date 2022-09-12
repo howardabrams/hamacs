@@ -430,6 +430,22 @@ While I’m pretty good with the VIM keybindings, I would like to play around wi
      - ~i`~ :: inner back quoted string
 
 *Note:* The ~x~ in the above examples are ~d~ for delete, ~v~ for select, ~y~ for copying and ~c~ for changing.
+
+What text objects are known?
+  - ~w~ :: word
+  - ~s~ :: sentence
+  - ~p~ :: paragraph
+  - ~o~ :: symbol, like a variable
+  - ~’~ :: a string, surround by quotes, also ~`~ for backticks
+  - ~)~ :: parenthesis, also ~}~ and ~]~, see ~g~
+  - ~g~ :: within a brace, paren, etc. See below
+  - ~i~ :: indention area, for YAML and Python
+  - ~t~ :: an HTML tag
+  - ~c~ :: for comments
+  - ~u~ :: for URLs
+  - ~a~ :: function arguments (probably a lot like symbol, ~o~) with the [[https://github.com/wcsmith/evil-args][evil-args]] extension (that I’m not bothering with)
+**** Evil Args
+
 *** Better Parenthesis with Text Object
 I took the following clever idea and code from [[http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/][this essay]] from Chen Bin for creating a ~xig~ to grab code within any grouping characters, like parens, braces and brackets. For instance, ~dig~ cuts the content inside brackets, etc. First, we need a function to do the work (I changed the original from =my-= to =ha-= so that it is easier for me to distinguish functions from my configuration):
 #+begin_src emacs-lisp

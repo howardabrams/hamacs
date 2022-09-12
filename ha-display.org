@@ -66,7 +66,7 @@ I would appreciate seeing if my Emacs installation has the features that I expec
 #+begin_src emacs-lisp
   (defun ha-hamacs-features (&optional iconic)
     "Simple display of features I'm most keen about.
-  If ICONIC is non-nil, return a string of icons."
+    If ICONIC is non-nil, return a string of icons."
     (interactive)
     (let* ((png-icon  (all-the-icons-material "image"))
            (svg-icon  (all-the-icons-alltheicon "svg"))
@@ -75,13 +75,14 @@ I would appreciate seeing if my Emacs installation has the features that I expec
            (mag-icon  (all-the-icons-faicon "magic"))
            (jit-icon  (all-the-icons-faicon "cog"))
            (results (s-join " "
-              (list (when (and (fboundp 'native-comp-available-p)
-                               (native-comp-available-p)) (if iconic jit-icon "Native-Compilation"))
-                    (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
-                    (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
-                    (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
-                    (when (json-available-p)              (if iconic json-icon "JSON"))
-                    (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
+                            (list (when (and (fboundp 'native-comp-available-p)
+                                             (native-comp-available-p))
+                                                                        (if iconic jit-icon "Native-Compilation"))
+                                  (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
+                                  (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
+                                  (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
+                                  (when (json-available-p)              (if iconic json-icon "JSON"))
+                                  (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
       (if (called-interactively-p)
           (message "Enabled features: %s" results)
         results)))
@@ -191,17 +192,16 @@ And of course, the default is /inside/ where it is dark and safe:
 (laptop-inside)
 #+end_src
 * Full Size Frame
-
 Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][this essay]], I figured I would start the initial frame automatically in fullscreen, but not any subsequent frames (as this could be part of the capturing system).
-
-#+begin_src emacs-lisp :tangle no
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+#+begin_src emacs-lisp
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+end_src
-
 * Font Configuration
 Am I ever really ever satisfied with any font? I regularly change my font based on the monospace du jour... [[http://blogs.adobe.com/typblography/2012/09/source-code-pro.html][Source Code Pro]] is attractive, and has been a staple on every programmers' screen. However, we all want ligatures, [[https://github.com/i-tu/Hasklig][Hasklig]] is a nice font that is thinner and easier to read than [[https://github.com/tonsky/FiraCode][Fira]], but [[https://typeof.net/Iosevka/][Iosevka]] seems to have it all. Oh, Microsoft just gave us [[https://docs.microsoft.com/en-us/windows/terminal/cascadia-code][Cascadia]] and that seems shiny. However, the [[https://github.com/ryanoasis/nerd-fonts][Nerd Font project]] adds the ligatures as well as all the other niceties to a font.
+
 ** Choosing a Font
 I stole the following idea from [[https://protesilaos.com/dotemacs/#h:9035a1ed-e988-4731-89a5-0d9e302c3dea][Protesilaos Stavrou's dotfile configuration]], and the following should minimally be /readable/:
+#+begin_example
   | Similarities | Regular                    |
   |--------------+----------------------------|
   | ()[]{}<>«»‹› | ABCDEFGHIJKLMNOPQRSTUVWXYZ |
@@ -214,15 +214,16 @@ I stole the following idea from [[https://protesilaos.com/dotemacs/#h:9035a1ed-e
   | 9gqpG6       | αβγδεζηθικλμνξοπρστυφχψω   |
   | hnmMN        |                            |
   | uvvwWuuwvy   |                            |
-  | x×X          |  #include <stdio.h> // <= quickly.                              |
-  | .,·°%        |  int main(int argc, char **argv) {                             |
-  | ¡!¿?         |    long il1[]={1-2/3.4,5+6==7/8};                              |
-  | :;           |    int OxFaced=0xBAD||"[{(CQUINE";                             |
-  | `''"‘’“”     |    unsigned O0,l1,Z2,S5,G6,B8__XY;                              |
-  | —-~≈=≠+*_    |    printf("@$Hamburgefo%c`",'\n');                             |
-  | …⋯           |    return ~7&8^9?0:l1|!"j->k+=*w";                              |
+  | x×X          |                            |
+  | .,·°%        |                            |
+  | ¡!¿?         |                            |
+  | :;           |                            |
+  | `''"‘’“”     |                            |
+  | —-~≈=≠+*_    |                            |
+  | …⋯           |                            |
   | ...          |                            |
 
+#+end_example
 
 The following is from [[https://source-foundry.github.io/Hack/font-specimen.html][Hack's website]]:
 #+begin_src c
@@ -243,41 +244,38 @@ brew tap homebrew/cask-fonts
 brew install --cask font-hack-nerd-font
 #+end_src
 ** Specifying a Font
-My /current/ favorite font is actually the top list of fonts that may be installed on my system (they usually are):
+My /current/ favorite font is actually the top list of fonts that may be installed on my system:
 #+begin_src emacs-lisp
   (defvar ha-fixed-font
     (when window-system
-      (cond
-       ((x-list-fonts "Hack Nerd Font") "Hack Nerd Font")
-       ((x-list-fonts "Cousine Nerd Font") "Cousine Nerd Font")
-       ((x-list-fonts "Iosevka Nerd Font") "Iosevka Nerd Font")
-       ((x-list-fonts "Iosevka")           "Iosevka")
-       ((x-list-fonts "FantasqueSansMono Nerd Font") "FantasqueSansMono Nerd Font")
-       ((x-list-fonts "Monoid Nerd Font")  "Monoid Nerd Font")
-       ((x-list-fonts "Hasklig")           "Hasklig")
-       ((x-list-fonts "Cascadia Code PL")  "Cascadia Code PL")
-       ((x-list-fonts "Source Code Pro")   "Source Code Pro")
-       ((x-list-fonts "Anonymous Pro")     "Anonymous Pro")
-       (t "monospaced")))
-    "My fixed width font based on what is installed, `nil' if not defined.")
+      (or
+       (seq-first
+        (seq-filter (lambda (font) (when (x-list-fonts font) font))
+                    '("Hack Nerd Font"
+                      "Cousine Nerd Font"
+                      "Iosevka Nerd Font"
+                      "Iosevka"
+                      "FantasqueSansMono Nerd Font"
+                      "Monoid Nerd Font"
+                      "Hasklig"
+                      "Cascadia Code PL"
+                      "Source Code Pro")))
+       "monospaced"))
+    "My fixed width font based on what I have installed.")
 #+end_src
 
-Force something as well:
-#+begin_src emacs-lisp :tangle no
-(setq ha-fixed-font "Hack Nerd Font")
-#+end_src
-
-I probably don't need to have such a ranking system, as chances are really good that I'll have all of them installed. Still.
+I probably don't need to have such a ranking system, as chances are good I have them all installed.
 #+begin_src emacs-lisp
-(defvar ha-variable-font
-  (when window-system
-    (cond ((x-list-fonts "Overpass")        "Overpass")
-          ((x-list-fonts "Source Sans Pro") "Source Sans Pro")
-          ((x-list-fonts "Lucida Grande")   "Lucida Grande")
-          ((x-list-fonts "Verdana")         "Verdana")
-          ((x-family-fonts "Sans Serif")    "Sans Serif")
-          (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
-  "My variable width font available to org-mode files and whatnot.")
+  (defvar ha-variable-font
+    (when window-system
+      (or
+       (seq-first
+        (seq-filter (lambda (font) (when (x-list-fonts font) font))
+                    '(;  Interesting idea: "Iosevka Comfy Motion Duo"
+                      "Overpass" "Source Sans Pro"
+                      "Lucida Grande" "Verdana"
+                      "Sans Serif")))
+       (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
 #+end_src
 
 Simple function that gives me the font information based on the size I need.  Recently updated after reading [[https://protesilaos.com/codelog/2020-09-05-emacs-note-mixed-font-heights/][this essay]], as I wanted my =fixed-pitch= to scale along with my =variable-pitch= font.
