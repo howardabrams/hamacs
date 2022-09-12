@@ -24,12 +24,13 @@ A literate programming file for programming in Clojure.
   ;;
   ;;; Code:
   #+end_src
-I like [[http://clojure.org][Clojure]] as a /modern Lisp/, but I don’t get to play with it much.
+I like [[http://clojure.org][Clojure]] as a /modern Lisp/, but I don’t get to play with it much anymore. 😢
 The following instructions create a fully blinged-out Emacs-Clojure setup.
 * Introduction
 To get Clojure working on a new system, try the following on a Mac:
 #+begin_src sh
   brew install clojure/tools/clojure
+  brew install leiningen
 #+end_src
 
 And make sure it works:
@@ -42,24 +43,31 @@ Or by starting a REPL:
   clj
 #+end_src
 
-Also, download this script:
-#+begin_src sh
-  curl -o ~/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
-  chmod u+x ~/bin/lein
-#+end_src
-
 Then for each project, create the project directory with this command:
 #+begin_src sh
   lein new app fresh-app
 #+end_src
 * Emacs Support
-We begin with using [[https://github.com/clojure-emacs/clojure-mode/][clojure-mode]]:
+Let’s create a keybinding menu of Clojure-related commands:
+#+begin_src emacs-lisp
+  (general-create-definer ha-clojure-leader
+        :states '(normal visual motion)
+        :keymaps 'clojure-mode-map
+        :prefix "SPC m"
+        :global-prefix "<f17>"
+        :non-normal-prefix "S-SPC")
+#+end_src
+
+Next, install and configure [[https://github.com/clojure-emacs/clojure-mode/][clojure-mode]]:
 #+begin_src emacs-lisp
   (use-package clojure-mode
     :init
     (add-to-list 'org-babel-load-languages '(clojure . t))
 
     :config
+    ;; Predefine a "help" sequence used later on:
+    (ha-clojure-leader "h" '(:ignore t :which-key "help"))
+
     (defun ha-prettify-clojure ()
       "Make the Clojure syntax prettier."
       (push '("fn"   . ?𝝀) prettify-symbols-alist)
@@ -72,49 +80,179 @@ We begin with using [[https://github.com/clojure-emacs/clojure-mode/][clojure-mo
 Need the IDE feature of [[https://github.com/clojure-emacs/cider][Cider]]:
 #+begin_src emacs-lisp
   (use-package cider
-    :commands (cider cider-connect cider-jack-in)
+    :after clojure-mode
+    :commands (cider-connect cider-jack-in cider)
     :init
-    (setq cider-auto-select-error-buffer nil
+    (setq cider-show-error-buffer t
+          ;; The use of paredit when editing Clojure (or any other Lisp) code is
+          ;; highly recommended. You're probably using it already in your
+          ;; clojure-mode buffers (if you're not you probably should). You might
+          ;; also want to enable paredit in the REPL buffer as well.
+          ;; (add-hook 'cider-repl-mode-hook #'paredit-mode)
+
+          ;; Don't select the error buffer when it's displayed:
+          cider-auto-select-error-buffer nil
+
+          ;; Controls whether to pop to the REPL buffer on connect.
           cider-repl-pop-to-buffer-on-connect nil
+
           cider-repl-use-clojure-font-lock t
+
+          ;; T to wrap history around when the end is reached.
           cider-repl-wrap-history t
+
           cider-repl-history-size 1000
-          cider-show-error-buffer t
+
+          ;; Hide `*nrepl-connection*' and `*nrepl-server*' buffers from appearing
+          ;; in some buffer switching commands like switch-to-buffer
           nrepl-hide-special-buffers t
+
           ;; Stop error buffer from popping up while working in buffers other than the REPL:
-          nrepl-popup-stacktraces nil))
+          nrepl-popup-stacktraces nil)
+
+    ;; Enabling CamelCase support for editing commands (like forward-word,
+    ;; backward-word, etc) in the REPL is quite useful since we often have
+    ;; to deal with Java class and method names. The built-in Emacs minor
+    ;; mode subword-mode provides such functionality
+    :hook (cider-repl-mode . #'subword-mode)
+
+    :config
+    (ha-clojure-leader
+     "w" '(:ignore t :which-key "cider")
+     "w s" '("start" . cider-jack-in)
+     "w r" '("restart" . cider-restart)
+     "w c" '("connect" . cider-connect)
+     "w b" '("switch" . cider-switch-repl-buffer)
+     "w n" '("namespace" . cider-repl-set-ns)
+     "w e" '("describe" . cider-describe-connection)
+     "w x" '("interrupt" . cider-interrupt)
+     "w q" '("quit" . cider-quit)
+
+     "b" '(:ignore t :which-key "load")
+     "b b" '("load buffer" . cider-load-buffer)
+     "b f" '("load file" . cider-load-file)
+     "b f" '("load all" . cider-load-all-files)
+     "b r" '("refresh all" . cider-ns-refresh)
+
+     "e" '(:ignore t :which-key "eval")
+     "e e" '("last s-expr" . cider-eval-last-sexp)
+     "e E" '("replace s-expr" . cider-eval-last-sexp-and-replace)
+     "e ." '("s-expr point" . cider-eval-sexp-at-point)
+     "e f" '("defun" . cider-eval-defun-at-point)
+     "e F" '("file" . cider-eval-file)
+     "e b" '("buffer" . cider-eval-buffer)
+     "e r" '("region" . cider-eval-region)
+     "e R" '("to repl" . cider-eval-last-sexp-to-repl)
+     "e n" '("namespace" . cider-eval-ns-form)
+     "e ;" '("expression" . cider-read-and-eval)
+     "e i" '("inspect" . cider-inspect)
+
+     "e p" '(:ignore t :which-key "pprint")
+     "e p p" '("last s-expr" . cider-pprint-eval-last-sexp)
+     "e p f" '("defun" . cider-pprint-eval-defun-at-point)
+     "e p r" '("to repl" . cider-pprint-eval-last-sexp-to-repl)
+
+     ;; Overshadowing xref menu in `ha-programming':
+     "s" '(:ignore t :which-key "search")
+     "s d" '("definition" . cider-find-resource)
+     "s s" '("var" . cider-find-var)
+     "s f" '("file" . cider-find-ns)
+     "s o" '("other window" . xref-find-definitions-other-window)
+     "s D" '("deps" . cider-xref-fn-deps)
+     "s b" '("back" . cider-pop-back)
+
+     "t" '(:ignore t :which-key "test")
+     "t t" '("run test" . cider-test-run-test)
+     "t r" '("rerun test" .cider-test-rerun-test)
+     "t a" '("run all" .  cider-test-run-ns-tests)
+     "t p" '("run project" .cider-test-run-project-tests)
+     "t f" '("run failed" .cider-test-rerun-failed-tests)
+     "t R" '("show report" .  cider-test-show-report)
+     "t T" '("toggle test/file" . projectile-toggle-between-implementation-and-test)
+
+     "d" '(:ignore t :which-key "docs")
+     "d d" '("documentation" . cider-doc)
+     "d s" '("search docs" . cider-apropos-documentation)
+     "d j" '("javadocs" . cider-javadoc)
+     "d c" '("clojuredocs" . cider-clojuredocs)
+     "d a" '("apropos" . cider-apropos)))
 #+end_src
-Read the entire [[https://docs.cider.mx/][CIDER manual]].
+Read the entire [[https://docs.cider.mx/][CIDER manual]], specifically the [[https://docs.cider.mx/cider/usage/cider_mode.html][Usage document]].
 ** Linting
-Using [[https://github.com/jonase/eastwood#emacs--cider][Eastwood]] with the [[https://github.com/clojure-emacs/squiggly-clojure][Squiggly Clojure]] project to add lint warnings to [[file:emacs.org::*Flycheck][Flycheck]]:
-  #+begin_src elisp
+*Note:* The [[https://develop.spacemacs.org/layers/+lang/clojure/README.html][Spacemacs community]] recommends using [[https://github.com/borkdude/clj-kondo][clj-kondo]] in combination with [[https://github.com/candid82/joker][joker]].
+Add lint warnings to [[file:emacs.org::*Flycheck][Flycheck]]:
+#+begin_src elisp
   (use-package flycheck-clojure
     :after flycheck
     :config
     (flycheck-clojure-setup))
-  #+end_src
+#+end_src
+
+To install the =joker= binary:
+#+begin_src sh
+  brew install candid82/brew/joker
+#+end_src
+
+And the [[https://github.com/candid82/flycheck-joker][flycheck-joker]] package should do the trick:
+#+begin_src emacs-lisp
+  (use-package flycheck-joker)
+#+end_src
+
+To install the =clj-kondo= binary is a bit more involved:
+#+begin_src sh
+  curl -sLO https://raw.githubusercontent.com/clj-kondo/clj-kondo/master/script/install-clj-kondo
+  chmod +x install-clj-kondo
+  ./install-clj-kondo
+#+end_src
+
+And the [[https://github.com/borkdude/flycheck-clj-kondo][flycheck-clj-kondo]] project should do the integration:
+#+begin_src emacs-lisp
+  (use-package flycheck-clj-kondo)
+#+end_src
+ Search on Clojars more easily
+This [[https://github.com/joshuamiller/clojars.el][clojars]] extension allows you to search for projects on [[www.clojars.org][clojars.org]] and copies your selection to the kill ring in a format suitable for your =project.clj=.
+#+begin_src emacs-lisp
+  (use-package clojars
+    :after clojure-mode
+    :config
+    (ha-clojure-leader
+     "h j" '("clojars" . clojars)))
+#+end_src
+** Clojure Cheatsheet
+The [[https://github.com/clojure-emacs/clojure-cheatsheet][clojure-cheatsheet]]
+#+begin_src emacs-lisp
+  (use-package clojure-cheatsheet
+    :after clojure-mode
+    :config
+    (ha-clojure-leader
+     "h c" '("cheatsheet" . clojure-cheatsheet)))
+#+end_src
 ** Snippets
-
-For clojure-specific templates for [[https://github.com/capitaomorte/yasnippet][yasnippets]], clone David Nolen's [[http://github.com/swannodette/clojure-snippets][clojure-snippets]] repository into my =snippets= directory:
-  #+begin_src sh :tangle no
-    git clone http://github.com/swannodette/clojure-snippets ~/.emacs/snippets/clojure-mode
-  #+end_src
-
-Or install it as a package:
+For clojure-specific templates for [[https://github.com/capitaomorte/yasnippet][yasnippets]], we use David Nolen's [[http://github.com/swannodette/clojure-snippets][clojure-snippets]] repository:
   #+begin_src elisp
   (use-package clojure-snippets)
   #+end_src
 ** Refactoring
 The [[https://github.com/clojure-emacs/clj-refactor.el][clj-refactor]] project:
-  #+begin_src elisp
+#+begin_src elisp
   (use-package clj-refactor
+    :after clojure-mode
     :hook
     (clojure-mode . clj-refactor-mode)
+
     :config
-    ;; Configure the Clojure Refactoring prefix:
+    ;; Configure the Clojure Refactoring prefix.
     (cljr-add-keybindings-with-prefix "C-c .")
+
+    (ha-clojure-leader
+     ;; Would really like to have this on the SPC m prefix:
+     "r"  '("refactoring" . hydra-cljr-help-menu/body)
+
+     "h d" '("describe refactoring" . cljr-describe-refactoring)
+     "h r" '("refactoring" . hydra-cljr-toplevel-form-menu/body))
+
     :diminish clj-refactor-mode)
-  #+end_src
+#+end_src
 
 The advanced refactorings require the [[https://github.com/clojure-emacs/refactor-nrepl][refactor-nrepl middleware]], which should explain why we added the =refactor-nrepl= to the =:plugins= section in the =~/.lein/profiles.clj= file (see below).
 
