@@ -435,17 +435,29 @@ What text objects are known?
   - ~w~ :: word
   - ~s~ :: sentence
   - ~p~ :: paragraph
+  - ~l~ :: lines, with the [[Evil Text Object Line][Text Object Line]] package
   - ~o~ :: symbol, like a variable
   - ~’~ :: a string, surround by quotes, also ~`~ for backticks
   - ~)~ :: parenthesis, also ~}~ and ~]~, see ~g~
-  - ~g~ :: within a brace, paren, etc. See below
-  - ~i~ :: indention area, for YAML and Python
+  - ~g~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ for similar
+  - ~d~ :: a /defun/, or code block, similar to ~p~.
+  - ~i~ :: indention area, for YAML and Python, with the [[Text Objects based on Indentation][evil-indent-plus]] package
   - ~t~ :: an HTML tag
   - ~c~ :: for comments
   - ~u~ :: for URLs
   - ~a~ :: function arguments (probably a lot like symbol, ~o~) with the [[https://github.com/wcsmith/evil-args][evil-args]] extension (that I’m not bothering with)
-**** Evil Args
-
+*** Evil Text Object Line
+Delete a line, ~d d~ is in basic VI, but many commands are based on text objects, and the basic text object doesn’t include lines. The [[https://github.com/emacsorphanage/evil-textobj-line][evil-textobj-line]] project adds that:
+#+begin_src emacs-lisp
+  (use-package evil-textobj-line)
+#+end_src
+So, ~v i l~ and ~v a l~ works as you’d expect.
+*** Text Objects based on Indentation
+The [[https://github.com/TheBB/evil-indent-plus][evil-indent-plus]] project creates text objects based on the indentation level, similar to how the ~b~ works with “blocks” of code.
+#+begin_src emacs-lisp
+  (use-package evil-indent-plus)
+#+end_src
+This can be handy for Python, YAML, and lists in org files.
 *** Better Parenthesis with Text Object
 I took the following clever idea and code from [[http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/][this essay]] from Chen Bin for creating a ~xig~ to grab code within any grouping characters, like parens, braces and brackets. For instance, ~dig~ cuts the content inside brackets, etc. First, we need a function to do the work (I changed the original from =my-= to =ha-= so that it is easier for me to distinguish functions from my configuration):
 #+begin_src emacs-lisp
@@ -981,22 +993,22 @@ Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
-    "h a" '("apropos" . apropos-command)
+    "h a" '("apropos"          . apropos-command)
     "h c" '("elisp cheatsheet" . shortdoc-display-group)
-    "h e" '("errors" . view-echo-area-messages)
-    "h E" '("emacs-lisp" . (lambda () (interactive) (info "elisp")))
-    "h f" '("function" . describe-function)
-    "h F" '("font" . describe-font)
-    "h =" '("face" . describe-face)
-    "h k" '("key binding" . describe-key)
-    "h K" '("key map" . describe-keymap)
-    "h m" '("mode" . describe-mode)
-    "h p" '("package" . describe-package)
-    "h s" '("symbol" . info-lookup-symbol)
-    "h v" '("variable" . describe-variable)
-    "h i" '("info" . info)
-    "h I" '("info manual" . info-display-manual)
-    "h j" '("info jump" . info-apropos))
+    "h e" '("errors"           . view-echo-area-messages)
+    "h E" '("emacs-lisp"       . (lambda () (interactive) (info "elisp")))
+    "h f" '("function"         . describe-function)
+    "h F" '("font"             . describe-font)
+    "h =" '("face"             . describe-face)
+    "h k" '("key binding"      . describe-key)
+    "h K" '("key map"          . describe-keymap)
+    "h m" '("mode"             . describe-mode)
+    "h p" '("package"          . describe-package)
+    "h s" '("symbol"           . info-lookup-symbol)
+    "h v" '("variable"         . describe-variable)
+    "h i" '("info"             . info)
+    "h I" '("info manual"      . info-display-manual)
+    "h j" '("info jump"        . info-apropos))
 #+end_src
 
 Remember these keys in the *Help* buffer:
@@ -1053,10 +1065,10 @@ One of the reasons that Consult hasn’t been too important to me, is that I oft
     :straight (:host gitlab :repo "OlMon/consult-projectile" :branch "master")
     :config
     (ha-leader
-      "p ." '("switch to..." . consult-projectile)
-      "b b" '("switch buffer" . consult-projectile-switch-to-buffer)
-      "p p" '("switch project" . consult-projectile-switch-project)
-      "p f" '("find file" . consult-projectile-find-file)
+      "p ." '("switch to..."     . consult-projectile)
+      "b b" '("switch buffer"    . consult-projectile-switch-to-buffer)
+      "p p" '("switch project"   . consult-projectile-switch-project)
+      "p f" '("find file"        . consult-projectile-find-file)
       "p r" '("find recent file" . consult-projectile-recentf)))
 #+end_src
 The advantage of [[help:persp-switch-to-buffer][persp-switch-to-buffer]] over =consult-projectile-switch-to-buffer= is that is shows non-file buffers.
@@ -1135,24 +1147,42 @@ In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, 
 #+end_src
 ** Evil Extensions
 *** Evil Exchange
-I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way.
+I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way, and the /objects/ do not need to be adjacent.
+
 #+begin_src emacs-lisp
   (use-package evil-exchange
-    ;; While I normally just use `link-hint', the gx keybinding is used by evil-exchange:
-    :general (:states 'normal "gz" 'browse-url-at-point)
+    :init
+    (setq evil-exchange-key (kbd "gx")
+          evil-exchange-cancel-key (kbd "gX"))
+
+    :general (:states 'normal
+                      "g x" 'evil-exchange
+                      "g X" 'evil-exchange-cancel
+
+                      ;; What about a "normal mode" binding to regular emacs transpose?
+                      "z x" 'transpose-words
+                      "z X" 'transpose-sexps
+                      "z T" 'transpose-lines)
 
     :config (evil-exchange-install))
 #+end_src
 
 Let’s explain how this works as the documentation assumes some previous knowledge. If you had a sentence:
 
-       The ball was red and the boy was blue.
+       The ball was blue and the boy was red.
 
 Move the point to the word, /red/, and type ~g x i w~ (anywhere since we are using the inner text object). Next, jump to the word /blue/, and type the sequence, ~g x i w~ again, and you have:
 
        The ball was blue and the boy was red.
 
 The idea is that you can exchange anything. The ~g x~ marks something (like what we would normally do in /visual mode/), and then by marking something else with a ~g x~ sequence, it swaps them.
+
+Notice that you can swap:
+  - ~gx i w~ :: words, ~W~ words with dashes, or ~o~ for programming symbols (like variables)
+  - ~gx i s~ :: sentences
+  - ~gx i p~ :: paragraphs
+  - ~gx i g~ :: programming s-expressions between parens, braces, etc.
+  - ~gx i l~ :: lines, with the [[Evil Text Object Line][line-based text object]] project installed
 *** Evil Commentary
 The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
 
