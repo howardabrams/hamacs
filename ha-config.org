@@ -1649,7 +1649,7 @@ Next, we can do this, to use this as a diff tool for everything.
   (setenv "GIT_EXTERNAL_DIFF" "difft")
 #+end_src
 But perhaps integrating it into Magit and selectively calling it (as it is slow). Tassilo suggests making the call to =difft= optional by first creating a helper function to set the =GIT_EXTERNAL_DIFF= to =difft=:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun th/magit--with-difftastic (buffer command)
     "Run COMMAND with GIT_EXTERNAL_DIFF=difft then show result in BUFFER."
     (let ((process-environment
@@ -1708,7 +1708,7 @@ The functions below depend on [[help:magit-thing-at-point][magit-thing-at-point]
     :commands magit-thing-at-point)
 #+end_src
 Next, let's define our first command basically doing a =git show= for some revision which defaults to the commit or branch at point or queries the user if there's none.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun th/magit-show-with-difftastic (rev)
     "Show the result of \"git show REV\" with GIT_EXTERNAL_DIFF=difft."
     (interactive
@@ -1729,7 +1729,7 @@ Next, let's define our first command basically doing a =git show= for some revis
        (list "git" "--no-pager" "show" "--ext-diff" rev))))
 #+end_src
 And here the second command which basically does a =git diff=. It tries to guess what one wants to diff, e.g., when point is on the Staged changes section in a magit buffer, it will run =git diff --cached= to show a diff of all staged changes. If it can not guess the context, it'll query the user for a range or commit for diffing.
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun th/magit-diff-with-difftastic (arg)
     "Show the result of \"git diff ARG\" with GIT_EXTERNAL_DIFF=difft."
     (interactive
@@ -1758,7 +1758,7 @@ And here the second command which basically does a =git diff=. It tries to guess
 #+end_src
 
 What's left is integrating the new show and diff commands in Magit. For that purpose, Tasillo created a new transient prefix for all personal commands. Intriguing, but I have a hack that I can use on a leader:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun ha-difftastic-here ()
     (interactive)
     (call-interactively
