@@ -27,7 +27,7 @@ A literate programming file for programming in Clojure.
 I like [[http://clojure.org][Clojure]] as a /modern Lisp/, but I don’t get to play with it much anymore. 😢
 The following instructions create a fully blinged-out Emacs-Clojure setup.
 * Introduction
-To get Clojure working on a new system, try the following on a Mac:
+To get Clojure working on a new MacOS system using [[http://brew.sh][Homebrew]], try the following:
 #+begin_src sh
   brew install clojure/tools/clojure
   brew install leiningen
@@ -51,11 +51,11 @@ Then for each project, create the project directory with this command:
 Let’s create a keybinding menu of Clojure-related commands:
 #+begin_src emacs-lisp
   (general-create-definer ha-clojure-leader
-        :states '(normal visual motion)
-        :keymaps 'clojure-mode-map
-        :prefix "SPC m"
-        :global-prefix "<f17>"
-        :non-normal-prefix "S-SPC")
+    :states '(normal visual motion)
+    :keymaps 'clojure-mode-map
+    :prefix "SPC m"
+    :global-prefix "<f17>"
+    :non-normal-prefix "S-SPC")
 #+end_src
 
 Next, install and configure [[https://github.com/clojure-emacs/clojure-mode/][clojure-mode]]:
@@ -77,7 +77,7 @@ Next, install and configure [[https://github.com/clojure-emacs/clojure-mode/][cl
     :hook (clojure-mode . ha-prettify-clojure))
 #+end_src
 
-Need the IDE feature of [[https://github.com/clojure-emacs/cider][Cider]]:
+Need the IDE features associated with [[https://github.com/clojure-emacs/cider][Cider]]:
 #+begin_src emacs-lisp
   (use-package cider
     :after clojure-mode
@@ -118,64 +118,64 @@ Need the IDE feature of [[https://github.com/clojure-emacs/cider][Cider]]:
 
     :config
     (ha-clojure-leader
-     "w" '(:ignore t :which-key "cider")
-     "w s" '("start" . cider-jack-in)
-     "w r" '("restart" . cider-restart)
-     "w c" '("connect" . cider-connect)
-     "w b" '("switch" . cider-switch-repl-buffer)
-     "w n" '("namespace" . cider-repl-set-ns)
-     "w e" '("describe" . cider-describe-connection)
-     "w x" '("interrupt" . cider-interrupt)
-     "w q" '("quit" . cider-quit)
+      "w" '(:ignore t :which-key "cider")
+      "w s" '("start"            . cider-jack-in)
+      "w r" '("restart"          . cider-restart)
+      "w c" '("connect"          . cider-connect)
+      "w b" '("switch"           . cider-switch-repl-buffer)
+      "w n" '("namespace"        . cider-repl-set-ns)
+      "w e" '("describe"         . cider-describe-connection)
+      "w x" '("interrupt"        . cider-interrupt)
+      "w q" '("quit"             . cider-quit)
 
-     "b" '(:ignore t :which-key "load")
-     "b b" '("load buffer" . cider-load-buffer)
-     "b f" '("load file" . cider-load-file)
-     "b f" '("load all" . cider-load-all-files)
-     "b r" '("refresh all" . cider-ns-refresh)
+      "b" '(:ignore t :which-key "load")
+      "b b" '("load buffer"      . cider-load-buffer)
+      "b f" '("load file"        . cider-load-file)
+      "b f" '("load all"         . cider-load-all-files)
+      "b r" '("refresh all"      . cider-ns-refresh)
 
-     "e" '(:ignore t :which-key "eval")
-     "e e" '("last s-expr" . cider-eval-last-sexp)
-     "e E" '("replace s-expr" . cider-eval-last-sexp-and-replace)
-     "e ." '("s-expr point" . cider-eval-sexp-at-point)
-     "e f" '("defun" . cider-eval-defun-at-point)
-     "e F" '("file" . cider-eval-file)
-     "e b" '("buffer" . cider-eval-buffer)
-     "e r" '("region" . cider-eval-region)
-     "e R" '("to repl" . cider-eval-last-sexp-to-repl)
-     "e n" '("namespace" . cider-eval-ns-form)
-     "e ;" '("expression" . cider-read-and-eval)
-     "e i" '("inspect" . cider-inspect)
+      "e" '(:ignore t :which-key "eval")
+      "e e" '("last s-expr"      . cider-eval-last-sexp)
+      "e E" '("replace s-expr"   . cider-eval-last-sexp-and-replace)
+      "e ." '("s-expr point"     . cider-eval-sexp-at-point)
+      "e f" '("defun"            . cider-eval-defun-at-point)
+      "e F" '("file"             . cider-eval-file)
+      "e b" '("buffer"           . cider-eval-buffer)
+      "e r" '("region"           . cider-eval-region)
+      "e R" '("to repl"          . cider-eval-last-sexp-to-repl)
+      "e n" '("namespace"        . cider-eval-ns-form)
+      "e ;" '("expression"       . cider-read-and-eval)
+      "e i" '("inspect"          . cider-inspect)
 
-     "e p" '(:ignore t :which-key "pprint")
-     "e p p" '("last s-expr" . cider-pprint-eval-last-sexp)
-     "e p f" '("defun" . cider-pprint-eval-defun-at-point)
-     "e p r" '("to repl" . cider-pprint-eval-last-sexp-to-repl)
+      "e p" '(:ignore t :which-key "pprint")
+      "e p p" '("last s-expr"    . cider-pprint-eval-last-sexp)
+      "e p f" '("defun"          . cider-pprint-eval-defun-at-point)
+      "e p r" '("to repl"        . cider-pprint-eval-last-sexp-to-repl)
 
-     ;; Overshadowing xref menu in `ha-programming':
-     "s" '(:ignore t :which-key "search")
-     "s d" '("definition" . cider-find-resource)
-     "s s" '("var" . cider-find-var)
-     "s f" '("file" . cider-find-ns)
-     "s o" '("other window" . xref-find-definitions-other-window)
-     "s D" '("deps" . cider-xref-fn-deps)
-     "s b" '("back" . cider-pop-back)
+      ;; Overshadowing xref menu in `ha-programming':
+      "s" '(:ignore t :which-key "search")
+      "s d" '("definition"       . cider-find-resource)
+      "s s" '("var"              . cider-find-var)
+      "s f" '("file"             . cider-find-ns)
+      "s o" '("other window"     . xref-find-definitions-other-window)
+      "s D" '("deps"             . cider-xref-fn-deps)
+      "s b" '("back"             . cider-pop-back)
 
-     "t" '(:ignore t :which-key "test")
-     "t t" '("run test" . cider-test-run-test)
-     "t r" '("rerun test" .cider-test-rerun-test)
-     "t a" '("run all" .  cider-test-run-ns-tests)
-     "t p" '("run project" .cider-test-run-project-tests)
-     "t f" '("run failed" .cider-test-rerun-failed-tests)
-     "t R" '("show report" .  cider-test-show-report)
-     "t T" '("toggle test/file" . projectile-toggle-between-implementation-and-test)
+      "t" '(:ignore t :which-key "test")
+      "t t" '("run test"         . cider-test-run-test)
+      "t r" '("rerun test"       . cider-test-rerun-test)
+      "t a" '("run all"          . cider-test-run-ns-tests)
+      "t p" '("run project"      . cider-test-run-project-tests)
+      "t f" '("run failed"       . cider-test-rerun-failed-tests)
+      "t R" '("show report"      . cider-test-show-report)
+      "t T" '("toggle test/file" . projectile-toggle-between-implementation-and-test)
 
-     "d" '(:ignore t :which-key "docs")
-     "d d" '("documentation" . cider-doc)
-     "d s" '("search docs" . cider-apropos-documentation)
-     "d j" '("javadocs" . cider-javadoc)
-     "d c" '("clojuredocs" . cider-clojuredocs)
-     "d a" '("apropos" . cider-apropos)))
+      "d" '(:ignore t :which-key "docs")
+      "d d" '("documentation"    . cider-doc)
+      "d s" '("search docs"      . cider-apropos-documentation)
+      "d j" '("javadocs"         . cider-javadoc)
+      "d c" '("clojuredocs"      . cider-clojuredocs)
+      "d a" '("apropos"          . cider-apropos)))
 #+end_src
 Read the entire [[https://docs.cider.mx/][CIDER manual]], specifically the [[https://docs.cider.mx/cider/usage/cider_mode.html][Usage document]].
 ** Linting
@@ -276,7 +276,7 @@ Does this now work?
 #+RESULTS:
 "The answer is 42"
 * LSP, a WIP
-Check out the goodies in [[https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/][this essay]] for hooking Clojure to LSP. Haven’t done this yet.
+Check out the goodies in [[https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/][this essay]] for hooking Clojure to LSP. Haven’t done this yet, and to be honest, I’m not sure what it buys us beyond what Cider offers.
 #+begin_src emacs-lisp :tangle no
   (add-hook 'clojure-mode-hook 'lsp)
   (add-hook 'clojurescript-mode-hook 'lsp)
