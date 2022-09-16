@@ -694,10 +694,9 @@ According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur 
 The end result? No misspellings. Isn‘t this nice?
 
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
-
 #+begin_src emacs-lisp
   (use-package powerthesaurus
-    :bind ("M-T" . powerthesaurus-lookup-dwim)
+    :bind ("s-t" . powerthesaurus-lookup-dwim)
     :config
     (ha-local-leader :keymaps 'text-mode-map
       "s t" '("thesaurus" . powerthesaurus-lookup-dwim)
@@ -706,14 +705,36 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "s r" '("related" . powerthesaurus-lookup-related-dwim)
       "s S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
 #+end_src
-The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
 
+The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
 #+begin_src emacs-lisp
   (use-package define-word
     :config
     (ha-local-leader :keymaps 'text-mode-map
       "s d" '("define this" . define-word-at-point)
       "s D" '("define word" . define-word)))
+#+end_src
+
+After my enamoring of Noah Webster’s 1913 dictionary (originally due to reading [[https://janusworx.com/blog/thank-god-for-noah/][this essay]] by Mario Jason Braganza who referred to James Somers’ original [[https://jsomers.net/blog/dictionary][2014 blog entry]]), I easily followed the instructions from [[https://github.com/ponychicken/WebsterParser][WebsterParser]], a Github project, with the dictionary:
+   1. Download [[https://github.com/ponychicken/WebsterParser/releases/latest/download/websters-1913.dictionary.zip][the dictionary]] file.
+   2. Unzip the archive … have a *Finder* window open to the =.dictionary= file.
+   3. Open the =Dictionary.app= program.
+   4. Select the menu entry, *Dictionary –> File –> Open Dictionaries Folder*
+   5. Drag the downloaded =Websters-1913.dictionary= file into the folder
+   6. Select the menu entry, *Dictionary –> Dictionary –> Preferences*
+   7. Check the now last dictionary in the list
+
+If you want to always see Webster’s results by default, go to the Dictionary app’s preferences and drag Webster’s to the top of the list.
+
+Now that this illuminating dictionary is part of my MacOS =Dictionary.app=, I decided to use the [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary]] package instead of the =define-word=:
+#+begin_src emacs-lisp
+  (when (equal system-type 'darwin)
+    (use-package osx-dictionary
+      :bind ("s-d" . osx-dictionary-search-word-at-point)
+      :config
+      (ha-local-leader :keymaps 'text-mode-map
+        "s d" '("define this" . osx-dictionary-search-word-at-point)
+        "s D" '("define word" . osx-dictionary-search-input))))
 #+end_src
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
