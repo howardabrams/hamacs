@@ -23,103 +23,6 @@ A literate configuration for accessing remote systems.
   ;;
   ;;; Code:
 #+end_src
-* Local Terminals
-The following section configures my Terminal experience, both inside and outside Emacs.
-** Eshell
-I used to use [[http://www.howardism.org/Technical/Emacs/eshell.html][Eshell all the time]], but now I've migrated most of /work/ directly into Emacs (rewriting all those shell scripts a Emacs Lisp code). A shell is pretty good for my brain at organizing files (old habits, maybe).
-
-First, my /aliases/ follow me around, and the following creates the alias file, =~/.emacs.d/eshell/alias=:
-#+begin_src shell :tangle elisp:(identity eshell-aliases-file)  :mkdirp yes
-  alias ll ls -l $*
-  alias clear recenter 0
-  alias emacs 'find-file $1'
-  alias e 'find-file $1'
-  alias ee 'find-file-other-window $1'
-  alias grep 'rg -n -H --no-heading -e "$*"'
-  alias find 'echo Please use fd instead.'    # :-)
-#+end_src
-
-Since that file already exists (probably), the following command may not be necessary:
-#+begin_src emacs-lisp
-  (use-package eshell
-    :custom
-    (eshell-kill-on-exit t)
-    (eshell-destroy-buffer-when-process-dies t)
-
-    :hook
-    (eshell-exit . (lambda () (delete-window))))
-#+end_src
-
-I usually want a new window running Eshell, that is smaller than the current buffer:
-
-#+begin_src emacs-lisp
-  (defun eshell-there (parent)
-    "Open an eshell session in a PARENT directory
-  in a smaller window named after this directory."
-    (let ((name   (thread-first parent
-                                (split-string "/" t)
-                                (last)
-                                (car)))
-          (height (/ (window-total-height) 3))
-          (default-directory parent))
-      (split-window-vertically (- height))
-      (eshell "new")
-      (rename-buffer (concat "*eshell: " name "*"))
-
-      (insert (concat "ls"))
-      (eshell-send-input)))
-#+end_src
-
-We either want to start the shell in the same parent as the current buffer, or at the root of the project:
-#+begin_src emacs-lisp
-  (defun eshell-here ()
-    "Opens up a new shell in the directory associated with the
-    current buffer's file. Rename the eshell buffer name to match
-    that directory to make multiple eshell windows easier."
-    (interactive)
-    (eshell-there (if (buffer-file-name)
-                       (file-name-directory (buffer-file-name))
-                     default-directory)))
-
-  (defun eshell-project ()
-    "Open a new shell in the project root directory, in a smaller window."
-      (interactive)
-      (eshell-there (projectile-project-root)))
-#+end_src
-
-Add my org-specific predicates, see this [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][this essay]] for the details:
-#+begin_src emacs-lisp
-  (defun eshell-org-file-tags ()
-    "Helps the eshell parse the text the point is currently on,
-  looking for parameters surrounded in single quotes. Returns a
-  function that takes a FILE and returns nil if the file given to
-  it doesn't contain the org-mode #+FILETAGS: entry specified."
-
-    ;; Step 1. Parse the eshell buffer for our tag between quotes
-    ;;         Make sure to move point to the end of the match:
-    (if (looking-at "'\\([^)']+\\)'")
-        (let* ((tag (match-string 1))
-               (reg (rx bol "#+FILETAGS: "
-                        (zero-or-more any)
-                        word-start
-                        (literal tag)
-                        word-end
-                        (zero-or-more any)
-                        eol)))
-          (goto-char (match-end 0))
-
-          ;; Step 2. Return the predicate function:
-          ;;         Careful when accessing the `reg' variable.
-          `(lambda (file)
-             (with-temp-buffer
-               (insert-file-contents file)
-               (re-search-forward ,reg nil t 1))))
-      (error "The `T' predicate takes an org-mode tag value in single quotes.")))
-
-  (defvar eshell-predicate-alist nil
-    "A list of predicates than can be applied to a globbing pattern.")
-  (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags)))
-#+end_src
 * Remote Editing with Tramp
 [[https://www.emacswiki.org/emacs/TrampMode][Tramp]] allows almost all Emacs features to execute on a remote system.
 #+begin_src emacs-lisp
@@ -317,14 +220,12 @@ Simply calling =vterm= fails to load my full environment, so this allows me to s
 #+end_src
 
 Before we leave this section, I realize that I would like a way to /add/ to my list of hosts:
-
 #+begin_src emacs-lisp
 (defun ha-ssh-add-favorite-host (hostname ip-address)
   "Add a favorite host to your list for easy pickin's."
   (interactive "sHostname: \nsIP Address: ")
   (add-to-list 'ha-ssh-favorite-hostnames (cons hostname ip-address)))
 #+end_src
-
 ** Programmatic Interface
 
 The previous functions (as well as my own end of sprint demonstrations) often need to issue some commands to a running terminal session, which is a simple wrapper around a /send text/ and /send return/ sequence:
@@ -502,8 +403,6 @@ This file, so far, as been good-enough for a Vanilla Emacs installation, but to 
 
 #+begin_src emacs-lisp
   (ha-leader
-     "a e" '("eshell" . eshell-here)
-     "a E" '("top eshell" . eshell-project)
 
      "a s"  '(:ignore t :which-key "ssh")
      "a s v" '("vterm"         . vterm)

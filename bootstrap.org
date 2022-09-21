@@ -193,28 +193,29 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
   (defvar ha-hamacs-files (flatten-list
                            `("ha-private.org"
                              "ha-config.org"
-                            ,(when (display-graphic-p)
-                               "ha-display.org")
+                             ,(when (display-graphic-p)
+                                "ha-display.org")
                              "ha-org.org"
-                            ,(when (display-graphic-p)
-                               "ha-org-word-processor.org")
-                            "ha-org-clipboard.org"
-                            "ha-capturing-notes.org"
-                            "ha-agendas.org"
-                            "ha-passwords.org"
-                            "ha-remoting.org"
-                            "ha-programming.org"
-                            "ha-programming-elisp.org"
-                            "ha-programming-python.org"
-                            ,(if (ha-emacs-for-work?)
-                                 '("ha-org-sprint.org" "ha-work.org")
-                               ;; Personal Editor
-                               '("ha-org-journaling.org"
-                                 "ha-irc.org"
-                                 "ha-org-publishing.org"
-                                 "ha-email.org"
-                                 "ha-aux-apps.org"
-                                 "ha-feed-reader.org"))))
+                             ,(when (display-graphic-p)
+                                "ha-org-word-processor.org")
+                             "ha-org-clipboard.org"
+                             "ha-capturing-notes.org"
+                             "ha-agendas.org"
+                             "ha-passwords.org"
+                             "ha-eshell.org"
+                             "ha-remoting.org"
+                             "ha-programming.org"
+                             "ha-programming-elisp.org"
+                             "ha-programming-python.org"
+                             ,(if (ha-emacs-for-work?)
+                                  '("ha-org-sprint.org" "ha-work.org")
+                                ;; Personal Editor
+                                '("ha-org-journaling.org"
+                                  "ha-irc.org"
+                                  "ha-org-publishing.org"
+                                  "ha-email.org"
+                                  "ha-aux-apps.org"
+                                  "ha-feed-reader.org"))))
     "List of org files that complete the hamacs project.")
 #+end_src
 
