@@ -930,12 +930,8 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
 #+begin_src emacs-lisp
   (use-package rg
     :config
-    ;; In case I call (or something else) calls `grep':
-    (grep-apply-setting 'grep-command "rg")  ;  -n -H --no-heading -e
-
     ;; Make an interesting Magit-like menu of options, which I don't use much:
     (rg-enable-default-bindings (kbd "M-R"))
-
 
     ;; Old habits die hard ...
     (define-key global-map [remap xref-find-references] 'rg-dwim)
@@ -1006,14 +1002,14 @@ Stealing much of this from Spacemacs.
     "x q" '("fill paragraph"   . fill-paragraph)
     "x p" '("unfill paragraph" . unfill-paragraph))
 #+end_src
-Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] … I use this all the time:
 
+Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] … I use this all the time:
 #+begin_src emacs-lisp
-(defun unfill-paragraph ()
-  "Convert a multi-line paragraph into a single line of text."
-  (interactive)
-  (let ((fill-column (point-max)))
-    (fill-paragraph nil)))
+  (defun unfill-paragraph ()
+    "Convert a multi-line paragraph into a single line of text."
+    (interactive)
+    (let ((fill-column (point-max)))
+      (fill-paragraph nil)))
 #+end_src
 *** Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.

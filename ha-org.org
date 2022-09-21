@@ -742,7 +742,7 @@ Flagging cliches, weak phrasing and other poor grammar choices.
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words, but isn’t integrated into =flycheck=:
 #+begin_src emacs-lisp :tangle no
   (use-package writegood-mode
-      :hook ((org-mode . writegood-mode)))
+    :hook (org-mode . writegood-mode))
 #+end_src
 And it reports obnoxious messages.
 
