@@ -119,7 +119,7 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
 #+begin_src emacs-lisp
 (use-package vterm
   :init
-  (setq vterm-shell "/usr/local/bin/fish")
+  (setq vterm-shell "/usr/local/bin/bash")
   ;; Granted, I seldom pop out to the shell except during code demonstrations,
   ;; but I like how C-p/C-n jumps up to each prompt entry using this setting
   ;; that works with my prompt:

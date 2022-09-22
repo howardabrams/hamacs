@@ -134,6 +134,50 @@ Then we need add that function to the =eshell-predicate-alist= as the =T= tag:
 Any function that begins with =eshell/= can be called with the remaining letters. I used to have a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better. I used to have a number =g=-prefixed aliases to call git-related commands, but now, I just need to call [[file:ha-config.org::*Magit][Magit]] instead.
 
 However, since =eshell= is an /Emacs/ shell, I want to think of how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
+** Map
+While I like eshell’s =for= loop well enough (if I can remember the syntax), as in:
+#+begin_src sh :tangle no
+  for file in *.org {
+    chmod a+x $file
+  }
+#+end_src
+I like the idea of using a /map/ structure, as in:
+#+begin_src sh :tangle no
+  map chmod a+x *.org
+#+end_src
+How would this work without special syntax? Well, eshell sends the =*.org= as a list of files, which we could use as the delimiter. The downside is that we want to list the files, we need to actually /list/ the files, as in:
+#+begin_src sh :tangle no
+  map chmod a+x (list "a.org" "c.org")
+#+end_src
+Pretty ugly, but that isn’t my use-case. I could introduce syntax like:
+#+begin_src sh :tangle no
+  map chmod a+x :: *.org b.txt
+#+end_src
+
+But what if the file isn’t the last element? Well, I could replace a /keyword/, =_=, with the filename when encountered.
+
+Here is my initial function. After separating the arguments into two groups (split on the =::= string), we iterate over the file elements, creating a /form/ that includes the filename.
+#+begin_src emacs-lisp
+  (defun eshell/map (&rest args)
+    "Execute a command sequence over a collection of file elements.
+  The sequence and the elements are separated with a `::' string.
+  For instance:
+
+      map chmod a+x _ :: *.org b.txt
+
+  The `_' sequence is substituted with a single filename element,
+  and if not specified, the filename is appended to the command.
+  "
+    (seq-let (forms elements) (--split-when (equal it "::") args)
+      (dolist (element (-flatten (-concat elements)))
+        (let* ((form (if (-contains? forms "_")
+                         (-replace "_" element forms)
+                       (-snoc forms element)))
+               (cmd  (car form))
+               (args (cdr form)))
+          (eshell-named-command cmd args)))))
+#+end_src
+The [[help:eshell-named-command][eshell-named-command]] takes the command separately from the arguments, so we use =car= and =cdr= on the form.
 ** Git
 My =gst= command is just an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
 #+begin_src emacs-lisp
@@ -398,7 +442,7 @@ The regular expression associated with IP addresses, hostnames, user accounts (o
 #+begin_src emacs-lisp
   (defun ha-eshell-host-regexp (regexp)
     "Returns a particular regular expression based on symbol, REGEXP"
-    (let* ((user-regexp      "\\(\\([[:alpha:].]+\\)@\\)?")
+    (let* ((user-regexp      "\\(\\([[:alnum:]._-]+\\)@\\)?")
            (tramp-regexp     "\\b/ssh:[:graph:]+")
            (ip-char          "[[:digit:]]")
            (ip-plus-period   (concat ip-char "+" "\\."))
