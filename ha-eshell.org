@@ -243,15 +243,18 @@ However, we could add a hook that runs /after/ every command to copy the output 
 
   (defvar LAST nil
     "Contains a list of elements from the last eshell command executed.")
+
+  (defvar OUTAF ""
+    "Contains a filename that contains the output from the last eshell command.")
 #+end_src
 
-Why two variables? Well unlike the behavior of the original shell (and most of its descendents, like =bash=), =eshell= doesn’t automatically split on whitespace. For instance, =echo= called this way:
+Why three variables? Well unlike the behavior of the original shell (and most of its descendents, like =bash=), =eshell= doesn’t automatically split on whitespace. For instance, =echo= called this way:
 #+begin_example
 $ echo a b *.txt
 ("a" "b"
  ("b.txt" "date today.txt"))
 #+end_example
-Is given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. So we want =$OUTPUT= to contain the command’s output /as a string/, and we have, =$LAST= contains the same stuff, but separated by spaces, into a list. So, if we are passing the output from =ls= to =grep=, we would use =$LAST= to represent files.
+Is given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. So we want =$OUTPUT= to contain the command’s output /as a string/, and we have, =$LAST= contains the same stuff, but separated by spaces, into a list. So, if we are passing the output from =ls= to =grep=, we would use =$LAST= to represent files. And, like the =shell-underscore= project mentioned earlier, I may want to have the  output stored in a file, so =$OUTAF= will hold this temporary filename… you know, /OUTput As a File/, right?
 
 The following function does the work of saving the output of the last command. We can get this because after every command, eshell updates two variables, [[elisp:(describe-variable 'eshell-last-input-end)][eshell-last-input-end]] (the start of the output), and [[elisp:(describe-variable 'eshell-last-output-start)][eshell-last-output-start]] (the end of the output):
 #+begin_src emacs-lisp
@@ -261,8 +264,11 @@ The following function does the work of saving the output of the last command. W
     (setq OUTPUT
           (s-trim
            (buffer-substring-no-properties eshell-last-input-end eshell-last-output-start)))
-    (setq LAST
-          (split-string (rx (one-or-more space)) OUTPUT)))
+    (setq OUTAF (make-temp-file "ha-eshell-"))
+    (setq LAST  (split-string (rx (one-or-more space)) OUTPUT))
+
+    (with-temp-file OUTAF
+      (insert OUTPUT)))
 #+end_src
 
 Now we save this output after every command by adding it to the [[elisp:(describe-variable 'eshell-post-command-hook)][eshell-post-command-hook]]:
