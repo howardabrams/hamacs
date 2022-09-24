@@ -40,12 +40,12 @@ The configuration files below expect email addresses (I store passwords and othe
 
 #+NAME: email-address-1
 #+begin_src emacs-lisp :exports none :tangle no :results silent
-  (rot13-string "ubjneq.noenzf@tznvy.pbz")
+  (rot13-string "ubjneq@ubjneqnoenzf.pbz")
 #+end_src
 
 #+NAME: email-address-2
 #+begin_src emacs-lisp :exports none :tangle no :results silent
-  (rot13-string "ubjneq@ubjneqnoenzf.pbz")
+  (rot13-string "ubjneq.noenzf@tznvy.pbz")
 #+end_src
 
 #+NAME: email-address-3
@@ -53,29 +53,28 @@ The configuration files below expect email addresses (I store passwords and othe
   (rot13-string "ubjneq@shmmlgbnfg.pbz")
 #+end_src
 
-To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance:
-#+begin_example
-,#+begin_src conf :noweb yes :tangle /tmp/foobar.txt :results silent
-some-address: <<email-address-2()>>
-,#+end_src
-#+end_example
-
+To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance, the configuration for sending mail through the MUA in Emacs:
+#+begin_src emacs-lisp :noweb yes
+  (setq send-mail-function 'smtpmail-send-it
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
+        smtpmail-auth-credentials `(("smtp.gmail.com" 587 ,<<email-address-1>> nil))
+        smtpmail-default-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587)
+#+end_src
 * Installation and Basic Configuration
-
 To begin, we need the code. On Ubuntu, this is:
-
 #+begin_src shell :tangle no
-sudo apt install -y notmuch
+  sudo apt install -y notmuch
 #+end_src
 
 And on MacOS, we use =brew=:
-
 #+begin_src shell :tangle no
-brew install notmuch
+  brew install notmuch
 #+end_src
 
 Next, we need some basic configuration settings and some global keybindings:
-
 #+begin_src emacs-lisp :noweb yes
   (use-package notmuch
     :init
@@ -92,22 +91,27 @@ Next, we need some basic configuration settings and some global keybindings:
           notmuch-show-indent-content nil)
 
     :bind (:map notmuch-hello-mode-map
-                ("U" . notmuch-retrieve-messages)   ; Defined later
+                ("U" . notmuch-retrieve-messages)
                 ("C" . notmuch-mua-new-mail)
            :map notmuch-tree-mode-map
                 ("C" . notmuch-mua-new-mail))
-    :config (ha-leader   ; Should I put these under an "m" heading?
-              "a n" '("new mail" . notmuch-retrieve-messages)
-              "a m" '("read mail" . notmuch)
-              "a c" '("compose mail" . notmuch-mua-new-mail))
-            <<local-leader-keybindings>>
-            (ha-mail-hello-leader
-                "u" '("new mail" . notmuch-retrieve-messages)
-                "m" '("read mail" . notmuch)
-                "c" '("compose"     . notmuch-mua-new-mail)
-                "C" '("reply-later" . hey-notmuch-reply-later))
-            <<hey-show-keybindings>>
-            <<hey-search-keybindings>>)
+
+    :config
+    (ha-leader   ; Should I put these under an "m" heading?
+      "a n" '("new mail" . notmuch-retrieve-messages)
+      "a m" '("read mail" . notmuch)
+      "a c" '("compose mail" . compose-mail))
+
+    <<local-leader-keybindings>>
+
+    (ha-mail-hello-leader
+     "u" '("new mail" . notmuch-retrieve-messages)
+     "m" '("read mail" . notmuch)
+     "c" '("compose"     . notmuch-mua-new-mail)
+     "C" '("reply-later" . hey-notmuch-reply-later))
+
+    <<hey-show-keybindings>>
+    <<hey-search-keybindings>>)
 #+end_src
 Also, let's do some basic configuration of Emacs' mail system:
 #+begin_src emacs-lisp
@@ -117,57 +121,65 @@ Also, let's do some basic configuration of Emacs' mail system:
         message-send-mail-function 'message-send-mail-with-sendmail
         message-sendmail-envelope-from 'header)
 #+end_src
+
+Create a special mail perspective:
+#+begin_src emacs-lisp
+  (defun ha-email-persp-start ()
+    "Create an IRC workspace and start my IRC client."
+    (interactive)
+    (persp-switch "mail")
+    (notmuch))
+
+  (ha-leader "a M" '("mail persp" . ha-email-persp-start))
+#+end_src
 * Configuration
 Do I want to sign messages by default? Nope.
-
 #+begin_src emacs-lisp :tangle no
-(add-hook 'message-setup-hook 'mml-secure-sign-pgpmime)
+  (add-hook 'message-setup-hook 'mml-secure-sign-pgpmime)
 #+end_src
 ** Addresses
-
 I need to incorporate an address book again, but in the meantime, searching through a history of past email works well enough.
-
 #+begin_src emacs-lisp
-(setq notmuch-address-selection-function
-      (lambda (prompt collection initial-input)
-        (completing-read prompt
-                         (cons initial-input collection)
-                         nil
-                         t
-                         nil
-                         'notmuch-address-history)))
+  (setq notmuch-address-selection-function
+        (lambda (prompt collection initial-input)
+          (completing-read prompt
+                           (cons initial-input collection)
+                           nil
+                           t
+                           nil
+                           'notmuch-address-history)))
 #+end_src
 ** Sending Messages
-
 Do I need to set up [[https://marlam.de/msmtp/][MSMTP]]? No, as Notmuch will do that work.
 To do this, type ~c~ and select an option (including ~r~ to reply).
 
 ** Retrieving Messages
-
 When we start notmuch, we need to retrieve the email and then process it. Most of this is actually contained in the Notmuch configuration.
-
 #+begin_src emacs-lisp
-(defun notmuch-retrieve-messages ()
-  "Retrieve and process my mail messages."
-  (interactive)
-  (async-shell-command "notmuch new"))
+  (defun notmuch-retrieve-messages ()
+    "Retrieve and process my mail messages."
+    (interactive)
+    (async-shell-command "notmuch new"))
 #+end_src
 * iSync Configuration
 Using [[https://isync.sourceforge.io/][isync]] (or is it =mbsync=) for mail retrieval. I have a couple of Google Mail accounts that I want connected.
 
-The file generally can have a =Pass= entry for the encrypted passcode, but to show how to connect to more than one accounts, I'm using a GPG daemon:
-
+There are global settings:
 #+begin_src conf :tangle ~/.mbsyncrc :noweb yes
   # Note: We now tangle this file from ~/other/hamacs/ha-email.org
   Create Both
   SyncState *
-  MaxMessages 300
+  MaxMessages 100
   Sync All # New ReNew Flags
+#+end_src
 
-  #  PERSONAL ACCOUNT
+The following section is for my /personal/ (not too general) account.
+The file generally can have a =Pass= entry for the encrypted passcode, but to show how to connect to more than one accounts, I'm using a GPG daemon:
+#+begin_src conf :tangle ~/.mbsyncrc :noweb yes
+  # PERSONAL ACCOUNT
   IMAPAccount personal
   Host imap.gmail.com
-  User <<email-address-2()>>  # Substitute your own email address here
+  User <<email-address-1()>>  # Substitute your own email address here
   PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
   SSLType IMAPS
   AuthMechs LOGIN
@@ -197,11 +209,14 @@ The file generally can have a =Pass= entry for the encrypted passcode, but to sh
   Master :personal-remote:"[Gmail]/Trash"
   Slave :personal-local:trash
   ExpireUnread yes
+#+end_src
 
-  #  GMAIL ACCOUNT
+I have other email accounts that could use or ignore.
+#+begin_src conf :tangle no
+  # GMAIL ACCOUNT
   IMAPAccount gmail
   Host imap.gmail.com
-  User <<email-address-1()>>  # Substitute your own email address here
+  User <<email-address-2()>>  # Substitute your own email address here
   PassCmd "gpg -q --for-your-eyes-only --pinentry-mode loopback -d ~/.mailpass-google.gpg"
   SSLType IMAPS
   AuthMechs LOGIN
@@ -261,10 +276,10 @@ Here is where you can let notmuch know how you address emails. Valid settings ar
 Notmuch use the email addresses configured here when formatting replies. It will avoid including your own addresses in the recipient list of replies, and will set the From address based on the address in the original email.
 
 #+begin_src conf-unix :tangle ~/.notmuch-config :noweb yes
-[user]
-name=Howard Abrams
-primary_email=<<email-address-1()>>
-other_email=<<email-address-2()>>;<<email-address-3()>>
+  [user]
+  name=Howard Abrams
+  primary_email=<<email-address-1()>>
+  other_email=<<email-address-2()>>;<<email-address-3()>>
 #+end_src
 *NB:* In the configuration above, you may see the addresses are all set to =nil=. If you are copying this from a rendered web page, note that you need to substitute that with your own email address.
 *** Configuration for "notmuch new"
@@ -274,9 +289,9 @@ Note the following supported options:
 
 NOTE: *Every* file/directory that goes by one of those names will be ignored, independent of its depth/location in the mail store.
 #+begin_src conf-unix :tangle ~/.notmuch-config
-[new]
-tags=unread;inbox;
-ignore=
+  [new]
+  tags=unread;inbox;
+  ignore=
 #+end_src
 *** Search configuration
 The following option is supported here:
@@ -284,8 +299,8 @@ The following option is supported here:
  - =exclude_tags= :: A ;-separated list of tags that will be excluded from search results by default.  Using an excluded tag in a query will override that exclusion.
 
 #+begin_src conf-unix :tangle ~/.notmuch-config
-[search]
-exclude_tags=deleted;spam;
+  [search]
+  exclude_tags=deleted;spam;
 #+end_src
 *** Maildir compatibility configuration
 The following option is supported here:
@@ -303,8 +318,8 @@ The following option is supported here:
 The =notmuch new= command will notice flag changes in filenames and update tags, while the =notmuch tag= and =notmuch restore= commands will notice tag changes and update flags in filenames.
 
 #+begin_src conf-unix :tangle ~/.notmuch-config
-[maildir]
-synchronize_flags=true
+  [maildir]
+  synchronize_flags=true
 #+end_src
 
 That should complete the Notmuch configuration.
@@ -312,14 +327,14 @@ That should complete the Notmuch configuration.
 Then we need a shell script called when beginning a retrieval, =pre-new= that simply calls =mbsync= to download all the messages:
 
 #+begin_src shell :tangle ~/.mail/.notmuch/hooks/pre-new :shebang "#!/bin/bash"
-# More info about hooks: https://notmuchmail.org/manpages/notmuch-hooks-5/
-# Note: We now tangle this file from ~/other/hamacs/ha-email.org
+  # More info about hooks: https://notmuchmail.org/manpages/notmuch-hooks-5/
+  # Note: We now tangle this file from ~/other/hamacs/ha-email.org
 
-echo "Starting not-much 'pre-new' script"
+  echo "Starting not-much 'pre-new' script"
 
-mbsync -a
+  mbsync -a
 
-echo "Completing not-much 'pre-new' script"
+  echo "Completing not-much 'pre-new' script"
 #+end_src
 ** =post-new=
 And a =post-new= hook based on a filtering scheme that mimics the Hey.com workflow taken from [[https://gist.githubusercontent.com/frozencemetery/5042526/raw/57195ba748e336de80c27519fe66e428e5003ab8/post-new][this gist]] (note we have more to say on that later on) to filter and tag all messages after they have arrived:
@@ -714,9 +729,9 @@ A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]
           org-msg-greeting-fmt "\nHi%s,\n\n"
           org-msg-recipient-names '(("<<email-address-1()>>" . "Howard Abrams"))
           org-msg-greeting-name-limit 3
-          org-msg-default-alternatives '((new		. (text html))
-                                         (reply-to-html	. (text html))
-                                         (reply-to-text	. (text)))
+          org-msg-default-alternatives '((new           . (text html))
+                                         (reply-to-html . (text html))
+                                         (reply-to-text . (text)))
           org-msg-convert-citation t
           org-msg-signature "
 
