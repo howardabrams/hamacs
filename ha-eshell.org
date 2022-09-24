@@ -265,7 +265,13 @@ The following function does the work of saving the output of the last command. W
           (s-trim
            (buffer-substring-no-properties eshell-last-input-end eshell-last-output-start)))
     (setq OUTAF (make-temp-file "ha-eshell-"))
-    (setq LAST  (split-string (rx (one-or-more space)) OUTPUT))
+    (setq LAST  (split-string OUTPUT))
+
+    ;; Put the three values in the historical rings (see below):
+    (ha-eshell-store-output-history OUTPUT LAST OUTAF)
+    (ring-insert (gethash :text ha-eshell-output) OUTPUT)
+    (ring-insert (gethash :list ha-eshell-output) LAST)
+    (ring-insert (gethash :file ha-eshell-output) OUTAF)
 
     (with-temp-file OUTAF
       (insert OUTPUT)))
@@ -287,6 +293,67 @@ a.org
 
 b.txt
 1:Nam euismod tellus id erat.
+#+end_example
+*** Accessing Output from the Past
+It would also be great if you could grab /historical/ versions of those output. Instead of storing two or three objects to hold them, what about a hash table as a single interface?
+#+begin_src emacs-lisp
+  (defvar ha-eshell-output (make-hash-table :size 3)
+    "A collection of rings representing the various historical output")
+#+end_src
+
+How would we store the historical lists? This is what [[info:elisp#Rings][rings]] are for:
+#+begin_src emacs-lisp
+  (puthash :text (make-ring 10) ha-eshell-output)
+  (puthash :file (make-ring 10) ha-eshell-output)
+  (puthash :list (make-ring 10) ha-eshell-output)
+#+end_src
+
+The [[help:ha-eshell-store-last-output][ha-eshell-store-last-output]] function calls this function in order to store the results in the three rings:
+#+begin_src emacs-lisp
+  (defun ha-eshell-store-output-history (last-output last-list last-output-file)
+    "Store the LAST-OUTPUT as a string in a ring in the `ha-eshell-output'.
+  The LAST-LIST and LAST-OUTPUT-FILE are also store in separate rings."
+    (ring-insert (gethash :text ha-eshell-output) last-output)
+    (ring-insert (gethash :list ha-eshell-output) last-list)
+    (ring-insert (gethash :file ha-eshell-output) last-output-file))
+#+end_src
+
+How best to access this historical data. If there we some other shell, I might have variables like =$OUTPUT_3= or something. I think a function may be sufficient in practice. I’ll just call it [[help:eshell/output][output]] until something better comes along.
+#+begin_src emacs-lisp
+  (defun eshell/output (frmt &optional element)
+    "Return an eshell command output from its history.
+  The FORMAT represents how the output should be returned, and must
+  be `:text', `:list' or `:file'. The ELEMENT is the index into the
+  historical past, where `0' is the most recent, `1' is the next oldest, etc."
+    (if-let ((ring (gethash frmt ha-eshell-output)))
+        (ring-ref ring (or element 0))
+      ""))
+#+end_src
+How would this function work in practice?
+#+begin_example
+  $ echo (output :text 0)   # The same as echo $OUTPUT
+#+end_example
+
+A bit verbose. I think some syntactic sugar functions would be in order:
+#+begin_src emacs-lisp
+  (defun eshell/output-t (&optional element)
+    (eshell/output :text element))
+
+  (defun eshell/output-l (&optional element)
+    (eshell/output :list element))
+
+  (defun eshell/output-f (&optional element)
+    (eshell/output :file element))
+#+end_src
+
+How would this look? Something like:
+#+begin_example
+  $ cat (output-f 4)
+#+end_example
+
+The final trick is being able to count backwards and remember they are always shifting. I guess if I wanted to remember the output for more than one command, I could do:
+#+begin_example
+  $ setq OUTPUT_A $OUTPUT
 #+end_example
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"
