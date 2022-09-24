@@ -552,11 +552,11 @@ The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper aro
    (use-package evil-lion
      :after evil
      :bind (:map evil-normal-state-map
-                 ("g a" . evil-lion-left)
-                 ("g A" . evil-lion-right)
-                 :map evil-visual-state-map
-                 ("g a" . evil-lion-left)
-                 ("g A" . evil-lion-right)))
+            ("g a" . evil-lion-left)
+            ("g A" . evil-lion-right)
+            :map evil-visual-state-map
+            ("g a" . evil-lion-left)
+            ("g A" . evil-lion-right)))
 #+end_src
 Lion sounds like /align/ … get it?
 
@@ -1027,8 +1027,9 @@ Since I tweaked the help menu, I craft my own menu:
     "h k" '("key binding"      . describe-key)
     "h K" '("key map"          . describe-keymap)
     "h m" '("mode"             . describe-mode)
+    "h o" '("symbol"           . describe-symbol)
     "h p" '("package"          . describe-package)
-    "h s" '("symbol"           . info-lookup-symbol)
+    "h s" '("info symbol"      . info-lookup-symbol)
     "h v" '("variable"         . describe-variable)
     "h i" '("info"             . info)
     "h I" '("info manual"      . info-display-manual)
