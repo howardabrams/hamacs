@@ -213,7 +213,7 @@ We’ll leave the =e= alias to replace the =eshell= buffer window.
 ** Last Results
 The [[https://github.com/mathiasdahl/shell-underscore][shell-underscore]] project looks pretty cool, where the =_= character represents a /filename/ with the contents of the previous command (you know, like if you were planning on it, you’d =tee= at the end of every command). An interesting idea that I could duplicate.
 
-While diving into the =eshell= source code, I noticed that the special variable, =$$= can be used /sometimes/ as the output of the last command. For instance:
+While diving into the =eshell= source code, I noticed that the special variables, =$$= and =$_= can be used /sometimes/ as the output of the last command. For instance:
 #+begin_example
 $ echo "hello world"
 hello world
@@ -236,45 +236,25 @@ $ echo Nam $$
 ("Nam" nil)
 #+end_example
 
-However, we could add a hook that runs /after/ every command to copy the output to a variables of our choosing:
+However, I could easily over-write that special variables to behave as I would expect:
+  - A hook runs after every command
+  - It copies the previous command’s output to a /ring/ (so that I can get the last as well as the fifth one)
+  - Create a replacement function for =$$= to read from my history ring
+
+Let’s first make a ring that stores the output:
 #+begin_src emacs-lisp
-  (defvar OUTPUT ""
-    "Contains the output from the last eshell command executed.")
-
-  (defvar LAST nil
-    "Contains a list of elements from the last eshell command executed.")
-
-  (defvar OUTAF ""
-    "Contains a filename that contains the output from the last eshell command.")
+  (defvar ha-eshell-output (make-ring 10)
+    "A ring (looped list) storing history of eshell command output.")
 #+end_src
-
-Why three variables? Well unlike the behavior of the original shell (and most of its descendents, like =bash=), =eshell= doesn’t automatically split on whitespace. For instance, =echo= called this way:
-#+begin_example
-$ echo a b *.txt
-("a" "b"
- ("b.txt" "date today.txt"))
-#+end_example
-Is given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. So we want =$OUTPUT= to contain the command’s output /as a string/, and we have, =$LAST= contains the same stuff, but separated by spaces, into a list. So, if we are passing the output from =ls= to =grep=, we would use =$LAST= to represent files. And, like the =shell-underscore= project mentioned earlier, I may want to have the  output stored in a file, so =$OUTAF= will hold this temporary filename… you know, /OUTput As a File/, right?
 
 The following function does the work of saving the output of the last command. We can get this because after every command, eshell updates two variables, [[elisp:(describe-variable 'eshell-last-input-end)][eshell-last-input-end]] (the start of the output), and [[elisp:(describe-variable 'eshell-last-output-start)][eshell-last-output-start]] (the end of the output):
 #+begin_src emacs-lisp
   (defun ha-eshell-store-last-output ()
     "Store the output from the last eshell command.
   Called after every command by connecting to the `eshell-post-command-hook'."
-    (setq OUTPUT
-          (s-trim
+    (let ((output
            (buffer-substring-no-properties eshell-last-input-end eshell-last-output-start)))
-    (setq OUTAF (make-temp-file "ha-eshell-"))
-    (setq LAST  (split-string OUTPUT))
-
-    ;; Put the three values in the historical rings (see below):
-    (ha-eshell-store-output-history OUTPUT LAST OUTAF)
-    (ring-insert (gethash :text ha-eshell-output) OUTPUT)
-    (ring-insert (gethash :list ha-eshell-output) LAST)
-    (ring-insert (gethash :file ha-eshell-output) OUTAF)
-
-    (with-temp-file OUTAF
-      (insert OUTPUT)))
+      (ring-insert ha-eshell-output output)))
 #+end_src
 
 Now we save this output after every command by adding it to the [[elisp:(describe-variable 'eshell-post-command-hook)][eshell-post-command-hook]]:
@@ -282,78 +262,150 @@ Now we save this output after every command by adding it to the [[elisp:(describ
   (add-hook 'eshell-post-command-hook 'ha-eshell-store-last-output)
 #+end_src
 
-Success:
+Next, this function returns values from the history ring. I feel the need to have different ways of returning the output data.
+Unlike the behavior of the original shell (and most of its descendents, like =bash=), =eshell= doesn’t automatically split on whitespace. For instance, =echo= called this way:
+#+begin_example
+$ echo a b *.txt
+("a" "b"
+ ("b.txt" "date today.txt"))
+#+end_example
+Is given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. So if I specify and argument of =text=, it should return the command’s output /as a string/, but if I give it, =list=, it should contain the same information, but separated by spaces, into a list. For instance, if we are passing the output from =ls= to =grep=, we would use this format.
+
+Like the =shell-underscore= project mentioned earlier, I can access the output stored from a file when given a =file= argument (the output will hold this temporary filename).
+#+begin_src emacs-lisp
+  (defun eshell/output (&rest args)
+    "Return an eshell command output from its history.
+
+  The first argument is the index into the historical past, where
+  `0' is the most recent, `1' is the next oldest, etc.
+
+  The second argument represents how the output should be returned:
+   ,* `text' :: as a string
+   ,* `list' :: as a list of elements separated by whitespace
+   ,* `file' :: as a filename that contains the output
+
+  If the first argument is not a number, then the format is assumed
+  to be `:text'.
+  "
+    (let (frmt element)
+      (cond
+       ((> (length args) 1)  (setq frmt (cadr args)
+                                   element (car args)))
+       ((= (length args) 0)  (setq frmt "text"
+                                   element 0))
+       ((numberp (car args)) (setq frmt "text"
+                                   element (car args)))
+       ((= (length args) 1)  (setq frmt (car args)
+                                   element 0)))
+
+      (if-let ((results (ring-ref ha-eshell-output (or element 0))))
+        (cl-case (string-to-char frmt)
+          (?l     (split-string results))
+          (?f     (ha-eshell-store-file-output results))
+          (otherwise (s-trim results)))
+      "")))
+
+  (defun ha-eshell-store-file-output (results)
+    "Writes the string, RESULTS, to a temporary file and returns that file name."
+    (let ((filename (make-temp-file "ha-eshell-")))
+      (with-temp-file filename
+        (insert results))
+      filename))
+#+end_src
+
+How would this function work in practice?
+#+begin_example
+$ ls
+a.org  b.txt  c.org  date today.txt  ever
+
+$ output
+a.org  b.txt  c.org  date today.txt  ever
+
+$ echo { output list }
+("a.org" "b.txt" "c.org" "date" "today.txt" "ever")
+#+end_example
+Notice how commands between ={ … }= are =eshell= commands, otherwise, if I replace the braces with parens, I would have to write =eshell/output=. Let’s try the history feature:
+#+begin_example
+$ echo "oldest"
+oldest
+
+$ echo "quite old"
+quite old
+
+$ echo "fairly recent"
+fairly recent
+
+$ echo "newest"
+newest
+
+$ echo { output 2 }
+quite old
+#+end_example
+
+Eshell has a feature where /special variables/ (stored in [[elisp:(describe-variable 'eshell-variable-aliases-list)][eshell-variable-aliases-list]]), can be a /function/.  So =$$= can be text-formatted output, and =$_= can be the list formatted output, and =$OUTPUT= can be the output stored in a file.
+#+begin_src emacs-lisp
+  (add-to-list 'eshell-variable-aliases-list '("$"  ha-eshell-output-text))
+  (add-to-list 'eshell-variable-aliases-list '("_"  ha-eshell-output-list))
+  (add-to-list 'eshell-variable-aliases-list '("OUTPUT" ha-eshell-output-file))
+#+end_src
+Without this change, the =$$= variable calls [[help:eshell-last-command-result][eshell-last-command-result]], where I believe my version (with history) may work more reliably. I just need the define this helper functions:
+#+begin_src emacs-lisp
+  (defun ha-eshell-output (format-type indices)
+    "Wrapper around `eshell/output' for the `eshell-variable-aliases-list'."
+    (if indices
+        (eshell/output (string-to-number (caar indices)) format-type)
+      (eshell/output 0 format-type)))
+
+  (defun ha-eshell-output-text (&optional indices &rest ignored)
+    "A _text_ wrapper around `eshell/output' for the `eshell-variable-aliases-list'."
+    (ha-eshell-output "text" indices))
+
+  (defun ha-eshell-output-list (&optional indices &rest ignored)
+    "A _list_ wrapper around `eshell/output' for the `eshell-variable-aliases-list'."
+    (ha-eshell-output "list" indices))
+
+  (defun ha-eshell-output-file (&optional indices &rest ignored)
+    "A _file_ wrapper around `eshell/output' for the `eshell-variable-aliases-list'."
+    (ha-eshell-output "file" indices))
+#+end_src
+
+How would this look? Something like:
+#+begin_example
+$ echo a
+a
+$ echo b
+b
+$ echo c
+c
+$ echo $$
+c
+$ echo $$[2]
+b
+#+end_example
+
+The final trick is being able to count backwards and remember they are always shifting. I guess if I wanted to remember the output for more than one command, I could do:
 #+begin_example
 $ ls *.org(U) b.txt
 a.org  b.txt
 
-$ rg Nam $LAST
+$ chmod o+w $_
+
+$ rg Nam $_[1]
 a.org
 8:Nam vestibulum accumsan nisl.
 
 b.txt
 1:Nam euismod tellus id erat.
+7:Name three things that start with C
 #+end_example
-*** Accessing Output from the Past
-It would also be great if you could grab /historical/ versions of those output. Instead of storing two or three objects to hold them, what about a hash table as a single interface?
-#+begin_src emacs-lisp
-  (defvar ha-eshell-output (make-hash-table :size 3)
-    "A collection of rings representing the various historical output")
-#+end_src
-
-How would we store the historical lists? This is what [[info:elisp#Rings][rings]] are for:
-#+begin_src emacs-lisp
-  (puthash :text (make-ring 10) ha-eshell-output)
-  (puthash :file (make-ring 10) ha-eshell-output)
-  (puthash :list (make-ring 10) ha-eshell-output)
-#+end_src
-
-The [[help:ha-eshell-store-last-output][ha-eshell-store-last-output]] function calls this function in order to store the results in the three rings:
-#+begin_src emacs-lisp
-  (defun ha-eshell-store-output-history (last-output last-list last-output-file)
-    "Store the LAST-OUTPUT as a string in a ring in the `ha-eshell-output'.
-  The LAST-LIST and LAST-OUTPUT-FILE are also store in separate rings."
-    (ring-insert (gethash :text ha-eshell-output) last-output)
-    (ring-insert (gethash :list ha-eshell-output) last-list)
-    (ring-insert (gethash :file ha-eshell-output) last-output-file))
-#+end_src
-
-How best to access this historical data. If there we some other shell, I might have variables like =$OUTPUT_3= or something. I think a function may be sufficient in practice. I’ll just call it [[help:eshell/output][output]] until something better comes along.
-#+begin_src emacs-lisp
-  (defun eshell/output (frmt &optional element)
-    "Return an eshell command output from its history.
-  The FORMAT represents how the output should be returned, and must
-  be `:text', `:list' or `:file'. The ELEMENT is the index into the
-  historical past, where `0' is the most recent, `1' is the next oldest, etc."
-    (if-let ((ring (gethash frmt ha-eshell-output)))
-        (ring-ref ring (or element 0))
-      ""))
-#+end_src
-How would this function work in practice?
+Wanna see something really cool about Eshell? Let’s really swirl Lisp and Shell commands:
 #+begin_example
-  $ echo (output :text 0)   # The same as echo $OUTPUT
-#+end_example
+$ rg (rx line-start "Nam ") $_[2]
+b.txt
+1:Nam euismod tellus id erat.
 
-A bit verbose. I think some syntactic sugar functions would be in order:
-#+begin_src emacs-lisp
-  (defun eshell/output-t (&optional element)
-    (eshell/output :text element))
-
-  (defun eshell/output-l (&optional element)
-    (eshell/output :list element))
-
-  (defun eshell/output-f (&optional element)
-    (eshell/output :file element))
-#+end_src
-
-How would this look? Something like:
-#+begin_example
-  $ cat (output-f 4)
-#+end_example
-
-The final trick is being able to count backwards and remember they are always shifting. I guess if I wanted to remember the output for more than one command, I could do:
-#+begin_example
-  $ setq OUTPUT_A $OUTPUT
+a.org
+8:Nam vestibulum accumsan nisl.
 #+end_example
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"
