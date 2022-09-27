@@ -726,16 +726,19 @@ After my enamoring of Noah Webster’s 1913 dictionary (originally due to readin
 
 If you want to always see Webster’s results by default, go to the Dictionary app’s preferences and drag Webster’s to the top of the list.
 
-Now that this illuminating dictionary is part of my MacOS =Dictionary.app=, I decided to use the [[https://github.com/xuchunyang/osx-dictionary.el][osx-dictionary]] package instead of the =define-word=:
+Now that I’m mostly on version 28 and above of Emacs, we can take advantage of [[help:dictionary-search][dictionary-search]] for looking up dictionaries online, and out of all the word definitions packages for Emacs, this looks the best and is easiest to read:
 #+begin_src emacs-lisp
-  (when (equal system-type 'darwin)
-    (use-package osx-dictionary
-      :bind ("s-d" . osx-dictionary-search-word-at-point)
-      :config
-      (ha-local-leader :keymaps 'text-mode-map
-        "s d" '("define this" . osx-dictionary-search-word-at-point)
-        "s D" '("define word" . osx-dictionary-search-input))))
+  (setq dictionary-server "dict.org")
+
+  (ha-local-leader :keymaps 'text-mode-map
+     "s d" '("define word" . dictionary-search))
 #+end_src
+Once in the dictionary buffer, acquiesce these keybindings:
+    - ~q~ close the dictionary buffer
+    - ~s~ ask for a new word to search
+    - ~d~ search the word at point
+
+    Also note that the dictionary has links to other pages, so ~n~ and ~TAB~ jumps to the next link and ~RET~ opens that link.
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
 *** Writegood
