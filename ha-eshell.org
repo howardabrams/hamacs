@@ -1,4 +1,4 @@
-#+TITLE:  Eshell
+#+TITLE:  Expanding Eshell
 #+AUTHOR: Howard X. Abrams
 #+DATE:   2022-09-13
 #+FILETAGS: :emacs:
@@ -788,21 +788,24 @@ Scrolling through the output and searching for results that can be copied to the
     :hook ((eshell-pred-load . ha-eshell-add-predicates)
            (eshell-exit      . delete-window))
 
-    :bind (:map eshell-mode-map
+    :bind (("M-!" . execute-command-on-file-buffer)
+           ("s-1" . execute-command-on-file-buffer)
+           :map eshell-mode-map
                 ("M-R"   . eshell-insert-history)
                 ("C-d"   . ha-eshell-quit-or-delete-char)))
 #+end_src
-Note that the default list to [[emacs-lisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is mostly good enough.
+Note that the default list to [[emacs-lisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is good enough.
 
-Finally, add some leader commands to call my previously defined functions:
+Add leader commands to call my defined functions:
 #+begin_src emacs-lisp
   (ha-leader
-        "a e"   '(:ignore t :which-key "eshell")
-        "a e e" '("new eshell"          . eshell-here)
-        "a e r" '("remote"              . eshell-remote)
-        "a e p" '("project"             . eshell-project)
-        "a e g" '("at point"            . eshell-here-on-line)
-        "a e !" '("exec on file-buffer" . execute-command-on-file-buffer))
+    "!" '("eshell cmd" . execute-command-on-file-buffer)
+    "a e"   '(:ignore t :which-key "eshell")
+    "a e e" '("new eshell"          . eshell-here)
+    "a e r" '("remote"              . eshell-remote)
+    "a e p" '("project"             . eshell-project)
+    "a e g" '("at point"            . eshell-here-on-line)
+    "a e !" '("exec on file-buffer" . execute-command-on-file-buffer))
 #+end_src
 No, i’m not sure why =use-package= has an issue with both =:hook=, =:bind= and =:config= directives in sequence.
 * Technical Artifacts                                :noexport:

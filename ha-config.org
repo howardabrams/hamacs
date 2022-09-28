@@ -100,16 +100,6 @@ Rewriting my shell scripts in Emacs Lisp uses my [[https://gitlab.com/howardabra
            ("C-M-|" . piper)
            ("C-|" . piper-user-interface)))
 #+end_src
-Interested in the [[https://github.com/xenodium/dwim-shell-command][DWIM Shell Command]] project from [[https://xenodium.com/emacs-dwim-shell-command/][Álvaro Ramírez]]. It acts like the regular [[help:shell-command][shell-command]], but the ~q~ closes the results. A command with =<<f>>= operates on the filename of the current buffer, so =chmod a+x <<f>>= works as expected. More useful in [[help:dired][dired]] where you can mark a bunch of files and then operate on all files with such syntax.
-#+begin_src emacs-lisp
-  (use-package dwim-shell-command
-    :straight (:host github :repo "xenodium/dwim-shell-command")
-    :bind (("M-!" . dwim-shell-command)
-           :map dired-mode-map
-           ([remap dired-do-async-shell-command] . dwim-shell-command)
-           ([remap dired-do-shell-command] . dwim-shell-command)
-           ([remap dired-smart-shell-command] . dwim-shell-command)))
-#+end_src
 ** Yet Another Snippet System (YASnippets)
 Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
 
