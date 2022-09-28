@@ -411,25 +411,47 @@ The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [
 #+end_src
 
 ** Shell Scripts
+While I don't like writing them, I can't get away from them. Check out the goodies in [[https://www.youtube.com/watch?v=LTC6SP7R1hA&t=5s][this video]].
 
-While I don't like writing them, I can't get away from them.
-
-While filename extensions work fine most of the time, I don't like to pre-pend =.sh= to the few shell scripts I write, and instead, would like to associate =shell-mode= with all files in a =bin= directory:
-
+While filename extensions work fine most of the time, I don't like to pre-pend =.sh= to the shell scripts I write, and instead, would like to associate =shell-mode= with all files in a =bin= directory:
 #+begin_src emacs-lisp
   (use-package sh-mode
     :straight (:type built-in)
     :mode (rx (or (seq ".sh" eol)
                   "/bin/"))
+    :init
+    (setq sh-basic-offset 2
+          sh-indentation 2)
     :config
     (ha-auto-insert-file (rx (or (seq ".sh" eol)
-                  "/bin/")) "sh-mode.sh")
+                                 "/bin/"))
+                         "sh-mode.sh")
     :hook
     (after-save . executable-make-buffer-file-executable-if-script-p))
 #+end_src
-*Note:* we make the script /executable/ by default. See [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this essay]] for details, but it appears that the executable bit is only turned on if the script has a shebang at the top of the file.
-** Fish Shell
+*Note:* we make the script /executable/ by default. See [[https://emacsredux.com/blog/2021/09/29/make-script-files-executable-automatically/][this essay]] for details, but it turns on the executable bit if the script has a shebang at the top of the file.
+
+The [[https://www.shellcheck.net/][shellcheck]] project integrates with [[Flycheck]]. First, install the executable into the system, for instance, on a Mac:
+#+begin_src sh
+  brew install shellcheck
+#+end_src
+And we can enable it:
 #+begin_src emacs-lisp
+  (flycheck-may-enable-checker 'sh-shellcheck)
+#+end_src
+Place the following /on a line/ before a shell script warning to ignore it:
+#+begin_src sh
+# shellcheck disable=SC2116,SC2086
+#+end_src
+See [[https://github.com/koalaman/shellcheck/wiki/Ignore][this page]] for details.
+
+Integration with the [[https://github.com/bash-lsp/bash-language-server][Bash LSP implementation]]. First, install that too:
+#+begin_src sh
+  brew install bash-language-server
+#+end_src
+** Fish Shell
+While I thought the [[https://fishshell.com/][fish shell]] was an interesting experiment (and I appreciated the basics that come with [[https://github.com/emacsmirror/fish-mode][fish-mode]]), I always find myself writing the =sh= way of doing things. When fish completely /broke/ on my laptop, I figured it was just not worth the effort to maintain. I’ll be removing this code soon enough.
+#+begin_src emacs-lisp :tangle no
   (use-package fish-mode
     :mode (rx ".fish" eol)
     :config
