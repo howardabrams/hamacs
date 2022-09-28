@@ -1961,6 +1961,29 @@ Use these special keywords when searching:
   - =:all= Return all items.
   - =:COUNT= Return at most /COUNT/ (a number) items. This limit persists until you start a new search.
   - =:t:TAG=, =t:TAG= Return items with /TAG/ (you can search for one tag at a time, a limitation of the Pocket API).
+*** External Browsing
+Browsing on a work laptop is a bit different. According to [[http://ergoemacs.org/emacs/emacs_set_default_browser.html][this page]], I can set a /default browser/ for different URLs, which is great, as I can launch my browser for personal browsing, or another browser for work access, or even EWW. To make this clear, I'm using the abstraction associated with [[https://github.com/rolandwalker/osx-browse][osx-browse]]:
+#+begin_src emacs-lisp
+  (use-package osx-browse
+    :init
+    (setq browse-url-handlers
+          '(("docs\\.google\\.com" . osx-browse-url-personal)
+            ("grafana.com"         . osx-browse-url-personal)
+            ("dndbeyond.com"       . osx-browse-url-personal)
+            ("tabletopaudio.com"   . osx-browse-url-personal)
+            ("youtu.be"            . osx-browse-url-personal)
+            ("youtube.com"         . osx-browse-url-personal)
+            ("."                   . eww-browse-url)))
+
+    :config
+    (defun osx-browse-url-personal (url &optional new-window browser focus)
+      "Open URL in Firefox for my personal surfing.
+  The parameters, URL, NEW-WINDOW, and FOCUS are as documented in
+  the function, `osx-browse-url'."
+      (interactive (osx-browse-interactive-form))
+      (cl-callf or browser "org.mozilla.Firefox")
+      (osx-browse-url url new-window browser focus)))
+#+end_src
 ** Neotree
 I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
 #+begin_src emacs-lisp
