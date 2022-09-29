@@ -563,15 +563,40 @@ The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]]
     :hook (eshell-mode . eshell-fringe-status-mode))
 #+end_src
 ** Opening Banner
-Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? Perhaps we hook into the [[elisp:(describe-variable 'eshell-banner-load-hook)][eshell-banner-load-hook]]:
-#+begin_src emacs-lisp :tangle no
-  (defun ha-eshell-banner (&rest ignored)
-    "My personal banner."
-    (insert "ls")
-    (eshell-send-input))
+Whenever I open a shell, I instinctively type =ls= … so why not do that automatically?
+#+begin_src emacs-lisp
+  (defun ha-eshell-banner ()
+    "Return a string containing the files in the current directory."
+    (let* ((non-hidden (rx string-start
+                           (not (any "." "#"))
+                           (one-or-more any)
+                           (not "~")
+                           string-end))
+           (files   (directory-files default-directory nil non-hidden))
+           (longest (reduce (lambda (longest file) (max longest (length file)))
+                            files :initial-value 1))
+           (padded  (format "%%-%ds  " longest))
+           (width   (window-total-width))
+           (columns (/ width (+ longest 3))))
 
+      (cl-flet* ((process-file
+                  (file)
+                  (let ((image-rx (rx "." (or "png" "jpg" "jpeg" "tif" "wav") string-end))
+                        (code-rx  (rx "." (or "el" "py" "rb") string-end))
+                        (docs-rx  (rx "." (or "org" "md") string-end)))
+                    (format padded (cond
+                                    ((string-match image-rx file) (propertize file 'face '(:foreground "light pink")))
+                                    ((string-match code-rx file)  (propertize file 'face '(:foreground "DarkSeaGreen1")))
+                                 ;; ((string-match docs-rx file)  (propertize file 'face '(:foreground "LightYellow1")))
+                                    ((file-directory-p file)      (propertize file 'face '(:foreground "SteelBlue")))
+                                    (t                            file)))))
+                 (process-line
+                  (files)
+                  (mapconcat 'process-file files "• ")))
+        (concat
+         (mapconcat 'process-line (seq-partition files columns) "\n")
+         "\n\n"))))
 #+end_src
-The thing I would like is to not have the =ls= shown at the top of the buffer, nor added to the /history/. I’ll work on that some day.
 * Shell Windows
 Now that I often need to quickly pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each begin with =eshell-=:
 ** Shell There
@@ -781,6 +806,8 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
 #+begin_src emacs-lisp
   (use-package eshell
     :straight (:type built-in)
+    :custom (eshell-banner-message '(ha-eshell-banner))
+
     :init
     (setq eshell-error-if-no-glob t
           ;; This jumps back to the prompt:
@@ -792,14 +819,12 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
           eshell-kill-on-exit t
           eshell-destroy-buffer-when-process-dies t
 
-          eshell-banner-message ""
           ;; Can you remember the parameter differences between the
           ;; executables `chmod' and `find' and their Emacs counterpart?
           ;; Me neither, so this makes it act a bit more shell-like:
           eshell-prefer-lisp-functions nil)
 
-    :hook ((eshell-pred-load . ha-eshell-add-predicates)
-           (eshell-banner-load . ha-eshell-banner))
+    :hook ((eshell-pred-load . ha-eshell-add-predicates))
 
     :bind (("M-!" . execute-command-on-file-buffer)
            ("s-1" . execute-command-on-file-buffer)
