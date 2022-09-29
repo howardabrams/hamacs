@@ -8,7 +8,7 @@ A literate programming file for configuring the Emacs Shell.
   ;;; ha-eshell --- Emacs Shell configuration. -*- lexical-binding: t; -*-
   ;;
   ;; © 2022 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
@@ -24,16 +24,16 @@ A literate programming file for configuring the Emacs Shell.
   ;;; Code:
   #+end_src
 * Introduction
-While I like [[https://github.com/akermu/emacs-libvterm][vterm]], especially for logging into [[file:ha-remoting.org][remote systems]], I find Emacs’ shell, =eshell=, an interesting alternative.
+While I like [[https://github.com/akermu/emacs-libvterm][vterm]] for logging into [[file:ha-remoting.org][remote systems]], I find Emacs’ shell, =eshell=, an interesting alternative.
 If you find the documentation lacking, I [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][documented most features]], and you might find the following helpful.
 ** Navigation and Keys
 Along with the regular Emacs keybindings, Eshell comes with some interesting features:
-   - ~M-RET~ can be used to accumulate further commands while a command is currently running.  Since all input is passed to the subprocess being executed, there is no automatic input queueing as there is with other shells.
-   - ~C-c C-t~ can be used to truncate the buffer if it grows too large.
-   - ~C-c C-r~ will move point to the beginning of the output of the last command.  With a prefix argument, it will narrow to view only that output.
-   - ~C-c C-o~ will delete the output from the last command.
-   - ~C-c C-f~ will move forward a complete shell argument.
-   - ~C-c C-b~ will move backward a complete shell argument.
+- ~M-RET~ gives you a prompt, even when you are running another command.  Since =eshell= passes all input to subprocesses, there is no automatic input queueing as there is with other shells.
+- ~C-c C-t~ truncates the buffer if it grows too large.
+- ~C-c C-r~ will move point to the beginning of the output of the last command.  With a prefix argument, =eshell= narrows to view its output.
+- ~C-c C-o~ will delete the output from the last command.
+- ~C-c C-f~ will move forward a complete shell argument.
+- ~C-c C-b~ will move backward a complete shell argument.
 ** Control-D Double Duty
 Used to ~C-d~ exiting from a shell? Want it to keep working, but still allow deleting a character? We can have it both (thanks to [[https://github.com/wasamasa/dotemacs/blob/master/init.org#eshell][wasamasa]]):
 #+begin_src emacs-lisp
@@ -48,7 +48,7 @@ Used to ~C-d~ exiting from a shell? Want it to keep working, but still allow del
       (delete-forward-char arg)))
    #+END_SRC
 ** Pager Setup
-If any program wants to pause the output through the =$PAGER= variable, well, we don't really need that:
+If any program wants to pause the output through the =$PAGER= variable, well, we don't need that:
 #+begin_src emacs-lisp
   (setenv "PAGER" "cat")
 #+end_src
@@ -57,7 +57,7 @@ Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], r
 #+begin_src sh
   alias less 'view-file $1'
 #+end_src
-Note that you need single quotes, and multiple arguments don’t really work with aliases.
+Note that you need single quotes, and more than one argument doesn’t work with aliases. To resolve that, we need to write [[Eshell Functions][a function]].
 
 Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:
 #+begin_src shell :tangle ~/.emacs.d/eshell/alias
@@ -87,7 +87,7 @@ Third,  you want /control/, write a function to define the aliases:
       (eshell/alias "ll" (concat ls " -AlohG --color=always"))))
 #+end_src
 * Predicate Filters and Modifiers
-The =T= predicate filter allows me to limit file results that have have internal =org-mode= tags. For instance, files that have a =#+TAGS:= header with a =mac= label will be given to the =grep= function:
+The =T= predicate filter allows me to limit file results that have internal =org-mode= tags. For instance, =eshell= will send files that have a =#+TAGS:= header with a =mac= label to the =grep= function:
 #+begin_src sh
   $ grep brew *.org(T'mac')
 #+end_src
@@ -96,11 +96,11 @@ As described in [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][this
   1. Parse the Eshell buffer to look for the parameter (and move the point past the parameter).
   2. A predicate function that takes a file as a parameter.
 
-For the first step, we have our function /called/ as it helps parse the text at this time. Based on what it sees, it returns the predicate function used to filter the files:
+For the first step, we have our function /called/ as it helps parse the text. Based on what it sees, it returns the predicate function used to filter the files:
 #+begin_src emacs-lisp
   (defun eshell-org-file-tags ()
-    "Helps the eshell parse the text the point is currently on,
-  looking for parameters surrounded in single quotes. Returns a
+    "Parse the eshell text at point.
+  Looks for parameters surrounded in single quotes. Returns a
   function that takes a FILE and returns nil if the file given to
   it doesn't contain the org-mode #+TAGS: entry specified."
 
@@ -129,11 +129,27 @@ Then we need add that function to the =eshell-predicate-alist= as the =T= tag:
     "A hook to add a `eshell-org-file-tags' predicate filter to eshell."
     (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags))))
 #+end_src
-*Note:* We can’t add it to the list until after we start our first eshell session, so we just add it to the =eshell-pred-load-hook= which is sufficient.
+*Note:* We can’t add it to the list until after we start our first eshell session, so we add it to the =eshell-pred-load-hook=.
 * Eshell Functions
-Any function that begins with =eshell/= can be called with the remaining letters. I used to have a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better. I used to have a number =g=-prefixed aliases to call git-related commands, but now, I just need to call [[file:ha-config.org::*Magit][Magit]] instead.
+Any function that begins with =eshell/= is available as a command (with the remaining letters) Once I had a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better.
 
-However, since =eshell= is an /Emacs/ shell, I want to think of how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
+Since =eshell= is an /Emacs/ shell, I try to think how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
+** Buffer Cat
+Why not be able to read a buffer and use it as the start of a pipeline?
+#+begin_src emacs-lisp
+  (defun eshell/bcat (&rest args)
+    (mapconcat (lambda (buffer-name)
+                 (when (bufferp buffer-name)
+                   (save-window-excursion
+                     (switch-to-buffer buffer-name)
+                     (buffer-substring-no-properties (point-min) (point-max)))))
+               args "\n"))
+#+end_src
+Perhaps we should add this feature to eshell’s version of [[help:eshell/cat][cat]].
+** Piper
+My [[https://gitlab.com/howardabrams/emacs-piper][piper]] project seems to like a good match with eshell. For instance, typing =piper= in eshell with a file or a command, and the output from that goes into a Piper buffer, where standard Emacs commands can filter, sort or otherwise alter that output. Then, closing it and calling =piper= in eshell without arguments outputs that buffer … to use as part of a pipe or something.
+#+begin_src emacs-lisp
+#+end_src
 ** Map
 While I like eshell’s =for= loop well enough (if I can remember the syntax), as in:
 #+begin_src sh :tangle no
@@ -160,14 +176,13 @@ Here is my initial function. After separating the arguments into two groups (spl
 #+begin_src emacs-lisp
   (defun eshell/map (&rest args)
     "Execute a command sequence over a collection of file elements.
-  The sequence and the elements are separated with a `::' string.
+  Separate the sequence and the elements with a `::' string.
   For instance:
 
       map chmod a+x _ :: *.org b.txt
 
-  The `_' sequence is substituted with a single filename element,
-  and if not specified, the filename is appended to the command.
-  "
+  The function substitutes the `_' sequence a single filename element,
+  and if not specified, it appends the file name to the command."
     (seq-let (forms elements) (--split-when (equal it "::") args)
       (dolist (element (-flatten (-concat elements)))
         (let* ((form (if (-contains? forms "_")
@@ -179,14 +194,14 @@ Here is my initial function. After separating the arguments into two groups (spl
 #+end_src
 The [[help:eshell-named-command][eshell-named-command]] takes the command separately from the arguments, so we use =car= and =cdr= on the form.
 ** Git
-My =gst= command is just an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
+I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
 #+begin_src emacs-lisp
   (defun eshell/gst (&rest args)
       (magit-status (pop args) nil)
       (eshell/echo))   ;; The echo command suppresses output
 #+end_src
 ** Editing Files
-Which an alias to [[help:find-file][find-file]] (which takes one argument), we could define a special function that can take multiple arguments, and open them in different windows. We first define a /helper function/ for dealing with multiple arguments. It takes two functions, the first function is called on the first argument, and the second function is called on each of the rest.
+The =e= is an alias to [[help:find-file][find-file]] (which takes one argument), we define a special function to open each argument in a different window. We define a /helper function/ for dealing with more than one argument. It takes two functions, where we call the first function on the first argument, and call the second function on each of the rest.
 #+begin_src emacs-lisp
   (defun eshell-fn-on-files (fun1 fun2 args)
     (unless (null args)
@@ -213,14 +228,14 @@ We’ll leave the =e= alias to replace the =eshell= buffer window.
 ** Last Results
 The [[https://github.com/mathiasdahl/shell-underscore][shell-underscore]] project looks pretty cool, where the =_= character represents a /filename/ with the contents of the previous command (you know, like if you were planning on it, you’d =tee= at the end of every command). An interesting idea that I could duplicate.
 
-While diving into the =eshell= source code, I noticed that the special variables, =$$= and =$_= can be used /sometimes/ as the output of the last command. For instance:
+While diving into the =eshell= source code, I noticed the special variables, =$$= and =$_= /sometimes/ contains the output of the last command. For instance:
 #+begin_example
 $ echo "hello world"
 hello world
 $ echo $$
 hello world
 #+end_example
-However, what I would like is something like this to work:
+What I would like is something like this to work:
 #+begin_example
 $ ls *.org(U)
 a.org b.org f.org
@@ -236,7 +251,7 @@ $ echo Nam $$
 ("Nam" nil)
 #+end_example
 
-However, I could easily over-write that special variables to behave as I would expect:
+I over-write that special variables to behave as expected:
   - A hook runs after every command
   - It copies the previous command’s output to a /ring/ (so that I can get the last as well as the fifth one)
   - Create a replacement function for =$$= to read from my history ring
@@ -269,7 +284,7 @@ $ echo a b *.txt
 ("a" "b"
  ("b.txt" "date today.txt"))
 #+end_example
-Is given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. So if I specify and argument of =text=, it should return the command’s output /as a string/, but if I give it, =list=, it should contain the same information, but separated by spaces, into a list. For instance, if we are passing the output from =ls= to =grep=, we would use this format.
+Given a list of /three elements/: =a=, =b=, and a list of all files in the current directory with an =.org= extension. An interesting side-effect is that spaces in filenames are /often okay/. If I specify and argument of =text=, it should return the command’s output /as a string/, but if I give it, =list=, it should contain the same information, but separated by spaces, into a list. For instance, if we are passing the output from =ls= to =grep=, we would use this format.
 
 Like the =shell-underscore= project mentioned earlier, I can access the output stored from a file when given a =file= argument (the output will hold this temporary filename).
 #+begin_src emacs-lisp
@@ -279,12 +294,12 @@ Like the =shell-underscore= project mentioned earlier, I can access the output s
   The first argument is the index into the historical past, where
   `0' is the most recent, `1' is the next oldest, etc.
 
-  The second argument represents how the output should be returned:
+  The second argument represents the returned output:
    ,* `text' :: as a string
    ,* `list' :: as a list of elements separated by whitespace
    ,* `file' :: as a filename that contains the output
 
-  If the first argument is not a number, then the format is assumed
+  If the first argument is not a number, it assumes the format
   to be `:text'.
   "
     (let (frmt element)
@@ -299,11 +314,11 @@ Like the =shell-underscore= project mentioned earlier, I can access the output s
                                    element 0)))
 
       (if-let ((results (ring-ref ha-eshell-output (or element 0))))
-        (cl-case (string-to-char frmt)
-          (?l     (split-string results))
-          (?f     (ha-eshell-store-file-output results))
-          (otherwise (s-trim results)))
-      "")))
+          (cl-case (string-to-char frmt)
+            (?l     (split-string results))
+            (?f     (ha-eshell-store-file-output results))
+            (otherwise (s-trim results)))
+        "")))
 
   (defun ha-eshell-store-file-output (results)
     "Writes the string, RESULTS, to a temporary file and returns that file name."
@@ -329,26 +344,28 @@ Notice how commands between ={ … }= are =eshell= commands, otherwise, if I rep
 $ echo "oldest"
 oldest
 
-$ echo "quite old"
-quite old
+$ echo "old"
+old
 
-$ echo "fairly recent"
-fairly recent
+$ echo "recent"
+recent
 
 $ echo "newest"
 newest
 
 $ echo { output 2 }
-quite old
+old
 #+end_example
 
-Eshell has a feature where /special variables/ (stored in [[elisp:(describe-variable 'eshell-variable-aliases-list)][eshell-variable-aliases-list]]), can be a /function/.  So =$$= can be text-formatted output, and =$_= can be the list formatted output, and =$OUTPUT= can be the output stored in a file.
+Eshell has a feature where /special variables/ (stored in [[elisp:(describe-variable 'eshell-variable-aliases-list)][eshell-variable-aliases-list]]), can be a /function/.  The =$$= holds text-formatted output, and =$_= contains list-formatted output, and =$OUTPUT= can be the output stored in a file.
 #+begin_src emacs-lisp
-  (add-to-list 'eshell-variable-aliases-list '("$"  ha-eshell-output-text))
-  (add-to-list 'eshell-variable-aliases-list '("_"  ha-eshell-output-list))
-  (add-to-list 'eshell-variable-aliases-list '("OUTPUT" ha-eshell-output-file))
+  (with-eval-after-load "eshell"
+    (defvar eshell-variable-aliases-list nil "Autoloading this eshell-defined variable")
+    (add-to-list 'eshell-variable-aliases-list '("$"  ha-eshell-output-text))
+    (add-to-list 'eshell-variable-aliases-list '("_"  ha-eshell-output-list))
+    (add-to-list 'eshell-variable-aliases-list '("OUTPUT" ha-eshell-output-file)))
 #+end_src
-Without this change, the =$$= variable calls [[help:eshell-last-command-result][eshell-last-command-result]], where I believe my version (with history) may work more reliably. I just need the define this helper functions:
+Without this change, the =$$= variable calls [[help:eshell-last-command-result][eshell-last-command-result]], where I believe my version (with history) may work more reliably. I define these helper functions:
 #+begin_src emacs-lisp
   (defun ha-eshell-output (format-type indices)
     "Wrapper around `eshell/output' for the `eshell-variable-aliases-list'."
@@ -396,9 +413,9 @@ a.org
 
 b.txt
 1:Nam euismod tellus id erat.
-7:Name three things that start with C
+7:Name three animals that start with C
 #+end_example
-Wanna see something really cool about Eshell? Let’s really swirl Lisp and Shell commands:
+Wanna see something cool about Eshell? Let’s swirl Lisp and Shell commands:
 #+begin_example
 $ rg (rx line-start "Nam ") $_[2]
 b.txt
@@ -440,7 +457,7 @@ The function takes the current directory passed in via =pwd= and replaces the =$
         pwd)))
 #+end_src
 
-Make the directory name be shorter...by replacing all directory names with just its first names. However, we leave the last two to be the full names. Why yes, I did steal this.
+Make the directory name be shorter… by replacing all directory names with its first names. We leave the last two to be the full names. Why yes, I did steal this.
 #+begin_src emacs-lisp :tangle no
   (defun pwd-shorten-dirs (pwd)
     "Shorten all directory names in PWD except the last two."
@@ -455,7 +472,7 @@ Make the directory name be shorter...by replacing all directory names with just 
            (mapconcat (lambda (elm) elm)
                       (last p-lst 2)
                       "/"))
-        pwd)))  ;; Otherwise, we just return the PWD
+        pwd)))  ;; Otherwise, we return the PWD
 #+end_src
 
 Break up the directory into a "parent" and a "base":
@@ -466,7 +483,7 @@ Break up the directory into a "parent" and a "base":
       (list "" directory)))
 #+END_SRC
 
-Using virtual environments for certain languages is helpful to know, especially since I change them based on the directory.
+Using virtual environments for certain languages is helpful to know, since I change them based on the directory.
 #+begin_src emacs-lisp :tangle no
   (defun ruby-prompt ()
     "Returns a string (may be empty) based on the current Ruby Virtual Environment."
@@ -481,8 +498,8 @@ Using virtual environments for certain languages is helpful to know, especially 
 
   (defun python-prompt ()
     "Returns a string (may be empty) based on the current Python
-     Virtual Environment. Assuming the M-x command: `pyenv-mode-set'
-     has been called."
+     Virtual Environment. Assuming I've called the M-x command:
+     `pyenv-mode-set'."
     (when (fboundp #'pyenv-mode-version)
       (let ((venv (pyenv-mode-version)))
         (when venv
@@ -494,9 +511,9 @@ Using virtual environments for certain languages is helpful to know, especially 
 Now tie it all together with a prompt function can color each of the prompts components.
 #+begin_src emacs-lisp :tangle no
   (defun eshell/eshell-local-prompt-function ()
-    "A prompt for eshell that works locally (in that is assumes
-  that it could run certain commands) in order to make a prettier,
-  more-helpful local prompt."
+    "A prompt for eshell that works locally (in that it assumes it
+  could run certain commands) to make a prettier, more-helpful
+  local prompt."
     (interactive)
     (let* ((pwd        (eshell/pwd))
            (directory (split-directory-prompt
@@ -540,7 +557,7 @@ Now tie it all together with a prompt function can color each of the prompts com
 Here is the result:
 [[http://imgur.com/nkpwII0.png]]
 ** Fringe Status
-Some prompts, shells and terminal programs that display the exit code as an icon in the fringe. So can the [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]] project. Seems to me, that if would be useful to rejuggle those fringe markers so that the marker matched the command entered (instead of seeing a red mark, and needing to scroll back in order to wonder what command it was that made it). Still...
+The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]] project shows a color-coded icon of the previous command run (green for success, red for error). Doesn’t work reliably, but the fringe is inconspicuous. Seems to me, that if would be useful to rejuggle those fringe markers so that the marker matched the command entered (instead of seeing a red mark, and needing to scroll back to seethe  command that made the error). Still...
 #+begin_src emacs-lisp
   (use-package eshell-fringe-status
     :hook (eshell-mode . eshell-fringe-status-mode))
@@ -553,27 +570,24 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
     (insert "ls")
     (eshell-send-input))
 
-  (add-hook 'eshell-banner-load-hook 'ha-eshell-banner)
-
-  (setq eshell-banner-message "")
 #+end_src
-The only thing I would like is to not have the =ls= shown at the top of the buffer, nor added to the /history/. I’ll work on that some day.
+The thing I would like is to not have the =ls= shown at the top of the buffer, nor added to the /history/. I’ll work on that some day.
 * Shell Windows
 Now that I often need to quickly pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each begin with =eshell-=:
 ** Shell There
 The basis for opening an shell depends on the /location/. After that, we make the window smaller, give the buffer a good name, as well as immediately display the files with =ls= (since I instinctively just /do that/ … every time).
 #+begin_src emacs-lisp
   (defun eshell-there (parent)
-    "Open an eshell session in a PARENT directory
-  in a smaller window named after this directory."
+    "Open an eshell session in a PARENT directory.
+  The window is smaller and named after this directory."
     (let* ((name (thread-first parent
                                (split-string "/" t)
                                (last)
                                (car)))
-           (eshell-buffer-name (format "*eshell: %s*" name))
            (height (/ (window-total-height) 3))
            (default-directory parent))
       (split-window-vertically (- height))
+      (setq eshell-buffer-name (format "*eshell: %s*" name))
       (eshell)))
 #+end_src
 ** Shell Here
@@ -698,7 +712,7 @@ The function to scan a line for hostname patterns uses different function calls 
 Tramp reference can be long when attempting to connect as another user account using the pipe symbol.
 #+begin_src emacs-lisp
   (defun ha-eshell-host->tramp (username hostname &optional prefer-root)
-    "Returns a TRAMP reference based on a USERNAME and HOSTNAME
+    "Return a TRAMP reference based on a USERNAME and HOSTNAME
   that refers to any host or IP address."
     (cond ((string-match-p "^/" host)
              host)
@@ -710,7 +724,7 @@ Tramp reference can be long when attempting to connect as another user account u
              (format "/ssh:%s|sudo:%s|sudo@%s:%s:" hostname hostname username hostname))))
 #+end_src
 
-Finally, a function to pull it all together.
+This function pulls it all together:
 #+begin_src emacs-lisp
   (defun eshell-here-on-line (p)
     "Search the current line for an IP address or hostname, and call the `eshell-here' function.
@@ -735,18 +749,17 @@ On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][th
                                   (ring-elements eshell-history-ring)))))
   #+END_SRC
 * Command on the File Buffer
-Sometimes you just need to change something about the current file you are editing...like the permissions or even execute it. Hitting =Command-1= will prompt for a shell command string and then append the current file to it and execute it.
+Sometimes you need to change something about the current file you are editing...like the permissions or even execute it. Hitting =Command-1= will prompt for a shell command string and then append the current file to it and execute it.
 #+begin_src emacs-lisp
   (defun execute-command-on-file-buffer (cmd)
     "Executes a shell command, CMD, on the current buffer's file.
-  If the filename is not specified, then it is appended to the cmd, so
+  Appends the filename to the command if not specified, so:
 
       chmod a+x
 
-  Works as expected. The special variable `$$' is replaced with the
-  filename of the buffer. Note that this is command is passed to
-  `eshell-command', so eshell modifiers are available, for
-  instance:
+  Works as expected. We replace the special variable `$$' with the
+  filename of the buffer. Note that `eshell-command' executes this
+  command, so eshell modifiers are available, for instance:
 
       mv $$ $$(:r).txt
 
@@ -765,34 +778,34 @@ Sometimes you just need to change something about the current file you are editi
 #+end_src
 * Configuration
 Here is where we associate all the functions and their hooks with =eshell=, through the magic of =use-package=.
-
-Scrolling through the output and searching for results that can be copied to the kill ring is a great feature of Eshell. However, instead of running =end-of-buffer= key-binding, the following setting means any other key will jump back to the prompt:
 #+begin_src emacs-lisp
   (use-package eshell
     :straight (:type built-in)
     :init
-    (setq eshell-scroll-to-bottom-on-input 'all
-          eshell-error-if-no-glob t
+    (setq eshell-error-if-no-glob t
+          ;; This jumps back to the prompt:
+          eshell-scroll-to-bottom-on-input 'all
           eshell-hist-ignoredups t
           eshell-save-history-on-exit t
 
-          ;; Since eshell starts fast, let's get rid of it quickly:
+          ;; Since eshell starts fast, let's dismiss it on exit:
           eshell-kill-on-exit t
           eshell-destroy-buffer-when-process-dies t
 
+          eshell-banner-message ""
           ;; Can you remember the parameter differences between the
-          ;; executables `chmod' and `find' and their Emacs equivalent? Me
-          ;; neither, so this makes it act a bit more shell-like:
+          ;; executables `chmod' and `find' and their Emacs counterpart?
+          ;; Me neither, so this makes it act a bit more shell-like:
           eshell-prefer-lisp-functions nil)
 
     :hook ((eshell-pred-load . ha-eshell-add-predicates)
-           (eshell-exit      . delete-window))
+           (eshell-banner-load . ha-eshell-banner))
 
     :bind (("M-!" . execute-command-on-file-buffer)
            ("s-1" . execute-command-on-file-buffer)
            :map eshell-mode-map
-                ("M-R"   . eshell-insert-history)
-                ("C-d"   . ha-eshell-quit-or-delete-char)))
+           ("M-R"   . eshell-insert-history)
+           ("C-d"   . ha-eshell-quit-or-delete-char)))
 #+end_src
 Note that the default list to [[emacs-lisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is good enough.
 
