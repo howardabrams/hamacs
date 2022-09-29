@@ -587,15 +587,22 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
                     (format padded (cond
                                     ((string-match image-rx file) (propertize file 'face '(:foreground "light pink")))
                                     ((string-match code-rx file)  (propertize file 'face '(:foreground "DarkSeaGreen1")))
-                                 ;; ((string-match docs-rx file)  (propertize file 'face '(:foreground "LightYellow1")))
                                     ((file-directory-p file)      (propertize file 'face '(:foreground "SteelBlue")))
                                     (t                            file)))))
-                 (process-line
-                  (files)
-                  (mapconcat 'process-file files "• ")))
-        (concat
-         (mapconcat 'process-line (seq-partition files columns) "\n")
-         "\n\n"))))
+                 ;; This nasty little function was an attempt to make
+                 ;; things readable, but who would have thunk that
+                 ;; `mapconcat' couldn't access a symbol reference to a
+                 ;; function created by `cl-flet*'!?
+                 (process-files
+                  (table)
+                  (mapconcat (lambda (line) (mapconcat
+                                        (lambda (file) (process-file file))
+                                        line
+                                        "• "))
+                             table
+                             "\n")))
+
+        (concat (process-files (seq-partition files columns)) "\n\n"))))
 #+end_src
 * Shell Windows
 Now that I often need to quickly pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each begin with =eshell-=:
