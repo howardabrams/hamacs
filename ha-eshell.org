@@ -563,7 +563,7 @@ The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]]
     :hook (eshell-mode . eshell-fringe-status-mode))
 #+end_src
 ** Opening Banner
-Whenever I open a shell, I instinctively type =ls= … so why not do that automatically?
+Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? The [[elisp:(describe-variable 'eshell-banner-message)][eshell-banner-message]] variable, while normally a string, can be a /form/ (an s-expression) that calls a function, so I made a customized =ls= that can be attractive:
 #+begin_src emacs-lisp
   (defun ha-eshell-banner ()
     "Return a string containing the files in the current directory."
@@ -573,34 +573,32 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
                            (not "~")
                            string-end))
            (files   (directory-files default-directory nil non-hidden))
-           (longest (reduce (lambda (longest file) (max longest (length file)))
-                            files :initial-value 1))
+           (longest (--reduce-from (max acc (length it)) 1 files))
            (padded  (format "%%-%ds  " longest))
            (width   (window-total-width))
            (columns (/ width (+ longest 3))))
 
       (cl-flet* ((process-file
                   (file)
-                  (let ((image-rx (rx "." (or "png" "jpg" "jpeg" "tif" "wav") string-end))
+                  (let ((impor-rx (rx string-start "README"))
+                        (image-rx (rx "." (or "png" "jpg" "jpeg" "tif" "wav") string-end))
                         (code-rx  (rx "." (or "el" "py" "rb") string-end))
                         (docs-rx  (rx "." (or "org" "md") string-end)))
                     (format padded (cond
-                                    ((string-match image-rx file) (propertize file 'face '(:foreground "light pink")))
-                                    ((string-match code-rx file)  (propertize file 'face '(:foreground "DarkSeaGreen1")))
-                                    ((file-directory-p file)      (propertize file 'face '(:foreground "SteelBlue")))
-                                    (t                            file)))))
-                 ;; This nasty little function was an attempt to make
-                 ;; things readable, but who would have thunk that
-                 ;; `mapconcat' couldn't access a symbol reference to a
-                 ;; function created by `cl-flet*'!?
-                 (process-files
-                  (table)
-                  (mapconcat (lambda (line) (mapconcat
-                                        (lambda (file) (process-file file))
-                                        line
-                                        "• "))
-                             table
-                             "\n")))
+                                    ((string-match impor-rx file)
+                                     (propertize file 'face '(:foreground "gold")))
+                                    ((string-match image-rx file)
+                                     (propertize file 'face '(:foreground "light pink")))
+                                    ((string-match code-rx file)
+                                     (propertize file 'face '(:foreground "DarkSeaGreen1")))
+                                    ((file-directory-p file)
+                                     (propertize file 'face 'eshell-ls-directory))
+                                    (t
+                                     file)))))
+
+                 (process-lines (files) (s-join "• " (--map (process-file it) files)))
+
+                 (process-files (table) (s-join "\n" (--map (process-lines it) table))))
 
         (concat (process-files (seq-partition files columns)) "\n\n"))))
 #+end_src
