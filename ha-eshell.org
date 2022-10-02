@@ -55,27 +55,32 @@ If any program wants to pause the output through the =$PAGER= variable, well, we
 * Aliases
 Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], right? We have three ways of doing that. First, enter them into an =eshell= session:
 #+begin_src sh
-  alias less 'view-file $1'
+  alias ll 'ls -AlohG --color=always'
 #+end_src
 Note that you need single quotes, and more than one argument doesn’t work with aliases. To resolve that, we need to write [[Eshell Functions][a function]].
 
-Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:
-#+begin_src shell :tangle ~/.emacs.d/eshell/alias
-  alias ll ls -l $*
-  alias clear recenter 0
-  alias d dired $1
-  alias e find-file $1
+Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:   ~/.emacs.d/eshell/alias
+#+begin_src shell :tangle no
+  alias ll ls -AlohG --color=always
+  alias d dired
+  alias e find-file
   alias less view-file $1
   alias more view-file $1
   alias find echo 'Please use fd instead.'
 #+end_src
 Which happens when you type those commands into an =eshell=.
 
+Note: The issues with =alias= include dealing with arguments and calling Emacs Lisp functions, for I would like to have:
+#+begin_src sh
+  alias less view-file
+#+end_src
+
 Third,  you want /control/, write a function to define the aliases:
 #+begin_src emacs-lisp :tangle no
   (defun ha-eshell-add-aliases ()
     "Call `eshell/alias' to define my aliases."
     (eshell/alias "e" "find-file $1")
+    (eshell/alias "less" "view-file $1")
     (eshell/alias "d" "dired $1")
     (eshell/alias "gd" "magit-diff-unstaged")
     (eshell/alias "gds" "magit-diff-staged")
@@ -134,6 +139,142 @@ Then we need add that function to the =eshell-predicate-alist= as the =T= tag:
 Any function that begins with =eshell/= is available as a command (with the remaining letters) Once I had a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better.
 
 Since =eshell= is an /Emacs/ shell, I try to think how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
+
+This helper function can tell me if an executable program is available and where it is:
+#+begin_src emacs-lisp
+  (defun ha-find-executable (program)
+    "Return full path to executable PROGRAM on the `exec-path'."
+    (first
+     (-filter 'file-executable-p
+              (--map (expand-file-name program it) (exec-path)))))
+#+end_src
+** Foobar
+#+begin_src emacs-lisp
+  (defun eshell/foobar (&rest args)
+    "The `foobar' in Lisp.
+
+  This does little more than print out information given to it as
+  an example of how to write eshell functions."
+    (setq args (eshell-flatten-and-stringify args))
+    (if eshell-in-pipeline-p
+
+        (eshell-parse-command (eshell-quote-argument ext-cat) args)
+
+      (eshell-eval-using-options
+       "foobar" args
+       '((?h "help" nil nil "show this usage screen")
+         (?l "line" nil single-line "display in a single line")
+         :show-usage
+         :usage "[OPTION] TEXT...
+  Display text, or standard input, to standard output.")
+
+       (if single-line
+           (format "Args: %s" args)
+         (mapconcat (lambda (word) (format "Arg: %s\n" word)) args "\n")))))
+#+end_src
+** Replace ls
+I like the output of the [[https://github.com/Peltoche/lsd][lsd]] program, and want =ls= to call it, if available.
+#+begin_src emacs-lisp
+  (defvar ha-lsd (ha-find-executable "lsd")
+    "Location of the `lsd' program, if installed.")
+#+end_src
+
+The problem I have with =lsd= is that it does not display in columns or /colorize/ its output in eshell (even when changing the =TERM= variable). Since I already wrote this code, I’m re-purposing it and expanding it. Step one is to have a function that gives a list of files for a =directory= (notice it doesn’t take options, for if I am going for special output, I’ll be calling =ls= directly).
+#+begin_src emacs-lisp
+  (defun ha-eshell-ls-files (&optional directory)
+    "Return a list of directories in DIRECTORY or `default-directory' if null."
+    (let ((default-directory (or directory default-directory)))
+      (if ha-lsd
+          (shell-command-to-list (format "%s --icon always" ha-lsd))
+
+        (directory-files default-directory nil
+                         (rx string-start
+                             (not (any "." "#"))
+                             (one-or-more any)
+                             (not "~")
+                             string-end)))))
+#+end_src
+
+Given a filename, let’s pad and colorize it based on file attributes:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ls-filename (filename padded-fmt &optional directory)
+    "Return a prettized version of FILE based on its attributes.
+  Formats the string with PADDED-FMT."
+    (let ((file (expand-file-name (if (string-match (rx (group alpha (zero-or-more any))) filename)
+                                      (match-string 1 filename)
+                                    filename)
+                                  directory))
+          (import-rx  (rx "README"))
+          (image-rx   (rx "." (or "png" "jpg" "jpeg" "tif" "wav") string-end))
+          (code-rx    (rx "." (or "el" "py" "rb") string-end))
+          (docs-rx    (rx "." (or "org" "md") string-end)))
+      (format padded-fmt
+              (cond
+               ((file-directory-p file)
+                (propertize filename 'face 'eshell-ls-directory))
+               ((file-executable-p file)
+                (propertize filename 'face 'eshell-ls-executable))
+               ((string-match import-rx file)
+                (propertize filename 'face '(:foreground "orange")))
+               ((string-match image-rx file)
+                (propertize filename 'face 'eshell-ls-special))
+               ((file-symlink-p file)
+                (propertize filename 'face 'eshell-ls-symlink))
+               ((not (file-readable-p file))
+                (propertize filename 'face 'eshell-ls-unreadable))
+               (t
+                filename)))))
+#+end_src
+
+This function pulls all the calls to [[help:ha-eshell-ls-file][ha-eshell-ls-file]] to create columns to make a multi-line string:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ls (&optional directory)
+    "Return a formatted string of files for a directory.
+  The string is a pretty version with columns and whatnot."
+    (let* ((files   (ha-eshell-ls-files (or directory default-directory)))
+           (longest (--reduce-from (max acc (length it)) 1 files))
+           (width   (window-total-width))
+           (columns (/ width (+ longest 3)))
+           (padded  (if ha-lsd
+                        (format "%%-%ds " longest)
+                      (format "• %%-%ds " longest))))
+      (cl-flet* ((process-lines (files)
+                                (s-join "" (--map (ha-eshell-ls-filename it padded directory) files)))
+                 (process-files (table)
+                                (s-join "\n" (--map (process-lines it) table))))
+
+        (concat (process-files (seq-partition files columns)) "\n\n"))))
+#+end_src
+
+While the =ha-eshell-ls= takes a directory, this version puts the canonical directory as a label before the listing. This will be called when we directly specify the directory name(s):
+#+begin_src emacs-lisp
+  (defun ha-eshell-ls-directory (directory)
+    "Print the DIRECTORY name and its contents."
+    (let ((dir (file-truename directory)))
+      (concat
+       (propertize dir 'face '(:foreground "gold" :underline t))
+       ":\n"
+       (ha-eshell-ls dir))))
+#+end_src
+I have the interface program to work with =eshell=.
+#+begin_src emacs-lisp
+  (defun eshell/lsd (&rest args)
+    (let ((lsd (ha-find-executable "lsd")))
+      (cond
+       ;; I expect to call this function without any arguments most of the time:
+       ((and lsd (null args))
+        (ha-eshell-ls))
+       ;; Called with other directories? Print them all, one at a time:
+       ((and lsd (--none? (string-match (rx string-start "-") it) args))
+        (mapconcat 'ha-eshell-ls-directory args ""))
+       ;; Calling the function with -l or other arguments, don't bother. Just call ls:
+       (t (eshell/ls args)))))
+#+end_src
+
+Which needs an =ls= alias:
+#+begin_src emacs-lisp :tangle no
+    ;; (eshell/alias "lss" "echo $@")
+#+end_src
 ** Buffer Cat
 Why not be able to read a buffer and use it as the start of a pipeline?
 #+begin_src emacs-lisp
@@ -563,49 +704,16 @@ The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]]
     :hook (eshell-mode . eshell-fringe-status-mode))
 #+end_src
 ** Opening Banner
-Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? The [[elisp:(describe-variable 'eshell-banner-message)][eshell-banner-message]] variable, while normally a string, can be a /form/ (an s-expression) that calls a function, so I made a customized =ls= that can be attractive:
+Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? The [[elisp:(describe-variable 'eshell-banner-message)][eshell-banner-message]] variable, while defaults to a string, this variable can be a /form/ (an s-expression) that calls a function, so I made a customized =ls= that can be attractive:
 #+begin_src emacs-lisp
   (defun ha-eshell-banner ()
     "Return a string containing the files in the current directory."
-    (let* ((non-hidden (rx string-start
-                           (not (any "." "#"))
-                           (one-or-more any)
-                           (not "~")
-                           string-end))
-           (files   (directory-files default-directory nil non-hidden))
-           (longest (--reduce-from (max acc (length it)) 1 files))
-           (padded  (format "%%-%ds  " longest))
-           (width   (window-total-width))
-           (columns (/ width (+ longest 3))))
-
-      (cl-flet* ((process-file
-                  (file)
-                  (let ((impor-rx (rx string-start "README"))
-                        (image-rx (rx "." (or "png" "jpg" "jpeg" "tif" "wav") string-end))
-                        (code-rx  (rx "." (or "el" "py" "rb") string-end))
-                        (docs-rx  (rx "." (or "org" "md") string-end)))
-                    (format padded (cond
-                                    ((string-match impor-rx file)
-                                     (propertize file 'face '(:foreground "gold")))
-                                    ((string-match image-rx file)
-                                     (propertize file 'face '(:foreground "light pink")))
-                                    ((string-match code-rx file)
-                                     (propertize file 'face '(:foreground "DarkSeaGreen1")))
-                                    ((file-directory-p file)
-                                     (propertize file 'face 'eshell-ls-directory))
-                                    (t
-                                     file)))))
-
-                 (process-lines (files) (s-join "• " (--map (process-file it) files)))
-
-                 (process-files (table) (s-join "\n" (--map (process-lines it) table))))
-
-        (concat (process-files (seq-partition files columns)) "\n\n"))))
+    (eshell/lsd))
 #+end_src
 * Shell Windows
-Now that I often need to quickly pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each begin with =eshell-=:
+Now that I often need to pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each buffer begins with =eshell=: allowing me to have more than one eshells, typically, one per project.
 ** Shell There
-The basis for opening an shell depends on the /location/. After that, we make the window smaller, give the buffer a good name, as well as immediately display the files with =ls= (since I instinctively just /do that/ … every time).
+The basis for distinguishing a shell is its /parent location/. Before starting =eshell=, we make a small window, set the buffer name (using the [[elisp:(describe-variable 'eshell-buffer-name)][eshell-buffer-name]]):
 #+begin_src emacs-lisp
   (defun eshell-there (parent)
     "Open an eshell session in a PARENT directory.
@@ -621,12 +729,12 @@ The basis for opening an shell depends on the /location/. After that, we make th
       (eshell)))
 #+end_src
 ** Shell Here
-This version of the =eshell= is based on the current buffer’s parent directory:
+This version of the =eshell= bases the location on the current buffer’s parent directory:
 #+begin_src emacs-lisp
   (defun eshell-here ()
-    "Opens up a new shell in the directory of the current buffer.
-  The eshell is renamed to match that directory to make multiple
-  eshell windows easier."
+    "Opens a new shell in the directory of the current buffer.
+  Renames the eshell buffer to match that directory to allow more
+  than one eshell window."
     (interactive)
     (eshell-there (if (buffer-file-name)
                       (file-name-directory (buffer-file-name))
@@ -637,7 +745,7 @@ And let’s bind it:
   (bind-key "C-!" 'eshell-here)
 #+end_src
 ** Shell for a Project
-I usually want the =eshell= to start in the project’s root, using [[help:projectile-project-root][projectile-project-root]]:
+This version starts =eshell= in the project’s root, using [[help:projectile-project-root][projectile-project-root]]:
 #+begin_src emacs-lisp
   (defun eshell-project ()
     "Open a new shell in the project root directory, in a smaller window."
@@ -646,7 +754,7 @@ I usually want the =eshell= to start in the project’s root, using [[help:proje
 #+end_src
 And we can attach this function to the =projectile= menu:
 #+begin_src emacs-lisp
-  (ha-leader "p s" '("shell" . eshell-project))
+  (ha-leader "p t" '("eshell" . eshell-project))
 #+end_src
 
 ** Shell Over There
@@ -660,20 +768,24 @@ Would be nice to be able to run an eshell session and use Tramp to connect to th
     (interactive "sHost: ")
 
     (let ((destination-path
-             (cond
-              ((string-match-p "^/" host) host)
+           (cond
+            ;; Is the HOST already an absolute tramp reference?
+            ((string-match-p (rx line-start "/") host) host)
 
-              ((string-match-p (ha-eshell-host-regexp 'full) host)
-               (string-match (ha-eshell-host-regexp 'full) host) ;; Why!?
-               (let* ((user1 (match-string 2 host))
-                      (host1 (match-string 3 host))
-                      (user2 (match-string 6 host))
-                      (host2 (match-string 7 host)))
-                 (if host1
-                     (ha-eshell-host->tramp user1 host1)
-                   (ha-eshell-host->tramp user2 host2))))
+            ;; Does it match any acceptable reference? Get the parts:
+            ((string-match-p (ha-eshell-host-regexp 'full) host)
+             (string-match (ha-eshell-host-regexp 'full) host) ;; Why!?
+             (let* ((user1 (match-string 2 host))
+                    (host1 (match-string 3 host))
+                    (user2 (match-string 6 host))
+                    (host2 (match-string 7 host)))
+               (if host1
+                   (ha-eshell-host->tramp user1 host1)
+                 (ha-eshell-host->tramp user2 host2))))
 
-              (t (format "/%s:" host)))))
+            ;; Otherwise, we assume we have a hostname from a string?
+            ;; Convert to a simple 'default' tramp URL:
+            (t (format "/%s:" host)))))
       (eshell-there destination-path)))
    #+END_SRC
 ** Shell Here to There
@@ -709,21 +821,20 @@ The function to scan a line for hostname patterns uses different function calls 
   or Tramp references.  This returns a tuple of the username (if
   found) and the hostname.
 
-  If a Tramp reference is found, the username part of the tuple
-  will be `nil'."
+  If found a Tramp reference, the username part of the tuple is `nil'."
     (save-excursion
       (goto-char (line-beginning-position))
       (if (search-forward-regexp (ha-eshell-host-regexp 'tramp) (line-end-position) t)
           (cons nil (buffer-substring-no-properties (match-beginning 0) (match-end 0)))
 
-        ;; Returns the text associated with match expression, NUM or `nil' if no match was found.
+        ;; Returns the text associated with match expression, NUM or `nil' if found no match
         (cl-flet ((ha-eshell-get-expression (num) (if-let ((first (match-beginning num))
                                                            (end   (match-end num)))
                                                       (buffer-substring-no-properties first end))))
 
           (search-forward-regexp (ha-eshell-host-regexp 'full) (line-end-position))
 
-          ;; Until this is completely robust, let's keep this debugging code here:
+          ;; Until robust, let's keep this debugging code here:
           ;; (message (mapconcat (lambda (tup) (if-let ((s (car tup))
           ;;                                       (e (cadr tup)))
           ;;                                  (buffer-substring-no-properties s e)
