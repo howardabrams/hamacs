@@ -287,6 +287,30 @@ Why not be able to read a buffer and use it as the start of a pipeline?
                args "\n"))
 #+end_src
 Perhaps we should add this feature to eshell’s version of [[help:eshell/cat][cat]].
+** Regular Expressions
+I think using the [[help:rx][rx]] macro with applications like =grep= is great reason why =eshell= rocks. Assuming we can’t remember cryptic regular expression syntax, we could look for a GUID-like strings using =ripgrep= with:
+#+begin_src sh
+  $ rg (rx (one-or-more hex) "-" (one-or-more hex))
+#+end_src
+The problem with this trick is that =rx= outputs an Emacs-compatible regular expression, which doesn’t always match regular expressions accepted by most applications.
+
+The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Lisp regular expression to a [[http://www.pcre.org/][PCRE]] (Perl Compatible Regular Expression), which is accepted by [[https://github.com/BurntSushi/ripgrep][ripgrep]].
+  #+begin_src emacs-lisp
+    (use-package pcre2el
+      :straight (:host github :repo "joddie/pcre2el")
+      :config
+      (defmacro prx (&rest expressions)
+        "Convert the rx-compatible regular EXPRESSIONS to PCRE.
+      Many shell applications accept Perl Compatible Regular Expressions."
+        `(rx-let ((integer (1+ digit))
+                  (float   (seq integer "." integer))
+                  (time    (seq digit (optional digit) ":" (= 2 digit) (optional ":" (= 2 digit))))
+                  (date    (seq (= 2 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 4 digit)))
+                  (ymd     (seq (= 4 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 2 digit)))
+                  (guid    (seq (= 8 hex) "-" (= 3 (seq (= 4 hex) "-")) (= 12 hex))))
+           (rxt-elisp-to-pcre (rx ,@expressions)))))
+  #+end_src
+The =prx=
 ** Piper
 My [[https://gitlab.com/howardabrams/emacs-piper][piper]] project seems to like a good match with eshell. For instance, typing =piper= in eshell with a file or a command, and the output from that goes into a Piper buffer, where standard Emacs commands can filter, sort or otherwise alter that output. Then, closing it and calling =piper= in eshell without arguments outputs that buffer … to use as part of a pipe or something.
 #+begin_src emacs-lisp
