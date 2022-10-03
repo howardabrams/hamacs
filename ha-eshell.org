@@ -360,26 +360,32 @@ The =e= is an alias to [[help:find-file][find-file]] (which takes one argument),
 #+begin_src emacs-lisp
   (defun eshell-fn-on-files (fun1 fun2 args)
     (unless (null args)
-      (let ((filenames (thread-last args
-                                     (reverse)
-                                     (-flatten)
-                                     (-map 'file-expand-wildcards)
-                                     (-flatten))))
+      (let ((filenames (flatten-list args)))
         (funcall fun1 (car filenames))
         (when (cdr filenames)
-          (-map fun2 (cdr filenames))))))
+          (mapcar fun2 (cdr filenames))))
+      ;; Return an empty string, as the return value from `fun1'
+      ;; probably isn't helpful to display in the `eshell' window.
+      ""))
 #+end_src
 This allows us to replace some of our aliases with functions:
 #+begin_src emacs-lisp
-  (defun eshell/e (&rest args)
+  (defun eshell/e (&rest files)
     "Edit one or more files in current window."
-    (eshell-fn-on-files 'find-file 'find-file-other-window args))
+    (eshell-fn-on-files 'find-file 'find-file-other-window files))
 
-  (defun eshell/ee (&rest args)
+  (defun eshell/ee (&rest files)
     "Edit one or more files in another window."
-    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window args))
+    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window files))
 #+end_src
 We’ll leave the =e= alias to replace the =eshell= buffer window.
+
+No way would I ever accidentally type any of the following commands:
+#+begin_src emacs-lisp
+  (defalias 'eshell/vi 'eshell/e)
+  (defalias 'eshell/vim 'eshell/e)
+  (defalias 'eshell/emacs 'eshell/e)
+#+end_src
 ** Less and More
 Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
 #+begin_src emacs-lisp
@@ -389,9 +395,8 @@ Both =less= and =more= are the same to me. as I want to scroll through a file. S
 #+end_src
 Do I type =more= any more than =less=?
 #+begin_src emacs-lisp
-  (defun eshell/more (&rest files)
-    "Essentially an alias to the `view-file' function."
-    (eshell-fn-on-files 'view-file 'view-file-other-window files))
+  (defalias 'eshell/more 'eshell/less)
+  (defalias 'eshell/view 'eshell/less)
 #+end_src
 ** Last Results
 The [[https://github.com/mathiasdahl/shell-underscore][shell-underscore]] project looks pretty cool, where the =_= character represents a /filename/ with the contents of the previous command (you know, like if you were planning on it, you’d =tee= at the end of every command). An interesting idea that I could duplicate.
