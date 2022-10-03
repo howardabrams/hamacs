@@ -52,45 +52,6 @@ If any program wants to pause the output through the =$PAGER= variable, well, we
 #+begin_src emacs-lisp
   (setenv "PAGER" "cat")
 #+end_src
-* Aliases
-Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], right? We have three ways of doing that. First, enter them into an =eshell= session:
-#+begin_src sh
-  alias ll 'ls -AlohG --color=always'
-#+end_src
-Note that you need single quotes, and more than one argument doesn’t work with aliases. To resolve that, we need to write [[Eshell Functions][a function]].
-
-Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:   ~/.emacs.d/eshell/alias
-#+begin_src shell :tangle no
-  alias ll ls -AlohG --color=always
-  alias d dired
-  alias e find-file
-  alias less view-file $1
-  alias more view-file $1
-  alias find echo 'Please use fd instead.'
-#+end_src
-Which happens when you type those commands into an =eshell=.
-
-Note: The issues with =alias= include dealing with arguments and calling Emacs Lisp functions, for I would like to have:
-#+begin_src sh
-  alias less view-file
-#+end_src
-
-Third,  you want /control/, write a function to define the aliases:
-#+begin_src emacs-lisp :tangle no
-  (defun ha-eshell-add-aliases ()
-    "Call `eshell/alias' to define my aliases."
-    (eshell/alias "e" "find-file $1")
-    (eshell/alias "less" "view-file $1")
-    (eshell/alias "d" "dired $1")
-    (eshell/alias "gd" "magit-diff-unstaged")
-    (eshell/alias "gds" "magit-diff-staged")
-
-    ;; The 'ls' executable requires the Gnu version on the Mac
-    (let ((ls (if (file-exists-p "/usr/local/bin/gls")
-                  "/usr/local/bin/gls"
-                "/bin/ls")))
-      (eshell/alias "ll" (concat ls " -AlohG --color=always"))))
-#+end_src
 * Predicate Filters and Modifiers
 The =T= predicate filter allows me to limit file results that have internal =org-mode= tags. For instance, =eshell= will send files that have a =#+TAGS:= header with a =mac= label to the =grep= function:
 #+begin_src sh
@@ -135,12 +96,48 @@ Then we need add that function to the =eshell-predicate-alist= as the =T= tag:
     (add-to-list 'eshell-predicate-alist '(?T . (eshell-org-file-tags))))
 #+end_src
 *Note:* We can’t add it to the list until after we start our first eshell session, so we add it to the =eshell-pred-load-hook=.
+* Aliases
+Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], right? We have three ways of doing that. First, enter them into an =eshell= session:
+#+begin_src sh
+  alias ll 'ls -AlohG --color=always'
+#+end_src
+Note that you need single quotes (not double quotes). Also note that more than one parameter doesn’t work with aliases (to resolve that, we need to write [[Eshell Functions][a function]]).
+
+Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:   ~/.emacs.d/eshell/alias
+#+begin_src shell :tangle no
+  alias ll ls -AlohG --color=always
+  alias d dired $1
+  alias find echo 'Please use fd instead.'
+#+end_src
+Yeah, the variable =$*= doesn’t work as you’d expect, so use =$1= when calling Emacs functions that take one parameter).
+For instance, I would like to have:
+#+begin_src sh
+  alias less view-file
+#+end_src
+
+Third,  you want more /control/, you can use the help:eshell/alias function, but it doesn’t honor =$1= and other parameters, so we could create conditionally create function that we add to the [[help:eshell-mode-hook][eshell-mode-hook]], for instance:
+#+begin_src emacs-lisp :tangle no
+  (defun ha-eshell-add-aliases ()
+    "Call `eshell/alias' to define my aliases."
+    ;; The 'ls' executable requires the Gnu version on the Mac
+    (let ((ls (if (file-exists-p "/usr/local/bin/gls")
+                  "/usr/local/bin/gls"
+                "/bin/ls")))
+      (eshell/alias "ll" (concat ls " -AlohG --color=always"))))
+#+end_src
+
+I had a lot of trouble getting aliases to work, for instance =dired= works, but =less= does not:
+#+begin_src sh :tangle no
+  alias less view-file $1
+  alias d dired $1
+#+end_src
+To work around this, I create functions instead.
 * Eshell Functions
 Any function that begins with =eshell/= is available as a command (with the remaining letters) Once I had a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better.
 
 Since =eshell= is an /Emacs/ shell, I try to think how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
 
-This helper function can tell me if an executable program is available and where it is:
+This helper function can tell me if an executable program is available, and return its location:
 #+begin_src emacs-lisp
   (defun ha-find-executable (program)
     "Return full path to executable PROGRAM on the `exec-path'."
@@ -172,6 +169,25 @@ This helper function can tell me if an executable program is available and where
            (format "Args: %s" args)
          (mapconcat (lambda (word) (format "Arg: %s\n" word)) args "\n")))))
 #+end_src
+** Git
+I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
+#+begin_src emacs-lisp
+  (defun eshell/gst (&rest args)
+      (magit-status (pop args) nil)
+      (eshell/echo))   ;; The echo command suppresses output
+#+end_src
+** Buffer Cat
+Why not be able to read a buffer and use it as the start of a pipeline?
+#+begin_src emacs-lisp
+  (defun eshell/bcat (&rest args)
+    (mapconcat (lambda (buffer-name)
+                 (when (bufferp buffer-name)
+                   (save-window-excursion
+                     (switch-to-buffer buffer-name)
+                     (buffer-substring-no-properties (point-min) (point-max)))))
+               args "\n"))
+#+end_src
+Perhaps we should add this feature to eshell’s version of [[help:eshell/cat][cat]].
 ** Replace ls
 I like the output of the [[https://github.com/Peltoche/lsd][lsd]] program, and want =ls= to call it, if available.
 #+begin_src emacs-lisp
@@ -246,7 +262,7 @@ This function pulls all the calls to [[help:ha-eshell-ls-file][ha-eshell-ls-file
         (concat (process-files (seq-partition files columns)) "\n\n"))))
 #+end_src
 
-While the =ha-eshell-ls= takes a directory, this version puts the canonical directory as a label before the listing. This will be called when we directly specify the directory name(s):
+While the =ha-eshell-ls= takes a directory, this version puts the canonical directory as a label before the listing, and this calls it directly specifying the directory name(s):
 #+begin_src emacs-lisp
   (defun ha-eshell-ls-directory (directory)
     "Print the DIRECTORY name and its contents."
@@ -267,7 +283,7 @@ I have the interface program to work with =eshell=.
        ;; Called with other directories? Print them all, one at a time:
        ((and lsd (--none? (string-match (rx string-start "-") it) args))
         (mapconcat 'ha-eshell-ls-directory args ""))
-       ;; Calling the function with -l or other arguments, don't bother. Just call ls:
+       ;; Calling the function with -l or other arguments, don't bother. Call ls:
        (t (eshell/ls args)))))
 #+end_src
 
@@ -275,18 +291,6 @@ Which needs an =ls= alias:
 #+begin_src emacs-lisp :tangle no
     ;; (eshell/alias "lss" "echo $@")
 #+end_src
-** Buffer Cat
-Why not be able to read a buffer and use it as the start of a pipeline?
-#+begin_src emacs-lisp
-  (defun eshell/bcat (&rest args)
-    (mapconcat (lambda (buffer-name)
-                 (when (bufferp buffer-name)
-                   (save-window-excursion
-                     (switch-to-buffer buffer-name)
-                     (buffer-substring-no-properties (point-min) (point-max)))))
-               args "\n"))
-#+end_src
-Perhaps we should add this feature to eshell’s version of [[help:eshell/cat][cat]].
 ** Regular Expressions
 I think using the [[help:rx][rx]] macro with applications like =grep= is great reason why =eshell= rocks. Assuming we can’t remember cryptic regular expression syntax, we could look for a GUID-like strings using =ripgrep= with:
 #+begin_src sh
@@ -294,14 +298,14 @@ I think using the [[help:rx][rx]] macro with applications like =grep= is great r
 #+end_src
 The problem with this trick is that =rx= outputs an Emacs-compatible regular expression, which doesn’t always match regular expressions accepted by most applications.
 
-The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Lisp regular expression to a [[http://www.pcre.org/][PCRE]] (Perl Compatible Regular Expression), which is accepted by [[https://github.com/BurntSushi/ripgrep][ripgrep]].
+The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Lisp regular expression to a [[http://www.pcre.org/][PCRE]] (Perl Compatible Regular Expression), acceptable by [[https://github.com/BurntSushi/ripgrep][ripgrep]].
   #+begin_src emacs-lisp
     (use-package pcre2el
       :straight (:host github :repo "joddie/pcre2el")
       :config
       (defmacro prx (&rest expressions)
         "Convert the rx-compatible regular EXPRESSIONS to PCRE.
-      Many shell applications accept Perl Compatible Regular Expressions."
+      Most shell applications accept Perl Compatible Regular Expressions."
         `(rx-let ((integer (1+ digit))
                   (float   (seq integer "." integer))
                   (time    (seq digit (optional digit) ":" (= 2 digit) (optional ":" (= 2 digit))))
@@ -310,11 +314,6 @@ The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Li
                   (guid    (seq (= 8 hex) "-" (= 3 (seq (= 4 hex) "-")) (= 12 hex))))
            (rxt-elisp-to-pcre (rx ,@expressions)))))
   #+end_src
-The =prx=
-** Piper
-My [[https://gitlab.com/howardabrams/emacs-piper][piper]] project seems to like a good match with eshell. For instance, typing =piper= in eshell with a file or a command, and the output from that goes into a Piper buffer, where standard Emacs commands can filter, sort or otherwise alter that output. Then, closing it and calling =piper= in eshell without arguments outputs that buffer … to use as part of a pipe or something.
-#+begin_src emacs-lisp
-#+end_src
 ** Map
 While I like eshell’s =for= loop well enough (if I can remember the syntax), as in:
 #+begin_src sh :tangle no
@@ -322,7 +321,7 @@ While I like eshell’s =for= loop well enough (if I can remember the syntax), a
     chmod a+x $file
   }
 #+end_src
-I like the idea of using a /map/ structure, as in:
+I like the idea of using a /map/ structure, for instance, wouldn’t it be cool to type something like:
 #+begin_src sh :tangle no
   map chmod a+x *.org
 #+end_src
@@ -330,12 +329,10 @@ How would this work without special syntax? Well, eshell sends the =*.org= as a 
 #+begin_src sh :tangle no
   map chmod a+x (list "a.org" "c.org")
 #+end_src
-Pretty ugly, but that isn’t my use-case. I could introduce syntax like:
+Pretty ugly, but what about using =::= as a separator of the /lambda/ from the /list/, like:
 #+begin_src sh :tangle no
   map chmod a+x :: *.org b.txt
 #+end_src
-
-But what if the file isn’t the last element? Well, I could replace a /keyword/, =_=, with the filename when encountered.
 
 Here is my initial function. After separating the arguments into two groups (split on the =::= string), we iterate over the file elements, creating a /form/ that includes the filename.
 #+begin_src emacs-lisp
@@ -358,13 +355,6 @@ Here is my initial function. After separating the arguments into two groups (spl
           (eshell-named-command cmd args)))))
 #+end_src
 The [[help:eshell-named-command][eshell-named-command]] takes the command separately from the arguments, so we use =car= and =cdr= on the form.
-** Git
-I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
-#+begin_src emacs-lisp
-  (defun eshell/gst (&rest args)
-      (magit-status (pop args) nil)
-      (eshell/echo))   ;; The echo command suppresses output
-#+end_src
 ** Editing Files
 The =e= is an alias to [[help:find-file][find-file]] (which takes one argument), we define a special function to open each argument in a different window. We define a /helper function/ for dealing with more than one argument. It takes two functions, where we call the first function on the first argument, and call the second function on each of the rest.
 #+begin_src emacs-lisp
@@ -375,7 +365,7 @@ The =e= is an alias to [[help:find-file][find-file]] (which takes one argument),
                                      (-flatten)
                                      (-map 'file-expand-wildcards)
                                      (-flatten))))
-        (apply fun1 (car filenames))
+        (funcall fun1 (car filenames))
         (when (cdr filenames)
           (-map fun2 (cdr filenames))))))
 #+end_src
@@ -390,6 +380,19 @@ This allows us to replace some of our aliases with functions:
     (eshell-fn-on-files 'find-file-other-window 'find-file-other-window args))
 #+end_src
 We’ll leave the =e= alias to replace the =eshell= buffer window.
+** Less and More
+Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
+#+begin_src emacs-lisp
+  (defun eshell/less (&rest files)
+    "Essentially an alias to the `view-file' function."
+    (eshell-fn-on-files 'view-file 'view-file-other-window files))
+#+end_src
+Do I type =more= any more than =less=?
+#+begin_src emacs-lisp
+  (defun eshell/more (&rest files)
+    "Essentially an alias to the `view-file' function."
+    (eshell-fn-on-files 'view-file 'view-file-other-window files))
+#+end_src
 ** Last Results
 The [[https://github.com/mathiasdahl/shell-underscore][shell-underscore]] project looks pretty cool, where the =_= character represents a /filename/ with the contents of the previous command (you know, like if you were planning on it, you’d =tee= at the end of every command). An interesting idea that I could duplicate.
 
