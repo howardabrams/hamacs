@@ -165,16 +165,13 @@ Much of my more complicated code comes from my website essays and other projects
 
 Hopefully, this will tie me over while I transition.
 ** Emacs Server Control
-Sure the Emacs application will almost always have the =server-start= going, but I need to control it (because I often have two instances running on some of my machines). What /defines/ the Emacs instance for work changes ... often:
-
+I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like LSP), and my personal instance has other packages running (like IRC and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
 #+begin_src emacs-lisp
   (defun ha-emacs-for-work? ()
     "Return non-nil when the Emacs application's location matches as one for work.
-  This is the `emacs-plus@28' app that I have built with
-  the native-comp model, but I reserve the right to change this."
+  Based on initially running the app with a `FOR_WORK' environment variable."
     (and (f-dir? "~/work")
-         ;; (string-match "emacs-plus@28" exec-directory)
-         (string-match "emacs-plus@29" exec-directory)))
+         (getenv "FOR_WORK")))
 #+end_src
 
 And now start the server with an appropriate tag name:
