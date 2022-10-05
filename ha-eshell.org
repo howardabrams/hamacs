@@ -938,11 +938,11 @@ Sometimes you need to change something about the current file you are editing...
 
   Will rename the current file to now have a .txt extension.
   See `eshell-display-modifier-help' for details on that."
-    (interactive "sCommand to execute: ")
+
     (let* ((file-name (buffer-file-name))
            (full-cmd (cond ((string-match (rx "$$") cmd)
                             (replace-regexp-in-string (rx "$$") file-name cmd))
-                           ((string-match (rx (literal file-name)) cmd)
+                           ((and file-name (string-match (rx (literal file-name)) cmd))
                             cmd)
                            (t
                             (concat cmd " " file-name)))))
@@ -974,7 +974,7 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
 
     :hook ((eshell-pred-load . ha-eshell-add-predicates))
 
-    :bind (("M-!" . execute-command-on-file-buffer)
+    :bind (("M-!" . eshell-command)
            ("s-1" . execute-command-on-file-buffer)
            :map eshell-mode-map
            ("M-R"   . eshell-insert-history)
@@ -991,7 +991,7 @@ Add leader commands to call my defined functions:
     "a e r" '("remote"              . eshell-remote)
     "a e p" '("project"             . eshell-project)
     "a e g" '("at point"            . eshell-here-on-line)
-    "a e !" '("exec on file-buffer" . execute-command-on-file-buffer))
+    "a e b" '("exec on file-buffer" . execute-command-on-file-buffer))
 #+end_src
 No, i’m not sure why =use-package= has an issue with both =:hook=, =:bind= and =:config= directives in sequence.
 * Technical Artifacts                                :noexport:
