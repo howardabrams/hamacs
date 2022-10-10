@@ -450,8 +450,8 @@ Integration with the [[https://github.com/bash-lsp/bash-language-server][Bash LS
   brew install bash-language-server
 #+end_src
 ** Fish Shell
-While I thought the [[https://fishshell.com/][fish shell]] was an interesting experiment (and I appreciated the basics that come with [[https://github.com/emacsmirror/fish-mode][fish-mode]]), I always find myself writing the =sh= way of doing things. When fish completely /broke/ on my laptop, I figured it was just not worth the effort to maintain. I’ll be removing this code soon enough.
-#+begin_src emacs-lisp :tangle no
+I think the [[https://fishshell.com/][fish shell]] is an interesting experiment (and I appreciate the basics that come with [[https://github.com/emacsmirror/fish-mode][fish-mode]]).
+#+begin_src emacs-lisp
   (use-package fish-mode
     :mode (rx ".fish" eol)
     :config
