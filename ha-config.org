@@ -111,13 +111,10 @@ Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert template
 #+end_src
 Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writing them.
 
-Seems the best [[https://github.com/hlissner/doom-snippets][collection of snippets]] is what Henrik Lissner has made for Doom (otherwise, we should use [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package):
+Since I have troubles installing Doom’s [[https://github.com/hlissner/doom-snippets][collection of snippets]], lets use the [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package:
 #+begin_src emacs-lisp
-  (use-package doom-snippets
-    :after yasnippet
-    :straight (:host github :repo "doomemacs/snippets"))
+  (use-package yasnippet-snippets)
 #+end_src
-*Note:* Including his snippets also includes some [[https://github.com/hlissner/doom-snippets#snippets-api][helper functions]] and other features.
 ** Auto Insert Templates
 The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but simpler?
 #+begin_src emacs-lisp
