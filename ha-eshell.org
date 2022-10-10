@@ -103,14 +103,15 @@ Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], r
 #+end_src
 Note that you need single quotes (not double quotes). Also note that more than one parameter doesn’t work with aliases (to resolve that, we need to write [[Eshell Functions][a function]]).
 
-Second, you can create/populate the alias file, =~/.emacs.d/eshell/alias= … as long as you don’t use those single quotes:   ~/.emacs.d/eshell/alias
-#+begin_src shell :tangle no
+Second, you can create/populate the alias file, [[file:~/.emacs.d/eshell/alias][~/.emacs.d/eshell/alias]] … as long as you don’t use those single quotes:
+#+begin_src shell :tangle ~/.emacs.d/eshell/alias
   alias ll ls -AlohG --color=always
+  alias cls clear 1
   alias d dired $1
-  alias find echo 'Please use fd instead.'
+  alias find echo 'Please use fd <pattern> <paths> instead.'
 #+end_src
 Yeah, the variable =$*= doesn’t work as you’d expect, so use =$1= when calling Emacs functions that take one parameter).
-For instance, I would like to have:
+For instance, while I would like to have the following, the real solution is to make functions (see [[Less and More][below for details]]).
 #+begin_src sh
   alias less view-file
 #+end_src
@@ -126,7 +127,7 @@ Third,  you want more /control/, you can use the help:eshell/alias function, but
       (eshell/alias "ll" (concat ls " -AlohG --color=always"))))
 #+end_src
 
-I had a lot of trouble getting aliases to work, for instance =dired= works, but =less= does not:
+I have also had a lot of trouble getting aliases to work, for instance =dired= works, but =less= does not:
 #+begin_src sh :tangle no
   alias less view-file $1
   alias d dired $1
