@@ -379,10 +379,15 @@ Can we change Evil at this point? Some tips:
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
           evil-want-integration t
+          evil-want-C-u-scroll nil
+          evil-want-C-i-jump nil
           evil-escape-key-sequence "jk"
           evil-escape-unordered-key-sequence t)
 
     :config
+    ;; The Escape key act like C-g and always go back to normal mode?
+    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
     ;; Underscores are part of a symbolic word in programming languages:
     ;; Sure, I could use capital `W' and `B', but I often forget that.
     (modify-syntax-entry ?_ "w")
@@ -395,7 +400,18 @@ Can we change Evil at this point? Some tips:
     ;; In insert mode, type C-o to execute a single Evil command:
     (define-key evil-insert-state-map (kbd "C-o") 'evil-execute-in-normal-state)
 
-    (evil-mode))
+    ;; Even with the `evil-collections' (see below), some modes should be Emacs:
+    (dolist (mode '(custom-mode
+                    eshell-mode
+                    git-rebase-mode
+                    erc-mode
+                    circe-server-mode
+                    circe-chat-mode
+                    circe-query-mode
+                    vterm-mode))
+      (add-to-list 'evil-emacs-state-modes mode)
+
+      (evil-mode))
 #+end_src
 
 While I’m pretty good with the VIM keybindings, I would like to play around with the [[https://evil.readthedocs.io/en/latest/extension.html#text-objects][text objects]] and how it compares to others (including the surround), for instance:
