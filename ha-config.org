@@ -756,14 +756,15 @@ And the collection of useful operations:
 The goal here is toggle switches and other miscellaneous settings.
 #+begin_src emacs-lisp
   (ha-leader
-     "t"   '(:ignore t :which-key "toggles")
-     "t a" '("abbrev"         . abbrev-mode)
-     "t d" '("debug"          . toggle-debug-on-error)
-     "t f" '("auto-fill"      . auto-fill-mode)
-     "t l" '("line numbers"   . display-line-numbers-mode)
-     "t t" '("truncate"       . toggle-truncate-lines)
-     "t v" '("visual"         . visual-line-mode)
-     "t w" '("whitespace"     . whitespace-mode))
+    "t"   '(:ignore t :which-key "toggles")
+    "t a" '("abbrev"         . abbrev-mode)
+    "t d" '("debug"          . toggle-debug-on-error)
+    "t F" '("show functions" . which-function-mode)
+    "t f" '("auto-fill"      . auto-fill-mode)
+    "t l" '("line numbers"   . display-line-numbers-mode)
+    "t t" '("truncate"       . toggle-truncate-lines)
+    "t v" '("visual"         . visual-line-mode)
+    "t w" '("whitespace"     . whitespace-mode))
 #+end_src
 **** Line Numbers
 Since we can't automatically toggle between relative and absolute line numbers, we create this function:

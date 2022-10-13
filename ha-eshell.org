@@ -342,12 +342,16 @@ Here is my initial function. After separating the arguments into two groups (spl
   Separate the sequence and the elements with a `::' string.
   For instance:
 
-      map chmod a+x _ :: *.org b.txt
+      map chown _ angela :: *.org(u'oscar')
 
-  The function substitutes the `_' sequence a single filename element,
-  and if not specified, it appends the file name to the command."
-    (seq-let (forms elements) (--split-when (equal it "::") args)
+  The function substitutes the `_' sequence to a single filename
+  element, and if not specified, it appends the file name to the
+  command. So the following works as expected:
+
+      map chmod a+x :: *.org"
+    (seq-let (forms elements) (-split-on "::" args)
       (dolist (element (-flatten (-concat elements)))
+        ;; Replace the _ or append the filename:
         (let* ((form (if (-contains? forms "_")
                          (-replace "_" element forms)
                        (-snoc forms element)))
@@ -360,6 +364,8 @@ The [[help:eshell-named-command][eshell-named-command]] takes the command separa
 The =e= is an alias to [[help:find-file][find-file]] (which takes one argument), we define a special function to open each argument in a different window. We define a /helper function/ for dealing with more than one argument. It takes two functions, where we call the first function on the first argument, and call the second function on each of the rest.
 #+begin_src emacs-lisp
   (defun eshell-fn-on-files (fun1 fun2 args)
+    "Call FUN1 on the first element in list, ARGS.
+  Call FUN2 on all the rest of the elements in ARGS."
     (unless (null args)
       (let ((filenames (flatten-list args)))
         (funcall fun1 (car filenames))
@@ -730,6 +736,30 @@ Now tie it all together with a prompt function can color each of the prompts com
 #+end_src
 Here is the result:
 [[http://imgur.com/nkpwII0.png]]
+** Simple Prompt with Mode Line
+To achieve more /screen estate/, leave your prompt simple:
+#+begin_src emacs-lisp
+  (setq eshell-prompt-function (lambda () "$ "))
+#+end_src
+
+Display detailed information, like the current working directory, in the mode line using [[https://www.emacswiki.org/emacs/WhichFuncMode][which-function-mode]].
+
+The [[help:eshell/pwd][eshell/pwd]] function returns the current working directory, but we need to have a function that returns that only in =eshell-mode=, otherwise, we will have the current working directory in /every buffer/:
+#+begin_src emacs-lisp
+  (defun ha-eshell-mode-line ()
+    "Return the current working directory if in eshell-mode."
+    (when (eq major-mode 'eshell-mode)
+      (thread-last default-directory
+                   (s-replace-regexp (rx (eval (getenv "HOME"))) "~")
+                   (s-replace-regexp (rx "/" line-end) ""))))
+#+end_src
+
+Add this function to the [[elisp:(describe-variable 'which-func-functions)][which-func-functions]] list:
+#+begin_src emacs-lisp
+  (add-to-list 'which-func-functions 'ha-eshell-mode-line)
+#+end_src
+
+Turn on the global minor mode to display this. See [[file:ha-config.org::*Toggle Switches][Toggle Switches]] leader for that.
 ** Fringe Status
 The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]] project shows a color-coded icon of the previous command run (green for success, red for error). Doesn’t work reliably, but the fringe is inconspicuous. Seems to me, that if would be useful to rejuggle those fringe markers so that the marker matched the command entered (instead of seeing a red mark, and needing to scroll back to seethe  command that made the error). Still...
 #+begin_src emacs-lisp
