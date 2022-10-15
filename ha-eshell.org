@@ -146,29 +146,288 @@ This helper function can tell me if an executable program is available, and retu
      (-filter 'file-executable-p
               (--map (expand-file-name program it) (exec-path)))))
 #+end_src
-** Foobar
+
+Calling Emacs functions that take a single argument from =eshell= that could accept zero or more, can result in an error. This helper function can open each argument in a different window. It takes two functions, and calls the first function on the first argument, and calls the second function on each of the rest:
 #+begin_src emacs-lisp
-  (defun eshell/foobar (&rest args)
-    "The `foobar' in Lisp.
+  (defun eshell-fn-on-files (fun1 fun2 args)
+    "Call FUN1 on the first element in list, ARGS.
+  Call FUN2 on all the rest of the elements in ARGS."
+    (unless (null args)
+      (let ((filenames (flatten-list args)))
+        (funcall fun1 (car filenames))
+        (when (cdr filenames)
+          (mapcar fun2 (cdr filenames))))
+      ;; Return an empty string, as the return value from `fun1'
+      ;; probably isn't helpful to display in the `eshell' window.
+      ""))
+#+end_src
+** Less and More
+While I can type =find-file=, I often use =e= as an alias for =emacsclient= in Terminals, so let’s do something similar for =eshell=:
+Also note that we can take advantage of the =eshell-fn-on-files= function to expand the [[help:find-file][find-file]] (which takes one argument), to open more than one file at one time.
+#+begin_src emacs-lisp
+  (defun eshell/e (&rest files)
+    "Essentially an alias to the `find-file' function."
+    (eshell-fn-on-files 'find-file 'find-file-other-window files))
 
-  This does little more than print out information given to it as
-  an example of how to write eshell functions."
-    (setq args (eshell-flatten-and-stringify args))
-    (if eshell-in-pipeline-p
+  (defun eshell/ee (&rest files)
+    "Edit one or more files in another window."
+    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window files))
+#+end_src
+No way would I accidentally type any of the following commands:
+#+begin_src emacs-lisp
+  (defalias 'eshell/emacs 'eshell/e)
+  (defalias 'eshell/vi 'eshell/e)
+  (defalias 'eshell/vim 'eshell/e)
+#+end_src
 
-        (eshell-parse-command (eshell-quote-argument ext-cat) args)
+Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
+#+begin_src emacs-lisp
+  (defun eshell/less (&rest files)
+    "Essentially an alias to the `view-file' function."
+    (eshell-fn-on-files 'view-file 'view-file-other-window files))
+#+end_src
+Do I type =more= any more than =less=?
+#+begin_src emacs-lisp
+  (defalias 'eshell/more 'eshell/less)
+  (defalias 'eshell/view 'eshell/less)
+#+end_src
+** Ebb and Flow output to Emacs Buffers
+This is an interesting experiment.
 
-      (eshell-eval-using-options
-       "foobar" args
-       '((?h "help" nil nil "show this usage screen")
-         (?l "line" nil single-line "display in a single line")
-         :show-usage
-         :usage "[OPTION] TEXT...
-  Display text, or standard input, to standard output.")
+Typing a command, but the output isn’t right. So you punch the up arrow, and re-run the command, but this time pass the output through executables like =tr=, =grep=, and even =awk=. Still not right? Rinse and repeat.  Tedious. Since using Emacs to edit text is what we do best, what if we took the output of a command from Eshell, edit that output in a buffer, and then use that edited output in further commands?
 
-       (if single-line
-           (format "Args: %s" args)
-         (mapconcat (lambda (word) (format "Arg: %s\n" word)) args "\n")))))
+I call this workflow of sending command output back and forth into an Emacs buffer, an /ebb/ and /flow/ approach, where the =ebb= function (for Edit a Bumped Buffer … or something like that), takes some command output, and opens it in a buffer (with an =ebbflow= minor mode), allowing us to edit or alter the data. Pull that data back to the Eshell session with the [[help:emacs/flow][flow]] function (for Fetch buffer data by Lines or Words … naming is hard).
+*** The ebbflow Buffer
+If I don’t specify a specific buffer name, we use this default value:
+#+begin_src emacs-lisp
+  (defvar ha-eshell-ebbflow-buffername "*eshell-edit*"
+    "The name of the buffer that eshell can use to store temporary input/output.")
+#+end_src
+
+This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return to the Eshell that spawned it:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebbflow-return ()
+    "Close the ebb-flow window and return to Eshell session."
+    (interactive)
+    (when (boundp 'ha-eshell-ebbflow-close-window)
+      (bury-buffer))
+    (when (boundp 'ha-eshell-ebbflow-return-buffer)
+      (pop-to-buffer ha-eshell-ebbflow-return-buffer)))
+
+  (define-minor-mode ebbflow-mode
+    "Get your foos in the right places."
+    :lighter " ebb"
+    :keymap (let ((map (make-sparse-keymap)))
+              (define-key map (kbd "C-c C-q") 'ha-eshell-ebbflow-return)
+              map))
+#+end_src
+Since I use Evil, I also add ~Q~ to call this function:
+#+begin_src emacs-lisp
+  (evil-define-key 'normal ebbflow-mode-map (kbd "Q") 'ha-eshell-ebbflow-return)
+#+end_src
+*** Supporting Functions
+I need a function to analyze command line options. I’ve tried to use [[help:eshell-eval-using-options][eshell-eval-using-options]], but it lacks the ability to have both dashed parameter arguments /and/ non-parameter arguments. For instance, I want to type:
+#+begin_src sh
+  flow --lines some-buffer another-buffer
+#+end_src
+To have both a =—lines= parameter, as well as a list of buffers, so I’ll need to roll my own. I will take some shortcuts. For instance, I will always have my /double-dashed/ parameters start with the same letter, so we can have this predicate:
+#+begin_src emacs-lisp
+  (defun ha-eshell-parse-arg (argument dashed-letter)
+    "Return true if ARGUMENT matches DASHED-LETTER."
+    (when (stringp argument)
+      (string-match (rx string-start "-" (optional "-") (literal dashed-letter)) argument)))
+#+end_src
+
+If an non-dashed parameter argument is of the wrong type (I’m looking for strings and buffers), the correct way to deal with that in Eshell is to call [[help:error][error]] with a message, so let’s wrap that functionality:
+#+begin_src emacs-lisp
+  (defun ha-eshell-arg-type-error (arg)
+    "Throw an `error' about the incorrect type of ARG."
+    (error (format "Illegal argument of type %s: %s\n%s"
+                   (type-of arg) arg
+                   (documentation 'eshell/flow))))
+#+end_src
+*** flow: (or Buffer Cat)
+Eshell can send the output of a command sequence to a buffer:
+#+begin_src sh
+  rg -i red > #<scratch>
+#+end_src
+But I can’t find a way to use the contents of buffers to use as part of the standard input to another as the start of a pipeline. Let’s create a function to fetch buffer contents.
+
+I’m calling the ability to get a buffer contents, /flow/ (Fetch contents as Lines Or Words).  While this function will /fetch/ the contents of any buffer, if one is not given, it will fetch the default, =ha-eshell-ebbflow-buffername=. Once the content is fetched, given the correct argument, it may convert the data:
+  - /as lines/ :: separating the data on newlines. Useful for passing to =for= loops
+  - /as words/ :: separating on spaces. Useful if the data is filenames
+  - /as a string/ :: no conversion
+
+#+begin_src emacs-lisp
+  (defun eshell/flow (&rest args)
+    "Output the contents of one or more buffers as a string.
+  Usage: flow [OPTION] [BUFFER ...]
+      -h, --help           show this usage screen
+      -l, --lines          output contents as a list of lines
+      -w, --words          output contents as a list of space-separated elements "
+    (seq-let (conversion-type buffers) (eshell-flow-parse-args args)
+      (let ((content-of-buffers (mapconcat 'eshell-flow-buffer-contents buffers "\n")))
+        (cl-case conversion-type
+          (:words (split-string content-of-buffers))
+          (:lines (split-string content-of-buffers "\n"))
+          (t      content-of-buffers)))))
+#+end_src
+
+Parsing the arguments is now hand-rolled:
+#+begin_src emacs-lisp
+  (defun eshell-flow-parse-args (args)
+    "Parse ARGS and return a list of buffers and a format symbol."
+    (let* ((first-arg (car args))
+           (convert (cond
+                     ;; Bugger out if our first argument is already a buffer ... no conversion needed
+                     ((bufferp first-arg)        nil)
+                     ;; No buffer option at all? Drop out as we'll get the default buffer:
+                     ((null first-arg)           nil)
+                     ;; Not a string or buffer, that is an error:
+                     ((not (stringp first-arg)) (ha-eshell-arg-type-error first-arg))
+                     ((ha-eshell-parse-arg first-arg "w")    :words)
+                     ((ha-eshell-parse-arg first-arg "l")    :lines)
+                     ((ha-eshell-parse-arg first-arg "h")    (error (documentation 'eshell/flow))))))
+      (if convert
+          (list convert (eshell-flow-buffers (cdr args)))
+        (list nil (eshell-flow-buffers args)))))
+#+end_src
+
+Straight-forward to acquire the contents of a buffer :
+#+begin_src emacs-lisp
+  (defun eshell-flow-buffer-contents (buffer-name)
+    "Return the contents of BUFFER as a string."
+    (when buffer-name
+      (save-window-excursion
+        (switch-to-buffer buffer-name)
+        (buffer-substring-no-properties (point-min) (point-max)))))
+#+end_src
+
+Specify the buffers with either the Eshell approach, e.g. =#<buffer buffer-name>=, or a string, =’*scratch*’=, and if I don’t specify any buffer, we’ll use the default buffer:
+#+begin_src emacs-lisp
+  (defun eshell-flow-buffers (buffers)
+    "Convert the list, BUFFERS, to actual buffers if given buffer names."
+    (if buffers
+        (--map (cond
+              ((bufferp it) it)
+              ((stringp it) (get-buffer it))
+              (t            (ha-eshell-arg-type-error it)))
+             buffers)
+      ;; No buffers given? Use the default buffer:
+      (list (get-buffer ha-eshell-ebbflow-buffername))))
+#+end_src
+
+*** ebb: Bump Data to a Buffer
+
+We have three separate use-cases:
+  1. Execute a command, inserting the output into the buffer (good if we know the output will be long, complicated, or needing manipulation)
+  2. Insert one or more files into the buffer (this assumes the files are data)
+  3. Grab the output from the last executed Eshell command (what happens when we don’t give it a command string or files to read)
+
+#+begin_src emacs-lisp
+  (defun eshell/ebb (&rest args)
+    "Run command with output into a buffer, or output of last command.
+  Usage: ebb [OPTION] [COMMAND] [FILE ...]
+      -h, --help           show this usage screen
+      -a, --append         add command output to the *eshell-edit* buffer
+      -p, --prepend        add command output to the end of *eshell-edit* buffer
+      -i, --insert         add command output to *eshell-edit* at point"
+    (seq-let (insert-location command files) (eshell-ebb-parse-args args)
+      (cond
+       (command (ha-eshell-ebb-command insert-location command))
+       (files   (ha-eshell-ebb-files   insert-location files))
+       (t       (ha-eshell-ebb-output  insert-location))))
+
+    ;; At this point, we are in the `ha-eshell-ebbflow-buffername', and
+    ;; the buffer contains the inserted data, so:
+    (goto-char (point-min))
+
+    nil) ; Return `nil' so that it doesn't print anything in `eshell'.
+#+end_src
+
+And we need an argument parser. I need to write a =getopts= clone or something similar, for while the following function works, it isn’t robust.
+#+begin_src emacs-lisp
+  (defun eshell-ebb-parse-args (args)
+    "Parse ARGS and return a list of parts for the command.
+  The elements of the returned list are:
+    - location (symbol, either :insert :insert-location :prepend :replace)
+    - string of commands
+    - string of files
+
+  The ARGS can have an optional argument, followed by
+  a list of files, or a command list, or nothing."
+      (let* ((first-arg (car args))
+             (location (cond
+                        ;; No buffer option at all? Drop out as we'll get the default buffer:
+                        ((null first-arg)                    nil)
+                        ((ha-eshell-parse-arg first-arg "i") :insert)
+                        ((ha-eshell-parse-arg first-arg "a") :insert-location)
+                        ((ha-eshell-parse-arg first-arg "p") :prepend)
+                        ((ha-eshell-parse-arg first-arg "h") (error (documentation 'eshell/ebb))))))
+        (if location
+            (setq args (cdr args))
+          (setq location :replace))
+        (cond
+         ((or (null args) (length= args 0)) (list location nil nil))
+         ((file-exists-p (car args))        (list location nil args))
+         (t                                 (list location args nil)))))
+#+end_src
+
+Each of the use-case functions described needs to switch to the =*eshell-edit*= buffer, and either clear it out or position the cursor.
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebb-switch-to-buffer (insert-location)
+    "Switch to `ha-eshell-ebbflow-buffername' and get the buffer ready for new data."
+    (let ((return-buffer (current-buffer)))
+
+      (if-let ((ebbwindow (get-buffer-window ha-eshell-ebbflow-buffername)))
+          (select-window ebbwindow)
+        (switch-to-buffer ha-eshell-ebbflow-buffername)
+        (setq-local ha-eshell-ebbflow-close-window t))
+
+      (setq-local ha-eshell-ebbflow-return-buffer return-buffer)
+      (ebbflow-mode)
+
+      (cl-case insert-location
+        (:append  (goto-char (point-max)))
+        (:prepend (goto-char (point-min)))
+        (:insert   nil)
+        (:replace (delete-region (point-min) (point-max))))))
+#+end_src
+
+Command string passed to [[help:eshell-command][eshell-command]]:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebb-command (insert-location command-parts)
+    "Call `eshell-command' with the COMMAND-PARTS.
+  Inserts the output into `ha-eshell-ebbflow-buffername'"
+    (let ((command-string (string-join command-parts " ")))
+      (ha-eshell-ebb-switch-to-buffer insert-location)
+      (eshell-command command-string t)))
+#+end_src
+
+Given one or more filenames to the =ebb= command, concatenates each into the buffer.
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebb-files (insert-location files)
+    "Insert the FILES at the INSERT-LOCATION tin `ha-eshell-ebbflow-buffername'."
+    (ha-eshell-ebb-switch-to-buffer insert-location)
+    (dolist (file files)
+      (insert-file file)
+      (insert "\n")))
+#+end_src
+
+If we were not given a command to execute or a list of files to insert, we want to grab the output from the last executed command in the eshell buffer. To do this, we need to move to the start of the output, and then search for the prompt. Luckily Eshell assumes we have set up the [[elisp:(describe-variable 'eshell-prompt-regexp)][eshell-prompt-regexp]] variable:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebb-output (insert-location)
+    "Grab output from previous eshell command, inserting it into our buffer.
+  Gives the INSERT-LOCATION to `ha-eshell-ebb-switch-to-buffer'."
+    (let* ((start  (save-excursion
+                     (goto-char eshell-last-output-start)
+                     (re-search-backward eshell-prompt-regexp)
+                     (next-line)
+                     (line-beginning-position)))
+           (end    eshell-last-output-start)
+           (contents (buffer-substring-no-properties start end)))
+      (ha-eshell-ebb-switch-to-buffer insert-location)
+      (insert contents)))
 #+end_src
 ** Git
 I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
@@ -177,18 +436,6 @@ I used to have a number =g=-prefixed aliases to call git-related commands, but n
       (magit-status (pop args) nil)
       (eshell/echo))   ;; The echo command suppresses output
 #+end_src
-** Buffer Cat
-Why not be able to read a buffer and use it as the start of a pipeline?
-#+begin_src emacs-lisp
-  (defun eshell/bcat (&rest args)
-    (mapconcat (lambda (buffer-name)
-                 (when (bufferp buffer-name)
-                   (save-window-excursion
-                     (switch-to-buffer buffer-name)
-                     (buffer-substring-no-properties (point-min) (point-max)))))
-               args "\n"))
-#+end_src
-Perhaps we should add this feature to eshell’s version of [[help:eshell/cat][cat]].
 ** Replace ls
 I like the output of the [[https://github.com/Peltoche/lsd][lsd]] program, and want =ls= to call it, if available.
 #+begin_src emacs-lisp
@@ -360,51 +607,6 @@ Here is my initial function. After separating the arguments into two groups (spl
           (eshell-named-command cmd args)))))
 #+end_src
 The [[help:eshell-named-command][eshell-named-command]] takes the command separately from the arguments, so we use =car= and =cdr= on the form.
-** Editing Files
-The =e= is an alias to [[help:find-file][find-file]] (which takes one argument), we define a special function to open each argument in a different window. We define a /helper function/ for dealing with more than one argument. It takes two functions, where we call the first function on the first argument, and call the second function on each of the rest.
-#+begin_src emacs-lisp
-  (defun eshell-fn-on-files (fun1 fun2 args)
-    "Call FUN1 on the first element in list, ARGS.
-  Call FUN2 on all the rest of the elements in ARGS."
-    (unless (null args)
-      (let ((filenames (flatten-list args)))
-        (funcall fun1 (car filenames))
-        (when (cdr filenames)
-          (mapcar fun2 (cdr filenames))))
-      ;; Return an empty string, as the return value from `fun1'
-      ;; probably isn't helpful to display in the `eshell' window.
-      ""))
-#+end_src
-This allows us to replace some of our aliases with functions:
-#+begin_src emacs-lisp
-  (defun eshell/e (&rest files)
-    "Edit one or more files in current window."
-    (eshell-fn-on-files 'find-file 'find-file-other-window files))
-
-  (defun eshell/ee (&rest files)
-    "Edit one or more files in another window."
-    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window files))
-#+end_src
-We’ll leave the =e= alias to replace the =eshell= buffer window.
-
-No way would I ever accidentally type any of the following commands:
-#+begin_src emacs-lisp
-  (defalias 'eshell/vi 'eshell/e)
-  (defalias 'eshell/vim 'eshell/e)
-  (defalias 'eshell/emacs 'eshell/e)
-#+end_src
-** Less and More
-Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
-#+begin_src emacs-lisp
-  (defun eshell/less (&rest files)
-    "Essentially an alias to the `view-file' function."
-    (eshell-fn-on-files 'view-file 'view-file-other-window files))
-#+end_src
-Do I type =more= any more than =less=?
-#+begin_src emacs-lisp
-  (defalias 'eshell/more 'eshell/less)
-  (defalias 'eshell/view 'eshell/less)
-#+end_src
 ** Last Results
 The [[https://github.com/mathiasdahl/shell-underscore][shell-underscore]] project looks pretty cool, where the =_= character represents a /filename/ with the contents of the previous command (you know, like if you were planning on it, you’d =tee= at the end of every command). An interesting idea that I could duplicate.
 
