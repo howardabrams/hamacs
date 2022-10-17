@@ -397,8 +397,12 @@ Can we change Evil at this point? Some tips:
     ;; (setq evil-insert-state-map (make-sparse-keymap))
     ;; (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
 
-    ;; In insert mode, type C-o to execute a single Evil command:
-    (define-key evil-insert-state-map (kbd "C-o") 'evil-execute-in-normal-state)
+    ;; Not a long-term VI user, so let's Emacsify some other keybindings:
+    (define-key evil-normal-state-map (kbd "C-b") 'scroll-up-command)
+    (define-key evil-normal-state-map (kbd "C-f") 'scroll-down-command)
+    (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
+    (define-key evil-normal-state-map (kbd "C-n") 'next-line)
+    (define-key evil-normal-state-map (kbd "C-w") 'sp-kill-region)  ; I have better window control
 
     ;; Even with the `evil-collections' (see below), some modes should be Emacs:
     (dolist (mode '(custom-mode
@@ -411,8 +415,12 @@ Can we change Evil at this point? Some tips:
                     vterm-mode))
       (add-to-list 'evil-emacs-state-modes mode))
 
-      (evil-mode))
+    (evil-mode))
 #+end_src
+
+This clever hack from [[https://manueluberti.eu//emacs/2022/10/16/back-last-edit/][Manuel Uberti]] got me finding these useful bindings:
+- ~g ;~ ::  [[help:goto-last-change][goto-last-change]]
+- ~g ,~ :: [[help:goto-last-change-reverse][goto-last-change-reverse]]
 
 While I’m pretty good with the VIM keybindings, I would like to play around with the [[https://evil.readthedocs.io/en/latest/extension.html#text-objects][text objects]] and how it compares to others (including the surround), for instance:
   - ~diw~ :: deletes a word, but can be anywhere in it, while ~de~ deletes to the end of the word.
@@ -446,11 +454,11 @@ What text objects are known?
   - ~u~ :: for URLs
   - ~a~ :: function arguments (probably a lot like symbol, ~o~) with the [[https://github.com/wcsmith/evil-args][evil-args]] extension (that I’m not bothering with)
 *** Evil Text Object Line
-Delete a line, ~d d~ is in basic VI, but many commands are based on text objects, and the basic text object doesn’t include lines. The [[https://github.com/emacsorphanage/evil-textobj-line][evil-textobj-line]] project adds that:
+Delete a line, ~d d~ is in basic VI. Since some commands use text objects, and the basic text object doesn’t include lines,  the [[https://github.com/emacsorphanage/evil-textobj-line][evil-textobj-line]] project adds that:
 #+begin_src emacs-lisp
   (use-package evil-textobj-line)
 #+end_src
-So, ~v i l~ and ~v a l~ works as you’d expect.
+Now ~v i l~ and ~v a l~ works as you’d expect, but does this improve on ~S-v~?
 *** Text Objects based on Indentation
 The [[https://github.com/TheBB/evil-indent-plus][evil-indent-plus]] project creates text objects based on the indentation level, similar to how the ~b~ works with “blocks” of code.
 #+begin_src emacs-lisp
