@@ -409,7 +409,7 @@ Can we change Evil at this point? Some tips:
                     circe-chat-mode
                     circe-query-mode
                     vterm-mode))
-      (add-to-list 'evil-emacs-state-modes mode)
+      (add-to-list 'evil-emacs-state-modes mode))
 
       (evil-mode))
 #+end_src
@@ -1568,6 +1568,9 @@ Can we call these /applications/?
 Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I stole the bulk of this work from Doom Emacs.
 #+begin_src emacs-lisp
   (use-package magit
+    ;; See https://github.com/magit/magit/wiki/Emacsclient for why we need to set:
+    :custom (with-editor-emacsclient-executable "/usr/local/bin/emacsclient")
+
     :config
     ;; The following code re-instates my General Leader key in Magit.
     (general-unbind magit-mode-map "SPC")
