@@ -848,20 +848,19 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
   (use-package hydra
     :config
     (defhydra hydra-window-resize (:color blue :hint nil) "
-  _w_: select _n_: new      _^_: taller (t)  _z_: Swap  _+_: text larger
-  _c_: cycle  _x_: delete   _V_: shorter (T) _u_: undo  _-_: text smaller
-  _j_: go up  _e_: balance  _>_: wider       _U_: undo+ _F_: font larger
-  _k_: down   _o_: maximize _<_: narrower    _r_: redo  _f_: font smaller
-  _h_: left   _b_: h-split  _e_: balanced    _R_: redo+ _0_: toggle neotree
-  _l_: right  _v_: v-split  _o_: choose by number (also 1-9)
+  _w_: select _m_: move/swap _u_: undo  _^_: taller (t)  _+_: text larger
+  _j_: go up  _x_: delete    _U_: undo+ _V_: shorter (T) _-_: text smaller
+  _k_: down   _e_: balance   _r_: redo  _>_: wider       _F_: font larger
+  _h_: left   _b_: h-split   _R_: redo+ _<_: narrower    _f_: font smaller
+  _l_: right  _v_: v-split   _o_: only this window     _c_: choose (also 1-9)
   "
       ("w" ace-window)
-      ("c" other-window)
-      ("o" delete-other-windows)
+      ("c" other-window)          ; change window
+      ("o" delete-other-windows)  ; Only this window
       ("x" delete-window)
       ("D" ace-delete-window)
 
-      ("z" ace-swap-window)
+      ("m" ace-swap-window)
       ("u" winner-undo)
       ("U" winner-undo :color pink)
       ("C-r" winner-redo)
@@ -873,9 +872,8 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
       ("k" evil-window-down)
       ("h" evil-window-left)
       ("l" evil-window-right)
-      ("o" other-window)
 
-      ("b" evil-window-split)
+      ("b" evil-window-split)     ; For below
       ("v" evil-window-vsplit)
 
       ("F" font-size-increase :color pink)
