@@ -1111,8 +1111,8 @@ The function to scan a line for hostname patterns uses different function calls 
                 (user2 (ha-eshell-get-expression 6))
                 (host2 (ha-eshell-get-expression 7)))
             (if host1
-                (cons user1 host1)
-              (cons user2 host2)))))))
+                (list user1 host1)
+              (list user2 host2)))))))
 #+end_src
 
 Tramp reference can be long when attempting to connect as another user account using the pipe symbol.
@@ -1138,12 +1138,11 @@ This function pulls it all together:
   Call with PREFIX to connect with the `root' useraccount, via
   `sudo'."
     (interactive "p")
-    (destructuring-bind (user host) (ha-eshell-scan-for-hostnames)
+    (seq-let (user host) (ha-eshell-scan-for-hostnames)
       (let ((destination (ha-eshell-host->tramp user host (> p 1))))
         (message "Connecting to: %s" destination)
         (eshell-there destination))))
 #+end_src
-
 * Better Command Line History
 On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][this discussion]] a little gem for using IDO to search back through the history, instead of =M-R= to prompt for the history.
 #+begin_src emacs-lisp
