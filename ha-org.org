@@ -281,7 +281,7 @@ This function calls the above-mentioned operating-system-specific functions, but
                        (ha-search-notes--macos phrase path)
                      (ha-search-notes--linux phrase path))))
       (->> command
-           (shell-command-to-list)    ; Function from piper!
+           (shell-command-to-list)
            (--remove (s-matches? "~$" it))
            (--remove (s-matches? "#" it))
            (--map (format "'%s'" it))

@@ -160,7 +160,7 @@ Let's define the clipboard for a Mac. The challenge here is that we need to bina
          (mapconcat #'byte-to-string byte-seq "") 'utf-8))))
 #+end_src
 
-And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function (which I should move into the piper project).
+And define the same interface for Linux. Keep in mind, we need the exit code from calling a process, so I am going to define/use a helper function.
 #+begin_src emacs-lisp
 (defun ha-get-linux-clipboard ()
   "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."

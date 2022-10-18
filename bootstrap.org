@@ -155,7 +155,37 @@ The [[https://github.com/magnars/s.el][s.el]] project is a simpler string manipu
 
 Manipulate file paths with the [[https://github.com/rejeep/f.el][f.el]] project:
 #+begin_src emacs-lisp
-(use-package f)
+  (use-package f)
+#+end_src
+
+The [[help:shell-command][shell-command]] function is useful, but having it split the output into a list is a helpful abstraction:
+#+begin_src emacs-lisp
+  (defun shell-command-to-list (command)
+    "Return list of lines from running COMMAND in shell."
+    (thread-last command
+       shell-command-to-string
+       s-lines
+       (-map 's-trim)
+       (-remove 's-blank-str?)))
+#+end_src
+
+And let’s see the results:
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest shell-command-to-list-test ()
+    (should (equal '("hello world")
+                   (shell-command-to-list "echo hello world")))
+
+    ;; We don't need blank lines:
+    (should (equal '("hello world" "goodbye for now")
+                   (shell-command-to-list "echo '\n\nhello world\n\ngoodbye for now\n\n'"))
+
+    ;; No output? Return null:
+    (should (null (shell-command-to-list "echo")))
+
+    ;; No line should contain carriage returns:
+    (should (null (seq-filter
+                   (lambda (line) (s-contains? "\n" line))
+                   (shell-command-to-list "ls")))))
 #+end_src
 ** My Code Location
 Much of my more complicated code comes from my website essays and other projects. The destination shows up here:
@@ -198,6 +228,7 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
                              "ha-org-clipboard.org"
                              "ha-capturing-notes.org"
                              "ha-agendas.org"
+                             "ha-data.org"
                              "ha-passwords.org"
                              "ha-eshell.org"
                              "ha-remoting.org"
