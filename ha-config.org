@@ -1411,6 +1411,8 @@ Build the hydra as well as configure the =perspective= project.
     (persp-show-modestring t)
 
     :config
+    (setq persp-suppress-no-prefix-key-warning t)
+
     (persp-mode +1)
 
     (defhydra hydra-workspace-leader (:color blue :hint nil) "
@@ -1435,13 +1437,16 @@ Build the hydra as well as configure the =perspective= project.
       ("N" ha-new-persp)
       ("]" persp-next :color pink)
       ("[" persp-prev :color pink)
-      ("r" persp-rename)
       ("d" persp-kill)
       ("W" ha-workspace-initialize)
       ("a" persp-add-buffer)
       ("b" persp-switch-to-buffer)
       ("k" persp-remove-buffer)
       ("K" persp-kill-buffer)
+      ("m" persp-merge)
+      ("u" persp-unmerge)
+      ("i" persp-import)
+      ("r" persp-rename)
       ("s" persp-state-save)
       ("l" persp-state-load)
       ("w" ha-switch-to-special)  ; The most special perspective
