@@ -197,6 +197,22 @@ I like being able to enable local variables in =.dir-local.el= files:
   (setq enable-local-variables t)
 #+end_src
 ** File Access
+*** Remote Files
+To speed up TRAMP access, let’s disabled lock files, you know, the ones that have the =#= surrounding characters:
+#+begin_src emacs-lisp
+  (setq remote-file-name-inhibit-locks t)
+#+end_src
+What do I think about [[elisp:(describe-variable 'remote-file-name-inhibit-auto-save-visited)][remote-file-name-inhibit-auto-save-visited]]?
+
+During remote access, TRAMP can slow down performing Git operations. Let’s turn that off as well:
+#+begin_src emacs-lisp
+  (defun turn-off-vc-for-remote-files ()
+    "Disable"
+    (when (file-remote-p (buffer-file-name))
+      (setq-local vc-handled-backends nil)))
+
+  (add-hook 'find-file-hook 'turn-off-vc-for-remote-files)
+#+end_src
 *** Changes on Save
 Always spaces and never tabs. Note that we use =setq-default= since [[elisp:(describe-variable 'indent-tabs-mode)][indent-tabs-mode]] is a /buffer-local/ variable, meaning using =setq=,  sets it for /that buffer file/. We want this globally the default:
 #+begin_src emacs-lisp
