@@ -175,7 +175,7 @@ The above code needs the [[https://github.com/tkf/emacs-request][request]] packa
 *** Dad Jokes!
 The /critical part/ here, is the [[https://icanhazdadjoke.com/][Dad Joke]] function, a =curl= call to a web service:
 #+begin_src sh
-curl -sH "Accept: text/plain" https://icanhazdadjoke.com/
+  curl -sH "Accept: text/plain" https://icanhazdadjoke.com/
 #+end_src
 For this, I use the =request= package, which is /asynchronous/
 #+begin_src emacs-lisp
@@ -331,9 +331,9 @@ How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-
 *** Savehist
 Persist history over Emacs restarts using the built-in [[https://www.emacswiki.org/emacs/SaveHist][savehist]] project. Since both Vertico and Selectrum sorts by history position, this should make the choice /smarter/ with time.
 #+begin_src emacs-lisp
-(use-package savehist
-  :init
-  (savehist-mode))
+  (use-package savehist
+    :init
+    (savehist-mode))
 #+end_src
 *** Marginalia
 The [[https://github.com/minad/marginalia][marginalia]] package gives a preview of =M-x= functions with a one line description, extra information when selecting files, etc. Nice enhancement without learning any new keybindings.
@@ -349,9 +349,9 @@ The [[https://github.com/minad/marginalia][marginalia]] package gives a preview 
 * Key Bindings
 To begin my binding changes, let's turn on [[https://github.com/justbur/emacs-which-key][which-key]]:
 #+begin_src emacs-lisp
-(use-package which-key
-  :init   (setq which-key-popup-type 'minibuffer)
-  :config (which-key-mode))
+  (use-package which-key
+    :init   (setq which-key-popup-type 'minibuffer)
+    :config (which-key-mode))
 #+end_src
 Why would I ever quit Emacs with a simple keybinding? Let’s override it:
 #+begin_src emacs-lisp
@@ -363,13 +363,13 @@ I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-
 Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the built-in undo functionality? Well, there isn’t much to the project (that’s a good thing), but It basically doesn’t /cycle/ around the redo, which annoying.
 
 #+begin_src emacs-lisp
-(use-package undo-fu
-  :config
-  (global-set-key [remap undo] 'undo-fu-only-undo)
-  (global-set-key [remap undo-redo] 'undo-fu-only-redo)
-  (global-unset-key (kbd "s-z"))
-  (global-set-key (kbd "s-z")   'undo-fu-only-undo)
-  (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
+  (use-package undo-fu
+    :config
+    (global-set-key [remap undo] 'undo-fu-only-undo)
+    (global-set-key [remap undo-redo] 'undo-fu-only-redo)
+    (global-unset-key (kbd "s-z"))
+    (global-set-key (kbd "s-z")   'undo-fu-only-undo)
+    (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
 #+end_src
 ** Evil-Specific Keybindings
 Can we change Evil at this point? Some tips:
@@ -544,12 +544,12 @@ And the keybindings:
 *** Key Chord
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
 #+begin_src emacs-lisp
-(use-package key-chord
-  :config
-  (key-chord-mode t)
-  (key-chord-define-global "fd" 'evil-normal-state)
-  (key-chord-define-global "jk" 'evil-normal-state)
-  (key-chord-define-global "JK" 'evil-normal-state))
+  (use-package key-chord
+    :config
+    (key-chord-mode t)
+    (key-chord-define-global "fd" 'evil-normal-state)
+    (key-chord-define-global "jk" 'evil-normal-state)
+    (key-chord-define-global "JK" 'evil-normal-state))
 #+end_src
 *** Evil Easy Motion
 The [[https://github.com/PythonNut/evil-easymotion][evil-easymotion]] project combines [[Jump with Avy][avy]] and evil keybindings, where ~SPC j~ shows labels for all the lines below the cursor, so that you can jump right there. This doesn’t work well with a leader, but what about using Key Chords?
@@ -561,15 +561,15 @@ My ~F19~ key is within easy reach of my [[https://configure.zsa.io/moonlander/la
 *** Evil Lion
 The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper around Emacs’ [[help:align][align]] function. Just a little easier to use. Primary sequence is ~g a i p =~ to align along all the equal characters in the paragraph (block), or ~g a i b RET~ to use a built in rule to align (see below), or ~g a i b /~ to specify a regular expression, similar to [[help:align-regexp][align-regexp]].
 
- #+begin_src emacs-lisp
-   (use-package evil-lion
-     :after evil
-     :bind (:map evil-normal-state-map
-            ("g a" . evil-lion-left)
-            ("g A" . evil-lion-right)
-            :map evil-visual-state-map
-            ("g a" . evil-lion-left)
-            ("g A" . evil-lion-right)))
+#+begin_src emacs-lisp
+  (use-package evil-lion
+    :after evil
+    :bind (:map evil-normal-state-map
+                ("g a" . evil-lion-left)
+                ("g A" . evil-lion-right)
+                :map evil-visual-state-map
+                ("g a" . evil-lion-left)
+                ("g A" . evil-lion-right)))
 #+end_src
 Lion sounds like /align/ … get it?
 
@@ -643,12 +643,12 @@ Let's try this general "space" prefix by defining some top-level operations, inc
 And ways to stop the system:
 #+begin_src emacs-lisp
   (ha-leader
-     "q"  '(:ignore t :which-key "quit/session")
-     "q b" '("bury buffer" . bury-buffer)
-     "q w" '("close window" . delete-window)
-     "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
-     "q q" '("quit emacs" . save-buffers-kill-terminal)
-     "q Q" '("quit without saving" . evil-quit-all-with-error-code))
+    "q"  '(:ignore t :which-key "quit/session")
+    "q b" '("bury buffer" . bury-buffer)
+    "q w" '("close window" . delete-window)
+    "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
+    "q q" '("quit emacs" . save-buffers-kill-terminal)
+    "q Q" '("quit without saving" . evil-quit-all-with-error-code))
 #+end_src
 *** File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
@@ -707,64 +707,64 @@ Perhaps my OCD is out-of-control, but I want to load a file in another window, b
 With these helper functions in place, I can create a leader collection for file-related functions:
 #+begin_src emacs-lisp
   (ha-leader
-     "f"  '(:ignore t :which-key "files")
-     "f f" '("load" . find-file)
-     "f F" '("load new window" . find-file-other-window)
-     "f s" '("save" . save-buffer)
-     "f S" '("save as" . write-buffer)
-     "f SPC" '("project" . projectile-find-file)
-     "f r" '("recent" . recentf-open-files)
-     "f c" '("copy" . copy-file)
-     "f R" '("rename" . rename-file)
-     "f D" '("delete" . delete-file)
-     "f y" '("yank path" . ha-yank-buffer-path)
-     "f Y" '("yank path from project" . ha-yank-project-buffer-path)
-     "f d" '("dired" . dired)
-     "f 1" '("load win-1" . ha-find-file-window-1)
-     "f 2" '("load win-2" . ha-find-file-window-2)
-     "f 3" '("load win-3" . ha-find-file-window-3)
-     "f 4" '("load win-4" . ha-find-file-window-4)
-     "f 5" '("load win-5" . ha-find-file-window-5)
-     "f 6" '("load win-6" . ha-find-file-window-6)
-     "f 7" '("load win-7" . ha-find-file-window-7)
-     "f 8" '("load win-8" . ha-find-file-window-8)
-     "f 9" '("load win-9" . ha-find-file-window-9))
+    "f"  '(:ignore t :which-key "files")
+    "f f" '("load" . find-file)
+    "f F" '("load new window" . find-file-other-window)
+    "f s" '("save" . save-buffer)
+    "f S" '("save as" . write-buffer)
+    "f SPC" '("project" . projectile-find-file)
+    "f r" '("recent" . recentf-open-files)
+    "f c" '("copy" . copy-file)
+    "f R" '("rename" . rename-file)
+    "f D" '("delete" . delete-file)
+    "f y" '("yank path" . ha-yank-buffer-path)
+    "f Y" '("yank path from project" . ha-yank-project-buffer-path)
+    "f d" '("dired" . dired)
+    "f 1" '("load win-1" . ha-find-file-window-1)
+    "f 2" '("load win-2" . ha-find-file-window-2)
+    "f 3" '("load win-3" . ha-find-file-window-3)
+    "f 4" '("load win-4" . ha-find-file-window-4)
+    "f 5" '("load win-5" . ha-find-file-window-5)
+    "f 6" '("load win-6" . ha-find-file-window-6)
+    "f 7" '("load win-7" . ha-find-file-window-7)
+    "f 8" '("load win-8" . ha-find-file-window-8)
+    "f 9" '("load win-9" . ha-find-file-window-9))
 #+end_src
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
 
 Putting the entire visible contents of the buffer on the clipboard is often useful:
 #+begin_src emacs-lisp
-(defun ha-yank-buffer-contents ()
-  "Copy narrowed contents of the buffer to the clipboard."
-  (interactive)
-  (kill-new (buffer-substring-no-properties
-             (point-min) (point-max))))
+  (defun ha-yank-buffer-contents ()
+    "Copy narrowed contents of the buffer to the clipboard."
+    (interactive)
+    (kill-new (buffer-substring-no-properties
+               (point-min) (point-max))))
 #+end_src
 And the collection of useful operations:
 #+begin_src emacs-lisp
-(ha-leader
-   "b"  '(:ignore t :which-key "buffers")
-   "b B" '("switch" . persp-switch-to-buffer)
-   "b o" '("switch" . switch-to-buffer-other-window)
-   "b O" '("other" . projectile-switch-buffer-to-other-window)
-   "b i" '("ibuffer" . ibuffer)
-   "b I" '("ibuffer" . ibuffer-other-window)
-   "b k" '("persp remove" . persp-remove-buffer)
-   "b N" '("new" . evil-buffer-new)
-   "b d" '("delete" . persp-kill-buffer*)
-   "b r" '("revert" . revert-buffer)
-   "b s" '("save" . save-buffer)
-   "b S" '("save all" . evil-write-all)
-   "b n" '("next" . next-buffer)
-   "b p" '("previous" . previous-buffer)
-   "b y" '("copy contents" . ha-yank-buffer-contents)
-   "b z" '("bury" . bury-buffer)
-   "b Z" '("unbury" . unbury-buffer)
+  (ha-leader
+    "b"  '(:ignore t :which-key "buffers")
+    "b B" '("switch" . persp-switch-to-buffer)
+    "b o" '("switch" . switch-to-buffer-other-window)
+    "b O" '("other" . projectile-switch-buffer-to-other-window)
+    "b i" '("ibuffer" . ibuffer)
+    "b I" '("ibuffer" . ibuffer-other-window)
+    "b k" '("persp remove" . persp-remove-buffer)
+    "b N" '("new" . evil-buffer-new)
+    "b d" '("delete" . persp-kill-buffer*)
+    "b r" '("revert" . revert-buffer)
+    "b s" '("save" . save-buffer)
+    "b S" '("save all" . evil-write-all)
+    "b n" '("next" . next-buffer)
+    "b p" '("previous" . previous-buffer)
+    "b y" '("copy contents" . ha-yank-buffer-contents)
+    "b z" '("bury" . bury-buffer)
+    "b Z" '("unbury" . unbury-buffer)
 
-   ;; And double up on the bookmarks:
-   "b m" '("set bookmark" . bookmark-set)
-   "b M" '("delete mark" . bookmark-delete))
+    ;; And double up on the bookmarks:
+    "b m" '("set bookmark" . bookmark-set)
+    "b M" '("delete mark" . bookmark-delete))
 #+end_src
 *** Toggle Switches
 The goal here is toggle switches and other miscellaneous settings.
@@ -792,7 +792,7 @@ Since we can't automatically toggle between relative and absolute line numbers, 
 Add it to the toggle menu:
 #+begin_src emacs-lisp
   (ha-leader
-     "t r" '("relative lines" . ha-toggle-relative-line-numbers))
+    "t r" '("relative lines" . ha-toggle-relative-line-numbers))
 #+end_src
 **** Narrowing
 I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but what a /dwim/ aspect:
@@ -811,7 +811,7 @@ I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but wha
 #+end_src
 And put it on the toggle menu:
 #+begin_src emacs-lisp
-    (ha-leader "t n" '("narrow" . ha-narrow-dwim))
+  (ha-leader "t n" '("narrow" . ha-narrow-dwim))
 #+end_src
 *** Window Operations
 While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]] to undo window-related changes:
@@ -847,7 +847,7 @@ And when creating new windows, why isn't the new window selected?
     (other-window 1))
 
   (dolist (command '(split-window-below split-window-right
-                     evil-window-split evil-window-vsplit))
+                                        evil-window-split evil-window-vsplit))
     (advice-add command :after #'jump-to-new-window))
 #+end_src
 This is nice since the window numbers are always present on a Doom modeline, but they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
@@ -992,10 +992,10 @@ The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates wi
     :commands wgrep-rg-setup
     :hook (rg-mode-hook . wgrep-rg-setup)
     :config
-      (ha-leader
-       :keymaps 'rg-mode-map  ; Actually, `i' works!
-       "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
-       "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
+    (ha-leader
+      :keymaps 'rg-mode-map  ; Actually, `i' works!
+      "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
+      "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
 #+end_src
 *** Text Operations
 Stealing much of this from Spacemacs.
@@ -1120,13 +1120,13 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
 
 #+begin_src emacs-lisp
-(use-package embark-consult
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
 According to the [[https://elpa.gnu.org/packages/embark-consult.html][Embark-Consult page]]:
@@ -1231,7 +1231,7 @@ Dropping into Emacs state is better than pure Evil state for applications, howev
 
 Do I want to specify the list of modes to change for =evil-collection-init=, e.g.
 #+begin_src emacs-lisp :tangle no :eval no
-'(eww magit dired notmuch term wdired)
+  '(eww magit dired notmuch term wdired)
 #+end_src
 *** Evil Owl
 Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with [[https://github.com/mamapanda/evil-owl][evil-owl]]:
@@ -1371,27 +1371,27 @@ While I don't /need/ all the features that [[https://github.com/bbatsov/projecti
 
     :config
     (ha-leader
-     "p"  '(:ignore t :which-key "projects")
-     "p W" '("initialize workspace" . ha-workspace-initialize)
-     "p n" '("new project space" . ha-project-persp)
-     "p !" '("run cmd in project root" . projectile-run-shell-command-in-root)
-     "p &" '("async cmd in project root" . projectile-run-async-shell-command-in-root)
-     "p a" '("add new project" . projectile-add-known-project)
-     "p b" '("switch to project buffer" . projectile-switch-to-buffer)
-     "p c" '("compile in project" . projectile-compile-project)
-     "p C" '("repeat last command" . projectile-repeat-last-command)
-     "p d" '("remove known project" . projectile-remove-known-project)
-     "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
-     "p f" '("find file in project" . projectile-find-file)
-     "p g" '("configure project" . projectile-configure-project)
-     "p i" '("invalidate project cache" . projectile-invalidate-cache)
-     "p k" '("kill project buffers" . projectile-kill-buffers)
-     "p o" '("find other file" . projectile-find-other-file)
-     "p p" '("switch project" . projectile-switch-project)
-     "p r" '("find recent project files" . projectile-recentf)
-     "p R" '("run project" . projectile-run-project)
-     "p S" '("save project files" . projectile-save-project-buffers)
-     "p T" '("test project" . projectile-test-project)))
+      "p"  '(:ignore t :which-key "projects")
+      "p W" '("initialize workspace" . ha-workspace-initialize)
+      "p n" '("new project space" . ha-project-persp)
+      "p !" '("run cmd in project root" . projectile-run-shell-command-in-root)
+      "p &" '("async cmd in project root" . projectile-run-async-shell-command-in-root)
+      "p a" '("add new project" . projectile-add-known-project)
+      "p b" '("switch to project buffer" . projectile-switch-to-buffer)
+      "p c" '("compile in project" . projectile-compile-project)
+      "p C" '("repeat last command" . projectile-repeat-last-command)
+      "p d" '("remove known project" . projectile-remove-known-project)
+      "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
+      "p f" '("find file in project" . projectile-find-file)
+      "p g" '("configure project" . projectile-configure-project)
+      "p i" '("invalidate project cache" . projectile-invalidate-cache)
+      "p k" '("kill project buffers" . projectile-kill-buffers)
+      "p o" '("find other file" . projectile-find-other-file)
+      "p p" '("switch project" . projectile-switch-project)
+      "p r" '("find recent project files" . projectile-recentf)
+      "p R" '("run project" . projectile-run-project)
+      "p S" '("save project files" . projectile-save-project-buffers)
+      "p T" '("test project" . projectile-test-project)))
 #+end_src
 ** Workspaces
 A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
@@ -1472,15 +1472,15 @@ Build the hydra as well as configure the =perspective= project.
 
 I have no idea why this binding doesn’t work /within/ the =use-package= declaration, but oh well…
 #+begin_src emacs-lisp
-(ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
+  (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
 #+end_src
 
 The /special/ perspective is a nice shortcut to the one I use the most:
 #+begin_src emacs-lisp
-(defun ha-switch-to-special ()
-  "Change to the projects perspective."
-  (interactive)
-  (persp-switch "projects"))
+  (defun ha-switch-to-special ()
+    "Change to the projects perspective."
+    (interactive)
+    (persp-switch "projects"))
 #+end_src
 *** Predefined Workspaces
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
@@ -1637,16 +1637,16 @@ The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses
 #+end_src
 I also need to append the following to my [[file:~/.gitconfig][~/.gitconfig]] file:
 #+begin_src conf
-[delta]
-        minus-style                   = normal "#8f0001"
-        minus-non-emph-style          = normal "#8f0001"
-        minus-emph-style              = normal bold "#d01011"
-        minus-empty-line-marker-style = normal "#8f0001"
-        zero-style                    = syntax
-        plus-style                    = syntax "#006800"
-        plus-non-emph-style           = syntax "#006800"
-        plus-emph-style               = syntax "#009000"
-        plus-empty-line-marker-style  = normal "#006800"
+  [delta]
+  minus-style                   = normal "#8f0001"
+  minus-non-emph-style          = normal "#8f0001"
+  minus-emph-style              = normal bold "#d01011"
+  minus-empty-line-marker-style = normal "#8f0001"
+  zero-style                    = syntax
+  plus-style                    = syntax "#006800"
+  plus-non-emph-style           = syntax "#006800"
+  plus-emph-style               = syntax "#009000"
+  plus-empty-line-marker-style  = normal "#006800"
 #+end_src
 *** Git with Difftastic
 I’m stealing the code for this section from [[https://tsdh.org/posts/2022-08-01-difftastic-diffing-with-magit.html][this essay]] by Tassilo Horn, and in fact, I’m going to lift a lot of his explanation too, as I may need to remind myself how this works. The idea is based on using Wilfred’s excellent [[https://github.com/Wilfred/difftastic][difftastic]] tool to do a structural/syntax comparison of code changes in git. To begin, install the binary:
@@ -1780,26 +1780,26 @@ What's left is integrating the new show and diff commands in Magit. For that pur
 *** Time Machine
 The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project visually shows how a code file changes with each iteration:
 #+begin_src emacs-lisp
-(use-package git-timemachine
-  :config
-  (ha-leader "g t" '("git timemachine" . git-timemachine)))
+  (use-package git-timemachine
+    :config
+    (ha-leader "g t" '("git timemachine" . git-timemachine)))
 #+end_src
 *** Gist
 Using the [[https://github.com/emacsmirror/gist][gist package]] to write code snippets on [[https://gist.github.com/][Github]] seems like it can be useful, but I'm not sure how often.
 
 #+begin_src emacs-lisp :tangle no
-   (use-package gist
-     :config
-     (ha-leader
-       "g G" '(:ignore t :which-key "gists")
-       "g l g" '("gists"          . gist-list)
-       "g G l" '("list"           . gist-list)                     ; Lists your gists in a new buffer.
-       "g G r" '("region"         . gist-region)                   ; Copies Gist URL into the kill ring.
-       "g G R" '("private region" . gist-region-private)           ; Explicitly create a private gist.
-       "g G b" '("buffer"         . gist-buffer)                   ; Copies Gist URL into the kill ring.
-       "g G B" '("private buffer" . gist-buffer-private)           ; Explicitly create a private gist.
-       "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
-       "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
+  (use-package gist
+    :config
+    (ha-leader
+      "g G" '(:ignore t :which-key "gists")
+      "g l g" '("gists"          . gist-list)
+      "g G l" '("list"           . gist-list)                     ; Lists your gists in a new buffer.
+      "g G r" '("region"         . gist-region)                   ; Copies Gist URL into the kill ring.
+      "g G R" '("private region" . gist-region-private)           ; Explicitly create a private gist.
+      "g G b" '("buffer"         . gist-buffer)                   ; Copies Gist URL into the kill ring.
+      "g G B" '("private buffer" . gist-buffer-private)           ; Explicitly create a private gist.
+      "g c g" '("gist"           . gist-region-or-buffer)         ; Post either the current region, or buffer
+      "g c G" '("private gist"   . gist-region-or-buffer-private))) ; create private gist from region or buffer
 #+end_src
 
 The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
@@ -1837,27 +1837,27 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
 Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
   - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
- and make sure this works:
+    and make sure this works:
 
-#+begin_src emacs-lisp :tangle no :results replace
-  (ghub-request "GET" "/user" nil
-                :forge 'github
-                :host "api.github.com"
-                :username "howardabrams"
-                :auth 'forge)
-#+end_src
+  #+begin_src emacs-lisp :tangle no :results replace
+    (ghub-request "GET" "/user" nil
+                  :forge 'github
+                  :host "api.github.com"
+                  :username "howardabrams"
+                  :auth 'forge)
+  #+end_src
 *** Pushing is Bad
 Pushing directly to the upstream branch is /bad form/, as one should create a pull request, etc. To prevent an accidental push, we /double-check/ first:
 
 #+begin_src emacs-lisp
-(define-advice magit-push-current-to-upstream (:before (args) query-yes-or-no)
-  "Prompt for confirmation before permitting a push to upstream."
-  (when-let ((branch (magit-get-current-branch)))
-    (unless (yes-or-no-p (format "Push %s branch upstream to %s? "
-                                 branch
-                                 (or (magit-get-upstream-branch branch)
-                                     (magit-get "branch" branch "remote"))))
-      (user-error "Push to upstream aborted by user"))))
+  (define-advice magit-push-current-to-upstream (:before (args) query-yes-or-no)
+    "Prompt for confirmation before permitting a push to upstream."
+    (when-let ((branch (magit-get-current-branch)))
+      (unless (yes-or-no-p (format "Push %s branch upstream to %s? "
+                                   branch
+                                   (or (magit-get-upstream-branch branch)
+                                       (magit-get "branch" branch "remote"))))
+        (user-error "Push to upstream aborted by user"))))
 #+end_src
 ** Web Browsing
 *** EWW
