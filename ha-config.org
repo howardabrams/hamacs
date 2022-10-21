@@ -69,18 +69,6 @@ When I get an error, I need a stack trace to figure out the problem. Yeah, when 
   (setq debug-on-error t)
 #+end_src
 
-The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen):
-#+begin_src emacs-lisp
-  (global-set-key [remap dabbrev-expand] 'hippie-expand)
-#+end_src
-Details? Check out its [[help:hippie-expand-try-functions-list][list of expanders]].
-
-Let’s bind ~TAB~ instead of the default ~M-/~. By default, ~TAB~ re-indents the line, but I find that I want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
-#+begin_src emacs-lisp
-  (advice-add #'indent-for-tab-command :after #'hippie-expand)
-#+end_src
-Now while we’re typing along, we can hit the ~TAB~ key after partially typing a word to have it completed.
-
 And some Mac-specific settings:
 #+begin_src emacs-lisp
   (when (ha-running-on-macos?)
@@ -1295,6 +1283,78 @@ Notes:
   - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
 ** Additional Global Packages
+*** Auto Completion
+Emacs Completion is not obvious, and has lots of different interfaces, some distinct, some connected. Here’s the summary as I understand:
+  - =complete=, which /we can/ call:
+      - =hippie-expand=, which calls:
+          - =dabbrev=
+  - =completion-at-point=, which calls:
+      - =completion-at-point-functions= (capf), which can call:
+          - hippie and dabbrev functions
+
+We have two initial interfaces that may end up showing the same information (if configured correctly).
+
+Emacs’ first option, called [[help:complete][complete]], is simple. It completes based on words you are most likely to type.
+If the line is /indented/ (the default for the ~TAB~ key), let’s complete the word:
+#+begin_src emacs-lisp
+  (setq tab-always-indent 'complete)
+#+end_src
+Let’s also use the ~Command~ key to call this directly :
+#+begin_src emacs-lisp
+  (global-set-key (kbd "s-.") 'complete)
+#+end_src
+
+The next interface is [[help:completion-at-point][completion-at-point]] (which I set to ~M-TAB~). This code (from mini-buffer) doubles with the other [[Vertico][completing processes]] (like [[help:completing-read][completing-read]]) and presents choices based on a series of functions (see [[https://with-emacs.com/posts/tutorials/customize-completion-at-point/][this essay]] for details).
+
+What would be nice is that if =complete= doesn't have a match, =completion-at-point= would be called. Until then, we need to bind a key … or automatically display choices after a certain time (see below):
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-TAB") 'completion-at-point)
+#+end_src
+The [[file:ha-org.org::*Spell Checking][Flyspell package]] takes over ~M-TAB~,  so let’s add another keybinding (or [[Corfu][use time-based menu option]]):
+#+begin_src emacs-lisp
+  (global-set-key (kbd "s->") 'completion-at-point)
+#+end_src
+
+The idea of cycling through candidates sounds like a good idea, but let’s start with a number before setting this to =t=:
+#+begin_src emacs-lisp
+  (setq completion-cycle-threshold 3)
+#+end_src
+
+In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the current mode.
+#+begin_src emacs-lisp
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
+#+end_src
+**** Hippie Expand
+The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen) with its default key of ~M-/~:
+#+begin_src emacs-lisp
+  (global-set-key [remap dabbrev-expand] 'hippie-expand)
+#+end_src
+
+Details on its job? We need to update its [[help:hippie-expand-try-functions-list][list of expanders]]. I don’t care much for [[help:try-expand-line][try-expand-line]], so that is not on the list.
+#+begin_src emacs-lisp
+  (setq hippie-expand-try-functions-list
+        '(try-complete-file-name-partially   ; complete filenames, start with /
+          try-complete-file-name
+          try-expand-all-abbrevs
+          try-expand-list                    ; help when function args repeated another func's args
+          try-expand-dabbrev
+          try-expand-dabbrev-all-buffers
+          try-expand-whole-kill              ; grab text from the kill ring
+          try-expand-dabbrev-from-kill       ; similar to above
+          try-complete-lisp-symbol-partially
+          try-complete-lisp-symbol))
+#+end_src
+
+In the shell, IDEs and other systems, the key binding is typically ~TAB~. In modes other than =org-mode=, ~TAB~ re-indents the line with [[help:indent-for-tab-command][indent-for-tab-command]], but I find that I want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
+#+begin_src emacs-lisp
+  (advice-add #'indent-for-tab-command :after #'hippie-expand)
+#+end_src
+
+In =org-mode=, ~TAB~ calls [[help:org-cycle][org-cycle]], a complicated function, and attaching the hippie creates more complications. So, I can’t use ~TAB~ to expand long words. Keep to ~M-/~ or something else on the Meta key?
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-TAB") 'hippie-expand)
+#+end_src
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
 #+begin_src emacs-lisp
@@ -2069,8 +2129,8 @@ Make sure the [[help:pdf-info-check-epdfinfo][pdf-info-check-epdfinfo]] function
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
-(provide 'ha-config)
-;;; ha-config.el ends here
+  (provide 'ha-config)
+  ;;; ha-config.el ends here
 #+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
