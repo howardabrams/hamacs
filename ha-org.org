@@ -590,10 +590,6 @@ And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode]
           graphviz-dot-auto-indent-on-braces t
           graphviz-dot-auto-indent-on-semi t))
 #+end_src
-And we can install company support:
-#+begin_src emacs-lisp :tangle no
-(use-package company-graphviz-dot)
-#+end_src
 ** Focused Work
 :LOGBOOK:
 CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
@@ -665,7 +661,10 @@ For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] 
       "s b" '("check buffer" . flyspell-buffer)
       "s c" '("correct word" . flyspell-auto-correct-word)
       "s p" '("previous misspell" . evil-prev-flyspell-error)
-      "s n" '("next misspell" . evil-next-flyspell-error)))
+      "s n" '("next misspell" . evil-next-flyspell-error))
+
+    ;; Let's use M-TAB for something else ...
+    (define-key flyspell-mode-map (kbd "M-TAB") nil))
 #+end_src
 Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
 

@@ -1355,6 +1355,124 @@ In =org-mode=, ~TAB~ calls [[help:org-cycle][org-cycle]], a complicated function
 #+begin_src emacs-lisp
   (global-set-key (kbd "M-TAB") 'hippie-expand)
 #+end_src
+**** Corfu
+Then I converted to [[http://company-mode.github.io/][company]], and didn’t really need to use Hippie’s built-in functionality. Now, I’m wanting to try out [[https://github.com/minad/corfu][corfu]] (see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for more details). This package focuses on the UI, relying on other completion facilities. Seems like a good idea, as long as it works with the [[https://github.com/joaotavora/eglot][eglot]] package.
+
+I personally find a menu that constantly pops up as I’m typing quite annoying, and if =corfu-auto= is on, then I need a delay before it shows:
+#+begin_src emacs-lisp
+  (use-package corfu
+    :straight (:files (:defaults "extensions/*.el"))
+    :custom
+    (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
+    (corfu-auto t)                 ; Enable auto completion
+    (corfu-auto-delay 1)           ; Wait a second. Good idea if corfu-auto is t
+    (corfu-auto-prefix 3)          ; Start if we have typed four letters
+    (corfu-quit-no-match t)        ; quit if there is no match
+    (corfu-echo-documentation t)   ; Show documentation in the echo area
+    (corfu-scroll-margin 5)        ; Use scroll margin
+
+    (corfu-preview-current t)      ; Disable current candidate preview
+    (corfu-preselect-first t)      ; Showing us the goods? Take it with TAB/RET
+    (corfu-on-exact-match 'insert) ; Configure handling of exact matches
+
+    ;; The Escape key, when the Corfu menu shows, goes into some sort of
+    ;; normal movement without removing the menu. Odd behavior.
+    ;; Let's _try_ to make it cancel:
+    :general
+    (:keymaps 'corfu-map
+              :states 'insert
+              "s-SPC" #'corfu-insert-separator
+              "C-n" #'corfu-next
+              "C-p" #'corfu-previous
+              "<escape>" #'corfu-quit
+              "<return>" #'corfu-insert
+
+              "M-d" #'corfu-show-documentation
+              "M-l" #'corfu-show-location)
+    :init
+    (global-corfu-mode))
+  #+end_src
+*Note:* The [[elisp:(describe-variable 'corfu-separator)][corfu-separator]] variable, defaults to the ~M-SPC~, can be used to limit the choices with two different sections of selection.
+What about the locatio
+With the [[https://github.com/minad/corfu/blob/main/extensions/corfu-quick.el][corfu-quick]] package, you can apply /labels/ to every section, making it easier to select something on the Corfu menu without either typing more of the section, or hitting the down arrow keys. The issue is actually loading the file that is embedded in the =extensions= directory. One approach is to call =load-file= on it:
+#+begin_src emacs-lisp
+  ;; (load-file (straight--file "repos/corfu/extensions/corfu-quick.el"))
+
+  (use-package corfu-quick
+    :after corfu
+    :straight (:type built-in)
+    :bind (:map corfu-map ("C-q" . corfu-quick-insert)))
+#+end_src
+
+With the [[https://github.com/minad/corfu/blob/main/extensions/corfu-history.el][corfu-history]] extension, we can sort candidates by their history position:
+#+begin_src emacs-lisp
+  (use-package corfu-history
+    :after corfu
+    :straight (:type built-in)
+    :config
+    (corfu-history-mode))
+#+end_src
+
+For =eshell=, I don’t want completion until I ask for it, so then I need to set these variables:
+#+begin_src emacs-lisp
+  (use-package eshell
+    :after corfu
+
+    :config
+    (defun corfu-send-shell (&rest _)
+      "Send completion candidate when inside comint/eshell."
+      (cond
+       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
+        (eshell-send-input))
+       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
+        (comint-send-input))))
+
+    (advice-add #'corfu-insert :after #'corfu-send-shell)
+
+    :hook
+    (eshell-mode . ( lambda ()
+                     (setq-local corfu-auto nil)
+                     (setq-local corfu-preselect-first nil)
+                     (corfu-mode))))
+#+end_src
+**** Cape
+More Capf backends and =completion-in-region= commands are provided by the [[https://github.com/minad/cape][Cape]] package. Among others, the package supplies a file path and a Dabbrev completion backend. Cape provides the =cape-company-to-capf= adapter to reuse Company backends in Corfu. Furthermore the function =cape-super-capf= can merge multiple Capfs, such that the candidates of multiple Capfs are displayed together at the same time.
+
+The customization is to add =completion-at-point-functions=, used by =completion-at-point=:
+#+begin_src emacs-lisp
+  (use-package cape
+    :init
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-keyword)
+    (add-to-list 'completion-at-point-functions #'cape-rfc1345)
+    (add-to-list 'completion-at-point-functions #'cape-abbrev)
+    (add-to-list 'completion-at-point-functions #'cape-ispell)
+    (add-to-list 'completion-at-point-functions #'cape-dict)
+    (add-to-list 'completion-at-point-functions #'cape-symbol)
+
+    :hook
+    ((eshell-load
+      . (lambda () (add-to-list 'completion-at-point-functions #'cape-history)))))
+#+end_src
+
+Nice feature is be able to remove entries, for instance:
+#+begin_src emacs-lisp
+  (setq completion-at-point-functions
+    (remove #'cape-line completion-at-point-functions))
+#+end_src
+
+The =pcomplete= system (that =eshell= uses) has some technical issues. Cape provides wrappers, which sanitize the [[help:pcomplete][pcomplete]] function. Until these bugs are fixed upstream, these two advices addresses the problem.
+#+begin_src emacs-lisp
+  ;; Silence the pcomplete capf, no errors or messages!
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+
+  ;; Ensure that pcomplete does not write to the buffer
+  ;; and behaves as a pure `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+#+end_src
+
+How easy is typing the ~M-/~ key, Now, I can type either that or ~M-TAB~ for dumb (i.e. long) word expa
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
 #+begin_src emacs-lisp

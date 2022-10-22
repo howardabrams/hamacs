@@ -205,13 +205,6 @@ The [[https://github.com/joaotavora/eglot][eglot]] package usually connects to E
       "a" '("code actions" . eglot-code-actions)
       "i" '("imports" . eglot-code-action-organize-imports)))
 #+end_src
-This requires the [[http://company-mode.github.io/][company]] completion backend:
-#+begin_src emacs-lisp
-  (use-package company
-    :after eglot
-    :hook (after-init . global-company-mode)
-    :bind ("s-." . company-complete))
-#+end_src
 *** Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
 #+begin_src emacs-lisp
