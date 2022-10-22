@@ -75,6 +75,7 @@ Getting rid of blank lines seems somewhat useful:
 #+begin_src emacs-lisp
   (defun flush-blank-lines ()
     "Delete all empty lines in the buffer. See `flush-lines'."
+    (interactive)
     (save-excursion
       (goto-char (point-min))
       (flush-lines (rx line-start (zero-or-more space) line-end))))
