@@ -31,9 +31,19 @@ Once upon a time, I [[https://www.youtube.com/watch?v=HKJMDJ4i-XI][gave a talk]]
   (ha-leader
     "d"   '(:ignore t :which-key "data")
     "d |" '("pipe to shell"  . replace-buffer-with-shell-command)
+    "d r" '("replace buffer"  . ha-vr-replace-all)
     "d y" '("copy to clipboard" . ha-yank-buffer-contents))
 #+end_src
+** Global Replacements
+The string replacement functions operate at the current point, which means I need to jump to the beginning before calling something like [[help:vr/replace][vr/replace]].
 
+#+begin_src emacs-lisp
+  (defun ha-vr-replace-all (regexp replace start end)
+    "Regexp-replace entire buffer with live visual feedback."
+    (interactive
+     (vr--interactive-get-args 'vr--mode-regexp-replace 'vr--calling-func-replace))
+    (vr/replace regexp replace (point-min) (point-max)))
+#+end_src
 * Line-Oriented Functions
 These functions focus on the data in the buffer as a series of lines:
 #+begin_src emacs-lisp
