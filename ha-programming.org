@@ -50,8 +50,8 @@ Farm off commands into /virtual environments/:
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
 #+begin_src emacs-lisp
-(use-package flyspell
-  :hook (prog-mode . flyspell-prog-mode))
+  (use-package flyspell
+    :hook (prog-mode . flyspell-prog-mode))
 #+end_src
 ** Flycheck
 Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, but I’m now pushing much of this to LSP, so speed is less of an issue.  What about when I am not using LSP? Also, since I’ve hooked grammar checkers, I need this with global keybindings.
@@ -157,7 +157,7 @@ To take advantage of this, type:
 
 Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
 ** Navigation with dumb-jump
-Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should just be able to use them.  but I want to:
+Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should be able to use them.  but I want to:
   - Be in a function, and see its callers. For this, the [[help:rg-dwim][rg-dwim]] function is my bread-and-butter.
   - Be on a function, and jump to the definition. For this, I use [[https://github.com/jacktasia/dumb-jump][dumb-jump]], which uses the above utilities.
 
@@ -168,42 +168,113 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
 
     :config
     (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+    ;; (add-to-list 'evil-goto-definition-functions #'dumb-jump)
+
+    ;; Remove this now that https://github.com/jacktasia/dumb-jump/issues/338
+    ;; (defun evil-set-jump-args (&rest ns) (evil-set-jump))
+    ;; (advice-add 'dumb-jump-goto-file-line :before #'evil-set-jump-args)
 
     (ha-prog-leader
       "s"  '(:ignore t :which-key "search")
-      "s s" '("search" . xref-find-apropos)
-      "s d" '("definitions" . xref-find-definitions)
+      "s s" '("search"       . xref-find-apropos)
+      "s d" '("definitions"  . xref-find-definitions)
       "s o" '("other window" . xref-find-definitions-other-window)
-      "s r" '("references" . xref-find-references)
-      "s b" '("back" . xref-pop-marker-stack))
+      "s r" '("references"   . xref-find-references)
+      "s b" '("back"         . xref-go-back)
+      "s f" '("forward"      . xref-go-forward))
 
     :general (:states 'normal
+                      "g." 'xref-find-definitions
+                      "g>" 'xref-find-definitions-other-window
+                      "g," 'xref-go-back
+                      "g<" 'xref-go-forward
+                      "g/" 'xref-find-references
+                      "g?" 'xref-find-references-and-replace
                       "gh" 'xref-find-apropos
-                      "gb" 'xref-pop-marker-stack))
+                      "gb" 'xref-go-back))
 #+end_src
+
+I have two different /jumping/ systems, the [[info:emacs#Xref][Xref interface]] and Evil’s. While comparable goals, they are behave different. Let’s compare evil keybindings:
+  | ~M-.~   | ~g .~ | [[help:xref-find-definitions][xref-find-definitions]] (also ~g d~ for [[help:evil-goto-definition][evil-goto-definition]])†           |
+  |         | ~g >~ | =xref-find-definitions-other-window=                                  |
+  | ~M-,~   | ~g ,~ | [[help:xref-go-back][xref-go-back]] (see [[help:xref-pop-marker-stack][xref-pop-marker-stack]])                            |
+  | ~C-M-,~ | ~g <~ | [[help:xref-go-forward][xref-go-forward]] (kinda like =xref-find-definitions=)                  |
+  | ~M-?~   | ~g /~ | [[help:xref-find-references][xref-find-references]] to go from definition to code calls‡            |
+  |         | ~g ?~ | [[help:xref-find-references-and-replace][xref-find-references-and-replace]] could be more accurate than [[*iEdit][iEdit]]. |
+  | ~C-M-.~ | ~g h~ | [[help:xref-find-apropos][xref-find-apropos]]  … doesn’t work well without LSP                  |
+  | ~C-TAB~ |       | perform completion around point (also ~M-TAB~), see [[file:ha-config.org::*Auto Completion][Auto Completion]].  |
+
+† Prefix to prompt for the term \
+‡ If it finds more than one definition, Emacs displays the [[info:emacs#Xref Commands][*xref* buffer]], allowing you to select the definition.
 ** Language Server Protocol (LSP) Integration
-The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no, it was originally designed for VS Code and probably Python, but we now abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
+The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no. While originally designed for VS Code and probably Python, we can abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
 Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don’t have heavy IDE requirements, I am finding that [[eglot]] to be simpler.
 *** eglot
-The [[https://github.com/joaotavora/eglot][eglot]] package usually connects to Emacs’ standard command interface, so the eglot-specific code is mostly in controlling the backend servers. That said, it has a couple of =eglot-= commands that I want easy access to:
+The [[https://github.com/joaotavora/eglot][eglot]] package connects to Emacs’ standard command interface, so the eglot-specific code is connects the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Xref.html][xref interface]] to controlling backend servers. That said, it has a couple of =eglot-= commands that I want easy access to:
 #+begin_src emacs-lisp
   (use-package eglot
+    :init
+    (setq eglot-connect-timeout 10
+          eglot-autoshutdown t)
+
     :config
     (ha-prog-leader
       "w"  '(:ignore t :which-key "eglot")
-      "ws" '("start" . eglot)
-      "wr" '("restart" . eglot-reconnect)
-      "wb" '("events" . eglot-events-buffer)
-      "we" '("errors" . eglot-stderr-buffer)
-      "wq" '("quit" . eglot-shutdown)
-      "wQ" '("quit all" . eglot-shutdown-all)
+      "ws" '("start" . eglot))
 
-      "r" '("rename" . eglot-rename)
-      "=" '("format" . eglot-format)
-      "a" '("code actions" . eglot-code-actions)
-      "i" '("imports" . eglot-code-action-organize-imports)))
+    ;; The following leader-like keys, are only available when I have started LSP:
+    :general
+    (:states 'normal :keymaps 'eglot-mode-map
+             "SPC m w r" '("restart"  . eglot-reconnect)
+             "SPC m w b" '("events"   . eglot-events-buffer)
+             "SPC m w e" '("errors"   . eglot-stderr-buffer)
+             "SPC m w q" '("quit"     . eglot-shutdown)
+             "SPC m w Q" '("quit all" . eglot-shutdown-all)
+
+             "SPC m l"  '(:ignore t :which-key "lsp")
+             "SPC m l r" '("rename"   . eglot-rename)
+             "SPC m l f" '("format"   . eglot-format)
+             "SPC m l a" '("actions"  . eglot-code-actions)
+             "SPC m l i" '("imports"  . eglot-code-action-organize-imports)
+             "SPC m l d" '("doc"      . eglot-lookup-documentation)))
+#+end_src
+
+The following was stolen from Doom’s configuration:
+#+begin_src emacs-lisp
+  (defvar eglot--help-buffer nil)
+
+  (defun eglot-lookup-documentation ()
+    "Request documentation for the thing at point."
+    (interactive)
+    (eglot--dbind ((Hover) contents range)
+        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                         (eglot--TextDocumentPositionParams))
+      (let ((blurb (and (not (seq-empty-p contents))
+                        (eglot--hover-info contents range)))
+            (hint (thing-at-point 'symbol)))
+        (if blurb
+            (with-current-buffer
+                (or (and (buffer-live-p eglot--help-buffer)
+                         eglot--help-buffer)
+                    (setq eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+              (with-help-window (current-buffer)
+                (rename-buffer (format "*eglot-help for %s*" hint))
+                (with-current-buffer standard-output (insert blurb))
+                (setq-local nobreak-char-display nil)))
+          (display-local-help))))
+    'deferred)
+#+end_src
+*** eglot with Consult
+The [[https://github.com/mohkale/consult-eglot][consult-eglot]] project adds a [[file:ha-config.org::*Consult][Consult]] interface to lookup symbols from the LSP server.
+#+begin_src emacs-lisp
+  (use-package consult-eglot
+    :general
+    (:states 'normal :keymaps 'eglot-mode-map
+             "g h" '("find apropos"      . consult-eglot-symbols)
+             "SPC m l s" '("find symbol" . consult-eglot-symbols)))
 #+end_src
 *** Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
@@ -248,20 +319,23 @@ While there are language-specific ways to rename variables and functions, [[http
 I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd personal style that I like to codify:
 
 #+begin_src emacs-lisp
-(defun ha-comment-line (&optional start end)
-  (interactive "r")
-  (when (or (null start) (not (region-active-p)))
-    (setq start (line-beginning-position))
-    (setq end   (line-end-position)))
-  (save-excursion
-    (narrow-to-region start end)
-    (upcase-region start end)
-    (goto-char (point-min))
-    (insert "------------------------------------------------------------------------\n")
-    (goto-char (point-max))
-    (insert "\n------------------------------------------------------------------------")
-    (comment-region (point-min) (point-max))
-    (widen)))
+  (defun ha-comment-line (&optional start end)
+    "Comment a line or region with a block-level format.
+  Calls `comment-region' with START and END set to the region or
+  the start and end of the line."
+    (interactive)
+    (when (or (null start) (not (region-active-p)))
+      (setq start (line-beginning-position))
+      (setq end   (line-end-position)))
+    (save-excursion
+      (narrow-to-region start end)
+      (upcase-region start end)
+      (goto-char (point-min))
+      (insert "------------------------------------------------------------------------\n")
+      (goto-char (point-max))
+      (insert "\n------------------------------------------------------------------------")
+      (comment-region (point-min) (point-max))
+      (widen)))
 #+end_src
 And a keybinding:
 #+begin_src emacs-lisp
@@ -272,8 +346,8 @@ While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a
 #+begin_src emacs-lisp
   (defun ha-eval-print-last-sexp (&optional internal-arg)
     "Evaluate the expression located before the point.
-  The results are inserted back into the buffer at the end
-  of the line after a comment."
+  Insert results back into the buffer at the end of the line after
+  a comment."
     (interactive)
     (save-excursion
       (eval-print-last-sexp internal-arg))
@@ -311,7 +385,7 @@ The idea of using math symbols for a programming languages keywords is /cute/, b
 
   (add-hook 'prog-mode-hook 'ha-prettify-prog)
 #+end_src
-Eventually, I want to follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
+Hopefully I can follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
 ** Task Runner
 I've replaced my home-grown compilation list code with a more versatile [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]].
 #+begin_src emacs-lisp :tangle no
@@ -327,18 +401,18 @@ Doom provides basic support, but we need more keybindings:
       :desc "Reun last task" "z" 'ivy-taskrunner-rerun-last-command)
 #+end_src
 
-While my company is typically using =Rakefile= and =Makefile= in the top-level project, I want to have my personal tasks set per-project as well. For that, I thought about using [[https://pydoit.org/][doit]], where I would just create a =dodo.py= file that contains:
+While my company is typically using =Rakefile= and =Makefile= in the top-level project, I want to have my personal tasks set per-project as well. For that, I thought about using [[https://pydoit.org/][doit]], where I would create a =dodo.py= file that contains:
 
 #+begin_src python :tangle no
- def hello():
-     """This command greets you."""
-     return {
-         'actions': [ 'echo hello' ],
-     }
+  def hello():
+      """This command greets you."""
+      return {
+          'actions': [ 'echo hello' ],
+      }
 #+end_src
 
 * Languages
-Simple to configure languages go here. More advanced stuff will go in their own files… eventually.
+Simple to configure languages go here. More advanced languages go into their own files… eventually.
 ** Markdown
 All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
 #+begin_src emacs-lisp
@@ -357,14 +431,14 @@ Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefix
 ** Ansible
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
 #+begin_src emacs-lisp
-(use-package yaml-mode
-  :mode (rx ".y" (optional "a") "ml" string-end))
+  (use-package yaml-mode
+    :mode (rx ".y" (optional "a") "ml" string-end))
 #+end_src
 
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
 #+begin_src emacs-lisp
-(use-package jinja2-mode
-  :mode (rx ".j2" string-end))
+  (use-package jinja2-mode
+    :mode (rx ".j2" string-end))
 #+end_src
 
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]?
@@ -382,7 +456,7 @@ The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable n
 
 #+end_src
 
-However, let’s have all YAML files able to access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
+The YAML files get access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
 #+begin_src emacs-lisp
   (use-package ansible-doc
     :hook (yaml-mode . ansible-doc-mode)
@@ -403,6 +477,19 @@ The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [
            (poly-ansible-mode . font-lock-update)))
 #+end_src
 
+Can we integrate Ansible with LSP using [[https://github.com/ansible/ansible-language-server][ansible-language-server]] project (see [[https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/][this documentation]])?
+
+First, use =npm= to install the program:
+#+begin_src sh
+  npm installl -g @ansible/ansible-language-server
+#+end_src
+
+Let’s assume that all YAML files can have access to this:
+#+begin_src emacs-lisp
+  (use-package eglot
+    :config
+    (add-to-list 'eglot-server-programs '(yaml-mode "ansible-language-server" "--stdio")))
+#+end_src
 ** Shell Scripts
 While I don't like writing them, I can't get away from them. Check out the goodies in [[https://www.youtube.com/watch?v=LTC6SP7R1hA&t=5s][this video]].
 

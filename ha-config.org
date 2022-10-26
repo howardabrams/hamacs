@@ -1295,13 +1295,14 @@ Emacs Completion is not obvious, and has lots of different interfaces, some dist
 We have two initial interfaces that may end up showing the same information (if configured correctly).
 
 Emacs’ first option, called [[help:complete][complete]], is simple. It completes based on words you are most likely to type.
+
 If the line is /indented/ (the default for the ~TAB~ key), let’s complete the word:
 #+begin_src emacs-lisp
   (setq tab-always-indent 'complete)
 #+end_src
 Let’s also use the ~Command~ key to call this directly :
 #+begin_src emacs-lisp
-  (global-set-key (kbd "s-.") 'complete)
+  (global-set-key (kbd "C-TAB") 'complete)
 #+end_src
 
 The next interface is [[help:completion-at-point][completion-at-point]] (which I set to ~M-TAB~). This code (from mini-buffer) doubles with the other [[Vertico][completing processes]] (like [[help:completing-read][completing-read]]) and presents choices based on a series of functions (see [[https://with-emacs.com/posts/tutorials/customize-completion-at-point/][this essay]] for details).
@@ -1313,6 +1314,7 @@ What would be nice is that if =complete= doesn't have a match, =completion-at-po
 The [[file:ha-org.org::*Spell Checking][Flyspell package]] takes over ~M-TAB~,  so let’s add another keybinding (or [[Corfu][use time-based menu option]]):
 #+begin_src emacs-lisp
   (global-set-key (kbd "s->") 'completion-at-point)
+  (global-set-key (kbd "s-.") 'complete)
 #+end_src
 
 The idea of cycling through candidates sounds like a good idea, but let’s start with a number before setting this to =t=:
@@ -1643,9 +1645,7 @@ Build the hydra as well as configure the =perspective= project.
       ("l" persp-state-load)
       ("w" ha-switch-to-special)  ; The most special perspective
       ("q" nil)
-      ("C-g" nil))
-
-    :bind ("C-<tab>" . hydra-workspace-leader/body))
+      ("C-g" nil)))
 #+end_src
 
 I have no idea why this binding doesn’t work /within/ the =use-package= declaration, but oh well…
