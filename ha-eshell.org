@@ -52,6 +52,22 @@ If any program wants to pause the output through the =$PAGER= variable, well, we
 #+begin_src emacs-lisp
   (setenv "PAGER" "cat")
 #+end_src
+** Argument Completion
+Shell completion uses the flexible =pcomplete= mechanism internally, which allows you to program the completions per shell command. To know more, check out this [[https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs][blog post]], about how to configure =pcomplete= for git commands. The [[https://github.com/JonWaltman/pcmpl-args.el][pcmpl-args]] package extends =pcomplete= with completion support for more commands, like the Fish and other modern shells. I love how a package c→
+#+begin_src emacs-lisp
+  (use-package pcmpl-args)
+#+end_src
+Note that this will work with =shell-command= as well.
+** Better Command Line History
+On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][this discussion]] a little gem for using IDO to search back through the history, instead of =M-R= to prompt for the history.
+#+begin_src emacs-lisp
+  (defun eshell-insert-history ()
+    "Displays the eshell history to select and insert back into your eshell."
+    (interactive)
+    (insert (completing-read "Eshell history: "
+                                 (delete-dups
+                                  (ring-elements eshell-history-ring)))))
+  #+END_SRC
 * Predicate Filters and Modifiers
 The =T= predicate filter allows me to limit file results that have internal =org-mode= tags. For instance, =eshell= will send files that have a =#+TAGS:= header with a =mac= label to the =grep= function:
 #+begin_src sh
@@ -317,6 +333,10 @@ Specify the buffers with either the Eshell approach, e.g. =#<buffer buffer-name>
       (list (get-buffer ha-eshell-ebbflow-buffername))))
 #+end_src
 
+I used to call this function, =bcat= (for /buffer cat/), and I sometimes type this:
+#+begin_src emacs-lisp
+  (defalias 'eshell/bcat 'eshell/flow)
+#+end_src
 *** ebb: Bump Data to a Buffer
 
 We have three separate use-cases:
@@ -556,10 +576,14 @@ The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Li
       Most shell applications accept Perl Compatible Regular Expressions."
         `(rx-let ((integer (1+ digit))
                   (float   (seq integer "." integer))
+                  (b256    (seq (optional (or "1" "2"))
+                                (regexp "[0-9]\\{1,2\\}")))
+                  (ipaddr  (seq b256 "." b256 "." b256 "." b256))
                   (time    (seq digit (optional digit) ":" (= 2 digit) (optional ":" (= 2 digit))))
                   (date    (seq (= 2 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 4 digit)))
                   (ymd     (seq (= 4 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 2 digit)))
-                  (guid    (seq (= 8 hex) "-" (= 3 (seq (= 4 hex) "-")) (= 12 hex))))
+                  (uuid    (seq (= 8 hex) "-" (= 3 (seq (= 4 hex) "-")) (= 12 hex)))
+                  (guid    (seq uuid)))
            (rxt-elisp-to-pcre (rx ,@expressions)))))
   #+end_src
 ** Map
@@ -1143,16 +1167,6 @@ This function pulls it all together:
         (message "Connecting to: %s" destination)
         (eshell-there destination))))
 #+end_src
-* Better Command Line History
-On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][this discussion]] a little gem for using IDO to search back through the history, instead of =M-R= to prompt for the history.
-#+begin_src emacs-lisp
-  (defun eshell-insert-history ()
-    "Displays the eshell history to select and insert back into your eshell."
-    (interactive)
-    (insert (completing-read "Eshell history: "
-                                 (delete-dups
-                                  (ring-elements eshell-history-ring)))))
-  #+END_SRC
 * Command on the File Buffer
 Sometimes you need to change something about the current file you are editing...like the permissions or even execute it. Hitting =Command-1= will prompt for a shell command string and then append the current file to it and execute it.
 #+begin_src emacs-lisp
