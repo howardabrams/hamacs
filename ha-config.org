@@ -177,7 +177,8 @@ Let's turn off the menu and other settings:
     (tool-bar-mode -1)
     (scroll-bar-mode -1)
     (horizontal-scroll-bar-mode -1)
-    (setq visible-bell 1))
+    (setq visible-bell 1
+          frame-inhibit-implied-resize t))
 #+end_src
 
 I like being able to enable local variables in =.dir-local.el= files:
@@ -369,6 +370,8 @@ Can we change Evil at this point? Some tips:
   (use-package evil
     :init
     (setq evil-undo-system 'undo-fu
+          evil-auto-indent t
+          evil-respect-visual-line-mode t
           evil-want-fine-undo t         ; Be more like Emacs
           evil-disable-insert-state-bindings t
           evil-want-keybinding nil
@@ -859,8 +862,8 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
   _l_: right  _v_: v-split   _o_: only this window     _c_: choose (also 1-9)
   "
       ("w" ace-window)
-      ("c" other-window)          ; change window
-      ("o" delete-other-windows)  ; Only this window
+      ("c" other-window :color pink)      ; change window
+      ("o" delete-other-windows)          ; Only this window
       ("x" delete-window)
       ("D" ace-delete-window)
 
@@ -872,10 +875,10 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
       ("R" winner-redo :color pink)
 
       ("n" evil-window-new)
-      ("j" evil-window-up)
-      ("k" evil-window-down)
-      ("h" evil-window-left)
-      ("l" evil-window-right)
+      ("j" evil-window-up :color pink)
+      ("k" evil-window-down :color pink)
+      ("h" evil-window-left :color pink)
+      ("l" evil-window-right :color pink)
 
       ("b" evil-window-split)     ; For below
       ("v" evil-window-vsplit)

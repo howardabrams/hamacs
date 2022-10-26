@@ -39,6 +39,9 @@ While I would like to share the /status/ of my reads, so ...
     :init
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
 
+    ;; While not an elfeed-specific variable, this make reading articles
+    ;; with images easier:
+    (setq pixel-scroll-precision-mode t)
     :general
     (:states 'normal :keymaps 'elfeed-show-mode-map
              "b" 'elfeed-show-visit
