@@ -226,12 +226,11 @@ And it appears that my PM for this year, is a week number behind.
 #+begin_src emacs-lisp
   (defun sprint-number (&optional date)
     "Return the current sprint number, with some assumptions that
-  each sprint is two weeks long, starting on Thursday."
-    (interactive)
+  each sprint is two weeks long, starting on Tuesday."
     (let ((num (sprint-week-num date)))
       (if (cl-oddp num)
-          (- num 2)
-        (- num 1))))
+          (- num)
+        num)))
 #+end_src
 
 And some tests to verify that:
