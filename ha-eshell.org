@@ -53,7 +53,7 @@ If any program wants to pause the output through the =$PAGER= variable, well, we
   (setenv "PAGER" "cat")
 #+end_src
 ** Argument Completion
-Shell completion uses the flexible =pcomplete= mechanism internally, which allows you to program the completions per shell command. To know more, check out this [[https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs][blog post]], about how to configure =pcomplete= for git commands. The [[https://github.com/JonWaltman/pcmpl-args.el][pcmpl-args]] package extends =pcomplete= with completion support for more commands, like the Fish and other modern shells. I love how a package c→
+Shell completion uses the flexible =pcomplete= mechanism internally, which allows you to program the completions per shell command. To know more, check out this [[https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs][blog post]], about how to configure =pcomplete= for git commands. The [[https://github.com/JonWaltman/pcmpl-args.el][pcmpl-args]] package extends =pcomplete= with completion support for more commands, like the Fish and other modern shells. I love how a package can gives benefits without requiring learning anything.
 #+begin_src emacs-lisp
   (use-package pcmpl-args)
 #+end_src
@@ -246,23 +246,140 @@ I need a function to analyze command line options. I’ve tried to use [[help:es
 #+begin_src sh
   flow --lines some-buffer another-buffer
 #+end_src
-To have both a =—lines= parameter, as well as a list of buffers, so I’ll need to roll my own. I will take some shortcuts. For instance, I will always have my /double-dashed/ parameters start with the same letter, so we can have this predicate:
+To have both a =—lines= parameter, as well as a list of buffers, so I’ll need to roll my own.
+While the =shell-getopts= function works, it doesn’t do the following:
+  - Separates more than one single letter options, like =-la= … it accepts the =-l= but would ignore the implied =-a=.
+  - Requires that all options go before the rest of the parameters.
+  - Doesn’t allow default values for a parameter.
+
+This wee beastie takes a list of arguments given to the function, along with a /argument definition/, and returns a hash-table of results.
 #+begin_src emacs-lisp
-  (defun ha-eshell-parse-arg (argument dashed-letter)
-    "Return true if ARGUMENT matches DASHED-LETTER."
-    (when (stringp argument)
-      (string-match (rx string-start "-" (optional "-") (literal dashed-letter)) argument)))
+  (defun eshell-getopts (defargs args)
+    "Return hash table of ARGS parsed against DEFARGS.
+  Where DEFARGS is an argument definition, a list of plists.
+  For instance:
+     '((:name number :short \"n\"                 :parameter integer :default 0)
+       (:name title  :short \"t\" :long \"title\" :parameter string)
+       (:name debug  :short \"d\" :long \"debug\"))
+
+  If ARGS, a list of _command line parameters_ is something like:
+
+      '(\"-d\" \"-n\" \"4\" \"--title\" \"How are that\" \"this\" \"is\" \"extra\")
+
+  The hashtable return would contain these entries:
+
+      debug t
+      number 4  ; as a number
+      title \"How are that\" ; as a string
+      parameters (\"this\" \"is\" \"extra\") ; as a list of strings "
+    (let ((retmap    (make-hash-table))
+          (short-arg (rx string-start "-" (group alnum)))
+          (long-arg  (rx string-start "--" (group (1+ any)))))
+
+      ;; Let's not pollute the Emacs name space with tiny functions, as
+      ;; well as we want these functions to have access to the "somewhat
+      ;; global variables", `retmap' and `defargs', we use the magical
+      ;; `cl-labels' macro to define small functions:
+
+      (cl-labels ((match-short (str defarg)
+                    ;; Return t if STR matches against DEFARG's short label:
+                    (and (string-match short-arg str)
+                         (string= (match-string 1 str)
+                                  (plist-get defarg :short))))
+
+                  (match-long (str defarg)
+                    ;; Return t if STR matches against DEFARG's long label:
+                    (and (string-match long-arg str)
+                         (string= (match-string 1 str)
+                                  (plist-get defarg :long))))
+
+                  (match-arg (str defarg)
+                    ;; Return DEFARG if STR matches its definition (and it's a string):
+                    (when (and (stringp str)
+                               (or (match-short str defarg)
+                                   (match-long str defarg)))
+                      defarg))
+
+                  (find-argdef (str)
+                    ;; Return entry in DEFARGS that matches STR:
+                    (first (--filter (match-arg str it) defargs)))
+
+                  (process-args (arg parm rest)
+                    (when arg
+                      (let* ((defarg (find-argdef arg))
+                             (key    (plist-get defarg :name)))
+                        (cond
+                         ;; If ARG doesn't match any definition, add
+                         ;; everything else to PARAMETERS key:
+                         ((null defarg)
+                          (puthash 'parameters (cons arg rest) retmap))
+
+                         ;; If argument definition has a integer parameter,
+                         ;; convert next entry as a number and process rest:
+                         ((eq (plist-get defarg :parameter) 'integer)
+                          (puthash key (string-to-number parm) retmap)
+                          (process-args (cadr rest) (caddr rest) (cddr rest)))
+
+                         ;; If argument definition has a parameter, use
+                         ;; the next entry as the value and process rest:
+                         ((plist-get defarg :parameter)
+                          (puthash key parm retmap)
+                          (process-args (cadr rest) (caddr rest) (cddr rest)))
+
+                         ;; No parameter? Store true for its key:
+                         (t
+                          (puthash key t retmap)
+                          (process-args (first rest) (second rest) (cdr rest))))))))
+
+        (process-args (first args) (second args) (cdr args))
+        retmap)))
 #+end_src
 
-If an non-dashed parameter argument is of the wrong type (I’m looking for strings and buffers), the correct way to deal with that in Eshell is to call [[help:error][error]] with a message, so let’s wrap that functionality:
-#+begin_src emacs-lisp
-  (defun ha-eshell-arg-type-error (arg)
-    "Throw an `error' about the incorrect type of ARG."
-    (error (format "Illegal argument of type %s: %s\n%s"
-                   (type-of arg) arg
-                   (documentation 'eshell/flow))))
+Let’s make some test examples:
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest eshell-getopts-test ()
+    (let* ((defargs
+            '((:name number :short "n"                :parameter integer :default 0)
+              (:name title  :short "t" :long "title"  :parameter string)
+              (:name debug  :short "d" :long "debug")))
+           (no-options   '())
+           (just-params  '("apple" "banana" "carrot"))
+           (just-options '("-d" "-t" "this is a title"))
+           (all-options  '("-d" "-n" "4" "--title" "My title" "apple" "banana" "carrot"))
+           (odd-params   `("ha-eshell.org" ,(get-buffer "ha-eshell.org"))))
+
+      ;; No options ...
+      (should (= (hash-table-count (eshell-getopts defargs no-options)) 0))
+
+      ;; Just parameters, no options
+      (let ((opts (eshell-getopts defargs just-params)))
+        (should (= (hash-table-count opts) 1))
+        (should (= (length (gethash 'parameters opts)) 3)))
+
+      ;; No parameters, few options
+      (let ((opts (eshell-getopts defargs just-options)))
+        (should (= (hash-table-count opts) 2))
+        (should (= (length (gethash 'parameters opts)) 0))
+        (should (gethash 'debug opts))
+        (should (string= (gethash 'title opts) "this is a title")))
+
+      ;; All options
+      (let ((opts (eshell-getopts defargs all-options)))
+        (should (= (hash-table-count opts) 4))
+        (should (gethash 'debug opts))
+        (should (= (gethash 'number opts) 4))
+        (should (string= (gethash 'title opts) "My title"))
+        (should (= (length (gethash 'parameters opts)) 3)))
+
+      (let* ((opts  (eshell-getopts defargs odd-params))
+             (parms (gethash 'parameters opts)))
+
+        (should (= (hash-table-count opts) 1))
+        (should (= (length parms) 2))
+        (should (stringp (first parms)))
+        (should (bufferp (second parms))))))
 #+end_src
-*** flow: (or Buffer Cat)
+*** flow (or Buffer Cat)
 Eshell can send the output of a command sequence to a buffer:
 #+begin_src sh
   rg -i red > #<scratch>
@@ -281,32 +398,28 @@ I’m calling the ability to get a buffer contents, /flow/ (Fetch contents as Li
       -h, --help           show this usage screen
       -l, --lines          output contents as a list of lines
       -w, --words          output contents as a list of space-separated elements "
-    (seq-let (conversion-type buffers) (eshell-flow-parse-args args)
-      (let ((content-of-buffers (mapconcat 'eshell-flow-buffer-contents buffers "\n")))
-        (cl-case conversion-type
-          (:words (split-string content-of-buffers))
-          (:lines (split-string content-of-buffers "\n"))
-          (t      content-of-buffers)))))
-#+end_src
+    (let* ((options (eshell-getopts '((:name words  :short "w" :long "words")
+                                      (:name lines  :short "l" :long "lines")
+                                      (:name string :short "s" :long "string")
+                                      (:name help   :short "h" :long "help"))
+                                    args))
+           (buffers (gethash 'parameters options))
+           (content (thread-last parameters
+                                 (-map 'eshell-flow-buffer-contents)
+                                 (s-join "\n"))))
+      (if (gethash 'help options)
+          (error (documentation 'eshell/flow))
 
-Parsing the arguments is now hand-rolled:
-#+begin_src emacs-lisp
-  (defun eshell-flow-parse-args (args)
-    "Parse ARGS and return a list of buffers and a format symbol."
-    (let* ((first-arg (car args))
-           (convert (cond
-                     ;; Bugger out if our first argument is already a buffer ... no conversion needed
-                     ((bufferp first-arg)        nil)
-                     ;; No buffer option at all? Drop out as we'll get the default buffer:
-                     ((null first-arg)           nil)
-                     ;; Not a string or buffer, that is an error:
-                     ((not (stringp first-arg)) (ha-eshell-arg-type-error first-arg))
-                     ((ha-eshell-parse-arg first-arg "w")    :words)
-                     ((ha-eshell-parse-arg first-arg "l")    :lines)
-                     ((ha-eshell-parse-arg first-arg "h")    (error (documentation 'eshell/flow))))))
-      (if convert
-          (list convert (eshell-flow-buffers (cdr args)))
-        (list nil (eshell-flow-buffers args)))))
+        ;; No buffer specified? Use the default buffer's contents:
+        (unless buffers
+          (setq content
+                (eshell-flow-buffer-contents ha-eshell-ebbflow-buffername)))
+
+        ;; Do we need to convert the output to lines or split on words?
+        (cond
+         ((gethash 'words options) (split-string content))
+         ((gethash 'lines options) (split-string content "\n"))
+         (t                        content)))))
 #+end_src
 
 Straight-forward to acquire the contents of a buffer :
@@ -315,30 +428,31 @@ Straight-forward to acquire the contents of a buffer :
     "Return the contents of BUFFER as a string."
     (when buffer-name
       (save-window-excursion
-        (switch-to-buffer buffer-name)
+        (switch-to-buffer (get-buffer buffer-name))
         (buffer-substring-no-properties (point-min) (point-max)))))
-#+end_src
+    #+end_src
 
-Specify the buffers with either the Eshell approach, e.g. =#<buffer buffer-name>=, or a string, =’*scratch*’=, and if I don’t specify any buffer, we’ll use the default buffer:
-#+begin_src emacs-lisp
-  (defun eshell-flow-buffers (buffers)
-    "Convert the list, BUFFERS, to actual buffers if given buffer names."
-    (if buffers
-        (--map (cond
-              ((bufferp it) it)
-              ((stringp it) (get-buffer it))
-              (t            (ha-eshell-arg-type-error it)))
-             buffers)
-      ;; No buffers given? Use the default buffer:
-      (list (get-buffer ha-eshell-ebbflow-buffername))))
-#+end_src
+    Specify the buffers with either the Eshell approach, e.g. =#<buffer buffer-name>=, or a string, =’*scratch*’=, and if I don’t specify any buffer, we’ll use the default buffer:
+    #+begin_src emacs-lisp
+      (defun eshell-flow-buffers (buffers)
+        "Convert the list, BUFFERS, to actual buffers if given buffer names."
+        (if buffers
+            (--map (cond
+                    ((bufferp it) it)
+                    ((stringp it) (get-buffer it))
+                    (t            (error (format "Illegal argument of type %s: %s\n%s"
+                                                 (type-of arg) it
+                                                 (documentation 'eshell/flow)))))
+                   buffers)
+          ;; No buffers given? Use the default buffer:
+          (list (get-buffer ha-eshell-ebbflow-buffername))))
+    #+end_src
 
-I used to call this function, =bcat= (for /buffer cat/), and I sometimes type this:
-#+begin_src emacs-lisp
-  (defalias 'eshell/bcat 'eshell/flow)
+    I used to call this function, =bcat= (for /buffer cat/), and I sometimes type this:
+    #+begin_src emacs-lisp
+    (defalias 'eshell/bcat 'eshell/flow)
 #+end_src
 *** ebb: Bump Data to a Buffer
-
 We have three separate use-cases:
   1. Execute a command, inserting the output into the buffer (good if we know the output will be long, complicated, or needing manipulation)
   2. Insert one or more files into the buffer (this assumes the files are data)
@@ -352,45 +466,27 @@ We have three separate use-cases:
       -a, --append         add command output to the *eshell-edit* buffer
       -p, --prepend        add command output to the end of *eshell-edit* buffer
       -i, --insert         add command output to *eshell-edit* at point"
-    (seq-let (insert-location command files) (eshell-ebb-parse-args args)
+    (let* ((options  (eshell-getopts '((:name insert  :short "i" :long "insert")
+                                       (:name append  :short "a" :long "append")
+                                       (:name prepend :short "p" :long "prepend")
+                                       (:name help    :short "h" :long "help"))
+                                     args))
+           (location (cond
+                      ((gethash 'insert  options) :insert)
+                      ((gethash 'append  options) :append)
+                      ((gethash 'prepend options) :prepend)
+                      (t                          :replace)))
+           (params   (gethash 'parameters options)))
       (cond
-       (command (ha-eshell-ebb-command insert-location command))
-       (files   (ha-eshell-ebb-files   insert-location files))
-       (t       (ha-eshell-ebb-output  insert-location))))
+       ((seq-empty-p params)         (ha-eshell-ebb-output  location))
+       ((file-exists-p (car params)) (ha-eshell-ebb-files   location params))
+       (t                            (ha-eshell-ebb-command location params))))
 
     ;; At this point, we are in the `ha-eshell-ebbflow-buffername', and
     ;; the buffer contains the inserted data, so:
     (goto-char (point-min))
 
     nil) ; Return `nil' so that it doesn't print anything in `eshell'.
-#+end_src
-
-And we need an argument parser. I need to write a =getopts= clone or something similar, for while the following function works, it isn’t robust.
-#+begin_src emacs-lisp
-  (defun eshell-ebb-parse-args (args)
-    "Parse ARGS and return a list of parts for the command.
-  The elements of the returned list are:
-    - location (symbol, either :insert :insert-location :prepend :replace)
-    - string of commands
-    - string of files
-
-  The ARGS can have an optional argument, followed by
-  a list of files, or a command list, or nothing."
-      (let* ((first-arg (car args))
-             (location (cond
-                        ;; No buffer option at all? Drop out as we'll get the default buffer:
-                        ((null first-arg)                    nil)
-                        ((ha-eshell-parse-arg first-arg "i") :insert)
-                        ((ha-eshell-parse-arg first-arg "a") :insert-location)
-                        ((ha-eshell-parse-arg first-arg "p") :prepend)
-                        ((ha-eshell-parse-arg first-arg "h") (error (documentation 'eshell/ebb))))))
-        (if location
-            (setq args (cdr args))
-          (setq location :replace))
-        (cond
-         ((or (null args) (length= args 0)) (list location nil nil))
-         ((file-exists-p (car args))        (list location nil args))
-         (t                                 (list location args nil)))))
 #+end_src
 
 Each of the use-case functions described needs to switch to the =*eshell-edit*= buffer, and either clear it out or position the cursor.
