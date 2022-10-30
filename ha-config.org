@@ -896,7 +896,6 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
       ("<" evil-window-decrease-width :color pink)
       ("e" balance-windows)
 
-      ("o" winum-select-window-by-number)
       ("1" winum-select-window-1)
       ("2" winum-select-window-2)
       ("3" winum-select-window-3)
