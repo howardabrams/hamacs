@@ -53,8 +53,14 @@ Capturing text into the =org-default-notes-file= is something I don't do much:
 #+begin_src emacs-lisp
   (add-to-list 'org-capture-templates
                '("n" "Thought or Note"  entry
-                 (file org-default-notes-file)
+                 (file org-default-notes-file "General Notes")
                  "* %?\n\n  %i\n\n  See: %a" :empty-lines 1))
+
+  (add-to-list 'org-capture-templates
+               '("t" "Task"  entry
+                 (file+olp org-default-notes-file "Tasks")
+                 "** %?\n\n  %i\n\n  See: %a" :empty-lines 1))
+
   (add-to-list 'org-capture-templates
                '("w" "Website Announcement" entry
                  (file+function "~/website/index.org" ha-first-header)
@@ -62,6 +68,7 @@ Capturing text into the =org-default-notes-file= is something I don't do much:
                  :empty-lines 1))
 #+end_src
 Before we go too far, we should create a publishing file for the website announcement, and something for the journal.
+
 ** Clock in Tasks
 Org has one task at a time that can be /clocked in/ keeping a timer. I use that as a /destination/ for collecting notes. For instance, capturing with a =c= allows me to enter details under that task without switching to it:
 #+begin_src emacs-lisp
@@ -72,7 +79,7 @@ Org has one task at a time that can be /clocked in/ keeping a timer. I use that 
 The /default/ is just to type information to the current clocked-in task using ~c c~:
 #+begin_src emacs-lisp
   (add-to-list 'org-capture-templates
-               `("cc" "Item to Current Clocked Task" item
+               `("ci" "Item to Current Clocked Task" item
                  (clock)
                  "%?" :empty-lines 1))
 #+end_src
@@ -80,7 +87,7 @@ The /default/ is just to type information to the current clocked-in task using ~
 We can select a /region/ and copy that using ~c r~:
 #+begin_src emacs-lisp
   (add-to-list 'org-capture-templates
-               `("cr" "Contents to Current Clocked Task" plain
+               `("cc" "Contents to Current Clocked Task" plain
                  (clock)
                  "%i" :immediate-finish t :empty-lines 1))
 #+end_src
@@ -260,9 +267,13 @@ Oh, and it this is from the Terminal program, let’s wrap it in a block:
   (defun ha-external-capture-code-to-org ()
     "Calls `org-capture-string' on the contents of the Apple clipboard."
     (interactive)
-    (let ((contents (format "#+begin_example\n%s\n#+end_example" (ha-org-clipboard))))
-      (message contents)
-      (org-capture-string contents "cc"))
+    (seq-let (type data) (ha-get-clipboard)
+      (let* ((code (thread-last data
+                                (s-replace "\r" "\n")
+                                (s-trim)))
+             (contents (format "#+begin_example\n%s\n#+end_example" code)))
+        (message contents)
+        (org-capture-string contents "cc")))
     (ignore-errors
       (delete-frame)))
 #+end_src
