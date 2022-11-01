@@ -177,71 +177,25 @@ Calling Emacs functions that take a single argument from =eshell= that could acc
       ;; probably isn't helpful to display in the `eshell' window.
       ""))
 #+end_src
-** Less and More
-While I can type =find-file=, I often use =e= as an alias for =emacsclient= in Terminals, so let’s do something similar for =eshell=:
-Also note that we can take advantage of the =eshell-fn-on-files= function to expand the [[help:find-file][find-file]] (which takes one argument), to open more than one file at one time.
+The =eshell-command= is supposed to be an interactive command for prompting for a shell command in the mini-buffer. However, I have some functions that run a command and gather the output. For that, we call =eshell-command= but a =t= for the second argument:
 #+begin_src emacs-lisp
-  (defun eshell/e (&rest files)
-    "Essentially an alias to the `find-file' function."
-    (eshell-fn-on-files 'find-file 'find-file-other-window files))
-
-  (defun eshell/ee (&rest files)
-    "Edit one or more files in another window."
-    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window files))
+  (defun eshell-command-to-string (command)
+    "Return results of executing COMMAND in an eshell environtment.
+  The COMMAND can either be a string or a list."
+    (when (listp command)
+      ;; Since `eshell-command' accepts a string (and we want all its
+      ;; other goodies), we synthesize a string, but since `command'
+      ;; could be a parsed list, we quote all of the arguments.
+      ;;
+      ;; Hacky. Until I figure out a better way to call eshell,
+      ;; as `eshell-named-command' doesn't work reliably:
+      (setq command (s-join " " (cons (first command)
+                                      (--map (format "\"%s\"" it) (rest command))))))
+    (with-temp-buffer
+      (eshell-command command t)
+      (buffer-string)))
 #+end_src
-No way would I accidentally type any of the following commands:
-#+begin_src emacs-lisp
-  (defalias 'eshell/emacs 'eshell/e)
-  (defalias 'eshell/vi 'eshell/e)
-  (defalias 'eshell/vim 'eshell/e)
-#+end_src
-
-Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
-#+begin_src emacs-lisp
-  (defun eshell/less (&rest files)
-    "Essentially an alias to the `view-file' function."
-    (eshell-fn-on-files 'view-file 'view-file-other-window files))
-#+end_src
-Do I type =more= any more than =less=?
-#+begin_src emacs-lisp
-  (defalias 'eshell/more 'eshell/less)
-  (defalias 'eshell/view 'eshell/less)
-#+end_src
-** Ebb and Flow output to Emacs Buffers
-This is an interesting experiment.
-
-Typing a command, but the output isn’t right. So you punch the up arrow, and re-run the command, but this time pass the output through executables like =tr=, =grep=, and even =awk=. Still not right? Rinse and repeat.  Tedious. Since using Emacs to edit text is what we do best, what if we took the output of a command from Eshell, edit that output in a buffer, and then use that edited output in further commands?
-
-I call this workflow of sending command output back and forth into an Emacs buffer, an /ebb/ and /flow/ approach, where the =ebb= function (for Edit a Bumped Buffer … or something like that), takes some command output, and opens it in a buffer (with an =ebbflow= minor mode), allowing us to edit or alter the data. Pull that data back to the Eshell session with the [[help:emacs/flow][flow]] function (for Fetch buffer data by Lines or Words … naming is hard).
-*** The ebbflow Buffer
-If I don’t specify a specific buffer name, we use this default value:
-#+begin_src emacs-lisp
-  (defvar ha-eshell-ebbflow-buffername "*eshell-edit*"
-    "The name of the buffer that eshell can use to store temporary input/output.")
-#+end_src
-
-This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return to the Eshell that spawned it:
-#+begin_src emacs-lisp
-  (defun ha-eshell-ebbflow-return ()
-    "Close the ebb-flow window and return to Eshell session."
-    (interactive)
-    (when (boundp 'ha-eshell-ebbflow-close-window)
-      (bury-buffer))
-    (when (boundp 'ha-eshell-ebbflow-return-buffer)
-      (pop-to-buffer ha-eshell-ebbflow-return-buffer)))
-
-  (define-minor-mode ebbflow-mode
-    "Get your foos in the right places."
-    :lighter " ebb"
-    :keymap (let ((map (make-sparse-keymap)))
-              (define-key map (kbd "C-c C-q") 'ha-eshell-ebbflow-return)
-              map))
-#+end_src
-Since I use Evil, I also add ~Q~ to call this function:
-#+begin_src emacs-lisp
-  (evil-define-key 'normal ebbflow-mode-map (kbd "Q") 'ha-eshell-ebbflow-return)
-#+end_src
-*** Supporting Functions
+*** Getopts
 I need a function to analyze command line options. I’ve tried to use [[help:eshell-eval-using-options][eshell-eval-using-options]], but it lacks the ability to have both dashed parameter arguments /and/ non-parameter arguments. For instance, I want to type:
 #+begin_src sh
   flow --lines some-buffer another-buffer
@@ -314,6 +268,9 @@ This wee beastie takes a list of arguments given to the function, along with a /
                          ((null defarg)
                           (puthash 'parameters (cons arg rest) retmap))
 
+                         ((plist-get defarg :help)
+                          (error (documentation (plist-get defarg :help))))
+
                          ;; If argument definition has a integer parameter,
                          ;; convert next entry as a number and process rest:
                          ((eq (plist-get defarg :parameter) 'integer)
@@ -379,6 +336,70 @@ Let’s make some test examples:
         (should (stringp (first parms)))
         (should (bufferp (second parms))))))
 #+end_src
+** Less and More
+While I can type =find-file=, I often use =e= as an alias for =emacsclient= in Terminals, so let’s do something similar for =eshell=:
+Also note that we can take advantage of the =eshell-fn-on-files= function to expand the [[help:find-file][find-file]] (which takes one argument), to open more than one file at one time.
+#+begin_src emacs-lisp
+  (defun eshell/e (&rest files)
+    "Essentially an alias to the `find-file' function."
+    (eshell-fn-on-files 'find-file 'find-file-other-window files))
+
+  (defun eshell/ee (&rest files)
+    "Edit one or more files in another window."
+    (eshell-fn-on-files 'find-file-other-window 'find-file-other-window files))
+#+end_src
+No way would I accidentally type any of the following commands:
+#+begin_src emacs-lisp
+  (defalias 'eshell/emacs 'eshell/e)
+  (defalias 'eshell/vi 'eshell/e)
+  (defalias 'eshell/vim 'eshell/e)
+#+end_src
+
+Both =less= and =more= are the same to me. as I want to scroll through a file. Sure the [[https://github.com/sharkdp/bat][bat]] program is cool, but from eshell, we could call [[help:view-file][view-file]], and hit ~q~ to quit and return to the shell.
+#+begin_src emacs-lisp
+  (defun eshell/less (&rest files)
+    "Essentially an alias to the `view-file' function."
+    (eshell-fn-on-files 'view-file 'view-file-other-window files))
+#+end_src
+Do I type =more= any more than =less=?
+#+begin_src emacs-lisp
+  (defalias 'eshell/more 'eshell/less)
+  (defalias 'eshell/view 'eshell/less)
+#+end_src
+** Ebb and Flow output to Emacs Buffers
+This is an interesting experiment.
+
+Typing a command, but the output isn’t right. So you punch the up arrow, and re-run the command, but this time pass the output through executables like =tr=, =grep=, and even =awk=. Still not right? Rinse and repeat.  Tedious. Since using Emacs to edit text is what we do best, what if we took the output of a command from Eshell, edit that output in a buffer, and then use that edited output in further commands?
+
+I call this workflow of sending command output back and forth into an Emacs buffer, an /ebb/ and /flow/ approach, where the =ebb= function (for Edit a Bumped Buffer … or something like that), takes some command output, and opens it in a buffer (with an =ebbflow= minor mode), allowing us to edit or alter the data. Pull that data back to the Eshell session with the [[help:emacs/flow][flow]] function (for Fetch buffer data by Lines or Words … naming is hard).
+*** The ebbflow Buffer
+If I don’t specify a specific buffer name, we use this default value:
+#+begin_src emacs-lisp
+  (defvar ha-eshell-ebbflow-buffername "*eshell-edit*"
+    "The name of the buffer that eshell can use to store temporary input/output.")
+#+end_src
+
+This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return to the Eshell that spawned it:
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebbflow-return ()
+    "Close the ebb-flow window and return to Eshell session."
+    (interactive)
+    (when (boundp 'ha-eshell-ebbflow-close-window)
+      (bury-buffer))
+    (when (boundp 'ha-eshell-ebbflow-return-buffer)
+      (pop-to-buffer ha-eshell-ebbflow-return-buffer)))
+
+  (define-minor-mode ebbflow-mode
+    "Get your foos in the right places."
+    :lighter " ebb"
+    :keymap (let ((map (make-sparse-keymap)))
+              (define-key map (kbd "C-c C-q") 'ha-eshell-ebbflow-return)
+              map))
+#+end_src
+Since I use Evil, I also add ~Q~ to call this function:
+#+begin_src emacs-lisp
+  (evil-define-key 'normal ebbflow-mode-map (kbd "Q") 'ha-eshell-ebbflow-return)
+#+end_src
 *** flow (or Buffer Cat)
 Eshell can send the output of a command sequence to a buffer:
 #+begin_src sh
@@ -392,34 +413,35 @@ I’m calling the ability to get a buffer contents, /flow/ (Fetch contents as Li
   - /as a string/ :: no conversion
 
 #+begin_src emacs-lisp
-  (defun eshell/flow (&rest args)
-    "Output the contents of one or more buffers as a string.
-  Usage: flow [OPTION] [BUFFER ...]
-      -h, --help           show this usage screen
-      -l, --lines          output contents as a list of lines
-      -w, --words          output contents as a list of space-separated elements "
-    (let* ((options (eshell-getopts '((:name words  :short "w" :long "words")
-                                      (:name lines  :short "l" :long "lines")
-                                      (:name string :short "s" :long "string")
-                                      (:name help   :short "h" :long "help"))
-                                    args))
-           (buffers (gethash 'parameters options))
-           (content (thread-last parameters
-                                 (-map 'eshell-flow-buffer-contents)
-                                 (s-join "\n"))))
-      (if (gethash 'help options)
-          (error (documentation 'eshell/flow))
+    (defun eshell/flow (&rest args)
+      "Output the contents of one or more buffers as a string.
+    Usage: flow [OPTION] [BUFFER ...]
+        -h, --help           show this usage screen
+        -l, --lines          output contents as a list of lines
+        -w, --words          output contents as a list of space-separated elements "
+      (let* ((options (eshell-getopts '((:name words  :short "w" :long "words")
+                                        (:name lines  :short "l" :long "lines")
+                                        (:name string :short "s" :long "string")
+                                        (:name help   :short "h" :long "help"
+                                               :help eshell/flow))
+                                      args))
+             (buffers (gethash 'parameters options))
+             (content (thread-last parameters
+                                   (-map 'eshell-flow-buffer-contents)
+                                   (s-join "\n"))))
+        (if (gethash 'help options)
+            (error (documentation 'eshell/flow))
 
-        ;; No buffer specified? Use the default buffer's contents:
-        (unless buffers
-          (setq content
-                (eshell-flow-buffer-contents ha-eshell-ebbflow-buffername)))
+          ;; No buffer specified? Use the default buffer's contents:
+          (unless buffers
+            (setq content
+                  (eshell-flow-buffer-contents ha-eshell-ebbflow-buffername)))
 
-        ;; Do we need to convert the output to lines or split on words?
-        (cond
-         ((gethash 'words options) (split-string content))
-         ((gethash 'lines options) (split-string content "\n"))
-         (t                        content)))))
+          ;; Do we need to convert the output to lines or split on words?
+          (cond
+           ((gethash 'words options) (split-string content))
+           ((gethash 'lines options) (split-string content "\n"))
+           (t                        content)))))
 #+end_src
 
 Straight-forward to acquire the contents of a buffer :
@@ -469,7 +491,8 @@ We have three separate use-cases:
     (let* ((options  (eshell-getopts '((:name insert  :short "i" :long "insert")
                                        (:name append  :short "a" :long "append")
                                        (:name prepend :short "p" :long "prepend")
-                                       (:name help    :short "h" :long "help"))
+                                       (:name help    :short "h" :long "help"
+                                              :help eshell/ebb))
                                      args))
            (location (cond
                       ((gethash 'insert  options) :insert)
@@ -704,21 +727,21 @@ Pretty ugly, but what about using =::= as a separator of the /lambda/ from the /
 
 Here is my initial function. After separating the arguments into two groups (split on the =::= string), we iterate over the file elements, creating a /form/ that includes the filename.
 #+begin_src emacs-lisp
-  (defun eshell/map (&rest args)
+  (defun eshell/do (&rest args)
     "Execute a command sequence over a collection of file elements.
   Separate the sequence and the elements with a `::' string.
   For instance:
 
-      map chown _ angela :: *.org(u'oscar')
+      do chown _ angela :: *.org(u'oscar')
 
   The function substitutes the `_' sequence to a single filename
   element, and if not specified, it appends the file name to the
   command. So the following works as expected:
 
-      map chmod a+x :: *.org"
+      do chmod a+x :: *.org"
     (seq-let (forms elements) (-split-on "::" args)
       (dolist (element (-flatten (-concat elements)))
-        ;; Replace the _ or append the filename:
+        (message "Working on %s ... %s" element forms)
         (let* ((form (if (-contains? forms "_")
                          (-replace "_" element forms)
                        (-snoc forms element)))
@@ -926,6 +949,118 @@ b.txt
 a.org
 8:Nam vestibulum accumsan nisl.
 #+end_example
+** Engineering Notebook
+I want both the command and the output (as well as comments) to be able to go into an org-mode file, I call my /engineering notebook/. Where in that file? If I use =en= that goes in a “General Notes” section, and =ec= goes into the currently clocked in task in that file.
+
+I use =ex= to refer to both =en= / =ec=. Use cases:
+  - =ex <command>= :: run the command given and send the output to the notebook
+  - =ex [-n #]= :: grab the output from a previously executed command (defaults to last one)
+  - =ex -c "<comment>" <command>= :: run command and write the comment to the current date in the notebook
+  - =ex <command> :: <comment>= :: run command and write comment to the notebook
+  - =<command> > ex= :: write output from /command/ to the notebook. This won’t add the command that generated the output.
+
+The =-c= option can be combined with the /command/, but I don’t want it to grab the last output, as I think I would just like to send text to the notebook as after thoughts. If the option to =-c= is blank, perhaps it just calls the capture template to allow me to enter voluminous content.
+
+This requires capture templates that don’t do any formatting. I will reused =c c= from [[file:ha-capturing-notes.org::*General Notes][capturing-notes]] code, and create other templates under =e= prefix:
+#+begin_src emacs-lisp
+  ;; (setq org-capture-templates nil)
+  (add-to-list 'org-capture-templates
+               '("e" "Engineering Notebook"))
+
+  (add-to-list 'org-capture-templates
+               '("ee" "Notes and Commentary" plain
+                 (file+olp+datetree org-default-notes-file "General Notes")
+                 "%i" :empty-lines 1 :tree-type month :unnarrowed t))
+
+  (add-to-list 'org-capture-templates
+               '("ef" "Piped-in Contents" plain
+                 (file+olp+datetree org-default-notes-file "General Notes")
+                 "%i" :immediate-finish t :empty-lines 1 :tree-type month))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun ha-eshell-engineering-notebook (capture-template args)
+    "Capture commands and output from Eshell into an Engineering Notebook.
+
+  Usage:   ex [ options ] [ command string ] [ :: prefixed comments ]]
+
+  A _command string_ is an eshell-compatible shell comman to run,
+  and if not given, uses previous commands in the Eshell history.
+
+  Options:
+    -c, --comment   A comment string displayed before the command
+    -n, --history   The historical command to use, where `0' is the
+                    previous command, and `1' is the command before that.
+    -t, --template  The `keys' string to specify the capture template"
+    (let* (output
+           (options  (eshell-getopts
+                      '((:name comment :short "c" :long "comment" :parameter string)
+                        (:name history :short "n" :long "history" :parameter integer)
+                        (:name captemp :short "t" :long "template" :parameter string)
+                        (:name interact :short "i" :long "interactive")
+                        (:name help    :short "h" :long "help"
+                               :help ha-eshell-engineering-notebook))
+                      args))
+           (sh-call  (gethash 'parameters options))
+           (sh-parts (-split-on "::" sh-call))
+           (command  (s-join " " (first sh-parts)))
+           ;; Combine the -c parameter with text following ::
+           (comment  (s-join " " (cons (gethash 'comment options)
+                                       (second sh-parts))))
+           (history  (or (gethash 'history options) 0)))
+
+      ;; Given a -t option? Override the default:
+      (when (gethash 'captemp options)
+        (setq capture-template (gethash 'captemp options)))
+
+      (when (gethash 'interact options)
+        (setq capture-template "ee"))
+
+      (cond
+       (sh-call   ; Gotta a command, run it!
+        (ha-eshell-engineering-capture capture-template comment command
+                                       (eshell-command-to-string (first sh-parts))))
+       (t         ; Otherwise, get the history
+        (ha-eshell-engineering-capture capture-template comment
+                                       (ring-ref eshell-history-ring (1+ history))
+                                       (eshell/output history))))))
+
+  (defun ha-eshell-engineering-capture (capture-template comment cmd out)
+    "Capture formatted string in CAPTURE-TEMPLATE.
+  Base the string created on COMMENT, CMD, and OUT. Return OUTPUT."
+    (let* ((command (s-trim cmd))
+           (output  (s-trim out))
+           (results (concat
+                     (when comment (format "%s\n\n" comment))
+                     (when command (format "#+begin_src shell\n  %s\n#+end_src\n\n" command))
+                     (when (and command output) "#+results:\n")
+                     (when output  (format "#+begin_example\n%s\n#+end_example\n" output)))))
+
+      (message results)
+      (org-capture-string results capture-template)
+
+      ;; Return output from the command, or nothing if there wasn't anything:
+      (or output "")))
+#+end_src
+And now we have a =en= and a =ec= version:
+#+begin_src emacs-lisp
+  (defun eshell/en (&rest args)
+    "Call `ha-eshell-engineering-notebook' to \"General Notes\"."
+    (interactive)
+    (ha-eshell-engineering-notebook "ef" args))
+
+  (defun eshell/ec (&rest args)
+    "Call `ha-eshell-engineering-notebook' to current clocked-in task."
+    (interactive)
+    (ha-eshell-engineering-notebook "cc" args))
+#+end_src
+
+This function simply calls [[help-org-capture][org-capture]] with [[info:org#Template elements][a template]]:
+#+begin_src emacs-lisp
+  (defun eshell/cap (&rest args)
+    "Call `org-capture' with the `ee' template to enter text into the engineering notebook."
+    (org-capture nil "ee"))
+#+end_src
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"
 #+begin_src emacs-lisp :tangle no
