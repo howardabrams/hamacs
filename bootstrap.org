@@ -243,7 +243,8 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
                                   "ha-org-publishing.org"
                                   "ha-email.org"
                                   "ha-aux-apps.org"
-                                  "ha-feed-reader.org"))))
+                                  "ha-feed-reader.org"))
+                             "ha-dashboard.org"))
     "List of org files that complete the hamacs project.")
 #+end_src
 

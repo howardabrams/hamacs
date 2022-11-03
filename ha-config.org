@@ -127,48 +127,6 @@ As an example of its use, any Org files loaded in /this project/ should insert m
 #+begin_src emacs-lisp
   (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
 #+end_src
-** Request System
-The above code needs the [[https://github.com/tkf/emacs-request][request]] package:
-#+begin_src emacs-lisp
-  (use-package request
-    :init
-    (defvar ha-dad-joke nil "Holds the latest dad joke.")
-
-    :config
-    (defun ha-dad-joke ()
-      "Display a random dad joke."
-      (interactive)
-      (message (ha--dad-joke)))
-
-    (defun ha--dad-joke ()
-      "Return string containing a dad joke from www.icanhazdadjoke.com."
-      (setq ha-dad-joke nil)  ; Clear out old joke
-      (ha--dad-joke-request)
-      (ha--dad-joke-wait))
-
-    (defun ha--dad-joke-wait ()
-      (while (not ha-dad-joke)
-        (sit-for 1))
-      (unless ha-dad-joke
-        (ha--dad-joke-wait))
-      ha-dad-joke)
-
-    (defun ha--dad-joke-request ()
-      (request "https://icanhazdadjoke.com"
-        :sync t
-        :complete (cl-function
-                   (lambda (&key data &allow-other-keys)
-                     (setq ha-dad-joke data))))))
-#+end_src
-*** Dad Jokes!
-The /critical part/ here, is the [[https://icanhazdadjoke.com/][Dad Joke]] function, a =curl= call to a web service:
-#+begin_src sh
-  curl -sH "Accept: text/plain" https://icanhazdadjoke.com/
-#+end_src
-For this, I use the =request= package, which is /asynchronous/
-#+begin_src emacs-lisp
-#+end_src
-
 * Configuration Changes
 ** Initial Settings and UI
 Let's turn off the menu and other settings:

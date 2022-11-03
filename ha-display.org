@@ -23,69 +23,11 @@ A literate programming file to configure the Emacs UI.
   ;;
   ;;; Code:
 #+end_src
-* Dashboard
-The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] project makes a nicer startup screen. It requires [[https://github.com/purcell/page-break-lines][page-break-lines]] (which is a nice project):
-#+begin_src emacs-lisp
-  (use-package page-break-lines)
-#+end_src
 
 And let’s make this Emacs look more like a fancy IDE with [[https://github.com/domtronn/all-the-icons.el][all-the-icons]]:
 #+begin_src emacs-lisp
   (use-package all-the-icons
     :if (display-graphic-p))
-#+end_src
-
-#+begin_src emacs-lisp
-  (use-package dashboard
-    :init
-    (defun ha-dashboard-version ()
-      (let ((smaller-version (replace-regexp-in-string
-                     (rx " (" (zero-or-more any) eol) "" (emacs-version))))
-        (string-replace "\n" "" smaller-version)))
-
-    (setq dashboard-banner-logo-title
-          (format "Emacs %s ⸺ %s"
-                  (if (and (fboundp 'native-comp-available-p)
-                           (native-comp-available-p))
-                      "with Native Compilation" "")
-                  (ha-dashboard-version))
-          dashboard-startup-banner "~/other/hamacs/support/levitating-gnu.png"
-          dashboard-center-content t
-          dashboard-set-init-info t
-          dashboard-projects-switch-function 'projectile-persp-switch-project
-          dashboard-items '((projects . 5)
-                            ;; (agenda . 5)
-                            (bookmarks . 5)))
-    :config
-    (dashboard-setup-startup-hook)
-
-    (setq dashboard-footer-messages (list (ha--dad-joke))))
-#+end_src
-
-I would appreciate seeing if my Emacs installation has the features that I expect:
-#+begin_src emacs-lisp
-  (defun ha-hamacs-features (&optional iconic)
-    "Simple display of features I'm most keen about.
-    If ICONIC is non-nil, return a string of icons."
-    (interactive)
-    (let* ((png-icon  (all-the-icons-material "image"))
-           (svg-icon  (all-the-icons-alltheicon "svg"))
-           (tls-icon  (all-the-icons-faicon "expeditedssl"))
-           (json-icon (all-the-icons-fileicon "jsx"))
-           (mag-icon  (all-the-icons-faicon "magic"))
-           (jit-icon  (all-the-icons-faicon "cog"))
-           (results (s-join " "
-                            (list (when (and (fboundp 'native-comp-available-p)
-                                             (native-comp-available-p))
-                                                                        (if iconic jit-icon "Native-Compilation"))
-                                  (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
-                                  (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
-                                  (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
-                                  (when (json-available-p)              (if iconic json-icon "JSON"))
-                                  (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
-      (if (called-interactively-p)
-          (message "Enabled features: %s" results)
-        results)))
 #+end_src
 * Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:

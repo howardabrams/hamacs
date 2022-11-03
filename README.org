@@ -15,7 +15,8 @@ This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the pro
 
   - [[file:bootstrap.org][bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order:
   - [[file:ha-config.org][config]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
-  - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes, fonts and the dashboard.
+  - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
+  - [[file:ha-dashboard.org][dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
   - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
   - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
   - [[file:ha-org-clipboard.org][org-clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
