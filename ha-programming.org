@@ -80,12 +80,13 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "<" '("previous problem" . flycheck-previous-error)
 
       "e" '(:ignore t :which-key "errors")
+      "e n" '(flycheck-next-error     :repeat t :wk "next")
+      "e N" '(flycheck-next-error     :repeat t :wk "next")
+      "e p" '(flycheck-previous-error :repeat t :wk "previous")
+      "e P" '(flycheck-previous-error :repeat t :wk "previous")
+
       "e b" '("error buffer"     . flycheck-buffer)
       "e c" '("clear"            . flycheck-clear)
-      "e n" '("next"             . flycheck-next-error)
-      "e N" '("next"             . flycheck-next-error)
-      "e p" '("previous"         . flycheck-previous-error)
-      "e P" '("previous"         . flycheck-previous-error)
       "e l" '("list all"         . flycheck-list-errors)
       "e g" '("goto error"       . counsel-flycheck)
       "e y" '("copy errors"      . flycheck-copy-errors-as-kill)
