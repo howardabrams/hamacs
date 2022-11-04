@@ -394,31 +394,89 @@ The idea of using math symbols for a programming languages keywords is /cute/, b
   (add-hook 'prog-mode-hook 'ha-prettify-prog)
 #+end_src
 Hopefully I can follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
-** Task Runner
-I've replaced my home-grown compilation list code with a more versatile [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]].
+** Compiling
+The [[help:compile][compile]] function lets me enter a command to run, or I can search the history for a previous run. What it doesn’t give me, is a project-specific list of commands. Perhaps, for each project, I define in =.dir-locals.el= a variable, =compile-command-list=, like:
 #+begin_src emacs-lisp :tangle no
-(setq ivy-taskrunner-notifications-on t
-      ivy-taskrunner-doit-bin-path "/usr/local/bin/doit")
+  ((nil . ((compile-command . "make -k ")
+           (compile-command-list . ("ansible-playbook playbooks/confluence_test.yml"
+                                "ansible-playbook playbooks/refresh_inventory.yml")))))
 #+end_src
 
-Doom provides basic support, but we need more keybindings:
+To make the =compile-command-list= variable less risky, we need to declare it:
+#+begin_src emacs-lisp
+  (defvar compile-command-list nil "A list of potential commands to give to `ha-project-compile'.")
 
-#+begin_src emacs-lisp :tangle no
-(map! :leader :prefix "p"
-      :desc "Project tasks" "Z" 'ivy-taskrunner
-      :desc "Reun last task" "z" 'ivy-taskrunner-rerun-last-command)
+  (defun ha-make-compile-command-list-safe ()
+    "Add the current value of `compile-command-list' safe."
+    (interactive)
+    (add-to-list 'safe-local-variable-values `(compile-command-list . ,compile-command-list)))
 #+end_src
 
-While my company is typically using =Rakefile= and =Makefile= in the top-level project, I want to have my personal tasks set per-project as well. For that, I thought about using [[https://pydoit.org/][doit]], where I would create a =dodo.py= file that contains:
-
-#+begin_src python :tangle no
-  def hello():
-      """This command greets you."""
-      return {
-          'actions': [ 'echo hello' ],
-      }
+What compile commands should I have on offer? Along with the values in =compile-command-list= (if set), I could look at files in the project’s root and get targets from a =Makefile=, etc. We’ll use helper functions I define later:
+#+begin_src emacs-lisp
+  (defun ha--compile-command-list ()
+    "Return list of potential commands for a project."
+    (let ((default-directory (projectile-project-root)))
+      ;; Make a list of ALL the things.
+      ;; Note that `concat' returns an empty string if you give it null,
+      ;; so we use `-concat' the dash library:
+      (-concat
+       compile-history
+       (ha--makefile-completions)
+       (ha--toxfile-completions)
+       (when (and (boundp 'compile-command-list) (listp compile-command-list))
+         compile-command-list))))
 #+end_src
 
+My replacement to [[help:compile][compile]] just uses my new =completing-read= function:
+#+begin_src emacs-lisp
+  (defun ha-project-compile (command)
+    "Run `compile' from a list of directory-specific commands."
+    (interactive (list (completing-read "Compile command: "
+                                        (ha--compile-command-list)
+                                        nil nil "" 'compile-history)))
+    ;; Not sure if I need to add it myself:
+    ;; (add-to-history compile-history command)
+    (let ((default-directory (projectile-project-root)))
+      (compile command)))
+#+end_src
+
+And let’s add it to the Project leader:
+#+begin_src emacs-lisp
+  (ha-leader "p C" 'ha-project-compile)
+#+end_src
+Note that =p c= (to call [[help:recompile][recompile]]) should still work.
+
+Other people’s projects:
+  - [[https://github.com/Olivia5k/makefile-executor.el][makefile-executor.el]] :: works only with Makefiles
+  - [[https://github.com/tarsius/imake][imake]] :: works only with Makefiles that are formatted with a =help:= target
+  - [[https://github.com/emacs-taskrunner/emacs-taskrunner][Taskrunner project]] :: requires ivy or helm, but perhaps I could use the underlying infrastructure to good ol’ [[help:completing-read][completing-read]]
+
+Note: Someday I may want to convert my =Makefile= projects to [[https://taskfile.dev/][Taskfile]].
+*** Makefile Completion
+This magic script is what Bash uses for completion when you type =make= and hit the TAB:
+#+name: make-targets
+#+begin_src shell :tangle no
+make -qRrp : 2> /dev/null | awk -F':' '/^[a-zA-Z0-9][^$#\\/\\t=]*:([^=]|$)/ {split($1,A,/ /);for(i in A)print A[i]}'
+#+end_src
+
+Which makes it easy to get a list of completions for my compile function:
+#+begin_src emacs-lisp :noweb yes
+  (defun ha--makefile-completions ()
+    "Returns a list of targets from the Makefile in the current directory."
+    (when (file-exists-p "Makefile")
+      (--map (format "make -k %s" it)
+             (shell-command-to-list "<<make-targets>>"))))
+#+end_src
+*** Python Tox Completion
+Let’s just grab the environments to run:
+#+begin_src emacs-lisp
+  (defun ha--toxfile-completions ()
+    "Returns a list of targets from the tox.ini in the current directory."
+    (when (file-exists-p "tox.ini")
+      (--map (format "tox -e %s" it)
+             (shell-command-to-list "tox -a"))))
+#+end_src
 * Languages
 Simple to configure languages go here. More advanced languages go into their own files… eventually.
 ** Markdown
