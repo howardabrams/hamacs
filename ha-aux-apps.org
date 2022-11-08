@@ -64,8 +64,7 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
 #+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 * RPG DM
-Been working on a project for getting Emacs helping as a /Dungeon Master's Assistant/, and I must say, it is coming along nicely. In case you are reading this, let me know, and I'll start to share it.
-
+Been working on my [[https://gitlab.com/howardabrams/emacs-rpgdm][RPG DM project]] for getting Emacs helping as a /Dungeon Master's Assistant/. The idea is to be able to roll dice and whatnot. What I find most useful is the [[https://gitlab.com/howardabrams/emacs-rpgdm/-/blob/main/rpgdm-tables.el][random tables]].
 #+begin_src emacs-lisp
   (when (f-directory? "~/other/rpgdm")
     (use-package rpgdm
@@ -74,8 +73,8 @@ Been working on a project for getting Emacs helping as a /Dungeon Master's Assis
       :init (setq rpgdm-base (expand-file-name "~/other/rpgdm"))
       :config (ha-leader "t D" '("rpg dm" . rpgdm-mode))))
 #+end_src
-And my new Ironsworn project:
 
+And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]] expands on it, giving me both the Oracles and the Moves. With an Org file, I can easily play Solo:
 #+begin_src emacs-lisp
   (when (f-directory? "~/other/emacs-ironsworn")
     (use-package rpgdm-ironsworn
@@ -88,6 +87,7 @@ And my new Ironsworn project:
                                                    (or "tables-" "ironsworn-")
                                                    (one-or-more any)))))
 #+end_src
+The project is interesting, and I should record a tutorial how to use it.
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
