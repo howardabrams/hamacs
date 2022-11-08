@@ -229,7 +229,7 @@ And it appears that my PM for this year, is a week number behind.
   each sprint is two weeks long, starting on Tuesday."
     (let ((num (sprint-week-num date)))
       (if (cl-oddp num)
-          (- num)
+          (1- num)
         num)))
 #+end_src
 
@@ -237,12 +237,12 @@ And some tests to verify that:
 
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-number-test ()
-    (should (= (sprint-number "2021-03-15") 9))
-    (should (= (sprint-number "2021-03-16") 11))
-    (should (= (sprint-number "2021-03-22") 11))
-    (should (= (sprint-number "2021-03-23") 11))
-    (should (= (sprint-number "2021-03-29") 11))
-    (should (= (sprint-number "2021-03-30") 13)))
+    (should (= (sprint-number "2021-03-15") 10))
+    (should (= (sprint-number "2021-03-16") 12))
+    (should (= (sprint-number "2021-03-22") 12))
+    (should (= (sprint-number "2021-03-23") 12))
+    (should (= (sprint-number "2021-03-29") 12))
+    (should (= (sprint-number "2021-03-30") 14)))
 #+end_src
 ** Sprint File Name
 I create my org-file notes based on the Sprint number.
