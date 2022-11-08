@@ -37,6 +37,18 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     (defalias 'epa--decode-coding-string 'decode-coding-string)
     (ha-leader "a t" '("twitter" . twit)))
 #+end_src
+* Mastodon
+Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project:
+#+begin_src emacs-lisp
+  (use-package mastodon
+    :straight (:repo "https://codeberg.org/martianh/mastodon.el")
+    :init
+    (setq mastodon-instance-url "https://mastodon.xyz"
+          mastodon-active-user "howard")   ; Find me at @howard@mastodon.xyz
+    :config
+    (mastodon-discover))
+#+end_src
+Now I need to make a function to paste the same message to both while we make a transition.
 * Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, if I've cloned it.
 
