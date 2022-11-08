@@ -435,8 +435,6 @@ My replacement to [[help:compile][compile]] just uses my new =completing-read= f
     (interactive (list (completing-read "Compile command: "
                                         (ha--compile-command-list)
                                         nil nil "" 'compile-history)))
-    ;; Not sure if I need to add it myself:
-    ;; (add-to-history compile-history command)
     (let ((default-directory (projectile-project-root)))
       (compile command)))
 #+end_src

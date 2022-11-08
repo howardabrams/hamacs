@@ -1520,7 +1520,7 @@ While I don't /need/ all the features that [[https://github.com/bbatsov/projecti
       "p a" '("add new project" . projectile-add-known-project)
       "p b" '("switch to project buffer" . projectile-switch-to-buffer)
       "p C" '("compile in project" . projectile-compile-project)
-      "p c" '("repeat last command" . projectile-repeat-last-command)
+      "p c" '("recompile" . recompile)
       "p d" '("remove known project" . projectile-remove-known-project)
       "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
       "p f" '("find file in project" . projectile-find-file)
