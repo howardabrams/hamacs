@@ -56,18 +56,22 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
                               other-window
                               delete-window
                               delete-other-windows
+                              aw-delete-window
                               forward-page
                               backward-page
                               scroll-up-command
                               scroll-down-command
-                              windmove-right
-                              windmove-left
-                              windmove-up
-                              windmove-down
-                              windmove-swap-states-right
-                              windmove-swap-states-left
-                              windmove-swap-states-up
-                              windmove-swap-states-down
+                              evil-window-right
+                              evil-window-left
+                              evil-window-up
+                              evil-window-down
+                              aw-move-window
+                              aw-swap-window
+                              aw-copy-window
+                              aw-split-window-vert
+                              aw-split-window-horz
+                              aw-split-window-fair
+                              ha-new-window
                               winum-select-window-1
                               winum-select-window-2
                               winum-select-window-3
@@ -93,7 +97,8 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
                               outline-up-heading))
     (pulsar-face 'pulsar-magenta)
     (pulsar-delay 0.055)
-    :bind ("<f6>" . pulsar-pulse-line))
+    :bind ("<f6>" . pulsar-pulse-line)
+    :config (pulsar-global-mode))
 #+end_src
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
