@@ -1744,8 +1744,7 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g C" '("Magit clone"                . magit-clone)
       "g F" '("Magit fetch"                . magit-fetch)
       "g L" '("Magit buffer log"           . magit-log-buffer-file)
-      "g r" '("Revert file"                . magit-file-checkout)
-      "g R" '("Revert file"                . vc-revert)
+      "g R" '("Revert file"                . magit-file-checkout)
       "g S" '("Git stage file"             . magit-stage-file)
       "g U" '("Git unstage file"           . magit-unstage-file)
 
@@ -1766,6 +1765,20 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g c c" '("Commit"                   . magit-commit-create)
       "g c f" '("Fixup"                    . magit-commit-fixup)
       "g c b" '("Branch"                   . magit-branch-and-checkout)))
+#+end_src
+*** Git Gutter
+The [[https://github.com/syohex/emacs-git-gutter-fringe][git-gutter-fringe]] project displays markings in the fringe (extreme left margin) to show modified and uncommitted lines. This project builds on [[https://github.com/emacsorphanage/git-gutter][git-gutter]] project to provide movement between /hunks/:
+#+begin_src emacs-lisp
+  (use-package git-gutter-fringe
+    :config
+    (global-git-gutter-mode)
+
+    (ha-leader
+      "g n" '("next hunk"     . git-gutter:next-hunk)
+      "g p" '("previous hunk" . git-gutter:previous-hunk)
+      "g e" '("end of hunk"   . git-gutter:end-of-hunk)
+      "g r" '("revert hunk"   . git-gutter:revert-hunk)
+      "g s" '("stage hunk"    . git-gutter:stage-hunk)))
 #+end_src
 *** Git Delta
 The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses [[https://github.com/dandavison/delta][git-delta]] for colorized diffs.

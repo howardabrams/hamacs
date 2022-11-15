@@ -43,10 +43,11 @@ Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/ma
   (use-package mastodon
     :straight (:repo "https://codeberg.org/martianh/mastodon.el")
     :init
-    (setq mastodon-instance-url "https://mastodon.xyz"
-          mastodon-active-user "howard")   ; Find me at @howard@mastodon.xyz
+    (setq mastodon-instance-url "https://emacs.ch"
+          mastodon-active-user "howard")
     :config
-    (mastodon-discover))
+    (mastodon-discover)
+    (ha-leader "a m" 'mastodon))
 #+end_src
 Now I need to make a function to paste the same message to both while we make a transition.
 * Telega
