@@ -1452,7 +1452,6 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
     :hook ((eshell-pred-load . ha-eshell-add-predicates))
 
     :bind (("M-!" . eshell-command)
-           ("s-1" . execute-command-on-file-buffer)
            :map eshell-mode-map
            ("M-R"   . eshell-insert-history)
            ("C-d"   . ha-eshell-quit-or-delete-char)))

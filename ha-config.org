@@ -666,15 +666,15 @@ With these helper functions in place, I can create a leader collection for file-
     "f Y" '("yank path from project" . ha-yank-project-buffer-path)
     "f d" '("dired" . dirvish)
 
-    "f 1" '("load win-1" . (lambda () (interactive) (find-file-in-window 1)))
-    "f 2" '("load win-2" . (lambda () (interactive) (find-file-in-window 2)))
-    "f 3" '("load win-3" . (lambda () (interactive) (find-file-in-window 3)))
-    "f 4" '("load win-4" . (lambda () (interactive) (find-file-in-window 4)))
-    "f 5" '("load win-5" . (lambda () (interactive) (find-file-in-window 5)))
-    "f 6" '("load win-6" . (lambda () (interactive) (find-file-in-window 6)))
-    "f 7" '("load win-7" . (lambda () (interactive) (find-file-in-window 7)))
-    "f 8" '("load win-8" . (lambda () (interactive) (find-file-in-window 8)))
-    "f 9" '("load win-9" . (lambda () (interactive) (find-file-in-window 9))))
+    "f 1" '("load win-1" . ha-find-file-window-1)
+    "f 2" '("load win-2" . ha-find-file-window-2)
+    "f 3" '("load win-3" . ha-find-file-window-3)
+    "f 4" '("load win-4" . ha-find-file-window-4)
+    "f 5" '("load win-5" . ha-find-file-window-5)
+    "f 6" '("load win-6" . ha-find-file-window-6)
+    "f 7" '("load win-7" . ha-find-file-window-7)
+    "f 8" '("load win-8" . ha-find-file-window-8)
+    "f 9" '("load win-9" . ha-find-file-window-9))
 #+end_src
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
@@ -846,23 +846,27 @@ To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winu
            ("s-9" . winum-select-window-9)))
 #+end_src
 
-This is nice since the window numbers are always present on a Doom modeline, but they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
-
-The ~0~ key/window should be always associated with a project-specific tree window:
-#+begin_src emacs-lisp
-  (add-to-list 'winum-assign-functions
-               (lambda ()
-                 (when (string-match-p (buffer-name) ".*\\*NeoTree\\*.*") 10)))
-#+end_src
+This is nice since the window numbers are always present on a Doom modeline, but they sometime order the window numbers /differently/ than =ace-window=.
 
 The ~0~ key/window should be always associated with a project-specific tree window of =dired= (or [[Dirvish][Dirvish]]):
 #+begin_src emacs-lisp
   (use-package winum
     :config
     (winum-mode +1)
-
     (add-to-list 'winum-assign-functions
                  (lambda () (when (eq major-mode 'dired-mode) 10))))
+#+end_src
+
+I’d like to have dirvish show in Window 0:
+#+begin_src emacs-lisp
+  (defun dirvish-show-or-switch ()
+    "As it says on the tin. Show or start Dirvish.
+  If `divish' is showing, that is, is window 0 is showing,
+  switch to it, otherwise, start 'er up."
+    (interactive)
+    (if (seq-contains (winum--available-numbers) 0)
+        (winum-select-window-0-or-10)
+      (dirvish-side (projectile-project-root))))
 #+end_src
 
 And let’s bind Command-0 to select the window that shows dirvish, or open drvish:
@@ -870,7 +874,6 @@ And let’s bind Command-0 to select the window that shows dirvish, or open drvi
   (use-package winum
     :bind ("s-0" . dirvish-show-or-switch))
 #+end_src
-**** Window Leader
 Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. enlarge window). It also allows me to organize the helper text.
 #+begin_src emacs-lisp
   (use-package hydra
@@ -934,7 +937,7 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
       ("7" winum-select-window-7)
       ("8" winum-select-window-8)
       ("9" winum-select-window-9)
-      ("0" neotree-toggle)
+      ("0" dirvish-dwim)
 
       ;; Extra bindings:
       ("q" nil :color blue)))
@@ -1820,7 +1823,7 @@ Often, but not always, I want a perspective based on an actual Git repository, e
          (recent-files           (ha--project-show-files project recent-files))
          ((f-exists? readme-org) (find-file readme-org))
          ((f-exists? readme-md)  (find-file readme-md))
-         (t                      (dired project))))))
+         (t                      (dirvish project))))))
 #+end_src
 
 When starting a new perspective, and I specify more than one file, this function splits the window horizontally for each file.
@@ -2292,16 +2295,72 @@ Browsing on a work laptop is a bit different. According to [[http://ergoemacs.or
       (cl-callf or browser "org.mozilla.Firefox")
       (osx-browse-url url new-window browser focus)))
 #+end_src
-** Neotree
-I primarily use [[https://github.com/jaypei/emacs-neotree][Neotree]] when I am screen-sharing my Emacs session with collegues as it shows a /project/ like an IDE.
+** Dirvish
+The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to be a better =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. For people starting to use =dired=, most commands are pretty straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind:
+
+  - ~%~ :: will /mark/ a bunch of files based on a regular expression
+  - ~m~ :: marks a single file
+  - ~d~ :: marks a file to delete, type ~x~ to follow-through on all files marked for deletion.
+  - ~u~ :: un-mark a file, or type ~!~ to un-mark all
+  - ~t~ :: to toggle the marked files. Keep files with =xyz= extension? Mark those with ~%~, and then ~t~ toggle.
+  - ~C~ :: copy the current file or all marked files
+  - ~R~ :: rename/move the current file or all marked files
+  - ~M~ :: change the mode (=chmod=) of current or marked files, accepts symbols, like =a+x=
+
+Note that =dired= has /two marks/ … one is a general mark, and the other is specifically a mark of files to delete.
+
+Dirvish does require the following supporting programs, but I’ve already got those puppies installed:
+#+begin_src sh
+  brew install coreutils fd poppler ffmpegthumbnailer mediainfo imagemagick
+#+end_src
+
+I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/blob/main/docs/CUSTOMIZING.org][sample configuration]] and change it:
 #+begin_src emacs-lisp
-  (use-package neotree
-    :general ; evil-collection forgot a couple:
-    (:states 'normal :keymaps 'neotree-mode-map
-             "TAB" 'neotree-enter
-             "SPC" 'neotree-quick-look
-             "RET" 'neotree-enter
-             "H" 'neotree-hidden-file-toggle))
+  (use-package dirvish
+    :init
+    (dirvish-override-dired-mode)
+    :custom
+    (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
+     '(("h" "~/"                          "Home")
+       ("d" "~/Downloads/"                "Downloads")))
+    :config
+
+    ;; This setting is like `treemacs-follow-mode' where the buffer
+    ;; changes based on the current file. Not sure if I want this:
+    ;; (dirvish-side-follow-mode)
+
+    (setq dirvish-mode-line-format
+          '(:left (sort symlink) :right (omit yank index)))
+    (setq dirvish-attributes
+          '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
+    (setq delete-by-moving-to-trash t)
+
+    (setq insert-directory-program "gls")
+    (setq dired-listing-switches
+          "-l --almost-all --human-readable --group-directories-first --no-group")
+
+    (set-face-attribute 'dirvish-hl-line nil :background "darkmagenta")
+
+    :bind ; Bind `dirvish|dirvish-side|dirvish-dwim' as you see fit
+    (:map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
+     ("a"   . dirvish-quick-access)
+     ("f"   . dirvish-file-info-menu)
+     ("y"   . dirvish-yank-menu)
+     ("N"   . dirvish-narrow)
+     ("^"   . dirvish-history-last)
+     ("h"   . dirvish-history-jump) ; remapped `describe-mode'
+     ("q"   . dirvish-quit)
+     ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
+     ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
+     ("TAB" . dirvish-subtree-toggle)
+     ("M-f" . dirvish-history-go-forward)
+     ("M-b" . dirvish-history-go-backward)
+     ("M-l" . dirvish-ls-switches-menu)
+     ("M-m" . dirvish-mark-menu)
+     ("M-t" . dirvish-layout-toggle)
+     ("M-s" . dirvish-setup-menu)
+     ("M-e" . dirvish-emerge-menu)
+     ("M-j" . dirvish-fd-jump)))
 #+end_src
 ** Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
