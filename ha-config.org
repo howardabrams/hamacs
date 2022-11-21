@@ -1833,7 +1833,18 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
 The [[https://github.com/syohex/emacs-git-gutter-fringe][git-gutter-fringe]] project displays markings in the fringe (extreme left margin) to show modified and uncommitted lines. This project builds on [[https://github.com/emacsorphanage/git-gutter][git-gutter]] project to provide movement between /hunks/:
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
+    :custom
+    ;; To have both flymake and git-gutter work, we put
+    ;; git-gutter on the right side:
+    (git-gutter-fr:side 'right-fringe)
+    (left-fringe-width 15)
+    (right-fringe-width 10)
+
     :config
+    (set-face-foreground 'git-gutter-fr:modified "yellow")
+    (set-face-foreground 'git-gutter-fr:added    "green")
+    (set-face-foreground 'git-gutter-fr:deleted  "red")
+
     (global-git-gutter-mode)
 
     (ha-leader
