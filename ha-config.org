@@ -638,46 +638,43 @@ While =find-file= is still my bread and butter,  I like getting information abou
       (error "Couldn't find filename in current buffer")))
 #+end_src
 
-Perhaps my OCD is out-of-control, but I want to load a file in another window, but want to control which window.
+This simple function allows me to load a project-specific file in a numbered window, based on winum:
 #+begin_src emacs-lisp
-  (defmacro ha-create-find-file-window (winum)
-    (let ((func-name (intern (format "ha-find-file-window-%s" winum)))
-          (call-func (intern (format "winum-select-window-%s" winum))))
-      `(defun ,func-name ()
-         "Call `find-file' in the particular `winum' window."
-         (interactive)
-         (,call-func)
-         (call-interactively 'find-file))))
-
-  (dolist (winum (number-sequence 1 9))
-    (ha-create-find-file-window winum))
+  (defun find-file-in-window (win)
+    "Change the buffer in a particular window number."
+    (interactive)
+    (if (windowp win)
+        (aw-switch-to-window win)
+      (winum-select-window-by-number win))
+    (consult-projectile-find-file))
 #+end_src
 
 With these helper functions in place, I can create a leader collection for file-related functions:
 #+begin_src emacs-lisp
   (ha-leader
     "f"  '(:ignore t :which-key "files")
-    "f f" '("load" . find-file)
+    "f a" '("load any" . find-file)
+    "f f" '("load" . consult-projectile-find-file)
     "f F" '("load new window" . find-file-other-window)
     "f s" '("save" . save-buffer)
     "f S" '("save as" . write-buffer)
-    "f SPC" '("project" . projectile-find-file)
     "f r" '("recent" . recentf-open-files)
     "f c" '("copy" . copy-file)
     "f R" '("rename" . rename-file)
     "f D" '("delete" . delete-file)
     "f y" '("yank path" . ha-yank-buffer-path)
     "f Y" '("yank path from project" . ha-yank-project-buffer-path)
-    "f d" '("dired" . dired)
-    "f 1" '("load win-1" . ha-find-file-window-1)
-    "f 2" '("load win-2" . ha-find-file-window-2)
-    "f 3" '("load win-3" . ha-find-file-window-3)
-    "f 4" '("load win-4" . ha-find-file-window-4)
-    "f 5" '("load win-5" . ha-find-file-window-5)
-    "f 6" '("load win-6" . ha-find-file-window-6)
-    "f 7" '("load win-7" . ha-find-file-window-7)
-    "f 8" '("load win-8" . ha-find-file-window-8)
-    "f 9" '("load win-9" . ha-find-file-window-9))
+    "f d" '("dired" . dirvish)
+
+    "f 1" '("load win-1" . (lambda () (interactive) (find-file-in-window 1)))
+    "f 2" '("load win-2" . (lambda () (interactive) (find-file-in-window 2)))
+    "f 3" '("load win-3" . (lambda () (interactive) (find-file-in-window 3)))
+    "f 4" '("load win-4" . (lambda () (interactive) (find-file-in-window 4)))
+    "f 5" '("load win-5" . (lambda () (interactive) (find-file-in-window 5)))
+    "f 6" '("load win-6" . (lambda () (interactive) (find-file-in-window 6)))
+    "f 7" '("load win-7" . (lambda () (interactive) (find-file-in-window 7)))
+    "f 8" '("load win-8" . (lambda () (interactive) (find-file-in-window 8)))
+    "f 9" '("load win-9" . (lambda () (interactive) (find-file-in-window 9))))
 #+end_src
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
@@ -690,6 +687,18 @@ Putting the entire visible contents of the buffer on the clipboard is often usef
     (kill-new (buffer-substring-no-properties
                (point-min) (point-max))))
 #+end_src
+
+This simple function allows me to switch to a buffer in a numbered window, based on winum:
+#+begin_src emacs-lisp
+  (defun switch-buffer-in-window (win)
+    "Change the buffer in a particular window number."
+    (interactive)
+    (if (windowp win)
+        (aw-switch-to-window win)
+      (winum-select-window-by-number win))
+    (consult-project-buffer))
+#+end_src
+
 And the collection of useful operations:
 #+begin_src emacs-lisp
   (ha-leader
@@ -710,6 +719,16 @@ And the collection of useful operations:
     "b y" '("copy contents" . ha-yank-buffer-contents)
     "b z" '("bury" . bury-buffer)
     "b Z" '("unbury" . unbury-buffer)
+
+    "b 1" '("load win-1" . (lambda () (interactive) (switch-buffer-in-window 1)))
+    "b 2" '("load win-2" . (lambda () (interactive) (switch-buffer-in-window 2)))
+    "b 3" '("load win-3" . (lambda () (interactive) (switch-buffer-in-window 3)))
+    "b 4" '("load win-4" . (lambda () (interactive) (switch-buffer-in-window 4)))
+    "b 5" '("load win-5" . (lambda () (interactive) (switch-buffer-in-window 5)))
+    "b 6" '("load win-6" . (lambda () (interactive) (switch-buffer-in-window 6)))
+    "b 7" '("load win-7" . (lambda () (interactive) (switch-buffer-in-window 7)))
+    "b 8" '("load win-8" . (lambda () (interactive) (switch-buffer-in-window 8)))
+    "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9)))
 
     ;; And double up on the bookmarks:
     "b m" '("set bookmark" . bookmark-set)
@@ -772,36 +791,59 @@ While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][w
     :config
     (winner-mode +1))
 #+end_src
+**** Ace Window
+Use the [[https://github.com/abo-abo/ace-window][ace-window]] project to jump to any window you see.
 
-Use the [[https://github.com/abo-abo/ace-window][ace-window]] project to jump to any window you see:
+Often transient buffers show in other windows, obscuring my carefully crafted display. Instead of jumping into a window, typing ~q~ (to either call [[help:quit-buffer][quit-buffer]]) if available, or [[help:bury-buffer][bury-buffer]] otherwise. This function hooks to =ace-window=
+#+begin_src emacs-lisp
+  (defun ha-quit-buffer (window)
+    "Quit or bury buffer in a given WINDOW."
+    (interactive)
+    (aw-switch-to-window window)
+    (unwind-protect
+        (condition-case nil
+            (quit-buffer)
+          (error
+           (bury-buffer))))
+    (aw-flip-window))
+#+end_src
+
+Since I use numbers for the window, I can make the commands more mnemonic, and add my own:
 #+begin_src emacs-lisp
   (use-package ace-window
     :init
-    ;; Since I use numbers for the window, I can make the
-    ;; commands more mnemonic:
     (setq aw-dispatch-alist
           '((?d aw-delete-window "Delete Window")
             (?m aw-swap-window "Swap Windows")
             (?M aw-move-window "Move Window")
             (?c aw-copy-window "Copy Window")
-            (?j aw-switch-buffer-in-window "Select Buffer")
+            (?b switch-buffer-in-window "Select Buffer")
+            (?f find-file-in-window "Find File")
             (?n aw-flip-window)
-            (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
             (?c aw-split-window-fair "Split Fair Window")
             (?s aw-split-window-vert "Split Vert Window")
             (?v aw-split-window-horz "Split Horz Window")
             (?o delete-other-windows "Delete Other Windows")
+            (?q ha-quit-buffer "Quit Buffer")
+            (?w aw-execute-command-other-window "Execute Command")
             (?? aw-show-dispatch-help)))
 
     :bind ("s-w" . ace-window))
 #+end_src
 Keep in mind, these shortcuts work with more than two windows open. For instance, ~SPC w w d 3~ closes the "3" window.
-
+**** Winum
 To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winum][winum package]]:
 #+begin_src emacs-lisp
   (use-package winum
-    :config
-    (winum-mode +1))
+    :bind (("s-1" . winum-select-window-1)
+           ("s-2" . winum-select-window-2)
+           ("s-3" . winum-select-window-3)
+           ("s-4" . winum-select-window-4)
+           ("s-5" . winum-select-window-5)
+           ("s-6" . winum-select-window-6)
+           ("s-7" . winum-select-window-7)
+           ("s-8" . winum-select-window-8)
+           ("s-9" . winum-select-window-9)))
 #+end_src
 
 This is nice since the window numbers are always present on a Doom modeline, but they order the window numbers /differently/ than =ace-window=. Let's see which I end up liking better.
@@ -813,6 +855,22 @@ The ~0~ key/window should be always associated with a project-specific tree wind
                  (when (string-match-p (buffer-name) ".*\\*NeoTree\\*.*") 10)))
 #+end_src
 
+The ~0~ key/window should be always associated with a project-specific tree window of =dired= (or [[Dirvish][Dirvish]]):
+#+begin_src emacs-lisp
+  (use-package winum
+    :config
+    (winum-mode +1)
+
+    (add-to-list 'winum-assign-functions
+                 (lambda () (when (eq major-mode 'dired-mode) 10))))
+#+end_src
+
+And let’s bind Command-0 to select the window that shows dirvish, or open drvish:
+#+begin_src emacs-lisp
+  (use-package winum
+    :bind ("s-0" . dirvish-show-or-switch))
+#+end_src
+**** Window Leader
 Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. enlarge window). It also allows me to organize the helper text.
 #+begin_src emacs-lisp
   (use-package hydra
@@ -821,33 +879,36 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
   _w_: select _m_: move/swap _u_: undo  _^_: taller (t)  _+_: text larger
   _j_: go up  _d_: delete    _U_: undo+ _v_: shorter (T) _-_: text smaller
   _k_: down   _e_: balance   _r_: redo  _>_: wider       _F_: font larger
-  _h_: left   _w_: h-split   _R_: redo+ _<_: narrower    _f_: font smaller
-  _l_: right  _s_: v-split   _o_: only this window     _c_: choose (also 1-9)"
+  _h_: left   _n_: v-split   _R_: redo+ _<_: narrower    _f_: font smaller
+  _l_: right  _s_: split   _o_: only this window     _c_: choose (also 1-9)"
       ("w" ace-window)
       ("c" other-window                 :color pink) ; change window
-      ("o" delete-other-windows)          ; Only this window
+      ("o" delete-other-windows)          ; “Only” this window
       ("d" delete-window)     ("x" delete-window)
-      ("D" ace-delete-window)
 
+      ;; Ace Windows ... select the window to affect:
       ("m" ace-swap-window)
+      ("D" ace-delete-window)
+      ("O" ace-delete-other-windows)
+
       ("u" winner-undo)
       ("U" winner-undo                 :color pink)
       ("C-r" winner-redo)
       ("r" winner-redo)
       ("R" winner-redo                 :color pink)
 
-      ("n" evil-window-new)
-      ("j" evil-window-down            :color pink)
-      ("J" evil-window-down)
-      ("k" evil-window-up              :color pink)
-      ("K" evil-window-up)
-      ("h" evil-window-left            :color pink)
-      ("H" evil-window-left)
-      ("l" evil-window-right           :color pink)
-      ("L" evil-window-right)
+      ("J" evil-window-down            :color pink)
+      ("K" evil-window-up              :color pink)
+      ("H" evil-window-left            :color pink)
+      ("L" evil-window-right           :color pink)
 
-      ("w" hydra-window-split-h/body)  ; Why `w', Why not?
-      ("s" hydra-window-split-v/body)
+      ("j" evil-window-down)
+      ("k" evil-window-up)
+      ("h" evil-window-left)
+      ("l" evil-window-right)
+
+      ("s" hydra-window-split/body)
+      ("n" hydra-window-split/body)
 
       ("F" font-size-increase          :color pink)
       ("f" font-size-decrease          :color pink)
@@ -899,45 +960,47 @@ And when creating new windows, why isn't the new window selected? Also, when I c
     (pcase file-or-buffer
       (:file   (call-interactively 'consult-projectile-find-file))
       (:buffer (call-interactively 'consult-projectile-switch-to-buffer))))
+
 #+end_src
 
 Shame that hydra doesn’t have an /ignore-case/ feature.
 #+begin_src emacs-lisp
   (use-package hydra
     :config
+    (defhydra hydra-window-split (:color blue :hint nil)
+      ("s" hydra-window-split-below/body "below")
+      ("j" hydra-window-split-below/body "below")
+      ("k" hydra-window-split-above/body "above")
+      ("h" hydra-window-split-left/body "left")
+      ("l" hydra-window-split-right/body "right")
+      ("n" hydra-window-split-right/body "right"))
+
     (defhydra hydra-window-split-above (:color blue :hint nil)
-      ("b" (lambda () (interactive) (ha-new-window :above :buffer))        "switch buffer")
-      ("B" (lambda () (interactive) (ha-new-window :above :buffer))        "switch buffer")
-      ("f" (lambda () (interactive) (ha-new-window :above :file))          "load file")
-      ("F" (lambda () (interactive) (ha-new-window :above :file))          "load file")
-      ("k" split-window-below                                         "split window")
-      ("K" split-window-below                                         "split window"))
+      ("b" (lambda () (interactive) (ha-new-window :above :buffer)) "switch buffer")
+      ("f" (lambda () (interactive) (ha-new-window :above :file))   "load file")
+      ("k" split-window-below                                  "split window"))
 
     (defhydra hydra-window-split-below (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :below :buffer))        "switch buffer")
-      ("B" (lambda () (interactive) (ha-new-window :below :buffer))        "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :below :file))          "load file    ")
-      ("F" (lambda () (interactive) (ha-new-window :below :file))          "load file    ")
       ("j" (lambda () (interactive) (split-window-below) (other-window 1)) "split window ")
-      ("J" (lambda () (interactive) (split-window-below) (other-window 1)) "split window "))
+      ("s" (lambda () (interactive) (split-window-below) (other-window 1)) "split window "))
 
     (defhydra hydra-window-split-right (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :right :buffer))        "switch buffer")
-      ("B" (lambda () (interactive) (ha-new-window :right :buffer))        "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :right :file))          "load file")
-      ("F" (lambda () (interactive) (ha-new-window :right :file))          "load file")
-      ("l" split-window-left                                         "split window")
-      ("L" split-window-left                                         "split window"))
+      ("l" (lambda () (interactive) (split-window-right) (other-window 1)) "split window ")
+      ("n" (lambda () (interactive) (split-window-right) (other-window 1)) "split window "))
 
     (defhydra hydra-window-split-left (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :left :buffer))        "switch buffer")
-      ("B" (lambda () (interactive) (ha-new-window :left :buffer))        "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :left :file))          "load file    ")
-      ("F" (lambda () (interactive) (ha-new-window :left :file))          "load file    ")
-      ("h" (lambda () (interactive) (split-window-left) (other-window 1)) "split window ")
-      ("H" (lambda () (interactive) (split-window-left) (other-window 1)) "split window ")))
+      ("h" split-window-right                                         "split window")))
 #+end_src
-
+This means that, without thinking, the following just works:
+  - ~SPC w s s s~ :: creates a window directly below this.
+  - ~SPC w n n n~ :: creates a window directly to the right.
+But, more importantly, the prefix ~w s~ gives me more precision to view what I need.
 *** Search Operations
 Ways to search for information goes under the ~s~ key. The venerable sage has always been =grep=, but we now have new-comers, like [[https://github.com/BurntSushi/ripgrep][ripgrep]], which are really fast.
 **** ripgrep
