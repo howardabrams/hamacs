@@ -1785,7 +1785,8 @@ Given a list of information about project-workspaces, can we create them all?
       (-let (((name root files) project))
         (unless (ha-persp-exists? name)
           (message "Creating workspace: %s (from %s)" name root)
-          (ha-project-persp root name files)))))
+          (ha-project-persp root name files))))
+    (persp-switch "main"))
 #+end_src
 Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Projectile keeps state of a "project" based on the current file loaded, so we /combine/ the two projects by first choosing from a list of /known projects/ and then creating a perspective based on the name. To pin the perspective to a project, we load a file from it, e.g. Like a README or something.
 
@@ -1809,10 +1810,14 @@ Often, but not always, I want a perspective based on an actual Git repository, e
 
       ;; To pin a project in projectile to the perspective, we need to load a file
       ;; from that project. The README will do, or at least, the dired of it.
-      (let ((readme-org (f-join project "README.org"))
+      (let ((recent-files (thread-last recentf-list
+                                       (--filter (s-starts-with? project it))
+                                       (-take 3)))
+            (readme-org (f-join project "README.org"))
             (readme-md  (f-join project "README.md")))
         (cond
          (files                  (ha--project-show-files project files))
+         (recent-files           (ha--project-show-files project recent-files))
          ((f-exists? readme-org) (find-file readme-org))
          ((f-exists? readme-md)  (find-file readme-md))
          (t                      (dired project))))))
@@ -1824,14 +1829,16 @@ When starting a new perspective, and I specify more than one file, this function
     "Display a list of FILES in a project ROOT directory.
   Each file gets its own window (so don't make the list of files
   long)."
-    (message "Loading files from %s ... %s" root files)
-    (let* ((file (car files))
-           (more (cdr files))
-           (filename (format "%s/%s" root file)))
-      (find-file filename)
-      (when more
-        (split-window-horizontally)
-        (ha--project-show-files root more))))
+    (when files
+      (let ((default-directory root)
+            (file (car files))
+            (more (cdr files)))
+        (message "Loading files from %s ... %s and %s" root file more)
+        (when (f-exists? file)
+          (find-file file))
+        (when more
+          (split-window-horizontally)
+          (ha--project-show-files root more)))))
 #+end_src
 
 The =persp-switch= allows me to select or create a new project, but what if we insisted on a new workspace?
