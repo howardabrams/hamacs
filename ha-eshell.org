@@ -413,35 +413,35 @@ I’m calling the ability to get a buffer contents, /flow/ (Fetch contents as Li
   - /as a string/ :: no conversion
 
 #+begin_src emacs-lisp
-    (defun eshell/flow (&rest args)
-      "Output the contents of one or more buffers as a string.
-    Usage: flow [OPTION] [BUFFER ...]
-        -h, --help           show this usage screen
-        -l, --lines          output contents as a list of lines
-        -w, --words          output contents as a list of space-separated elements "
-      (let* ((options (eshell-getopts '((:name words  :short "w" :long "words")
-                                        (:name lines  :short "l" :long "lines")
-                                        (:name string :short "s" :long "string")
-                                        (:name help   :short "h" :long "help"
-                                               :help eshell/flow))
-                                      args))
-             (buffers (gethash 'parameters options))
-             (content (thread-last parameters
-                                   (-map 'eshell-flow-buffer-contents)
-                                   (s-join "\n"))))
-        (if (gethash 'help options)
-            (error (documentation 'eshell/flow))
+  (defun eshell/flow (&rest args)
+    "Output the contents of one or more buffers as a string.
+  Usage: flow [OPTION] [BUFFER ...]
+      -h, --help           show this usage screen
+      -l, --lines          output contents as a list of lines
+      -w, --words          output contents as a list of space-separated elements "
+    (let* ((options (eshell-getopts '((:name words  :short "w" :long "words")
+                                      (:name lines  :short "l" :long "lines")
+                                      (:name string :short "s" :long "string")
+                                      (:name help   :short "h" :long "help"
+                                             :help eshell/flow))
+                                    args))
+           (buffers (gethash 'parameters options))
+           (content (thread-last buffers
+                                 (-map 'eshell-flow-buffer-contents)
+                                 (s-join "\n"))))
+      (if (gethash 'help options)
+          (error (documentation 'eshell/flow))
 
-          ;; No buffer specified? Use the default buffer's contents:
-          (unless buffers
-            (setq content
-                  (eshell-flow-buffer-contents ha-eshell-ebbflow-buffername)))
+        ;; No buffer specified? Use the default buffer's contents:
+        (unless buffers
+          (setq content
+                (eshell-flow-buffer-contents ha-eshell-ebbflow-buffername)))
 
-          ;; Do we need to convert the output to lines or split on words?
-          (cond
-           ((gethash 'words options) (split-string content))
-           ((gethash 'lines options) (split-string content "\n"))
-           (t                        content)))))
+        ;; Do we need to convert the output to lines or split on words?
+        (cond
+         ((gethash 'words options) (split-string content))
+         ((gethash 'lines options) (split-string content "\n"))
+         (t                        content)))))
 #+end_src
 
 Straight-forward to acquire the contents of a buffer :
@@ -699,6 +699,7 @@ The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Li
                                 (regexp "[0-9]\\{1,2\\}")))
                   (ipaddr  (seq b256 "." b256 "." b256 "." b256))
                   (time    (seq digit (optional digit) ":" (= 2 digit) (optional ":" (= 2 digit))))
+                  (email   (seq (1+ (regexp "[^,< ]")) "@" (1+ (seq (1+ (any alnum "-"))) ".") (1+ alnum)))
                   (date    (seq (= 2 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 4 digit)))
                   (ymd     (seq (= 4 digit) (or "/" "-") (= 2 digit) (or "/" "-") (= 2 digit)))
                   (uuid    (seq (= 8 hex) "-" (= 3 (seq (= 4 hex) "-")) (= 12 hex)))
@@ -1028,8 +1029,8 @@ This requires capture templates that don’t do any formatting. I will reused =c
   (defun ha-eshell-engineering-capture (capture-template comment cmd out)
     "Capture formatted string in CAPTURE-TEMPLATE.
   Base the string created on COMMENT, CMD, and OUT. Return OUTPUT."
-    (let* ((command (s-trim cmd))
-           (output  (s-trim out))
+    (let* ((command (when cmd (s-trim cmd)))
+           (output  (when out (s-trim out)))
            (results (concat
                      (when comment (format "%s\n\n" comment))
                      (when command (format "#+begin_src shell\n  %s\n#+end_src\n\n" command))
@@ -1060,6 +1061,21 @@ This function simply calls [[help-org-capture][org-capture]] with [[info:org#Tem
   (defun eshell/cap (&rest args)
     "Call `org-capture' with the `ee' template to enter text into the engineering notebook."
     (org-capture nil "ee"))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun ha-eshell-target-engineering-notebook (output)
+    "Write OUTPUT into the engineering notebook via `org-capture'."
+    (ha-eshell-engineering-capture "ef" nil nil output))
+
+  (defun ha-eshell-target-clocked-in-task (output)
+    "Write OUTPUT into the current clocked in task via `org-capture'."
+    (ha-eshell-engineering-capture "cc" nil nil output))
+#+end_src
+And finally, add our new functions to [[elisp(describe-variable 'eshell-virtual-targets)][eshell-virtual-targets]]:
+#+begin_src emacs-lisp
+  (add-to-list 'eshell-virtual-targets '("/dev/e" ha-eshell-target-engineering-notebook nil))
+  (add-to-list 'eshell-virtual-targets '("/dev/c" ha-eshell-target-engineering-notebook nil))
 #+end_src
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"

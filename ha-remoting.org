@@ -241,19 +241,16 @@ This is used in calls to =interactive= to select a host."
 Simply calling =vterm= fails to load my full environment, so this allows me to start the terminal in a particular directory (defaulting to the root of the current project):
 
 #+begin_src emacs-lisp
-(defun ha-shell (&optional directory)
-  "Creates and tidies up a =vterm= terminal shell in side window."
-  (interactive (list (read-directory-name "Starting Directory: " (projectile-project-root))))
-  (let* ((win-name "Terminal")
-         (buf-name (format "*%s*" win-name))
-         (default-directory (or directory default-directory)))
-    (setq ha-latest-ssh-window-name buf-name)
-    (if (not (fboundp 'vterm))
-        (make-term win-name ha-ssh-shell)
-      (vterm buf-name)
-      ;; (ha-ssh-send "source ~/.bash_profile" buf-name)
-      ;; (ha-ssh-send "clear" buf-name)
-      )))
+  (defun ha-shell (&optional directory)
+    "Creates and tidies up a =vterm= terminal shell in side window."
+    (interactive (list (read-directory-name "Starting Directory: " (projectile-project-root))))
+    (let* ((win-name (ha--terminal-name-from-dir directory))
+           (buf-name (format "*%s*" win-name))
+           (default-directory (or directory default-directory)))
+      (setq ha-latest-ssh-window-name buf-name)
+      (if (not (fboundp 'vterm))
+          (make-term win-name ha-ssh-shell)
+        (vterm buf-name))))
 #+end_src
 
 Before we leave this section, I realize that I would like a way to /add/ to my list of hosts:
@@ -264,26 +261,54 @@ Before we leave this section, I realize that I would like a way to /add/ to my l
   (add-to-list 'ha-ssh-favorite-hostnames (cons hostname ip-address)))
 #+end_src
 ** Programmatic Interface
+Let’s send stuff to it:
+#+begin_src emacs-lisp
+  (defun ha-shell-send (command &optional directory)
+    "Send COMMAND to existing shell based on DIRECTORY.
+  If the shell doesn't already exist, start on up by calling
+  the `ha-shell' function."
+    (let* ((win-name (ha--terminal-name-from-dir directory))
+           (win-rx   (rx "*" (literal win-name) "*"))
+           (bufs     (seq-filter (lambda (b) (when (string-match win-rx (buffer-name b)) b))
+                                 (buffer-list)))
+           (buf (first bufs)))
+      (unless buf
+        (setq buf (ha-shell directory)))
+      (ha-ssh-send command buf)))
+
+  (defun ha--terminal-name-from-dir (&optional directory)
+    "Return an appropriate title for a terminal based on DIRECTORY.
+  If DIRECTORY is nil, use the `projectile-project-name'."
+    (unless directory
+      (setq directory (projectile-project-name)))
+    (format "Terminal: %s" (file-name-base (directory-file-name directory))))
+
+  (ert-deftest ha--terminal-name-from-dir-test ()
+    (should
+     (string= (ha--terminal-name-from-dir "~/other/hamacs/") "Terminal: hamacs"))
+    (should
+     (string= (ha--terminal-name-from-dir) "Terminal: hamacs")))
+#+end_src
 
 The previous functions (as well as my own end of sprint demonstrations) often need to issue some commands to a running terminal session, which is a simple wrapper around a /send text/ and /send return/ sequence:
 
 #+begin_src emacs-lisp
-(defun ha-ssh-send (phrase &optional window-name)
-  "Send command PHRASE to the currently running SSH instance.
-If you want to refer to another session, specify the correct WINDOW-NAME.
-This is really useful for scripts and demonstrations."
-  (unless window-name
-    (setq window-name ha-latest-ssh-window-name))
+  (defun ha-ssh-send (phrase &optional window-name)
+    "Send command PHRASE to the currently running SSH instance.
+  If you want to refer to another session, specify the correct WINDOW-NAME.
+  This is really useful for scripts and demonstrations."
+    (unless window-name
+      (setq window-name ha-latest-ssh-window-name))
+    (save-window-excursion
+      (pop-to-buffer window-name)
 
-  (pop-to-buffer window-name)
-
-  (if (fboundp 'vterm)
-      (progn
-        (vterm-send-string phrase)
-        (vterm-send-return))
-    (progn
-      (term-send-raw-string phrase)
-      (term-send-input))))
+      (if (fboundp 'vterm)
+          (progn
+            (vterm-send-string phrase)
+            (vterm-send-return))
+        (progn
+          (term-send-raw-string phrase)
+          (term-send-input)))))
 #+end_src
 
 On the rare occasion that I write a shell script, or at least, need to execute some one-line shell commands from some document, I have a function that combines a /read line from buffer/ and then send it to the currently running terminal:
