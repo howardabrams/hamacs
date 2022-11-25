@@ -428,7 +428,7 @@ What compile commands should I have on offer? Along with the values in =compile-
          compile-command-list))))
 #+end_src
 
-My replacement to [[help:compile][compile]] just uses my new =completing-read= function:
+My replacement to [[help:compile][compile]] uses my new =completing-read= function:
 #+begin_src emacs-lisp
   (defun ha-project-compile (command)
     "Run `compile' from a list of directory-specific commands."
@@ -436,9 +436,30 @@ My replacement to [[help:compile][compile]] just uses my new =completing-read= f
                                         (ha--compile-command-list)
                                         nil nil "" 'compile-history)))
     (let ((default-directory (projectile-project-root)))
-      (compile command)))
+      (cond
+       ((string-match rx-compile-to-vterm command)  (ha-compile-vterm command))
+       ((string-match rx-compile-to-eshell command) (ha-compile-eshell command))
+       (t                                           (compile command)))))
 #+end_src
 
+If I end a command with a =|v=, it sends the compile command to a vterm session for the project, allowing me to continue the commands:
+#+begin_src emacs-lisp
+  (defvar rx-compile-to-vterm  (rx "|" (0+ space) "v" (0+ space) line-end))
+
+  (defun ha-compile-vterm (full-command &optional project-dir)
+    (unless project-dir
+      (setq project-dir (projectile-project-name)))
+
+    ;; (add-to-list 'compile-history full-command)
+    (let ((command (replace-regexp-in-string rx-compile-to-vterm "" full-command)))
+      (ha-shell-send command project-dir)))
+#+end_src
+
+And what about sending stuff to Eshell as well?
+#+begin_src emacs-lisp
+  (defvar rx-compile-to-eshell (rx "|" (0+ space) "s" (0+ space) line-end))
+
+#+end_src
 And let’s add it to the Project leader:
 #+begin_src emacs-lisp
   (ha-leader "p C" 'ha-project-compile)
