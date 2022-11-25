@@ -38,18 +38,79 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     (ha-leader "a t" '("twitter" . twit)))
 #+end_src
 * Mastodon
-Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project:
+Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project, and even more glad to see the great birdland diaspora arrive in the land of the toots.
 #+begin_src emacs-lisp
   (use-package mastodon
     :straight (:repo "https://codeberg.org/martianh/mastodon.el")
     :init
     (setq mastodon-instance-url "https://emacs.ch"
           mastodon-active-user "howard")
-    :config
-    (mastodon-discover)
-    (ha-leader "a m" 'mastodon))
+    :bind
+    (:map mastodon-mode-map
+          ("g" . mastodon-tl--update)
+          ("@" . my-mastodon-mentions)))
 #+end_src
+
+I would like a dedicate perspective to Mastodon, and I would like a leader key sequence that /expands/ will all options, once Mastodon is running in its own perspective:
+#+begin_src emacs-lisp
+  (use-package mastodon
+    :config
+    (defun mastodon-perspective ()
+      (interactive)
+      (let ((already-tooted? (seq-contains-p
+                              (persp-names) "mastodon" 'equal)))
+        (persp-switch "mastodon")
+        (unless already-tooted?
+          (ha-leader
+            "a m t" '("toot" . mastodon-toot)
+            "a m u" '("update" . mastodon-tl--update)
+            "a m d" '("discover" . mastodon-discover))
+          (my-mastodon-start))))
+
+    (ha-leader
+      "a m"   '(:ignore t :which-key "mastodon")
+      "a m m" '("perspective" . mastodon-perspective)))
+#+end_src
+
+Starting the =mastodon= perspective, could set things up:
+#+begin_src emacs-lisp
+  (defun my-mastodon-start ()
+    "Configure the window placement for a Mastodon Instance."
+    (let ((default-directory (getenv "HOME")))
+      (mastodon)
+      (split-window-right)
+      (mastodon-tl--get-local-timeline)
+      (split-window-right)
+      (my-mastodon-mentions)))
+#+end_src
+
+What about a timeline of just call-outs to me?
+#+begin_src emacs-lisp
+  (defun mastodon-mentions--timeline (json)
+    "Format JSON in Emacs buffer."
+    (if (seq-empty-p json)
+        (message "Looks like you have no (more) notifications for the moment.")
+      (mapc #'mastodon-notifications--by-type json)
+      (goto-char (point-min))))
+
+  (defun my-mastodon-mentions ()
+    "Display mentions in buffer."
+    (interactive)
+    (mastodon-tl--init-sync
+     "mentions"
+     "notifications?exclude_types=follow,favourite,reblog,poll,follow_request&limit=50"
+     'mastodon-mentions--timeline))
+#+end_src
+
 Now I need to make a function to paste the same message to both while we make a transition.
+#+begin_src emacs-lisp
+  (defun my-mastodon-toot-public-string (message)
+    (interactive "sMessage: ")
+    (let* ((endpoint (mastodon-http--api "statuses"))
+           (args `(("status" . ,message)
+                   ("visibility" . "public"))))
+      (mastodon-http--post endpoint args nil)))
+#+end_src
 * Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, if I've cloned it.
 
