@@ -336,6 +336,16 @@ Let’s make some test examples:
         (should (stringp (first parms)))
         (should (bufferp (second parms))))))
 #+end_src
+** Setting Variables
+To set a variable in Eshell, you use good ol’ =setq=, but that would create global variables. We can make a version for Eshell, that makes buffer-local variables.
+#+begin_src emacs-lisp
+  (defun eshell/set (&rest args)
+    "Creates a buffer local variables."
+    (dolist (arg-pair (seq-partition args 2))
+      (seq-let (var val) arg-pair
+        (let ((var-sym (make-symbol var)))
+          (set (make-local-variable var-sym) val)))))
+#+end_src
 ** Less and More
 While I can type =find-file=, I often use =e= as an alias for =emacsclient= in Terminals, so let’s do something similar for =eshell=:
 Also note that we can take advantage of the =eshell-fn-on-files= function to expand the [[help:find-file][find-file]] (which takes one argument), to open more than one file at one time.
@@ -1261,6 +1271,7 @@ The basis for distinguishing a shell is its /parent location/. Before starting =
            (height (/ (window-total-height) 3))
            (default-directory parent))
       (split-window-vertically (- height))
+      (other-window 1)
       (setq eshell-buffer-name (format "*eshell: %s*" name))
       (eshell)))
 #+end_src

@@ -211,7 +211,6 @@ The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]]
                                (/ 3)
                                (* 2))))
       (split-window-right width)
-      (other-window 1)
       (cheatsheet-show)
       (ha-show-learn-this)))
 #+end_src
