@@ -2319,12 +2319,17 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
   (use-package dirvish
     :init
     (dirvish-override-dired-mode)
-    :custom
-    (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
-     '(("h" "~/"                          "Home")
-       ("d" "~/Downloads/"                "Downloads")))
-    :config
 
+    :custom
+    (dirvish-quick-access-entries
+     '(("h" "~/"           "Home")
+       ("p" "~/personal"   "Personal")
+       ("p" "~/projects"   "Projects")
+       ("t" "~/technical"  "Technical")
+       ("w" "~/website"    "Website")
+       ("d" "~/Downloads/" "Downloads")))
+
+    :config
     ;; This setting is like `treemacs-follow-mode' where the buffer
     ;; changes based on the current file. Not sure if I want this:
     ;; (dirvish-side-follow-mode)
@@ -2335,13 +2340,21 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
           '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
     (setq delete-by-moving-to-trash t)
 
-    (setq insert-directory-program "gls")
+    ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
+    ;;       (setq insert-directory-program "gls")
+    ;; And instead use Emacs' built-in directory lister:
+    (setq insert-directory-program nil)
+    (setq ls-lisp-use-insert-directory-program nil)
+    (require 'ls-lisp)
     (setq dired-listing-switches
           "-l --almost-all --human-readable --group-directories-first --no-group")
 
-    (set-face-attribute 'dirvish-hl-line nil :background "darkmagenta")
-
-    :bind ; Bind `dirvish|dirvish-side|dirvish-dwim' as you see fit
+    (set-face-attribute 'dirvish-hl-line nil :background "darkmagenta"))
+#+end_src
+While in =dirvish-mode=, we can rebind some keys:
+#+begin_src emacs-lisp
+  (use-package dirvish
+    :bind
     (:map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
      ("a"   . dirvish-quick-access)
      ("f"   . dirvish-file-info-menu)
