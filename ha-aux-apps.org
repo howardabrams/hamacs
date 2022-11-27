@@ -83,19 +83,17 @@ Starting the =mastodon= perspective, I set some initial windows:
       (switch-to-buffer "*mastodon-local*")))
 #+end_src
 * Telega
-I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, if I've cloned it.
-
+I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
 #+begin_src emacs-lisp
-  (when (file-exists-p "~/other/telega.el")
-    (use-package telega
-      :straight (:local-repo "~/other/telega.el")
+  (use-package telega
       :commands (telega)
       :init
       (setq telega-use-images nil)
       :config
-      (ha-leader "a T" 'telega)))
+      (ha-leader "a T" 'telega))
 #+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
+
 * RPG DM
 Been working on my [[https://gitlab.com/howardabrams/emacs-rpgdm][RPG DM project]] for getting Emacs helping as a /Dungeon Master's Assistant/. The idea is to be able to roll dice and whatnot. What I find most useful is the [[https://gitlab.com/howardabrams/emacs-rpgdm/-/blob/main/rpgdm-tables.el][random tables]].
 #+begin_src emacs-lisp
