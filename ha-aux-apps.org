@@ -47,8 +47,7 @@ Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/ma
           mastodon-active-user "howard")
     :bind
     (:map mastodon-mode-map
-          ("g" . mastodon-tl--update)
-          ("@" . my-mastodon-mentions)))
+          ("g" . mastodon-tl--update)))
 #+end_src
 
 I would like a dedicate perspective to Mastodon, and I would like a leader key sequence that /expands/ will all options, once Mastodon is running in its own perspective:
@@ -72,44 +71,16 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
       "a m m" '("perspective" . mastodon-perspective)))
 #+end_src
 
-Starting the =mastodon= perspective, could set things up:
+Starting the =mastodon= perspective, I set some initial windows:
 #+begin_src emacs-lisp
   (defun my-mastodon-start ()
     "Configure the window placement for a Mastodon Instance."
     (let ((default-directory (getenv "HOME")))
       (mastodon)
+      (switch-to-buffer "*mastodon-home*")
       (split-window-right)
       (mastodon-tl--get-local-timeline)
-      (split-window-right)
-      (my-mastodon-mentions)))
-#+end_src
-
-What about a timeline of just call-outs to me?
-#+begin_src emacs-lisp
-  (defun mastodon-mentions--timeline (json)
-    "Format JSON in Emacs buffer."
-    (if (seq-empty-p json)
-        (message "Looks like you have no (more) notifications for the moment.")
-      (mapc #'mastodon-notifications--by-type json)
-      (goto-char (point-min))))
-
-  (defun my-mastodon-mentions ()
-    "Display mentions in buffer."
-    (interactive)
-    (mastodon-tl--init-sync
-     "mentions"
-     "notifications?exclude_types=follow,favourite,reblog,poll,follow_request&limit=50"
-     'mastodon-mentions--timeline))
-#+end_src
-
-Now I need to make a function to paste the same message to both while we make a transition.
-#+begin_src emacs-lisp
-  (defun my-mastodon-toot-public-string (message)
-    (interactive "sMessage: ")
-    (let* ((endpoint (mastodon-http--api "statuses"))
-           (args `(("status" . ,message)
-                   ("visibility" . "public"))))
-      (mastodon-http--post endpoint args nil)))
+      (switch-to-buffer "*mastodon-local*")))
 #+end_src
 * Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication. Seems to have a bug on the Melpa version, so I'm keeping this to the =HEAD=, if I've cloned it.
