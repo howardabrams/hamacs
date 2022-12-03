@@ -499,11 +499,21 @@ Let’s just grab the environments to run:
 #+end_src
 * Languages
 Simple to configure languages go here. More advanced languages go into their own files… eventually.
+** Configuration Files
+So many configuration files to track:
+#+begin_src emacs-lisp
+  (use-package conf-mode
+    :mode (("\\.conf\\'"     . conf-space-mode)
+           ("\\.repo\\'"     . conf-unix-mode)
+           ("\\.setup.*\\'"  . conf-space-mode)))
+#+end_src
+** JSON
+While interested in the [[https://github.com/emacs-tree-sitter/tree-sitter-langs][tree-sitter]] extensions for JSON, e.g. =json-ts-mode=, that comes with Emacs 29, I’ll deal with what is bundled now.
 ** Markdown
 All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
 #+begin_src emacs-lisp
   (use-package markdown-mode
-    :mode ("README\\.md\\'" . gfm-mode)
+    :mode ((rx ".md" string-end)) . gfm-mode)
     :init (setq markdown-command "multimarkdown")
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
@@ -518,7 +528,17 @@ Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefix
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
 #+begin_src emacs-lisp
   (use-package yaml-mode
-    :mode (rx ".y" (optional "a") "ml" string-end))
+    :mode (rx ".y" (optional "a") "ml" string-end)
+          (rx (optional ".") "yamllint")
+    :hook (yaml-mode . display-line-numbers-mode)
+
+    :config
+    (use-package flycheck-yamllint
+      :after (flycheck)
+      :ensure-system-package
+      (yamllint . "pip install yamllint")
+      :config (flycheck-yamllint-setup)
+      :hook   (yaml-mode . flycheck-mode)))
 #+end_src
 
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
