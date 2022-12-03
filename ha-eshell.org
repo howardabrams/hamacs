@@ -716,7 +716,7 @@ The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Li
                   (guid    (seq uuid)))
            (rxt-elisp-to-pcre (rx ,@expressions)))))
   #+end_src
-** Map
+** Map over Files
 While I like eshell’s =for= loop well enough (if I can remember the syntax), as in:
 #+begin_src sh :tangle no
   for file in *.org {
@@ -725,15 +725,15 @@ While I like eshell’s =for= loop well enough (if I can remember the syntax), a
 #+end_src
 I like the idea of using a /map/ structure, for instance, wouldn’t it be cool to type something like:
 #+begin_src sh :tangle no
-  map chmod a+x *.org
+  do chmod a+x *.org
 #+end_src
 How would this work without special syntax? Well, eshell sends the =*.org= as a list of files, which we could use as the delimiter. The downside is that we want to list the files, we need to actually /list/ the files, as in:
 #+begin_src sh :tangle no
-  map chmod a+x (list "a.org" "c.org")
+  do chmod a+x (list "a.org" "c.org")
 #+end_src
 Pretty ugly, but what about using =::= as a separator of the /lambda/ from the /list/, like:
 #+begin_src sh :tangle no
-  map chmod a+x :: *.org b.txt
+  do chmod a+x :: *.org b.txt
 #+end_src
 
 Here is my initial function. After separating the arguments into two groups (split on the =::= string), we iterate over the file elements, creating a /form/ that includes the filename.
