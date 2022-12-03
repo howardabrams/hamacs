@@ -38,11 +38,12 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
 
 #+begin_src emacs-lisp
   (use-package python
-    :after projectile
+    :after projectile flycheck
     :mode ("[./]flake8\\'" . conf-mode)
     :mode ("/Pipfile\\'" . conf-mode)
     :init
-    (setq python-indent-guess-indent-offset-verbose nil)
+    (setq python-indent-guess-indent-offset-verbose nil
+          flycheck-flake8-maximum-line-length 120)
     :config
     (when (and (executable-find "python3")
                (string= python-shell-interpreter "python"))
@@ -51,10 +52,18 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     ;; While `setup.py' and `requirements.txt' are already added, I often
     ;; create these files for my Python projects:
     (add-to-list 'projectile-project-root-files "requirements-dev.txt")
-    (add-to-list 'projectile-project-root-files "requirements-test.txt"))
+    (add-to-list 'projectile-project-root-files "requirements-test.txt")
+
+    (flycheck-add-next-checker 'python-pylint 'python-pycompile 'append))
 #+end_src
+
+Note: Install the following checks:
+#+begin_src sh
+  pip install flake8 pylint pyright mypy pycompile
+#+end_src
+Or better yet, add those to the =requirements-dev.txt= file.
 ** Virtual Environment
-For a local virtual machine, simply put the following in your =.envrc= file:
+For a local virtual machine, put the following in your =.envrc= file:
 #+begin_src conf
 layout_python3
 #+end_src

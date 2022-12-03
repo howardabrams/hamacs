@@ -69,7 +69,8 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
     (defun flycheck-enable-checker ()
       "Not sure why flycheck disables working checkers."
       (interactive)
-      (call-interactively 'flycheck-disable-checker 4))
+      (let (( current-prefix-arg '(4))) ; C-u
+        (call-interactively 'flycheck-disable-checker)))
 
     (flymake-mode -1)
     (global-flycheck-mode)
