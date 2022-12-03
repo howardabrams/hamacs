@@ -29,16 +29,16 @@ While the Emacs community have a plethora of options for generating a static web
 While the following packages come with Emacs, they aren't necessarily loaded:
 
 #+begin_src emacs-lisp :results silent
-(require 'ox-rss)
-(require 'ox-publish)
+  (require 'ox-rss)
+  (require 'ox-publish)
 #+end_src
 
 Variable settings:
 
 #+begin_src emacs-lisp
-(setq org-export-with-broken-links t
-      org-mode-websrc-directory "/Volumes/Personal/dropbox/website"
-      org-mode-publishing-directory (concat (getenv "HOME") "/website-public/"))
+  (setq org-export-with-broken-links t
+        org-mode-websrc-directory "~/website"
+        org-mode-publishing-directory (concat (getenv "HOME") "/website-pub/"))
 #+end_src
 * The Projects
 I separate my /website/ into distinct projects separately built:

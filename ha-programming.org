@@ -513,7 +513,8 @@ While interested in the [[https://github.com/emacs-tree-sitter/tree-sitter-langs
 All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
 #+begin_src emacs-lisp
   (use-package markdown-mode
-    :mode ((rx ".md" string-end)) . gfm-mode)
+    :straight (:host github :repo "jrblevin/markdown-mode")
+    :mode ((rx ".md" string-end) . gfm-mode)
     :init (setq markdown-command "multimarkdown")
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
@@ -535,10 +536,12 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this pro
     :config
     (use-package flycheck-yamllint
       :after (flycheck)
-      :ensure-system-package
-      (yamllint . "pip install yamllint")
       :config (flycheck-yamllint-setup)
       :hook   (yaml-mode . flycheck-mode)))
+#+end_src
+Note this needs the following to run properly:
+#+begin_src sh
+  pip install yamllint
 #+end_src
 
 Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
