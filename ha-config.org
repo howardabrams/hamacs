@@ -1094,6 +1094,11 @@ Unfilling a paragraph joins all the lines in a paragraph into a single line. Tak
       (fill-paragraph nil)))
 #+end_src
 *** Help Operations
+Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call.
+#+begin_src emacs-lisp
+  (use-package helpful)
+#+end_src
+
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
 Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
@@ -1102,20 +1107,27 @@ Since I tweaked the help menu, I craft my own menu:
     "h a" '("apropos"          . apropos-command)
     "h c" '("elisp cheatsheet" . shortdoc-display-group)
     "h e" '("errors"           . view-echo-area-messages)
-    "h E" '("emacs-lisp"       . (lambda () (interactive) (info "elisp")))
-    "h f" '("function"         . describe-function)
+    "h f" '("function"         . helpful-callable)
     "h F" '("font"             . describe-font)
     "h =" '("face"             . describe-face)
-    "h k" '("key binding"      . describe-key)
+    "h k" '("key binding"      . helpful-key)
     "h K" '("key map"          . describe-keymap)
     "h m" '("mode"             . describe-mode)
     "h o" '("symbol"           . describe-symbol)
     "h p" '("package"          . describe-package)
     "h s" '("info symbol"      . info-lookup-symbol)
-    "h v" '("variable"         . describe-variable)
+    "h v" '("variable"         . helpful-variable)
     "h i" '("info"             . info)
     "h I" '("info manual"      . info-display-manual)
-    "h j" '("info jump"        . info-apropos))
+    "h j" '("info jump"        . info-apropos)
+
+    "h E" '("emacs info"       . (lambda () (interactive) (info "emacs")))
+    "h L" '("emacs-lisp"       . (lambda () (interactive) (info "elisp")))
+    "h O" '("org info"         . (lambda () (interactive) (info "org")))
+    ;; Since I do a lot of literate programming, I appreciate a quick
+    ;; jump directly into the Info manual...
+    "h B" '("org babel"        . (lambda () (interactive)
+                                   (org-info-open "org#Working with Source Code" nil))))
 #+end_src
 
 Remember these keys in the *Help* buffer:
