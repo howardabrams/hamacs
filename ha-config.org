@@ -172,7 +172,8 @@ When I push changes to my files to Gerrit and other code review, I don’t want 
     "Cleanup a file, often done before a file save."
     (interactive)
     (ignore-errors
-      (unless (equal major-mode 'makefile-bsdmake-mode)
+      (unless (or (equal major-mode 'makefile-mode)
+                  (equal major-mode 'makefile-bsdmake-mode))
         (untabify (point-min) (point-max)))
       (delete-trailing-whitespace)))
 
