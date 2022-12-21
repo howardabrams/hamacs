@@ -1613,7 +1613,9 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
 If you hit the following keys /before/ you select a target, you get a special action:
   - ~n~ :: copies the matching target word
 *** Link Hint, the Link Jumper
-I originally appreciated [[https://github.com/abo-abo/ace-link][ace-link]] to work with hyperlinks on Org, EWW and Info pages, but the [[https://github.com/noctuid/link-hint.el][link-hint]] project works with more types of links:
+The [[info:emacs#Goto Address mode][Goto Address]] mode (see this [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Goto-Address-mode.html][online link]]) turns URLs into clickable links. Nice feature and built into Emacs, but it requires using the mouse or moving to the URL and hitting ~Return~ (if you like this idea, check out [[https://xenodium.com/actionable-urls-in-emacs-buffers/][Álvaro Ramírez's configuration]] for this).
+
+I appreciated [[https://github.com/abo-abo/ace-link][ace-link]]’s idea for hyperlinks on Org, EWW and Info pages, as it allowed you to jump to a URL from any location on the screen.  The [[https://github.com/noctuid/link-hint.el][link-hint]] project does this, but works with more types of files and links:
 #+begin_src emacs-lisp
   (use-package link-hint
     :bind
