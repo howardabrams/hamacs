@@ -123,6 +123,8 @@ Wrote the wonderful book, [[https://www.masteringemacs.org/][Mastering Emacs]].
 Has had some good essays with a bent toward modern updates.
 **** [[http://emacshorrors.com/feed.atom][Emacs Horrors Blog]]
 Lovely peelings of the onion's layers.
+
+**** [[https://xenodium.com/rss.xml][Álvaro Ramírez]]
 **** [[http://pragmaticemacs.com/feed/][Ben Maughan]]
 The /Pragmatic Emacs/ blog.
 **** [[http://endlessparentheses.com/atom.xml][Endless Parentheses]]
@@ -229,19 +231,8 @@ Irreligious, as one can guess. Hasn't posted for a while. Break?
 *** [[http://www.jesusandmo.net/feed/atom/][Jesus and Mo]]
 Favorite celebrities arguing with Bar Maid.
 
-** Nice and Sweet :funny:sweet:
-*** [[http://birdandmoon.tumblr.com/rss][Bird and Moon]]
-nature-inspired comics
-*** [[http://www.yourwildcity.com/feed/][Your Wild City]]
-nature-insired comics
-*** [[http://sheldoncomics.com/index.xml][Sheldon Comics]]
-sweet Family Circus style comics
 ** Role Playing Games        :rpg:dnd:
 Interested in both RPGs and Emacs? Probably.
-*** [[https://www.belloflostsouls.net/category/dungeonsdragons/feed][Bell of Lost Souls]]
-Lots of essays, and sometimes good content.
-*** [[https://www.dndbeyond.com/posts.rss][D&D Beyond Posts]]
-Good content, focused on Dungeons and Dragons, obviously.
 *** [[https://slyflourish.com/index.xml][Sly Flourish]]
 *** [[https://dmdavid.com/feed/][DM David]]
 *** [[https://www.themonstersknow.com/feed/][The Monsters Know what they are Doing]]
