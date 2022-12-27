@@ -101,10 +101,10 @@ I separate my /website/ into distinct projects separately built:
           ("blog-rss"
            :base-directory        ,org-mode-websrc-directory
            :base-extension        "org"
-           :rss-image-url         "http://howardism.org/img/dragon-head.png"
+           :rss-image-url         "https://howardism.org/img/dragon-head.png"
            :publishing-directory  ,org-mode-publishing-directory
            :publishing-function   (org-rss-publish-to-rss)
-           :html-link-home        "http://www.howardism.org/"
+           :html-link-home        "https://www.howardism.org/"
            :html-link-use-abs-url t
            :with-toc              nil
            :exclude               ".*"
