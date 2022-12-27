@@ -280,7 +280,7 @@ Oh, and it this is from the Terminal program, let’s wrap it in a block:
 Configure the *ICanHazShortcut* shortcuts to call these scripts, as in this screenshot:
 [[file:screenshots/icanhazshortcuts.png]]
 And here is the configuration file for that:
-#+begin_src conf :tangle ~/.config/iCanHazShortcut/config.ini
+#+begin_src conf :tangle ~/.config/iCanHazShortcut/config.ini :mkdirp yes
 [main]
 config version = 2
 shell = /bin/bash -l
