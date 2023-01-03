@@ -48,6 +48,35 @@ At the beginning of the year, I choose a theme, and make a list for the upcoming
            '<<sprint-names-2022()>>)
     "List of 26 Sprint Nicknames from A to Z.")
 #+end_src
+** 2023
+How about a list of Ent names?
+
+ - ashskin
+ - birchblossom
+ - cedar king
+ - dirk dogwood
+ - elmable
+ - firneedle
+ - gentle gingko
+ - hazel hawthorn
+ - incensit
+ - juniperspine
+ - katsura katsu
+ - leaf laurel
+ - merv maple
+ - nutmeg
+ - oakspire
+ - pine nettle
+ - quiverherb
+ - redbeardy
+ - spruce stand
+ - teak tendril
+ - upas crown
+ - viburnum burr
+ - willowscar
+ - xylosma
+ - yewbiquitous
+ - zelkova
 ** 2022
 
 Fun sprint names for 2022 lists my favorite D&D monsters, also see [[https://list.fandom.com/wiki/List_of_monsters][this list of monsters]] from mythology and other sources:
@@ -215,14 +244,14 @@ We label our sprint based on the week number that it starts. Note that on a Mond
 Let's have these tests to make sure, and yeah, perhaps we update this at the beginning of each year.
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-week-num-test ()
-    (should (= (sprint-week-num "2021-03-15") 11)) ;; Monday previous week
-    (should (= (sprint-week-num "2021-03-16") 12)) ;; Tuesday current week
-    (should (= (sprint-week-num "2021-03-19") 12)))
+    (should (= (sprint-week-num "2023-01-09") 2))  ; Monday previous week
+    (should (= (sprint-week-num "2023-01-10") 3))  ; Tuesday current week
+    (should (= (sprint-week-num "2023-01-17") 4))) ; Tuesday next week
 #+end_src
 
 My company has sprints two weeks long, we could be see that on even week numbers, the /sprint/ is actually the previous week's number.
 
-And it appears that my PM for this year, is a week number behind.
+And it appears that my PM for this year, is a differently off by a week number.
 #+begin_src emacs-lisp
   (defun sprint-number (&optional date)
     "Return the current sprint number, with some assumptions that
@@ -230,19 +259,18 @@ And it appears that my PM for this year, is a week number behind.
     (let ((num (sprint-week-num date)))
       (if (cl-oddp num)
           (1- num)
-        num)))
+        (- num 2))))
 #+end_src
 
 And some tests to verify that:
-
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-number-test ()
-    (should (= (sprint-number "2021-03-15") 10))
-    (should (= (sprint-number "2021-03-16") 12))
-    (should (= (sprint-number "2021-03-22") 12))
-    (should (= (sprint-number "2021-03-23") 12))
-    (should (= (sprint-number "2021-03-29") 12))
-    (should (= (sprint-number "2021-03-30") 14)))
+    (should (= (sprint-number "2023-01-09") 0))
+    (should (= (sprint-number "2023-01-10") 2))
+    (should (= (sprint-number "2023-01-17") 2))
+    (should (= (sprint-number "2023-01-18") 2))
+    (should (= (sprint-number "2023-01-23") 2))
+    (should (= (sprint-number "2023-01-24") 4)))
 #+end_src
 ** Sprint File Name
 I create my org-file notes based on the Sprint number.
