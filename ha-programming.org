@@ -456,10 +456,13 @@ If I end a command with a =|v=, it sends the compile command to a vterm session 
       (ha-shell-send command project-dir)))
 #+end_src
 
-And what about sending stuff to Eshell as well?
+And what about sending the command to Eshell as well?
 #+begin_src emacs-lisp
   (defvar rx-compile-to-eshell (rx "|" (0+ space) "s" (0+ space) line-end))
 
+  (defun ha-compile-eshell (full-command)
+    (let ((command (replace-regexp-in-string rx-compile-to-eshell "" full-command)))
+      (ha-shell-send command project-dir)))
 #+end_src
 And let’s add it to the Project leader:
 #+begin_src emacs-lisp

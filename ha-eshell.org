@@ -1262,19 +1262,47 @@ Now that I often need to pop into remote systems to run a shell or commands, I c
 ** Shell There
 The basis for distinguishing a shell is its /parent location/. Before starting =eshell=, we make a small window, set the buffer name (using the [[elisp:(describe-variable 'eshell-buffer-name)][eshell-buffer-name]]):
 #+begin_src emacs-lisp
+  (defun eshell--buffer-from-dir (dir)
+    "Return buffer name of an Eshell based on DIR."
+    (format "*eshell: %s*"
+            (thread-first dir
+                          (split-string "/" t)
+                          (last)
+                          (car))))
+
   (defun eshell-there (parent)
     "Open an eshell session in a PARENT directory.
-  The window is smaller and named after this directory."
-    (let* ((name (thread-first parent
-                               (split-string "/" t)
-                               (last)
-                               (car)))
-           (height (/ (window-total-height) 3))
-           (default-directory parent))
-      (split-window-vertically (- height))
-      (other-window 1)
-      (setq eshell-buffer-name (format "*eshell: %s*" name))
-      (eshell)))
+  The window is smaller and named after this directory.
+  If an Eshell is already present that has been named
+  after PARENT, pop to that buffer instead."
+    (if-let* ((term-name (eshell--buffer-from-dir parent))
+              (buf-name  (seq-contains (buffer-list) term-name
+                                       (lambda (a b) (string-equal (buffer-name b) a)))))
+        (pop-to-buffer buf)
+
+      (let* ((default-directory parent)
+             (height (/ (window-total-height) 3)))
+        (split-window-vertically (- height))
+        (other-window 1)
+        (setq eshell-buffer-name term-name)
+        (eshell))))
+#+end_src
+
+And we can run a command in an opened Eshell buffer:
+#+begin_src emacs-lisp
+  (defun ha-eshell-send (command &optional dir)
+    "Send COMMAND to the Eshell buffer named with DIR.
+    The Eshell may have moved away from the directory originally
+    opened with DIR, but it should have the name of the buffer.
+    See `eshell--buffer-from-dir'."
+    (interactive "sCommand to Send: ")
+    (unless dir
+      (setq dir (projectile-project-root)))
+    (save-window-excursion
+      (eshell-there dir)
+      (goto-char (point-max))
+      (insert command)
+      (eshell-send-input)))
 #+end_src
 ** Shell Here
 This version of the =eshell= bases the location on the current buffer’s parent directory:
