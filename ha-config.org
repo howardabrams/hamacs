@@ -501,13 +501,6 @@ Using the key-chord project allows me to make Escape be on two key combo presses
     (key-chord-define-global "jk" 'evil-normal-state)
     (key-chord-define-global "JK" 'evil-normal-state))
 #+end_src
-*** Evil Easy Motion
-The [[https://github.com/PythonNut/evil-easymotion][evil-easymotion]] project combines [[Jump with Avy][avy]] and evil keybindings, where ~SPC j~ shows labels for all the lines below the cursor, so that you can jump right there. This doesn’t work well with a leader, but what about using Key Chords?
-#+begin_src emacs-lisp
-  (use-package evil-easymotion
-    :config (evilem-default-keybindings "<f19>"))
-#+end_src
-My ~F19~ key is within easy reach of my [[https://configure.zsa.io/moonlander/layouts/L4laD/latest/0][Moonlander configuration]], so this might be a good, if somewhat distracting, feature. Perhaps a better solution is to use [[Jump with Avy][avy]] (see below).
 *** Evil Lion
 The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper around Emacs’ [[help:align][align]] function. Just a little easier to use. Primary sequence is ~g a i p =~ to align along all the equal characters in the paragraph (block), or ~g a i b RET~ to use a built in rule to align (see below), or ~g a i b /~ to specify a regular expression, similar to [[help:align-regexp][align-regexp]].
 
