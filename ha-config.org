@@ -47,6 +47,12 @@ Changes and settings I like introduced in Emacs 28:
         completions-detailed t)
 #+end_src
 
+In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the current mode.
+#+begin_src emacs-lisp
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
+#+end_src
+
 As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
 #+begin_src emacs-lisp
   (use-package epa-file
@@ -78,55 +84,6 @@ And some Mac-specific settings:
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
 #+end_src
 * Support Packages
-** Yet Another Snippet System (YASnippets)
-Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
-
-#+begin_src emacs-lisp
-  (use-package yasnippet
-    :config
-    (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
-    (yas-global-mode +1))
-#+end_src
-Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writing them.
-
-Since I have troubles installing Doom’s [[https://github.com/hlissner/doom-snippets][collection of snippets]], lets use the [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package:
-#+begin_src emacs-lisp
-  (use-package yasnippet-snippets)
-#+end_src
-** Auto Insert Templates
-The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but simpler?
-#+begin_src emacs-lisp
-  (use-package autoinsert
-    :init
-    (setq auto-insert-directory (expand-file-name "templates" user-emacs-directory))
-    ;; Don't prompt before insertion:
-    (setq auto-insert-query nil)
-
-    (add-hook 'find-file-hook 'auto-insert)
-    (auto-insert-mode t))
-#+end_src
-Since auto insertion requires entering data for particular fields, and for that Yasnippet is better, so in this case, we combine them:
-#+begin_src emacs-lisp
-  (defun ha-autoinsert-yas-expand()
-    "Replace text in yasnippet template."
-    (yas-expand-snippet (buffer-string) (point-min) (point-max)))
-#+end_src
-
-And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
-#+begin_src emacs-lisp
-  (defun ha-auto-insert-file (filename-re snippet-name)
-    "Autofill file buffer matching FILENAME-RE regular expression.
-    The contents inserted from the YAS SNIPPET-NAME."
-    ;; The define-auto-insert takes a regular expression and an ACTION:
-    ;; ACTION may also be a vector containing successive single actions.
-    (define-auto-insert filename-re
-      (vector snippet-name 'ha-autoinsert-yas-expand)))
-#+end_src
-
-As an example of its use, any Org files loaded in /this project/ should insert my config file:
-#+begin_src emacs-lisp
-  (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
-#+end_src
 * Configuration Changes
 ** Initial Settings and UI
 Let's turn off the menu and other settings:
@@ -1379,54 +1336,34 @@ Notes:
   - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
 ** Additional Global Packages
+The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
+  - Nothing should automatically appear; that is annoying and distracting.
+  - Spelling in org files (abbrev or hippie expander) and code completion are separate, but I’m not sure if I can split them
+  - IDEs overuse the ~TAB~ binding, and I should re-think the bindings.
+
 *** Auto Completion
-Emacs Completion is not obvious, and has lots of different interfaces, some distinct, some connected. Here’s the summary as I understand:
-  - =complete=, which /we can/ call:
-      - =hippie-expand=, which calls:
-          - =dabbrev=
-  - =completion-at-point=, which calls:
-      - =completion-at-point-functions= (capf), which can call:
-          - hippie and dabbrev functions
+I don’t find the Emacs completion system obvious, with different interfaces, some distinct, some connected. Here’s the summary as I understand:
+#+begin_verse
+   =indent-for-tab-command=, which /we can/ call:
+     └─ =completion-at-point=, which calls:
+                  └─ =completion-at-point-functions= (capf), which can call:
+                                └─ hippie and dabbrev functions
+#+end_verse
 
-We have two initial interfaces that may end up showing the same information (if configured correctly).
-
-Emacs’ first option, called [[help:complete][complete]], is simple. It completes based on words you are most likely to type.
-
-If the line is /indented/ (the default for the ~TAB~ key), let’s complete the word:
+In =org-mode=, ~TAB~ calls [[help:org-cycle][org-cycle]], which, in the context of typing text, calls the binding for ~TAB~, which is the [[help:indent-for-tab-command][indent-for-tab-command]]. If the line is /indented/, I can complete the word:
 #+begin_src emacs-lisp
-  (setq tab-always-indent 'complete)
+  (setq tab-always-indent 'complete
+        tab-first-completion 'word-or-paren
+        completion-cycle-threshold nil)
 #+end_src
-Let’s also use the ~Command~ key to call this directly :
-#+begin_src emacs-lisp
-  (global-set-key (kbd "C-TAB") 'complete)
-#+end_src
+Note that no matter the setting for =tab-first-completion=, hitting ~TAB~ twice, results in completion.
 
-The next interface is [[help:completion-at-point][completion-at-point]] (which I set to ~M-TAB~). This code (from mini-buffer) doubles with the other [[Vertico][completing processes]] (like [[help:completing-read][completing-read]]) and presents choices based on a series of functions (see [[https://with-emacs.com/posts/tutorials/customize-completion-at-point/][this essay]] for details).
-
-What would be nice is that if =complete= doesn't have a match, =completion-at-point= would be called. Until then, we need to bind a key … or automatically display choices after a certain time (see below):
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-TAB") 'completion-at-point)
-#+end_src
-The [[file:ha-org.org::*Spell Checking][Flyspell package]] takes over ~M-TAB~,  so let’s add another keybinding (or [[Corfu][use time-based menu option]]):
-#+begin_src emacs-lisp
-  (global-set-key (kbd "s->") 'completion-at-point)
-  (global-set-key (kbd "s-.") 'complete)
-#+end_src
-
-The idea of cycling through candidates sounds like a good idea, but let’s start with a number before setting this to =t=:
-#+begin_src emacs-lisp
-  (setq completion-cycle-threshold 3)
-#+end_src
-
-In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the current mode.
-#+begin_src emacs-lisp
-  (setq read-extended-command-predicate
-        #'command-completion-default-include-p)
-#+end_src
-**** Hippie Expand
-The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen) with its default key of ~M-/~:
+This calls [[help:completion-at-point][completion-at-point]]. This code (from mini-buffer) doubles with the other [[Vertico][completing processes]] (like [[help:completing-read][completing-read]]) and presents choices based on a series of functions (see [[https://with-emacs.com/posts/tutorials/customize-completion-at-point/][this essay]] for details). This will call into the CAPF function list (see the variable, =completion-at-point-functions= and the [[file:ha-programming.org::*Cape][Cape]] section for details).
+*** Hippie Expand
+The venerable [[help:hippie-expand][hippie-expand]] function does a better job than the default, [[help:dabbrev-expand][dabbrev-expand]], so let’s swap it out (see this [[https://www.masteringemacs.org/article/text-expansion-hippie-expand][essay]] by Mickey Petersen) with its default key of ~M-/~ (easy to type on the laptop) as well as ~C-Tab~ (easier on mechanical keyboards):
 #+begin_src emacs-lisp
   (global-set-key [remap dabbrev-expand] 'hippie-expand)
+  (global-set-key (kbd "M-<tab>") 'completion-at-point)
 #+end_src
 
 Details on its job? We need to update its [[help:hippie-expand-try-functions-list][list of expanders]]. I don’t care much for [[help:try-expand-line][try-expand-line]], so that is not on the list.
@@ -1434,12 +1371,13 @@ Details on its job? We need to update its [[help:hippie-expand-try-functions-lis
   (setq hippie-expand-try-functions-list
         '(try-complete-file-name-partially   ; complete filenames, start with /
           try-complete-file-name
+          yas-hippie-try-expand              ; expand matching snippets
           try-expand-all-abbrevs
-          try-expand-list                    ; help when function args repeated another func's args
+          try-expand-list                    ; help when args repeated another's args
           try-expand-dabbrev
           try-expand-dabbrev-all-buffers
           try-expand-whole-kill              ; grab text from the kill ring
-          try-expand-dabbrev-from-kill       ; similar to above
+          try-expand-dabbrev-from-kill       ; as above
           try-complete-lisp-symbol-partially
           try-complete-lisp-symbol))
 #+end_src
@@ -1448,129 +1386,68 @@ In the shell, IDEs and other systems, the key binding is typically ~TAB~. In mod
 #+begin_src emacs-lisp
   (advice-add #'indent-for-tab-command :after #'hippie-expand)
 #+end_src
+*** Corfu
+The default completion system either inserts the first option directly in the text (without cycling, so let’s hope it gets it right the first time), or presents choices in another buffer (who wants to hop to it to select an expansion).
 
-In =org-mode=, ~TAB~ calls [[help:org-cycle][org-cycle]], a complicated function, and attaching the hippie creates more complications. So, I can’t use ~TAB~ to expand long words. Keep to ~M-/~ or something else on the Meta key?
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-TAB") 'hippie-expand)
-#+end_src
-**** Corfu
-Then I converted to [[http://company-mode.github.io/][company]], and didn’t really need to use Hippie’s built-in functionality. Now, I’m wanting to try out [[https://github.com/minad/corfu][corfu]] (see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for more details). This package focuses on the UI, relying on other completion facilities. Seems like a good idea, as long as it works with the [[https://github.com/joaotavora/eglot][eglot]] package.
-
-I personally find a menu that constantly pops up as I’m typing quite annoying, and if =corfu-auto= is on, then I need a delay before it shows:
+After using  [[http://company-mode.github.io/][company]] for my completion back-end, I switch to [[https://github.com/minad/corfu][corfu]] as it works with the variable-spaced font of my org files (also see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for my initial motivation).
 #+begin_src emacs-lisp
   (use-package corfu
-    :straight (:files (:defaults "extensions/*.el"))
     :custom
-    (corfu-cycle t)                ; Enable cycling for `corfu-next/previous'
-    (corfu-auto t)                 ; Enable auto completion
-    (corfu-auto-delay 1)           ; Wait a second. Good idea if corfu-auto is t
-    (corfu-auto-prefix 3)          ; Start if we have typed four letters
-    (corfu-quit-no-match t)        ; quit if there is no match
-    (corfu-echo-documentation t)   ; Show documentation in the echo area
-    (corfu-scroll-margin 5)        ; Use scroll margin
-
-    (corfu-preview-current t)      ; Disable current candidate preview
-    (corfu-preselect-first t)      ; Showing us the goods? Take it with TAB/RET
-    (corfu-on-exact-match 'insert) ; Configure handling of exact matches
-
-    ;; The Escape key, when the Corfu menu shows, goes into some sort of
-    ;; normal movement without removing the menu. Odd behavior.
-    ;; Let's _try_ to make it cancel:
-    :general
-    (:keymaps 'corfu-map
-              :states 'insert
-              "s-SPC" #'corfu-insert-separator
-              "C-n" #'corfu-next
-              "C-p" #'corfu-previous
-              "<escape>" #'corfu-quit
-              "<return>" #'corfu-insert
-
-              "M-d" #'corfu-show-documentation
-              "M-l" #'corfu-show-location)
+    (corfu-cycle t)
+    (corfu-separator ?\s)
     :init
     (global-corfu-mode))
-  #+end_src
-*Note:* The [[elisp:(describe-variable 'corfu-separator)][corfu-separator]] variable, defaults to the ~M-SPC~, can be used to limit the choices with two different sections of selection.
-What about the locatio
-With the [[https://github.com/minad/corfu/blob/main/extensions/corfu-quick.el][corfu-quick]] package, you can apply /labels/ to every section, making it easier to select something on the Corfu menu without either typing more of the section, or hitting the down arrow keys. The issue is actually loading the file that is embedded in the =extensions= directory. One approach is to call =load-file= on it:
-#+begin_src emacs-lisp
-  ;; (load-file (straight--file "repos/corfu/extensions/corfu-quick.el"))
-
-  (use-package corfu-quick
-    :after corfu
-    :straight (:type built-in)
-    :bind (:map corfu-map ("C-q" . corfu-quick-insert)))
 #+end_src
+* Yet Another Snippet System (YASnippets)
+Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
 
-With the [[https://github.com/minad/corfu/blob/main/extensions/corfu-history.el][corfu-history]] extension, we can sort candidates by their history position:
 #+begin_src emacs-lisp
-  (use-package corfu-history
-    :after corfu
-    :straight (:type built-in)
+  (use-package yasnippet
     :config
-    (corfu-history-mode))
+    (add-to-list 'yas-snippet-dirs
+                 (expand-file-name "snippets" user-emacs-directory))
+    (yas-global-mode +1))
 #+end_src
+Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writing them.
 
-For =eshell=, I don’t want completion until I ask for it, so then I need to set these variables:
+Since I have troubles installing Doom’s [[https://github.com/hlissner/doom-snippets][collection of snippets]], lets use the [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package:
 #+begin_src emacs-lisp
-  (use-package eshell
-    :after corfu
-
-    :config
-    (defun corfu-send-shell (&rest _)
-      "Send completion candidate when inside comint/eshell."
-      (cond
-       ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-        (eshell-send-input))
-       ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-        (comint-send-input))))
-
-    (advice-add #'corfu-insert :after #'corfu-send-shell)
-
-    :hook
-    (eshell-mode . ( lambda ()
-                     (setq-local corfu-auto nil)
-                     (setq-local corfu-preselect-first nil)
-                     (corfu-mode))))
+  (use-package yasnippet-snippets)
 #+end_src
-**** Cape
-More Capf backends and =completion-in-region= commands are provided by the [[https://github.com/minad/cape][Cape]] package. Among others, the package supplies a file path and a Dabbrev completion backend. Cape provides the =cape-company-to-capf= adapter to reuse Company backends in Corfu. Furthermore the function =cape-super-capf= can merge multiple Capfs, such that the candidates of multiple Capfs are displayed together at the same time.
-
-The customization is to add =completion-at-point-functions=, used by =completion-at-point=:
+*** Auto Insert Templates
+The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but simpler?
 #+begin_src emacs-lisp
-  (use-package cape
+  (use-package autoinsert
     :init
-    (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-    (add-to-list 'completion-at-point-functions #'cape-file)
-    (add-to-list 'completion-at-point-functions #'cape-keyword)
-    (add-to-list 'completion-at-point-functions #'cape-rfc1345)
-    (add-to-list 'completion-at-point-functions #'cape-abbrev)
-    (add-to-list 'completion-at-point-functions #'cape-ispell)
-    (add-to-list 'completion-at-point-functions #'cape-dict)
-    (add-to-list 'completion-at-point-functions #'cape-symbol)
+    (setq auto-insert-directory (expand-file-name "templates" user-emacs-directory))
+    ;; Don't prompt before insertion:
+    (setq auto-insert-query nil)
 
-    :hook
-    ((eshell-load
-      . (lambda () (add-to-list 'completion-at-point-functions #'cape-history)))))
+    (add-hook 'find-file-hook 'auto-insert)
+    (auto-insert-mode t))
 #+end_src
-
-Nice feature is be able to remove entries, for instance:
+Since auto insertion requires entering data for particular fields, and for that Yasnippet is better, so in this case, we combine them:
 #+begin_src emacs-lisp
-  (setq completion-at-point-functions
-    (remove #'cape-line completion-at-point-functions))
+  (defun ha-autoinsert-yas-expand()
+    "Replace text in yasnippet template."
+    (yas-expand-snippet (buffer-string) (point-min) (point-max)))
 #+end_src
 
-The =pcomplete= system (that =eshell= uses) has some technical issues. Cape provides wrappers, which sanitize the [[help:pcomplete][pcomplete]] function. Until these bugs are fixed upstream, these two advices addresses the problem.
+And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
 #+begin_src emacs-lisp
-  ;; Silence the pcomplete capf, no errors or messages!
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-
-  ;; Ensure that pcomplete does not write to the buffer
-  ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (defun ha-auto-insert-file (filename-re snippet-name)
+    "Autofill file buffer matching FILENAME-RE regular expression.
+    The contents inserted from the YAS SNIPPET-NAME."
+    ;; The define-auto-insert takes a regular expression and an ACTION:
+    ;; ACTION may also be a vector containing successive single actions.
+    (define-auto-insert filename-re
+      (vector snippet-name 'ha-autoinsert-yas-expand)))
 #+end_src
 
-How easy is typing the ~M-/~ key, Now, I can type either that or ~M-TAB~ for dumb (i.e. long) word expa
+As an example of its use, any Org files loaded in /this project/ should insert my config file:
+#+begin_src emacs-lisp
+  (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
+#+end_src
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
 #+begin_src emacs-lisp
