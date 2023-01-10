@@ -561,13 +561,7 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this pro
   (use-package yaml-mode
     :mode (rx ".y" (optional "a") "ml" string-end)
           (rx (optional ".") "yamllint")
-    :hook (yaml-mode . display-line-numbers-mode)
-
-    :config
-    (use-package flycheck-yamllint
-      :after (flycheck)
-      :config (flycheck-yamllint-setup)
-      :hook   (yaml-mode . flycheck-mode)))
+    :hook (yaml-mode . display-line-numbers-mode))
 #+end_src
 Note this needs the following to run properly:
 #+begin_src sh
@@ -606,7 +600,7 @@ The YAML files get access Ansible’s documentation using the [[https://github.c
 #+end_src
 
 The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [[https://polymode.github.io/][polymode]], gluing [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] into [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package polymode)
 
   (use-package poly-ansible
