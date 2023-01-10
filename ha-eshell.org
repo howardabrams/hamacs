@@ -1088,6 +1088,18 @@ And finally, add our new functions to [[elisp(describe-variable 'eshell-virtual-
     (add-to-list 'eshell-virtual-targets '("/dev/e" ha-eshell-target-engineering-notebook nil))
     (add-to-list 'eshell-virtual-targets '("/dev/c" ha-eshell-target-engineering-notebook nil)))
 #+end_src
+* EAT and Eshell
+The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides flicker-free, perfect display, of visual commands in Eshell, eliminating one of my primary issue with using Eshell all the time.
+#+begin_src emacs-lisp
+  (use-package eat
+    :after eshell
+    :straight (:repo "https://codeberg.org/akib/emacs-eat")
+    :hook (eshell-load . #'eat-eshell-visual-command-mode))
+#+end_src
+Note: Bash integration?
+#+begin_src sh
+  [ -n "$EAT_SHELL_INTEGRATION_DIR" ] && source "$EAT_SHELL_INTEGRATION_DIR/bash"
+#+end_src
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"
 #+begin_src emacs-lisp :tangle no
@@ -1223,7 +1235,8 @@ Here is the result:
 ** Simple Prompt with Mode Line
 To achieve more /screen estate/, leave your prompt simple:
 #+begin_src emacs-lisp
-  (setq eshell-prompt-function (lambda () "$ "))
+  (setq eshell-prompt-function (lambda () "$ ")
+        eshell-prompt-regexp (rx line-start (or "$" "#") (1+ space)))
 #+end_src
 
 Display detailed information, like the current working directory, in the mode line using [[https://www.emacswiki.org/emacs/WhichFuncMode][which-function-mode]].
@@ -1278,7 +1291,7 @@ The basis for distinguishing a shell is its /parent location/. Before starting =
     (if-let* ((term-name (eshell--buffer-from-dir parent))
               (buf-name  (seq-contains (buffer-list) term-name
                                        (lambda (a b) (string-equal (buffer-name b) a)))))
-        (pop-to-buffer buf)
+        (pop-to-buffer buf-name)
 
       (let* ((default-directory parent)
              (height (/ (window-total-height) 3)))
@@ -1512,7 +1525,13 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
            ("M-R"   . eshell-insert-history)
            ("C-d"   . ha-eshell-quit-or-delete-char)))
 #+end_src
-Note that the default list to [[emacs-lisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is good enough.
+Note that the default list to [[elisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is good enough, but some of my /newer/ Rust-based apps need to be added:
+#+begin_src emacs-lisp :tangle no
+  (use-package eshell
+    :config
+    (add-to-list 'eshell-visual-commands "ssh"))
+#+end_src
+Calling =use-package= with =:config= seems to be just as effective as calling =with-eval-after-load=.
 
 Add leader commands to call my defined functions:
 #+begin_src emacs-lisp
