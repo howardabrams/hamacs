@@ -188,7 +188,7 @@ And a less-disruptive keybinding:
 * External Capturing
 Using =emacsclient=, the operating system or other applications can trigger a call to capture content into Emacs. I started with the functions from [[https://macowners.club/posts/org-capture-from-everywhere-macos/][this essay]], which made a nice approach to opening and closing a frame:
 #+begin_src emacs-lisp
-  (defun start-capture-frame ()
+  (defun start-capture-frame (&optional template-key)
     "Create a new frame and run `org-capture'."
     (interactive)
     (make-frame '((name . "capture")
@@ -199,7 +199,7 @@ Using =emacsclient=, the operating system or other applications can trigger a ca
     (select-frame-by-name "capture")
     (delete-other-windows)
     (cl-letf (((symbol-function 'switch-to-buffer-other-window) 'switch-to-buffer))
-      (org-capture)))
+      (org-capture nil template-key)))
 #+end_src
 When I call [[help:org-capture][org-capture]] in its own frame, I don’t want any other windows around, so we /rebind/ =org-capture= ’s call to switch the buffer to another window, to switch to the capture buffer.
 
@@ -218,6 +218,12 @@ This external shell script calls the function to kick everything off from applic
 #+begin_src sh :shebang "#!/bin/bash" :tangle ~/bin/emacs-capture
   /usr/local/bin/emacsclient -s work -n -e "(start-capture-frame)"
 #+end_src
+
+And for even quicker work, we can have special scripts tied to special keybindings:
+#+begin_src sh :shebang "#!/bin/bash" :tangle ~/bin/emacs-capture-meeting :chmod 755
+  /usr/local/bin/emacsclient -s work -n -e "(start-capture-frame \"sm\")"
+#+end_src
+
 ** Pull MacOS-Specific Content
 The [[https://gitlab.com/aimebertrand/org-mac-link][org-mac-link]] project makes it easy to tell Emacs to retrieve information from other apps, e.g. the URL of the opened tab in Firefox.
 #+begin_src emacs-lisp
