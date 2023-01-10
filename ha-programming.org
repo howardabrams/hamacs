@@ -481,9 +481,15 @@ And what about sending the command to Eshell as well?
 #+begin_src emacs-lisp
   (defvar rx-compile-to-eshell (rx "|" (0+ space) "s" (0+ space) line-end))
 
-  (defun ha-compile-eshell (full-command)
+  (defun ha-compile-eshell (full-command &optional project-dir)
+    "Send a command to the currently running Eshell terminal.
+  If a terminal isn't running, it will be started, allowing follow-up
+  commands."
+    (unless project-dir
+      (setq project-dir (projectile-project-name)))
+
     (let ((command (replace-regexp-in-string rx-compile-to-eshell "" full-command)))
-      (ha-shell-send command project-dir)))
+      (ha-eshell-send command project-dir)))
 #+end_src
 And let’s add it to the Project leader:
 #+begin_src emacs-lisp
