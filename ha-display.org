@@ -47,7 +47,7 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
 
 #+begin_src emacs-lisp
   (use-package pulsar
-    :straight (:host gitlab :repo "protesilaos/pulsar")
+    :straight (:repo "https://git.sr.ht/~protesilaos/pulsar")
     :custom
     (pulsar-pulse-functions '(recenter-top-bottom
                               move-to-window-line-top-bottom
@@ -97,8 +97,7 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
                               outline-up-heading))
     (pulsar-face 'pulsar-magenta)
     (pulsar-delay 0.055)
-    :bind ("<f6>" . pulsar-pulse-line)
-    :config (pulsar-global-mode))
+    :bind ("<f6>" . pulsar-pulse-line))
 #+end_src
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
