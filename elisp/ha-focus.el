@@ -67,8 +67,8 @@ set volume output volume v"))
   "Asynchronously called when the `osascript' process finishes."
   (message "Finished calling osascript."))
 
-(global-set-key (kbd "<f5>") 'ha-focus-begin)
-(global-set-key (kbd "S-<f5>") 'ha-focus-break)
+(global-set-key (kbd "<f7>") 'ha-focus-begin)
+(global-set-key (kbd "S-<f7>") 'ha-focus-break)
 
 (provide 'ha-focus)
 ;;; ha-focus.el ends here
