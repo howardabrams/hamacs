@@ -243,12 +243,17 @@ Of course, I need an 'undo' feature when the meeting is over…
       (winner-undo))             ; Put the windows back in place
 #+end_src
 ** Searching
-On the Mac, we need to change the =locate= command:
+Came up with a great way to search a project for Org-specific files, and wrote [[https://howardism.org/Technical/Emacs/org-find-file.html][an essay]] describing the approach and the code. The idea is that I can call =find-file=, but the list of files is not only the filename, but the Org =#+title:= as well as any tags located in the file.
+
 #+begin_src emacs-lisp
-  (when (equal system-type 'darwin)
-    (setq locate-command "mdfind"))
+  (use-package org-find-file
+    :straight nil
+    :config
+    (ha-leader "f o" '("load org" . org-find-file)))
 #+end_src
-Now that my paragraphs in an org file are on a single line, I need this less, but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results that line-oriented search systems, like =grep=. Let’s create operating-system functions the command line for searching:
+
+Now that my paragraphs in an org file are on a single line, I could use =rg= (or some other =grep= program), but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results than line-oriented search systems. Let’s create operating-system functions the command line for searching:
+
 #+begin_src emacs-lisp
   (defun ha-search-notes--macos (phrase path)
     "Return the indexed search system command on MACOS, mdfind.
@@ -268,9 +273,6 @@ And let’s see how that works:
 #+begin_src emacs-lisp :tangle no :results replace
   (ha-search-notes--macos "crossway stream" "~/Notes")
 #+end_src
-
-#+RESULTS:
-: mdfind -onlyin ~/Notes -interpret crossway stream
 
 This function calls the above-mentioned operating-system-specific functions, but returns the matching files as a /single string/ (where single quotes wrap each file, and all joined together, separated by spaces). This function also allows me to /not-match/ backup files and whatnot.
 #+begin_src emacs-lisp
@@ -314,12 +316,6 @@ The =ha-search-notes= function prompts for the phrase to search, and then search
 Add a keybinding to the function:
 #+begin_src emacs-lisp
   (ha-leader "f n" '("find notes" . ha-search-notes))
-#+end_src
-
-I might replace my code with the [[https://github.com/benmaughan/spotlight.el][spotlight]] project, as it has a slick interface for selecting files:
-#+begin_src emacs-lisp
-  (use-package spotlight
-    :config (ha-leader "f /" '("search files" . spotlight)))
 #+end_src
 ** Misc
 *** Babel Blocks

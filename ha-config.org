@@ -607,7 +607,7 @@ With these helper functions in place, I can create a leader collection for file-
     "f a" '("load any" . find-file)
     "f f" '("load" . consult-projectile-find-file)
     "f F" '("load new window" . find-file-other-window)
-    "f o" '("load org" . org-find-file)
+    "f l" '("locate" . locate)
     "f s" '("save" . save-buffer)
     "f S" '("save as" . write-buffer)
     "f r" '("recent" . recentf-open-files)
@@ -627,6 +627,22 @@ With these helper functions in place, I can create a leader collection for file-
     "f 7" '("load win-7" . ha-find-file-window-7)
     "f 8" '("load win-8" . ha-find-file-window-8)
     "f 9" '("load win-9" . ha-find-file-window-9))
+#+end_src
+
+On Unix systems, the =locate= command is faster than =find= when searching the whole system, since it uses a pre-computed database, and =find= is faster if you need to search a specific directory instead of the whole system. On the Mac, we need to change the =locate= command:
+
+#+begin_src emacs-lisp
+  (when (equal system-type 'darwin)
+    (setq locate-command "mdfind"))
+#+end_src
+
+The advantage of =mdfind= is that is searches for filename /and/ its contents of your search string.
+
+Trying the [[https://github.com/benmaughan/spotlight.el][spotlight]] project, as it has a slick interface for selecting files:
+
+#+begin_src emacs-lisp
+  (use-package spotlight
+    :config (ha-leader "f /" '("search files" . spotlight)))
 #+end_src
 *** Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
