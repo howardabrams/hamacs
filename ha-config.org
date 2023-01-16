@@ -607,6 +607,7 @@ With these helper functions in place, I can create a leader collection for file-
     "f a" '("load any" . find-file)
     "f f" '("load" . consult-projectile-find-file)
     "f F" '("load new window" . find-file-other-window)
+    "f o" '("load org" . org-find-file)
     "f s" '("save" . save-buffer)
     "f S" '("save as" . write-buffer)
     "f r" '("recent" . recentf-open-files)
