@@ -218,6 +218,7 @@ I probably don't need to have such a ranking system, as chances are good I have 
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
                     '(;  Interesting idea: "Iosevka Comfy Motion Duo"
+                      "XCharter" ; https://fontesk.com/xcharter-typeface/
                       "Overpass" "Source Sans Pro"
                       "Lucida Grande" "Verdana"
                       "Sans Serif")))
@@ -241,7 +242,7 @@ Define /interactive/ functions to quickly adjusting the font size based on my co
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 16))
+    (ha-set-favorite-font-size 18))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
@@ -320,7 +321,16 @@ And some keybindings to call them:
 Display these two symbols as one:
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook (lambda ()
-    (push  '("!?" . "‽") prettify-symbols-alist)))
+                              (dolist (pair '(("!?" . "‽")
+                                              ("->" . ?→)
+                                              ("<-" . ?←)
+                                              ("=>" . ?⇒)))
+                                (push pair prettify-symbols-alist))))
+#+end_src
+
+And turn the prettifier on:
+#+begin_src emacs-lisp
+  (global-prettify-symbols-mode 1)
 #+end_src
 
 In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. My systems, seems to work fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
