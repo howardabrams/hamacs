@@ -190,7 +190,8 @@ First step is to make all Org header levels to use the variable font, and be the
     (let ((default-color (face-attribute 'default :foreground)))
       (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
         (set-face-attribute face nil :height 1.1
-                            :foreground default-color :weight 'bold :font ha-variable-font))))
+                            :foreground default-color :weight 'bold
+                            :font ha-variable-header-font))))
 #+end_src
 
 Next, we just need to change the header sizes:

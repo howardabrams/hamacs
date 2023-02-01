@@ -219,9 +219,17 @@ I probably don't need to have such a ranking system, as chances are good I have 
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
                     '(;  Interesting idea: "Iosevka Comfy Motion Duo"
                       "XCharter" ; https://fontesk.com/xcharter-typeface/
-                      "Overpass" "Source Sans Pro"
-                      "Lucida Grande" "Verdana"
-                      "Sans Serif")))
+                      "Serif")))
+       (warn "Cannot find a Serif Font.  Install Source Sans Pro."))))
+
+  (defvar ha-variable-header-font
+    (when window-system
+      (or
+       (seq-first
+        (seq-filter (lambda (font) (when (x-list-fonts font) font))
+                    '("Overpass" "Source Sans Pro"
+                     "Lucida Grande" "Verdana"
+                     "Sans Serif")))
        (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
 #+end_src
 
