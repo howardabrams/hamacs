@@ -14,17 +14,18 @@
 ;;
 ;;; Code:
 
-(defun org-find-file (file &optional directory)
-  "Load file from FILE-TUPLE like `find-file'.
+(defun org-find-file (file)
+  "Load org-specific file like `find-file'.
 
-  If called interactively, first ask for a TAG and then limit the
-  files displayed based on if they have a headline that contains
-  that TAG."
-  (interactive (list (org-find-file--choose-file directory)))
+If called interactively, the list of files inclues the Org's
+title as well as any headline tags."
+  (interactive (list (org-find-file--choose-file)))
   (find-file file))
 
 (defun org-find-file--choose-file (&optional directory)
-  "docstring"
+  "Use `completing-read' to present Org files for selection.
+Acquires the list of files (and their descriptive text) from
+calling `org-find-file--file-choices' (which returns an alist)."
   (let* ((default-directory (if (project-current)
                                 (project-root (project-current))
                               (or directory default-directory)))
@@ -47,7 +48,7 @@
   (let* ((title-color `(:foreground ,(face-attribute 'org-document-title :foreground)))
          (title-str    (string-trim title))
          (title-pretty (propertize title-str 'face title-color))
-         (tag-str      (string-join " ")))
+         (tag-str      (string-join tags " ")))
     (format "%s : %s %s" file title-pretty tag-str)))
 
 (defun org-find-file--gather-titles ()
