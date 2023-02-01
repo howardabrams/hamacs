@@ -1,0 +1,48 @@
+#+TITLE:  `(sprint-current-name)`
+#+AUTHOR: `user-full-name`
+#+EMAIL:  `user-mail-address`
+#+DATE:   `(sprint-date-range)`
+#+CATEGORY: sprint
+#+FILETAGS: :work:
+
+* Work Issues
+$0
+
+* Onboarding Work
+See [[file:Onboarding-Work.org][Onboard-Work]] for all details.
+
+* Distractions and Support
+Anything that doesn't fit the above goes here.
+
+* Meeting Notes                                                     :meeting:
+* Scrum Status                                                       :status:
+
+* Sprint Demonstration
+New approach for giving presentations. First create [[file:`(file-name-sans-extension (buffer-name))`-demo.org][`(file-name-sans-extension (buffer-name))`-demo.org]], and then add the bits to the code below.
+
+#+BEGIN_SRC emacs-lisp :results silent
+  (defun org-present-file (filename)
+    (find-file (filename))
+    (delete-other-windows)
+    (org-present))
+
+  (demo-it-create :advanced-mode :single-window
+                  (org-present-file "`(file-name-sans-extension (buffer-name))`-demo.org")
+                  (org-present-next)
+                  (osx-browse-url-forwork "https://...")
+                  (demo-it-load-fancy-file "~/work/wpc4/wpc/dashboards/wpc4/hypervisor.yml" :line 116 133)
+                  ;; ...
+  )
+#+END_SRC
+
+Have fun and start the show: =demo-it-start= and hit ~F5~.
+* Notes for Next Sprint
+
+
+#+DESCRIPTION: Notes taken during Sprint #`(sprint-number)`
+#+PROPERTY:    header-args: :results drawer :tangle no  :eval no-export :comments org
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil skip:nil author:nil email:nil creator:nil timestamp:nil ^:nil
+
+# Local Variables:
+# eval: (org-content 2)
+# End:
