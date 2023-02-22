@@ -32,6 +32,7 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     :init
     <<variables>>
     <<org-todo>>
+    <<org-todo-clock>>
     <<ob-configuration>>
 
     :config
@@ -184,14 +185,26 @@ The org API allows getting the context associated with the /current element/. Th
     context))
 #+end_src
 ** Tasks
-I need to add a /blocked/ state:
-
+I need to add a /blocked/ state, and wouldn’t /doing/ be better than /in progress/ (you know, without a space):
 #+name: org-todo
 #+begin_src emacs-lisp :tangle no
 (setq org-todo-keywords '((sequence "TODO(t)" "DOING(g)" "|" "DONE(d)")
                           (sequence "BLOCKED(b)" "|" "CANCELLED(c)")))
 #+end_src
 
+[[https://janusworx.com/blog/what-i-learned-today-2023-02-10/][Mario Braganza]] had an interesting idea of starting the clock when a task changes to /in progress/:
+#+name: org-todo-clock
+#+begin_src emacs-lisp
+  (defun ha-org-clock-todo-change ()
+    "Called from hook `org-after-todo-state-change-hook'.
+  Clock in if a task changes to DOING (i.e. IN_PROGRESS),
+  and clocks out with any other state change."
+    (if (string= org-state "DOING")
+        (org-clock-in)
+      (org-clock-out-if-current)))
+
+  (add-hook 'org-after-todo-state-change-hook 'ha-org-clock-todo-change)
+#+end_src
 And I would like to have cute little icons for those states:
 
 #+name: org-font-lock
