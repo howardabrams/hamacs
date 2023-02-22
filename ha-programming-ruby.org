@@ -196,6 +196,12 @@ And then we may or may not need to enable the =rubocop-mode=:
     (use-package rubocop
       :hook (ruby-mode . rubocop-mode))
   #+END_SRC
+* Auxiliary Support
+** Cucumber
+Seems that to understand and edit Cucumber /feature/ definitions, you need [[https://github.com/michaelklishin/cucumber.el][cucumber.el]]:
+#+begin_src emacs-lisp
+  (use-package feature-mode)
+#+end_src
 * LSP
 Need to install [[https://github.com/castwide/solargraph][Solargraph]] for the LSP server experience:
 #+begin_src sh
