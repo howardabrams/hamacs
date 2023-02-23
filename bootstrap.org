@@ -25,36 +25,9 @@ A literate programming file for bootstraping my Emacs Configuration.
 #+end_src
 * Introduction
 This file contains all the variable definitions and library loading for the other files in my project.
-** Straight Package Installer
-I'm going to be installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. Before I can /tangle/ these files, I need =straight= to grab the latest =org=, so the following initialization code is actually in [[file:initialize][initialize]], but if you are reading this online, configuring =straight= amounts to the following:
 
-#+begin_src emacs-lisp :tangle no
-  (defvar bootstrap-version)
+I'm installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. This is initialization code configured in [[file:initialize][initialize]], and calls to =use-package= now accepts a =:straight= parameter that allows me to retrieve special versions of some packages.
 
-  (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-#+end_src
-
-To get the Straight project working with =use-package=:
-#+begin_src emacs-lisp :tangle no
-(straight-use-package 'use-package)
-#+end_src
-
-While the above code enables the =:straight t= extension to =use-package=, let's have that as the default:
-#+begin_src emacs-lisp :tangle no
-(use-package straight
-  :custom (straight-use-package-by-default t
-           straight-default-vc 'git))
-#+end_src
 See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
 
 ** OS Path and Native Compilation
