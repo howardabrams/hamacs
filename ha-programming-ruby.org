@@ -8,7 +8,7 @@ A literate programming file for configuring Emacs to support the Ruby programmin
 #+begin_src emacs-lisp :exports none
   ;;; ha-programming-ruby --- Ruby configuration. -*- lexical-binding: t; -*-
   ;;
-  ;; © 2022 Howard X. Abrams
+  ;; © 2022-2023 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;

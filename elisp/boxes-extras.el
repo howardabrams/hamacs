@@ -1,7 +1,7 @@
 ;;; BOXES-EXTRAS --- Refiling Subtrees to Proper Org Files
 ;;
 ;; Author: Howard Abrams <howard@howardabrams.com>
-;; © 2019-2022 Howard Abrams, all rights reserved.
+;; © 2019-2023 Howard Abrams, all rights reserved.
 ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
 ;;   See http://creativecommons.org/licenses/by/4.0/
 ;; Created:  7 January 2019

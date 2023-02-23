@@ -7,7 +7,7 @@ A literate programming file for integrating the [[https://ocaml.org/][OCaml prog
 #+begin_src emacs-lisp :exports none
   ;;; ha-programming-ocaml --- integrating OCaml -*- lexical-binding: t; -*-
   ;;
-  ;; © 2022 Howard X. Abrams
+  ;; © 2022-2023 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;

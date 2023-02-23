@@ -7,7 +7,7 @@ A literate configuration file for email using Notmuch.
 #+begin_src emacs-lisp :exports none
   ;;; ha-email --- Email configuration using Notmuch. -*- lexical-binding: t; -*-
   ;;
-  ;; © 2020-2022 Howard X. Abrams
+  ;; © 2020-2023 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;

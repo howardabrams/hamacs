@@ -7,7 +7,7 @@ A literate program for configuring org files for work-related notes.
 #+begin_src emacs-lisp :exports none
   ;;; org-sprint --- Configuring org files for work-related notes. -*- lexical-binding: t; -*-
   ;;
-  ;; © 2020-2022 Howard X. Abrams
+  ;; © 2020-2023 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
