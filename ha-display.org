@@ -47,7 +47,6 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
 
 #+begin_src emacs-lisp
   (use-package pulsar
-    :straight (:repo "https://git.sr.ht/~protesilaos/pulsar")
     :custom
     (pulsar-pulse-functions '(recenter-top-bottom
                               move-to-window-line-top-bottom

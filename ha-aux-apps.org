@@ -63,6 +63,8 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
           (ha-leader
             "a m t" '("toot" . mastodon-toot)
             "a m u" '("update" . mastodon-tl--update)
+            "a m f" '("favorite" . mastodon-toot--toggle-favourite)
+            "a m b" '("boost" . mastodon-toot--toggle-boost)
             "a m d" '("discover" . mastodon-discover))
           (my-mastodon-start))))
 
