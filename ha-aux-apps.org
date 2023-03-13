@@ -41,7 +41,7 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
 Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project, and even more glad to see the great birdland diaspora arrive in the land of the toots.
 #+begin_src emacs-lisp
   (use-package mastodon
-    :straight (:repo "https://codeberg.org/martianh/mastodon.el")
+    :straight (:host codeberg :repo "martianh/mastodon.el")
     :init
     (setq mastodon-instance-url "https://emacs.ch"
           mastodon-active-user "howard")

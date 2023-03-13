@@ -28,6 +28,7 @@ A literate programming file for configuring org-mode and those files.
 Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
 #+begin_src emacs-lisp
   (use-package org
+    :straight (:type built-in)
     :mode ("\\.org" . org-mode)    ; Addresses an odd warning
     :init
     <<variables>>

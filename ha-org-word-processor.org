@@ -48,6 +48,7 @@ Oh, and as I indent lists, they should change the /bulleting/ in a particular se
 The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really work well with variable-width fonts, so let’s make the spaces at the beginning of the line fixed:
 #+begin_src emacs-lisp
   (use-package org
+    :straight (:type built-in)
     :custom-face (org-indent ((t (:inherit fixed-pitch)))))
 #+end_src
 ** Typographic Quotes
@@ -235,6 +236,7 @@ And decrease the prominence of the property drawers:
 This process allows us to use =variable-pitch= mode for all org documents.
 #+begin_src emacs-lisp
   (use-package org
+    :straight (:type built-in)
     :hook (org-mode . variable-pitch-mode))
 #+end_src
 * Org Modern

@@ -95,9 +95,9 @@ cat > $HAMACS_DEST/init.el <<EOF
 
 ;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
 
-;; Download and use the latest version of org:
 
-(use-package org)  ; We'll configure this in ernest later.
+;; Download and use the latest version of org:
+;; (use-package org)  ; We'll configure this in ernest later.
 
 ;; Let's rock:
 (org-babel-load-file "$HAMACS_DIR/bootstrap.org")
