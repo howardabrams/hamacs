@@ -327,7 +327,7 @@ As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html
 
   (use-package beep
     :straight nil   ; Already in the load-path
-    :hook (after-init . (lambda () (beep--when-finished "Emacs has started")))
+    :hook (after-init . (lambda () (beep--when-finished "Emacs has started." "Eemacs has started")))
     :config
     (dolist (func '(org-publish
                     org-publish-all

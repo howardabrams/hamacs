@@ -35,7 +35,7 @@ Customize the variable, `beep-speech-executable'."
   (let ((command (format beep-speech-executable phrase)))
     (shell-command command)))
 
-(defun beep--when-finished (phrase)
+(defun beep--when-finished (phrase &optional to-speak)
   "Notify us with string, PHRASE, to grab our attention.
 Useful after a long process has completed, but use sparingly,
 as this can be pretty distracting."
@@ -43,7 +43,7 @@ as this can be pretty distracting."
   (when (functionp 'alert)
     (alert phrase :title "Completed"))
   (beep--beep)
-  (beep--speak phrase))
+  (beep--speak (or to-speak phrase)))
 
 (defun compile-and-notify ()
   "Call `compile' and notify us when finished.
