@@ -29,7 +29,7 @@ Seems that all programming interfaces and workflows behave similarly. One other 
   (general-create-definer ha-prog-leader
       :states '(normal visual motion)
       :keymaps 'prog-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 #+end_src

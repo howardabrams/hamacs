@@ -123,7 +123,7 @@ Let's create a leader for this mode:
   (general-create-definer ha-irc-leader
       :states '(normal visual motion)
       :keymaps '(erc-mode-map)
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 #+end_src

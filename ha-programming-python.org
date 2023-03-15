@@ -30,7 +30,7 @@ The critical part of Python integration with Emacs is running LSP in Python usin
   (general-create-definer ha-python-leader
       :states '(normal visual motion)
       :keymaps 'python-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 #+end_src

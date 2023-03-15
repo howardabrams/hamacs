@@ -135,7 +135,7 @@ Ruby-specific commands are attached to the =ha-ruby-leader=, bound to ~SPC m~:
   (general-create-definer ha-ruby-leader
       :states '(normal visual motion)
       :keymaps 'ruby-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 #+end_src

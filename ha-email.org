@@ -644,21 +644,21 @@ In /Emacs/ mode, we can just call =define-key=, but since it starts in Evil stat
   (general-create-definer ha-mail-hello-leader
       :states '(normal visual motion)
       :keymaps 'notmuch-hello-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 
   (general-create-definer ha-mail-search-leader
       :states '(normal visual motion)
       :keymaps 'notmuch-search-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 
   (general-create-definer ha-mail-show-leader
       :states '(normal visual motion)
       :keymaps 'notmuch-show-mode-map
-      :prefix "SPC m"
+      :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC")
 #+end_src
