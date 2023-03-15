@@ -159,11 +159,29 @@ Can we do the same with ellipses?
 
 #+end_src
 
-Now I’m getting obsessive with elongating dashes:
+After reading [[https://www.punctuationmatters.com/en-dash-em-dash-hyphen][this essay]], I’ve gotten obsessive with elongating dashes. In this case, typing a dash surrounded with spaces, e.g. something – like this, we convert them to [[https://www.compart.com/en/unicode/U+2013][en dash]]. But if I type two dashes in a row—which identifies an emphasized clause—I can convert it directly to [[https://www.compart.com/en/unicode/U+2014][em dash]]. Continually typing a dash replaces that character with longer and longer dashes⸺
+
 #+begin_src emacs-lisp
+  (defun ha-insert-space ()
+    "Insert a space unless previously typed a dash.
+  In this case, insert an n-dash instead."
+    (interactive)
+    (if (and (derived-mode-p 'org-mode)
+             (org-in-block-p '("src" "latex" "html" "example")))
+        (call-interactively #'self-insert-command)
+      (if (or
+           (looking-back (rx line-start (one-or-more space) "-"))
+           (looking-back (rx (not "-"))))
+          (call-interactively #'self-insert-command)
+
+        (delete-backward-char 1)
+        (insert "– "))))             ; Replace dash with en-dash + space
+
+  (define-key org-mode-map " " #'ha-insert-space)
+
   (defun ha-insert-long-dash ()
-    "Insert a `.' unless two have already be inserted.
-  In this case, insert an ellipsis instead."
+    "Insert a `-' unless other dashes have already be inserted.
+  In this case, insert an n-dash or m-dashes instead."
     (interactive)
     (if (and (derived-mode-p 'org-mode)
              (org-in-block-p '("src" "latex" "html" "example")))
@@ -181,6 +199,7 @@ Now I’m getting obsessive with elongating dashes:
 
   (define-key org-mode-map "-" #'ha-insert-long-dash)
 #+end_src
+The /issue/ is how do we deal with org’s dashed bullets? In this case, we want to insert an actual dash, but elsewhere, we /visually/ display the dash as a more emphasized glyph.
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 
