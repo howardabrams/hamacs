@@ -173,14 +173,77 @@ The other advantage is moving around by s-expressions. This takes a little getti
 - ~(~ and ~)~ move up to the parent s-expression
 
 We need a real-world example. Let’s suppose we entered this:
+** Clever Keybindings
+Adding a bunch of meta-key keybindings to the Normal state seems like I’m going backwards away from the /key sequences/ of Evil. First, adding frequently used (especially key movements) on the ~g~ key seems nice. Since I never bother with [[help:find-file-at-point][find-file-at-point]], I figured I could re-purpose that keybinding:
+
 #+begin_src emacs-lisp :tangle no
 (format "The sum of %d %d is %d" a b (+ a b))
+  (use-package evil-cleverparens
+    :general
+    (:states 'normal :keymaps 'prog-mode-map
+             "gf" '("evil cleverparens" . evil-cleverparens-hydra/body)
+             "H" 'evil-cp-backward-sexp
+             "L" 'ha-cp-forward-sexp))
 #+end_src
 But we forgot to define the =a= and =b= variables. One approach, after Escaping into the normal state, is to hit ~(~ to just to the beginning of the s-expression, and then type,  ~M-(~ to wrap the expression, and type ~i~ to go into insert mode:
+
+For all the rest, why not make a Hydra using the pretty-hydra project:
 #+begin_src emacs-lisp :tangle no
   (‖ (format "The sum of %d %d is %d" a b (+ a b)))
 #+end_src
 And now we can enter the =let= expression.
+  (use-package pretty-hydra
+    :after evil-cleverparens
+    :config
+    (pretty-hydra-define evil-cleverparens-hydra
+      (:color red :quit-key "q")
+      ("Movement"
+       (("f" ha-cp-beginning-of-next-defun  "Next defun")
+        ("C-f" evil-cp-end-of-defun nil)                  ; M-l
+        ("F" evil-cp-beginning-of-defun     "Prev defun") ; M-h
+
+        ("j" evil-cp-forward-symbol-begin   "Next symbol")
+        ("k" evil-cp-backward-symbol-begin  "Prev symbol")
+        ("J" evil-cp-forward-symbol-end     "Next symbol")
+        ("K" evil-cp-backward-symbol-end    "Prev symbol"))
+
+       "Move S-Exp"
+       (("h" evil-cp-backward-sexp          "Prev s-exp")   ; H
+        ("C-l" evil-cp-forward-sexp         nil)            ; L
+        ("l" ha-cp-forward-sexp             "Next s-exp")
+
+        ("C-u" evil-cp-backward-up-sexp     nil)
+        ("u" ha-sp-up-sexp                  "Up s-exp")     ; See sp-up-sexp
+        ("d" sp-down-sexp                   "Inside s-exp"))
+
+       "Slurping"
+       ((">" evil-cp->              "Barf")
+        ("<" evil-cp-<              "Slurp")
+        ("w" cp-wrap-round          "Wrap")
+        ("b" evil-cp-drag-backward  "Drag Backward")      ; M-k
+        ("g" evil-cp-drag-forward   "Drag forward"))      ; M-j
+
+       "Manipulation"
+       (("=" sp-indent-defun           "Indent defun")    ; M-q
+        ("J" sp-join-sexp              "Join s-exp")      ; M-j
+        ("s" sp-splice-sexp            "Splice s-exp")    ; M-s
+        ("S" sp-split-sexp             "Split s-exp")     ; M-S
+        ("t" sp-transpose-sexp         "Transpose s-exp") ; M-t
+        ("T" sp-transpose-hybrid-sexp  "Transpose hybrid")
+        ("x" sp-convolute-sexp         "Convolute s-exp") ; M-v
+        ("r" sp-raise-sexp             "Raise s-exp"))    ; M-r
+
+       "Insert"
+       (("o" evil-cp-open-below-form  "After"  :color blue)
+        ("O" evil-cp-open-above-form  "Before" :color blue)
+        ("a" ha-cp-append-end         "append" :color blue)
+        ("A" evil-cp-append           "Append" :color blue)
+        ("i" evil-cp-insert           "Insert" :color blue))
+       "Other"
+       (("U" evil-undo           "Undo")
+        ("R" evil-redo           "Redo")
+        ("v" er/expand-region    "Expand")
+        ("V" er/contract-region  "Contract")))))
 
 Other nifty keybindings that I need to commit to muscle memory include:
 | ~M-q~ | =sp-indent-defun=   |
@@ -190,7 +253,43 @@ Other nifty keybindings that I need to commit to muscle memory include:
 | ~M-t~ | =sp-transpose-sexp= |
 | ~M-v~ | =sp-convolute-sexp= |
 | ~M-r~ | =sp-raise-sexp=     |
+  (defun ha-cp-beginning-of-next-defun (count)
+    "Move to the beginning of the next function."
+    (interactive "P")
+    (evil-cp-end-of-defun count)
+    (evil-cp-end-of-defun)
+    (evil-cp-beginning-of-defun))
 
+  (defun ha-sp-up-sexp (count)
+    "Better opposite of `sp-down-sexp'."
+    (interactive "P")
+    (evil-cp-backward-up-sexp count)
+    (evil-cp-backward-up-sexp)
+    (sp-down-sexp))
+
+  (defun ha-cp-forward-sexp (count)
+    "Better opposite of `evil-cp-backward-sexp'."
+    (interactive "P")
+    (evil-cp-forward-sexp count)
+    (evil-cp-forward-sexp)
+    (evil-cp-backward-sexp))
+
+  (defun ha-cp-append-end ()
+    "Append to the end of the current s-expression."
+    (interactive)
+    (when (looking-at (rx (any "{" "(" "[")))
+      (sp-down-sexp))
+    (sp-end-of-sexp)
+    (evil-cp-insert 1))
+
+  (defun ha-cp-append-after ()
+    "Append after the current s-expression."
+    (interactive)
+    (when (looking-at (rx (any "{" "(" "[")))
+      (sp-down-sexp))
+    (sp-end-of-sexp)
+    (evil-cp-append 1))
+#+end_src
 ** Eval Current Expression
 The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
 #+begin_src emacs-lisp
