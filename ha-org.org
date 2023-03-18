@@ -76,6 +76,7 @@ Begin by initializing these org variables:
         org-imenu-depth 4
         sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
 
+        org-html-validation-link nil
         org-export-with-sub-superscripts nil
         org-html-validation-link nil
         org-directory "~/personal"
