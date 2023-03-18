@@ -166,6 +166,47 @@ To take advantage of this, type:
 
 Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
 ** Navigation with dumb-jump
+** Smart Parenthesis
+We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :custom
+    (smartparens-global-strict-mode t)
+
+    :config
+    (sp-with-modes sp-lisp-modes
+      ;; disable ', as it's the quote character:
+      (sp-local-pair "'" nil :actions nil))
+
+    (sp-with-modes (-difference sp-lisp-modes sp-clojure-modes)
+      ;; use the pseudo-quote inside strings where it serve as hyperlink.
+      (sp-local-pair "`" "'"
+                     :when '(sp-in-string-p
+                             sp-in-comment-p)
+                     :skip-match (lambda (ms _mb _me)
+                                   (cond
+                                    ((equal ms "'") (not (sp-point-in-string-or-comment)))
+                                    (t (not (sp-point-in-string-or-comment)))))))
+    :hook
+    (prog-mode . smartparens-strict-mode))
+#+end_src
+** Navigation
+*** Move by Functions
+The =mark-paragraph= and =downcase-word= isn’t very useful in a programming context, and makes more sense to use them to jump around function-by-function:
+#+begin_src emacs-lisp
+  (evil-define-key '(normal insert emacs) prog-mode-map
+    (kbd "M-h")    'beginning-of-defun
+    (kbd "M-l")    'beginning-of-next-defun)
+#+end_src
+But one of those functions doesn’t exist:
+#+begin_src emacs-lisp
+  (defun beginning-of-next-defun (count)
+    "Move to the beginning of the following function."
+    (interactive "P")
+    (end-of-defun count)
+    (end-of-defun)
+    (beginning-of-defun))
+#+end_src
 Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should be able to use them.  but I want to:
   - Be in a function, and see its callers. For this, the [[help:rg-dwim][rg-dwim]] function is my bread-and-butter.
   - Be on a function, and jump to the definition. For this, I use [[https://github.com/jacktasia/dumb-jump][dumb-jump]], which uses the above utilities.

@@ -30,6 +30,16 @@ New, /non-literal/ source code comes from [[file:templates/emacs-lisp-mode.el][e
 #+begin_src emacs-lisp
   (ha-auto-insert-file (rx ".el" eol) "emacs-lisp-mode.el")
 #+end_src
+
+Perhaps we should have an Emacs Lisp-specific leader for advanced commands:
+#+begin_src emacs-lisp
+  (general-create-definer ha-elisp-leader
+      :states '(normal visual motion)
+      :keymaps '(emacs-lisp-mode-map lisp-mode-map)
+      :prefix ","
+      :global-prefix "<f17>"
+      :non-normal-prefix "S-SPC")
+#+end_src
 * Syntax Display
 ** Dim those Parenthesis
 The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I find better.
@@ -86,210 +96,145 @@ While I love packages that add functionality and I don’t have to learn anythin
 
   (add-to-list 'evil-goto-definition-functions 'ha-org-code-block-jump)
 #+end_src
-And in case I need to call it directly:
-#+begin_src emacs-lisp
-  (defun ha-goto-definition ()
-    (interactive)
-    (evil-inner-WORD))
-#+end_src
-** Clever Parenthesis
-We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
-#+begin_src emacs-lisp
-  (use-package smartparens
-    :custom
-    (smartparens-global-strict-mode t)
+** Lispy
+I like the idea of [[https://github.com/abo-abo/lispy][lispy]] for making a Lisp-specific /keybinding state/ (similar to Evil).
 
+My primary use-case is for its refactoring and other unique features. For instance, I love [[help:lispy-ace-paren][lispy-ace-paren]] that puts an /ace label/ on every parenthesis, allowing me to quickly jump to any s-expression.
+
+#+begin_src emacs-lisp
+  (use-package lispy
     :config
-    (sp-with-modes sp-lisp-modes
-      ;; disable ', as it's the quote character:
-      (sp-local-pair "'" nil :actions nil))
+    (evil-define-key 'normal emacs-lisp-mode-map
+      "gf" 'lispy-ace-paren
+      "gF" 'lispy-ace-symbol)
 
-    (sp-with-modes (-difference sp-lisp-modes sp-clojure-modes)
-      ;; use the pseudo-quote inside strings where it serve as hyperlink.
-      (sp-local-pair "`" "'"
-                     :when '(sp-in-string-p
-                             sp-in-comment-p)
-                     :skip-match (lambda (ms _mb _me)
-                                   (cond
-                                    ((equal ms "'") (not (sp-point-in-string-or-comment)))
-                                    (t (not (sp-point-in-string-or-comment)))))))
-    :hook
-    (prog-mode . smartparens-strict-mode))
+    (ha-elisp-leader
+      "r i" '("cond→if" . lispy-to-ifs)
+      "r c" '("if→cond" . lispy-to-cond)
+      "r d" '("λ→𝑓" . lispy-to-defun)
+      "r l" '("𝑓→λ" . lispy-to-lambda)
+      "r f" '("flatten" . lispy-flatten)
+      "r b" '("bind var" . lispy-bind-variable)
+      "r u" '("unbind var" . lispy-unbind-variable)
+
+      "e d" '("edebug" . lispy-edebug)
+      "e j" '("debug-step-in" . lispy-debug-step-in)
+      "e R" '("eval-and-replace" . lispy-eval-and-replace)
+
+      "h d" '("describe" . lispy-describe)
+      "t t" '("ert" . lispy-ert)))
 #+end_src
+** Lispyville
+I want an Evil version of [[Lispy]]. The [[https://github.com/noctuid/lispyville][lispyville project]] builds on it to make it Evil. From the README:
+#+begin_quote
+The main difference from an evil state is that lispy’s “special” is contextually based on the point (special is when the point is before an opening delimiter, after a closing delimiter, or when there is an active region).
+#+end_quote
 
-The [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] solves having me create keybindings to the [[https://github.com/Fuco1/smartparens][smartparens]] project by updating the evil states with Lisp-specific bindings.
+Many of the operations supplied by =lispyville= don’t require learning anything new. Similar to [[Clever Parenthesis]], we can
+For instance, if our point is placed at this location in this code:
 #+begin_src emacs-lisp
-  (use-package evil-cleverparens
-    :after smartparens
-    :custom
-    (evil-cleverparens-use-additional-bindings t)
-    (evil-cleverparens-use-additional-movement-keys t)
-    (evil-cleverparens-use-s-and-S t)
-
-    :init
-    (require 'evil-cleverparens-text-objects)
-
-    :hook
-    (prog-mode . evil-cleverparens-mode))  ;; All the languages!
-    ;; Otherwise: (emacs-lisp-mode . evil-cleverparens-mode)
+  (message "The answer is %d" (+ 2 (* 8 5)‸ 9 (+ 1 4)))
 #+end_src
+Pressing ~D~ results in:
+#+begin_src emacs-lisp
+  (message "The answer is %d" (+ 2 (* 8 5)‸))
+#+end_src
+And doesn’t delete the trailing parenthesis.
 
 The /trick/ to being effective with the [[https://www.emacswiki.org/emacs/ParEdit][paredit-family]] of extensions is learning the keys. The killer “app” is the slurp/barf sequence. Use the ~<~ key, in normal mode, to barf (or jettison)… in other words, /move/ the paren closer to the point. For instance:
 #+begin_src emacs-lisp :tangle no
-  (+ 41 (* ‖1 3))  ⟹  (+ 41 (* ‖1) 3)
+  (+ 41 (* ‸1 3))  ⟹  (+ 41 (* ‸1) 3)
 #+end_src
 Use the ~>~ key to /slurp/ in outside objects into the current expression… in other words, move the paren away from the point. For instance:
 #+begin_src emacs-lisp :tangle no
-  (+ 41 (* ‖1) 3)  ⟹  (+ 41 (* ‖1 3))
+  (+ 41 (* ‸1) 3)  ⟹  (+ 41 (* ‸1 3))
 #+end_src
 
-*Opening Parens.* Those two keys seem straight-forward, but they behave differently when the are on the opening parens.
-When the point (symbolized by ~‖~) is /on/ the opening paren, ~<~ moves the paren to the left. For instance:
-#+begin_src emacs-lisp :tangle no
-  (+ 41 ‖(* 1 3))  ⟹  (+ ‖(41 * 1 3))
-#+end_src
-And  the ~>~ moves the paren to the right. For instance:
-#+begin_src emacs-lisp :tangle no
-  (+ 41 ‖(* 1 3))  ⟹ (+ 41 * ‖(1 3))
-#+end_src
+*Note:* I used to use the [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] project to have similar keybindings but in all programming languages. I found that =lispyville= is a little more reliable, and that I don’t really use these types of code manipulation in my day-job programming languages of Python and YAML.
 
-I would like to have a list of what keybindings that work in =normal= mode:
-- ~M-h~ / ~M-l~ move back/forward by functions
-- ~H~ / ~L~ move back/forward by s-expression
-- ~M-i~ insert at the beginning of the form
-- ~M-a~ appends at the end of the form
-- ~M-o~ new form after the current sexp
-- ~M-O~ new form /before/ the current sexp
-- ~M-j~ / ~M-k~ drags /thing at point/ and back and forth in the form
-- ~>~ slurp forward if at the end of form, at beginning, it barfs backwards
-- ~<~ slurp backward if at start of form, at the end, it barfs forwards
-- ~M-(~ / ~M-)~ wraps next/previous form in parens (braces and brackets work too)
-- ~x~ unwraps if the point is on the =(= of an expression.
-- ~D~ deletes an entire s-expression, but this can depend on the position of the point.
+#+begin_src emacs-lisp
+  (use-package lispyville
+    :after lispy
+    :hook ((emacs-lisp-mode-hook lisp-mode-hook) . lispyville-mode)
 
-The other advantage is moving around by s-expressions. This takes a little getting used to, for instance:
-- ~[~ and ~]~ move from paren to paren, essentially, from s-expression.
-- ~H~ and ~L~ act similarly to the above.
-- ~(~ and ~)~ move up to the parent s-expression
-
-We need a real-world example. Let’s suppose we entered this:
-** Clever Keybindings
-Adding a bunch of meta-key keybindings to the Normal state seems like I’m going backwards away from the /key sequences/ of Evil. First, adding frequently used (especially key movements) on the ~g~ key seems nice. Since I never bother with [[help:find-file-at-point][find-file-at-point]], I figured I could re-purpose that keybinding:
-
-#+begin_src emacs-lisp :tangle no
-(format "The sum of %d %d is %d" a b (+ a b))
-  (use-package evil-cleverparens
-    :general
-    (:states 'normal :keymaps 'prog-mode-map
-             "gf" '("evil cleverparens" . evil-cleverparens-hydra/body)
-             "H" 'evil-cp-backward-sexp
-             "L" 'ha-cp-forward-sexp))
-#+end_src
-But we forgot to define the =a= and =b= variables. One approach, after Escaping into the normal state, is to hit ~(~ to just to the beginning of the s-expression, and then type,  ~M-(~ to wrap the expression, and type ~i~ to go into insert mode:
-
-For all the rest, why not make a Hydra using the pretty-hydra project:
-#+begin_src emacs-lisp :tangle no
-  (‖ (format "The sum of %d %d is %d" a b (+ a b)))
-#+end_src
-And now we can enter the =let= expression.
-  (use-package pretty-hydra
-    :after evil-cleverparens
     :config
-    (pretty-hydra-define evil-cleverparens-hydra
-      (:color red :quit-key "q")
-      ("Movement"
-       (("f" ha-cp-beginning-of-next-defun  "Next defun")
-        ("C-f" evil-cp-end-of-defun nil)                  ; M-l
-        ("F" evil-cp-beginning-of-defun     "Prev defun") ; M-h
+    (lispyville-set-key-theme '(operators atom-movement
+                                commentary slurp/barf-lispy additional-wrap
+                                additional additional-insert))
 
-        ("j" evil-cp-forward-symbol-begin   "Next symbol")
-        ("k" evil-cp-backward-symbol-begin  "Prev symbol")
-        ("J" evil-cp-forward-symbol-end     "Next symbol")
-        ("K" evil-cp-backward-symbol-end    "Prev symbol"))
+    (evil-define-key '(normal insert emacs) lispyville-mode-map
+      (kbd "M-h") 'lispyville-beginning-of-defun
+      (kbd "M-l") 'lispyville-beginning-of-next-defun
+      (kbd "M-i") 'lispyville-insert-at-beginning-of-list ; These are useful
+      (kbd "M-a") 'lispyville-insert-at-end-of-list       ; and I want to use
+      (kbd "M-o") 'lispyville-open-below-list             ; these in insert
+      (kbd "M-O") 'lispyville-open-above-list             ; or Emacs state.
 
-       "Move S-Exp"
-       (("h" evil-cp-backward-sexp          "Prev s-exp")   ; H
-        ("C-l" evil-cp-forward-sexp         nil)            ; L
-        ("l" ha-cp-forward-sexp             "Next s-exp")
+      ;; The c-w theme is VI-specific. I still use Emacs' M-Delete:
+      (kbd "M-DEL")  'lispyville-delete-backward-word)
 
-        ("C-u" evil-cp-backward-up-sexp     nil)
-        ("u" ha-sp-up-sexp                  "Up s-exp")     ; See sp-up-sexp
-        ("d" sp-down-sexp                   "Inside s-exp"))
+    ;; Sentence and paragraph movement doesn't make sense in a Lisp world,
+    ;; so I redefine these based on my own personal expectations:
+    (evil-define-key 'normal lispyville-mode-map
+      "H" 'lispyville-backward-sexp-begin
+      (kbd "M-H") 'lispyville-backward-sexp-end
+      "L" 'lispyville-forward-sexp-begin
+      (kbd "M-L") 'lispyville-forward-sexp-end
+      "(" 'lispyville-previous-opening
+      ")" 'lispyville-next-closing
+      "{" 'lispyville-backward-up-list
+      "}" 'lispyville-next-opening)
 
-       "Slurping"
-       ((">" evil-cp->              "Barf")
-        ("<" evil-cp-<              "Slurp")
-        ("w" cp-wrap-round          "Wrap")
-        ("b" evil-cp-drag-backward  "Drag Backward")      ; M-k
-        ("g" evil-cp-drag-forward   "Drag forward"))      ; M-j
-
-       "Manipulation"
-       (("=" sp-indent-defun           "Indent defun")    ; M-q
-        ("J" sp-join-sexp              "Join s-exp")      ; M-j
-        ("s" sp-splice-sexp            "Splice s-exp")    ; M-s
-        ("S" sp-split-sexp             "Split s-exp")     ; M-S
-        ("t" sp-transpose-sexp         "Transpose s-exp") ; M-t
-        ("T" sp-transpose-hybrid-sexp  "Transpose hybrid")
-        ("x" sp-convolute-sexp         "Convolute s-exp") ; M-v
-        ("r" sp-raise-sexp             "Raise s-exp"))    ; M-r
-
-       "Insert"
-       (("o" evil-cp-open-below-form  "After"  :color blue)
-        ("O" evil-cp-open-above-form  "Before" :color blue)
-        ("a" ha-cp-append-end         "append" :color blue)
-        ("A" evil-cp-append           "Append" :color blue)
-        ("i" evil-cp-insert           "Insert" :color blue))
-       "Other"
-       (("U" evil-undo           "Undo")
-        ("R" evil-redo           "Redo")
-        ("v" er/expand-region    "Expand")
-        ("V" er/contract-region  "Contract")))))
-
-Other nifty keybindings that I need to commit to muscle memory include:
-| ~M-q~ | =sp-indent-defun=   |
-| ~M-J~ | =sp-join-sexp=      |
-| ~M-s~ | =sp-splice-sexp=    |
-| ~M-S~ | =sp-split-sexp=     |
-| ~M-t~ | =sp-transpose-sexp= |
-| ~M-v~ | =sp-convolute-sexp= |
-| ~M-r~ | =sp-raise-sexp=     |
-  (defun ha-cp-beginning-of-next-defun (count)
-    "Move to the beginning of the next function."
-    (interactive "P")
-    (evil-cp-end-of-defun count)
-    (evil-cp-end-of-defun)
-    (evil-cp-beginning-of-defun))
-
-  (defun ha-sp-up-sexp (count)
-    "Better opposite of `sp-down-sexp'."
-    (interactive "P")
-    (evil-cp-backward-up-sexp count)
-    (evil-cp-backward-up-sexp)
-    (sp-down-sexp))
-
-  (defun ha-cp-forward-sexp (count)
-    "Better opposite of `evil-cp-backward-sexp'."
-    (interactive "P")
-    (evil-cp-forward-sexp count)
-    (evil-cp-forward-sexp)
-    (evil-cp-backward-sexp))
-
-  (defun ha-cp-append-end ()
-    "Append to the end of the current s-expression."
-    (interactive)
-    (when (looking-at (rx (any "{" "(" "[")))
-      (sp-down-sexp))
-    (sp-end-of-sexp)
-    (evil-cp-insert 1))
-
-  (defun ha-cp-append-after ()
-    "Append after the current s-expression."
-    (interactive)
-    (when (looking-at (rx (any "{" "(" "[")))
-      (sp-down-sexp))
-    (sp-end-of-sexp)
-    (evil-cp-append 1))
+    ;; Visually high-light a region, just hit `(' to wrap it in parens.
+    ;; Without smartparens, we need to insert a pair of delimiters:
+    (evil-define-key '(visual insert emacs) lispyville-mode-map "(" 'lispy-parens)
+    (evil-define-key '(visual insert emacs) lispyville-mode-map "[" 'lispy-brackets)
+    (evil-define-key '(visual insert emacs) lispyville-mode-map "{" 'lispy-braces))
 #+end_src
+
+Instead of converting /all keybindings/, the project supplies /key themes/ to grab specific keybinding groups.
+  - =operators= :: basic VI operators that keep stuff balanced
+  - =c-w= :: replaces the ~C-w~, but since that is VI-specific, I rebind this to ~M-Delete~
+  - =text-objects= :: Add more text-objects, I wrote my [[file:ha-config.org::*Better Parenthesis with Text Object][own version]] for s-expressions, but I might try these
+  - =atom-movement= :: The ~e~ / ~w~ and ~b~ keys will move by /symbols/ instead of /words/.
+  - =additional-movement= :: Adds new movement keys, ~H~ / ~L~ for s-expr and the ~(~ / ~)~ for getting to closest expressions. This doesn’t work well, but is easy to re-implement.
+  - =commentary= :: Replace ~gc~ for un/commenting Lisp elements.
+  - =slurp/bar-lispy= :: always allow ~<~ / ~>~ to slurp/barf even /inside/ an s-expression.
+  - =additional= :: New ~M-~ bindings for manipulating s-expressions. ~M-J~ is very cool.
+  - =additional-insert= :: ~M-i~ insert at beginning, and ~M-a~ to insert at the end of a list.
+  - =wrap= :: like [[file:ha-config.org::*Evil Surround][Evil Surround]] but with one less keystroke. ~M-( M-(~ wraps the entire line.
+  - =additional-wrap= :: is another version of the =wrap= that automatically wraps current symbol, and then you can slurp in the rest.
+  - =mark= :: The ~v~ will highlight current symbol, and ~V~ will highlight current s-expression. Continues to work with [[file:ha-config.org::*Expand Region][Expand Region]].
+
+New bindings to remember:
+  - ~>~ :: slurp
+  - ~<~ :: barf
+
+  - ~H~ :: backward s-expression
+  - ~L~ :: forward s-expression
+  - ~M-h~ :: beginning of defun
+  - ~M-l~ :: end of defun
+
+  - ~M-i~ :: insert at beginning of list
+  - ~M-a~ :: insert at end of list
+  - ~M-o~ :: open below list … never worry about inserting into a bunch of closing parens.
+  - ~M-O~ :: open above list
+
+  - ~M-j~ :: drag forward
+  - ~M-k~ :: drag backward
+  - ~M-J~ :: join
+  - ~M-s~ :: splice … I could use specific examples for these operations so I would know when to use them.
+  - ~M-S~ :: split
+  - ~M-r~ :: raise s-expression
+  - ~M-R~ :: raise list
+  - ~M-t~ :: transpose s-expressions
+  - ~M-v~ :: convolute s-expression
+
+These are all good, but the primary keys I need to figure out, are the s-expression movement keys:
+  - ~{~ :: backward up list … nice to hit once (maybe twice), but isn’t something to use to navigate
+  - ~}~ :: next opening parenthesis
+  - ~(~ :: previous opening paren
+  - ~)~ :: next closing parenthesis
 ** Eval Current Expression
 The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
 #+begin_src emacs-lisp
@@ -300,16 +245,16 @@ The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Resu
 A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but [[help:evil-cp-next-closing ][evil-cp-next-closing]] from cleverparens can help:
 
 #+begin_src emacs-lisp
-(defun ha-eval-current-expression ()
-  "Evaluates the expression the point is currently 'in'.
-It does this, by jumping to the end of the current
-expression (using evil-cleverparens), and evaluating what it
-finds at that point."
-  (interactive)
-  (save-excursion
-    (evil-cp-next-closing)
-    (evil-cp-forward-sexp)
-    (call-interactively 'eval-last-sexp)))
+  (defun ha-eval-current-expression ()
+    "Evaluates the expression the point is currently 'in'.
+  It does this, by jumping to the end of the current
+  expression (using evil-cleverparens), and evaluating what it
+  finds at that point."
+    (interactive)
+    (save-excursion
+      (unless (looking-at (rx (any ")" "]")))
+        (lispyville-next-closing))
+      (call-interactively 'eval-last-sexp)))
 #+end_src
 
 And we just need to bind it.

@@ -359,7 +359,7 @@ What text objects are known?
   - ~o~ :: symbol, like a variable
   - ~’~ :: a string, surround by quotes, also ~`~ for backticks
   - ~)~ :: parenthesis, also ~}~ and ~]~, see ~g~
-  - ~g~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ and ~f~ for similar functionality.
+  - ~x~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ and ~f~ for similar functionality.
   - ~d~ :: a /defun/, or code block, similar to ~p~.
   - ~i~ :: indention area, for YAML and Python, with the [[Text Objects based on Indentation][evil-indent-plus]] package
   - ~t~ :: an HTML tag
@@ -444,8 +444,8 @@ Extend the text object to call this function for both /inner/ and /outer/:
 #+end_src
 And the keybindings:
 #+begin_src emacs-lisp
-  (define-key evil-inner-text-objects-map "g" #'ha-evil-inner-paren)
-  (define-key evil-outer-text-objects-map "g" #'ha-evil-a-paren)
+  (define-key evil-inner-text-objects-map "x" #'ha-evil-inner-paren)
+  (define-key evil-outer-text-objects-map "x" #'ha-evil-a-paren)
 #+end_src
 
 *** Key Chord
@@ -1303,6 +1303,7 @@ Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with 
           evil-owl-extra-posframe-args '(:width 50 :height 20 :background-color "#444")
           evil-owl-max-string-length 50)
     (evil-owl-mode))
+
 #+end_src
 *** Evil Snipe
 Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]], like =f= and =t=, but with two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings. Since surround doesn’t work in /normal/ and /visual/ states, we’ll bind snipe only for those:
