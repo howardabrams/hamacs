@@ -171,7 +171,7 @@ Use the ~>~ key to /slurp/ in outside objects into the current expression… in 
 #+begin_src emacs-lisp
   (use-package lispyville
     :after lispy
-    :hook ((emacs-lisp-mode-hook lisp-mode-hook) . lispyville-mode)
+    :hook ((emacs-lisp-mode lisp-mode) . lispyville-mode)
 
     :config
     (lispyville-set-key-theme '(operators atom-movement

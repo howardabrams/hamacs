@@ -165,7 +165,6 @@ To take advantage of this, type:
   - ~z a~ :: Toggles open to close
 
 Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
-** Navigation with dumb-jump
 ** Smart Parenthesis
 We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
 #+begin_src emacs-lisp
@@ -207,17 +206,17 @@ But one of those functions doesn’t exist:
     (end-of-defun)
     (beginning-of-defun))
 #+end_src
+*** dumb-jump
 Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should be able to use them.  but I want to:
   - Be in a function, and see its callers. For this, the [[help:rg-dwim][rg-dwim]] function is my bread-and-butter.
   - Be on a function, and jump to the definition. For this, I use [[https://github.com/jacktasia/dumb-jump][dumb-jump]], which uses the above utilities.
 
 #+begin_src emacs-lisp
   (use-package dumb-jump
-    :init
-    (setq dumb-jump-prefer-searcher 'rg)
-
     :config
-    (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+    (setq dumb-jump-prefer-searcher 'rg
+          xref-history-storage #'xref-window-local-history
+          xref-show-definitions-function #'xref-show-definitions-completing-read)
 
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
     ;; (add-to-list 'evil-goto-definition-functions #'dumb-jump)
