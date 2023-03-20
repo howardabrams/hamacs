@@ -55,6 +55,22 @@ Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-d
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
 #+end_src
+** Better Function Help
+Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call.
+#+begin_src emacs-lisp
+  (use-package helpful)
+#+end_src
+And we should extend it with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] project:
+#+begin_src emacs-lisp
+  (use-package elisp-demos
+    :after helpful
+    :config
+    (ha-elisp-leader
+      "h a" '("add helpful demo" . elisp-demos-add-demo))
+
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+#+end_src
+Find a function without a good demonstration? Call =elisp-demos-add-demo=.
 * Navigation and Editing
 ** Goto Definitions
 Wilfred’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
