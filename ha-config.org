@@ -1508,14 +1508,27 @@ I appreciated [[https://github.com/abo-abo/ace-link][ace-link]]’s idea for hyp
     ("C-c l c" . link-hint-copy-link)
     :general
     (:states 'normal
-             "gl" 'link-hint-open-link
-             "gL" 'link-hint-copy-link)
+             "gl" '("open link" . link-hint-open-link)
+             "gL" '("copy link" . link-hint-copy-link)
+             "g C-l" '("open link→window" . link-hint-open-link-ace-window))
     (:states 'normal :keymaps 'eww-mode-map
              "o" 'link-hint-open-link)
     (:states 'normal :keymaps 'Info-mode-map
              "o" 'link-hint-open-link))
 #+end_src
 
+Can I open a link in another window? The idea with this is that I can select a link, and with multiple windows open, I can specify where the =*eww*= window should show the link. If only two windows, then the new EWW buffer shows in the /other/ one.
+
+#+begin_src emacs-lisp
+  (defun link-hint-open-link-ace-window ()
+    (interactive)
+    (link-hint-copy-link)
+    (aw-select "Open EWW Link" #'link-hint-open-link-window))
+
+  (defun link-hint-open-link-window (window)
+    (aw-switch-to-window window)
+    (eww (current-kill 0)))
+#+end_src
 *** Expand Region
 Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ in =visual= mode, and have the selection grow by syntactical units.
 #+begin_src emacs-lisp
