@@ -245,7 +245,7 @@ The [[https://github.com/clojure-emacs/clj-refactor.el][clj-refactor]] project:
     (cljr-add-keybindings-with-prefix "C-c .")
 
     (ha-clojure-leader
-     ;; Would really like to have this on the SPC m prefix:
+     ;; Would really like to have this on the , prefix:
      "r"  '("refactoring" . hydra-cljr-help-menu/body)
 
      "h d" '("describe refactoring" . cljr-describe-refactoring)

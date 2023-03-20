@@ -283,21 +283,21 @@ Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don�
     ;; started LSP, and is an alternate to Command-m:
     :general
     (:states 'normal :keymaps 'lsp-mode-map
-             "SPC m w r" '("restart"  . lsp-reconnect)
-             "SPC m w b" '("events"   . lsp-events-buffer)
-             "SPC m w e" '("errors"   . lsp-stderr-buffer)
-             "SPC m w q" '("quit"     . lsp-shutdown)
-             "SPC m w Q" '("quit all" . lsp-shutdown-all)
+             ", w r" '("restart"  . lsp-reconnect)
+             ", w b" '("events"   . lsp-events-buffer)
+             ", w e" '("errors"   . lsp-stderr-buffer)
+             ", w q" '("quit"     . lsp-shutdown)
+             ", w Q" '("quit all" . lsp-shutdown-all)
 
-             "SPC m l r" '("rename"   . lsp-rename)
-             "SPC m l f" '("format"   . lsp-format)
-             "SPC m l a" '("actions"  . lsp-code-actions)
-             "SPC m l i" '("imports"  . lsp-code-action-organize-imports)
-             "SPC m l d" '("doc"      . lsp-lookup-documentation))
+             ", l r" '("rename"   . lsp-rename)
+             ", l f" '("format"   . lsp-format)
+             ", l a" '("actions"  . lsp-code-actions)
+             ", l i" '("imports"  . lsp-code-action-organize-imports)
+             ", l d" '("doc"      . lsp-lookup-documentation))
 
    :hook ((lsp-mode . lsp-enable-which-key-integration)))
 #+end_src
-I will want to start adding commands under my =SPC m= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
+I will want to start adding commands under my =,= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
 *** UI
 The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP. Seems to make the screen cluttered.
 #+begin_src emacs-lisp
@@ -588,11 +588,11 @@ All the READMEs and other documentation use [[https://jblevins.org/projects/mark
     :init (setq markdown-command "multimarkdown")
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
-             "SPC m l" '("insert link" . markdown-insert-link)
-             ;; SPC u 3 SPC m h for a third-level header:
-             "SPC m h" '("insert header" . markdown-insert-header-dwim)
-             "SPC m e" '("export" . markdown-export)
-             "SPC m p" '("preview" . markdown-export-and-preview)))
+             ", l" '("insert link" . markdown-insert-link)
+             ;; SPC u 3 , h for a third-level header:
+             ", h" '("insert header" . markdown-insert-header-dwim)
+             ", e" '("export" . markdown-export)
+             ", p" '("preview" . markdown-export-and-preview)))
 #+end_src
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
 ** Ansible

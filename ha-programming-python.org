@@ -170,7 +170,7 @@ The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP
               (setq lsp-pyright-python-executable-cmd "python3")))
 #+end_src
 * LSP Integration of Python
-Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I turn it on with ~SPC m w s~.
+Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I turn it on with ~, w s~.
 
 #+begin_src emacs-lisp :tangle no
   (use-package lsp-mode
