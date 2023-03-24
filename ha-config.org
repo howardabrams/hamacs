@@ -2220,6 +2220,7 @@ Dirvish does require the following supporting programs, but I’ve already got t
 I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/blob/main/docs/CUSTOMIZING.org][sample configuration]] and change it:
 #+begin_src emacs-lisp
   (use-package dirvish
+    :straight (:host github :repo "alexluigit/dirvish")
     :init
     (dirvish-override-dired-mode)
 

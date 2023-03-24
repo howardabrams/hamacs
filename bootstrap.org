@@ -93,7 +93,7 @@ Since =brew link gpg= doesn’t always work, this helper function may find the e
   (defun executable (path)
     "Return PATH if executable, see `file-executable-p'."
     (let ((epath (first (file-expand-wildcards path))))
-      (when (file-executable-p epath) epath)))
+      (when (and epath (file-executable-p epath)) epath)))
 
   (use-package epa-file
     :straight (:type built-in)
