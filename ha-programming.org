@@ -455,7 +455,88 @@ The idea of using math symbols for a programming languages keywords is /cute/, b
 
   (add-hook 'prog-mode-hook 'ha-prettify-prog)
 #+end_src
+
 Hopefully I can follow [[https://www.masteringemacs.org/article/unicode-ligatures-color-emoji][Mickey Petersen's essay]] on getting full ligatures working, but right now, they don’t work on the Mac, and that is my current workhorse.
+#+begin_src emacs-lisp
+  (use-package ligature
+    :config
+    ;; Enable the "www" ligature in every possible major mode
+    (ligature-set-ligatures 't '("www"))
+
+    ;; Enable traditional ligature support in eww-mode, if the
+    ;; `variable-pitch' face supports it
+    (ligature-set-ligatures '(org-mode eww-mode) '("ff" "fi" "ffi"))
+
+    (ligature-set-ligatures '(html-mode nxml-mode web-mode)
+                            '("<!--" "-->" "</>" "</" "/>" "://"))
+
+    ;; Create a new ligature:
+    (ligature-set-ligatures 'markdown-mode '(("=" (rx (+ "=") (? (| ">" "<"))))
+                                             ("-" (rx (+ "-")))))
+
+    ;; Enable all Cascadia Code ligatures in programming modes
+    (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                         ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                         "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                         "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                         "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                         "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                         "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                         "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                         ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                         "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                         "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                         "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                         "\\\\" "://"))
+    ;; Enables ligature checks globally in all buffers. You can also do it
+    ;; per mode with `ligature-mode'.
+    (global-ligature-mode t))
+#+end_src
+
+Until I can get [[https://github.com/d12frosted/homebrew-emacs-plus/issues/222][Harfbuzz support]] on my Emacs-Plus build of Mac, the following work-around seems to mostly work:
+#+begin_src emacs-lisp
+  (defun ha-mac-litagure-workaround ()
+    "Implement an old work-around for ligature support.
+  This kludge seems to only need to be set for my Mac version of
+  Emacs, since I can't build it with Harfuzz support."
+    (let ((alist '((33 . ".\\(?:\\(?:==\\|!!\\)\\|[!=]\\)")
+                   (35 . ".\\(?:###\\|##\\|_(\\|[#(?[_{]\\)")
+                   (36 . ".\\(?:>\\)")
+                   (37 . ".\\(?:\\(?:%%\\)\\|%\\)")
+                   (38 . ".\\(?:\\(?:&&\\)\\|&\\)")
+                   (42 . ".\\(?:\\(?:\\*\\*/\\)\\|\\(?:\\*[*/]\\)\\|[*/>]\\)")
+                   (43 . ".\\(?:\\(?:\\+\\+\\)\\|[+>]\\)")
+                   (45 . ".\\(?:\\(?:-[>-]\\|<<\\|>>\\)\\|[<>}~-]\\)")
+                   (46 . ".\\(?:\\(?:\\.[.<]\\)\\|[.=-]\\)")
+                   (47 . ".\\(?:\\(?:\\*\\*\\|//\\|==\\)\\|[*/=>]\\)")
+                   (48 . ".\\(?:x[a-zA-Z]\\)")
+                   (58 . ".\\(?:::\\|[:=]\\)")
+                   (59 . ".\\(?:;;\\|;\\)")
+                   (60 . ".\\(?:\\(?:!--\\)\\|\\(?:~~\\|->\\|\\$>\\|\\*>\\|\\+>\\|--\\|<[<=-]\\|=[<=>]\\||>\\)\\|[*$+~/<=>|-]\\)")
+                   (61 . ".\\(?:\\(?:/=\\|:=\\|<<\\|=[=>]\\|>>\\)\\|[<=>~]\\)")
+                   (62 . ".\\(?:\\(?:=>\\|>[=>-]\\)\\|[=>-]\\)")
+                   (63 . ".\\(?:\\(\\?\\?\\)\\|[:=?]\\)")
+                   (91 . ".\\(?:]\\)")
+                   (92 . ".\\(?:\\(?:\\\\\\\\\\)\\|\\\\\\)")
+                   (94 . ".\\(?:=\\)")
+                   (119 . ".\\(?:ww\\)")
+                   (123 . ".\\(?:-\\)")
+                   (124 . ".\\(?:\\(?:|[=|]\\)\\|[=>|]\\)")
+                   (126 . ".\\(?:~>\\|~~\\|[>=@~-]\\)"))))
+      (dolist (char-regexp alist)
+        (set-char-table-range composition-function-table (car char-regexp)
+                              `([,(cdr char-regexp) 0 font-shape-gstring])))))
+
+  (unless (s-contains? "HARFBUZZ" system-configuration-features)
+    (add-hook 'prog-mode-hook #'ha-mac-ligature-workaround))
+#+end_src
+
+The unicode-fonts package rejigs the internal tables Emacs uses to pick better fonts for unicode codepoint ranges.
+#+begin_src emacs-lisp
+  (use-package unicode-fonts
+    :config
+    (unicode-fonts-setup))
+#+end_src
 ** Compiling
 The [[help:compile][compile]] function lets me enter a command to run, or I can search the history for a previous run. What it doesn’t give me, is a project-specific list of commands. Perhaps, for each project, I define in =.dir-locals.el= a variable, =compile-command-list=, like:
 #+begin_src emacs-lisp :tangle no

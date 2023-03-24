@@ -196,14 +196,16 @@ My /current/ favorite font is actually the top list of fonts that may be install
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("Hack Nerd Font"
+                    '("CaskaydiaCove Nerd Font"  ; finally found it
+                      "Cascadia Code PL"         ; funky font with litagures and a dotted 0
+                      "Hack Nerd Font"           ; clean font, but no litagures!?
+                      "FiraCode Nerd Font"       ; has litagures
                       "Cousine Nerd Font"
                       "Iosevka Nerd Font"
                       "Iosevka"
                       "FantasqueSansMono Nerd Font"
                       "Monoid Nerd Font"
                       "Hasklig"
-                      "Cascadia Code PL"
                       "Source Code Pro")))
        "monospaced"))
     "My fixed width font based on what I have installed.")
@@ -216,8 +218,10 @@ I probably don't need to have such a ranking system, as chances are good I have 
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '(;  Interesting idea: "Iosevka Comfy Motion Duo"
+                    '("Literata" ; Clean, readable with litagures
                       "XCharter" ; https://fontesk.com/xcharter-typeface/
+                      "Charter"
+                      ;  Interesting idea: "Iosevka Comfy Motion Duo"
                       "Serif")))
        (warn "Cannot find a Serif Font.  Install Source Sans Pro."))))
 
@@ -367,7 +371,6 @@ Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][
 #+end_src
 *Note:* Install everything with the function, =all-the-icons-install-fonts=.
 * Ligatures
-
 Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
 
 #+begin_src emacs-lisp :tangle no
@@ -377,9 +380,7 @@ Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I'v
   (prettify-symbols-mode +1)
 #+end_src
 
-Note, in Doom, is appears we have a =ligatures= module.
-We'll start using that instead, but changing it in [[file:general-programming.org][general-programming]] file.
-
+We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
 * Technical Artifacts :noexport:
 
 Let's =provide= a name so we can =require= this file:

@@ -200,6 +200,19 @@ After reading [[https://www.punctuationmatters.com/en-dash-em-dash-hyphen][this 
   (define-key org-mode-map "-" #'ha-insert-long-dash)
 #+end_src
 The /issue/ is how do we deal with org’s dashed bullets? In this case, we want to insert an actual dash, but elsewhere, we /visually/ display the dash as a more emphasized glyph.
+** Ligatures
+Well, using the =composition-function-table=, we can finally get some ligatures to improve readability without Harfbuzz.
+#+begin_src emacs-lisp
+  (defun ha-textual-litagures ()
+    "Non-programming litagures for readable and text-derived modes."
+    (set-char-table-range composition-function-table
+                          ?f '(["\\(?:ff?[fijlt]\\)" 0 font-shape-gstring]))
+    (set-char-table-range composition-function-table
+                          ?T '(["\\(?:Th\\)" 0 font-shape-gstring])))
+
+  (add-hook 'text-mode-hook #'ha-textual-litagures)
+#+end_src
+This is now fine and ffantastic!
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 

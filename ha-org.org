@@ -612,8 +612,10 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
 #+begin_src emacs-lisp
   (setq org-html-head-extra
         (string-join '( "<style>"
+                        "@import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
                         "@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
-                        "html { font-family: 'Overpass', sans-serif; color: #333; }"
+                        "html { font-family: 'Literata', sans-serif; color: #333; }"
+                        "h1,h2,h3,h4,h5 { font-family: 'Overpass', sans-serif; color: #333; }"
                         "pre.src { background-color: #eee; }"
                         ;; "@importmedia (prefers-color-scheme: dark) {"
                         " html { background-color: #1d1f21; color: white; }"
