@@ -656,6 +656,43 @@ First, use =npm= to install the program:
 #+begin_src sh
   npm installl -g @ansible/ansible-language-server
 #+end_src
+** Docker
+Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][dockerfile-mode]] project:
+#+BEGIN_SRC emacs-lisp
+  (use-package dockerfile-mode :defer
+    :mode (rx string-start "Dockerfile")
+    :config
+    (ha-leader  :keymaps 'dockerfile-mode-map
+      "a d b" '("build" . dockerfile-build-buffer)
+      "a d B" '("insert build tag" . ha-dockerfile-build-insert-header))
+
+    (defun ha-dockerfile-build-insert-header (image-name)
+      "Prepends the default Dockerfile image name at the top of a file."
+      (interactive "sDefault image name: ")
+      (save-excursion
+        (goto-char (point-min))
+        (insert (format "## -*- dockerfile-image-name: \"%s\" -*-" image-name))
+        (newline)))
+
+    :hook
+    (dockerfile-mode . display-line-numbers-mode))
+#+END_SRC
+
+/Control/ Docker from Emacs using the [[https://github.com/Silex/docker.el][docker.el]] project:
+#+BEGIN_SRC emacs-lisp
+  (use-package docker
+    :commands docker
+    :config
+    (ha-leader "a d d" 'docker))
+#+END_SRC
+
+Unclear whether I want to Tramp into a running container:
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package docker-tramp
+    :defer t
+    :after docker)
+#+END_SRC
+
 ** Shell Scripts
 While I don't like writing them, I can't get away from them. Check out the goodies in [[https://www.youtube.com/watch?v=LTC6SP7R1hA&t=5s][this video]].
 
