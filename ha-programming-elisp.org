@@ -148,11 +148,11 @@ The main difference from an evil state is that lispy’s “special” is contex
 
 Many of the operations supplied by =lispyville= don’t require learning anything new. Similar to [[Clever Parenthesis]], we can
 For instance, if our point is placed at this location in this code:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (message "The answer is %d" (+ 2 (* 8 5)‸ 9 (+ 1 4)))
 #+end_src
 Pressing ~D~ results in:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (message "The answer is %d" (+ 2 (* 8 5)‸))
 #+end_src
 And doesn’t delete the trailing parenthesis.
