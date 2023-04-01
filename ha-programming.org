@@ -528,7 +528,7 @@ Until I can get [[https://github.com/d12frosted/homebrew-emacs-plus/issues/222][
                               `([,(cdr char-regexp) 0 font-shape-gstring])))))
 
   (unless (s-contains? "HARFBUZZ" system-configuration-features)
-    (add-hook 'prog-mode-hook #'ha-mac-ligature-workaround))
+    (add-hook 'prog-mode-hook #'ha-mac-litagure-workaround))
 #+end_src
 
 The unicode-fonts package rejigs the internal tables Emacs uses to pick better fonts for unicode codepoint ranges.
