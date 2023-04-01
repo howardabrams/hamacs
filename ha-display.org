@@ -141,6 +141,11 @@ Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-
 #+begin_src emacs-lisp
   (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 #+end_src
+
+Now that I’m using v29 of Emacs, I can /un-decorate/ the non-full-sized frames:
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist '(undecorated-round . t))
+#+end_src
 * Font Configuration
 Am I ever really ever satisfied with any font? I regularly change my font based on the monospace du jour... [[http://blogs.adobe.com/typblography/2012/09/source-code-pro.html][Source Code Pro]] is attractive, and has been a staple on every programmers' screen. However, we all want ligatures, [[https://github.com/i-tu/Hasklig][Hasklig]] is a nice font that is thinner and easier to read than [[https://github.com/tonsky/FiraCode][Fira]], but [[https://typeof.net/Iosevka/][Iosevka]] seems to have it all. Oh, Microsoft just gave us [[https://docs.microsoft.com/en-us/windows/terminal/cascadia-code][Cascadia]] and that seems shiny. However, the [[https://github.com/ryanoasis/nerd-fonts][Nerd Font project]] adds the ligatures as well as all the other niceties to a font.
 
