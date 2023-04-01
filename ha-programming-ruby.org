@@ -36,7 +36,7 @@ And then install one or more versions:
   ruby-install ruby 3
 #+end_src
 
-** Per Project
+** New Project
 While we /could/ use a large project templating system, I keep it simple. For each project, create the following directory structure:
 #+begin_example
 ├── Gemfile
@@ -48,21 +48,21 @@ While we /could/ use a large project templating system, I keep it simple. For ea
 #+end_example
 For instance:
 #+begin_src sh
-  mkdir ~/other/ruby-xp    # Change me
+  mkdir -p ~/other/ruby-xp    # Change me
   cd ~/other/ruby-xp
-  mkdir lib test
+  mkdir -p lib test
 #+end_src
 
 Now, do the following steps.
 
   1. Create a =.envrc= file with the Ruby you want to use:
-     #+begin_src sh :tangle ~/other/ruby-xp/.envrc
-       use ruby 2.6.8
+     #+begin_src sh
+     use ruby 2.6.10
      #+end_src
 
   2. Next, get Bundler:
      #+begin_src sh
-       gem install bundle
+     gem install bundle
      #+end_src
 
   3. Create a minimal =Gemfile=:
@@ -94,6 +94,9 @@ Now, do the following steps.
 
   6. Create the first program:
      #+begin_src ruby :tangle ~/other/ruby-xp/lib/hello_world.rb
+       # frozen_string_literal: true
+
+       # The basic greeting class
        class HelloWorld
          attr_reader :name
 
@@ -110,7 +113,7 @@ Now, do the following steps.
          end
        end
 
-       puts HelloWorld.new.greeting
+       puts HelloWorld.new(ARGV.first).greeting
      #+end_src
 
   7. Create the first test:
@@ -129,8 +132,60 @@ Now, do the following steps.
        end
      #+end_src
 Or something like that.
+
+** Existing Projects
+For projects from work, I have found we need to isolate the Ruby environment. Once we use [[https://github.com/rbenv/rbenv][rbenv]] or [[https://rvm.io/][rvm]], but now, I just use [[https://direnv.net/docs/ruby.html][direnv]].  Approach one is to use a local directory structure. Assuming I have a =use_ruby= function in [[file:~/.config/direnv/direnvrc][~/.config/direnv/direnvrc]]:
+#+begin_src conf
+  # From Apple: /usr/bin/ruby
+  use ruby 2.6.10
+  # Could use 3.2.1 from /usr/local/bin/ruby
+#+end_src
+
+A better solution is to create a container to hold the Ruby environment. Begin with a =Dockerfile=:
+#+begin_src dockerfile :tangle ~/other/ruby-xp/Dockerfile
+  ## -*- dockerfile-image-name: "ruby-xp" -*-
+  FROM alpine:3.13
+
+  ENV NOKOGIRI_USE_SYSTEM_LIBRARIES=1
+
+  ADD Gemfile /
+
+  RUN apk update \
+  && apk add ruby \
+             ruby-etc \
+             ruby-bigdecimal \
+             ruby-io-console \
+             ruby-irb \
+             ca-certificates \
+             libressl \
+             bash \
+  && apk add --virtual .build-dependencies \
+             build-base \
+             ruby-dev \
+             libressl-dev \
+  && gem install bundler || apk add ruby-bundler \
+  && bundle config build.nokogiri --use-system-libraries \
+  && bundle config git.allow_insecure true \
+  && gem install json \
+  && bundle install \
+  && gem cleanup \
+  && apk del .build-dependencies \
+  && rm -rf /usr/lib/ruby/gems/*/cache/* \
+            /var/cache/apk/* \
+            /tmp/* \
+            /var/tmp/*
+#+end_src
+
+Next, create a =.envrc= in the project’s directory:
+#+begin_src sh :tangle ~/other/ruby-xp/.envrc
+  CONTAINER_NAME=ruby-xp:latest
+  CONTAINER_WRAPPERS=(bash ruby irb gem bundle rake solargraph rubocop)
+
+  container_layout
+#+end_src
+While that approach works /fairly well/ with [[file:ha-programming.org::*direnv][my direnv configuration]], [[file:ha-programming.org::*Flycheck][Flycheck]] seems to want the checkers to be installed globally.
 * Configuration
-Ruby-specific commands are attached to the =ha-ruby-leader=, bound to ~SPC m~:
+Ruby-specific commands are attached to the =ha-ruby-leader=, bound to ~,~:
 #+begin_src emacs-lisp
   (general-create-definer ha-ruby-leader
       :states '(normal visual motion)
@@ -143,7 +198,6 @@ Ruby-specific commands are attached to the =ha-ruby-leader=, bound to ~SPC m~:
 While Emacs supplies a Ruby editing environment, we’ll still use =use-package= to grab the latest:
 #+begin_src emacs-lisp
   (use-package ruby-mode
-    :after projectile
     :mode (rx ".rb" eos)
     :mode (rx "Rakefile" eos)
     :mode (rx "Gemfile" eos)
@@ -167,7 +221,7 @@ While Emacs supplies a Ruby editing environment, we’ll still use =use-package=
   #+END_SRC
 ** Electric Ruby
 The [[https://melpa.org/#/ruby-electric][ruby-electric]] project is a minor mode that aims to add the /extra syntax/ when typing Ruby code.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package ruby-electric
     :hook (ruby-mode . ruby-electric-mode))
 #+end_src
@@ -185,6 +239,52 @@ The [[https://github.com/r0man/ruby-test-mode][ruby-test-mode]] project aims a r
       "t A" '("test all" . ruby-test-run)
       "t a" '("retest" . ruby-test-rerun)))
 #+end_src
+** Robe
+The [[https://github.com/dgutov/robe][Robe project]] can be used instead of [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP]].
+#+begin_src emacs-lisp
+  (use-package robe
+
+    :config
+    (ha-ruby-leader
+     "w"  '(:ignore t :which-key "robe")
+     "ws" '("start" . robe-start))
+
+    ;; The following leader-like keys, are only available when I have
+    ;; started LSP, and is an alternate to Command-m:
+    :general
+    (:states 'normal :keymaps 'robe-mode-map
+             ", w r" '("restart"  . lsp-reconnect)
+             ", w b" '("events"   . lsp-events-buffer)
+             ", w e" '("errors"   . lsp-stderr-buffer)
+             ", w q" '("quit"     . lsp-shutdown)
+             ", w l" '("load file" . ruby-load-file)
+
+             ", l r" '("rename"   . lsp-rename)
+             ", l f" '("format"   . lsp-format)
+             ", l a" '("actions"  . lsp-code-actions)
+             ", l i" '("imports"  . lsp-code-action-organize-imports)
+             ", l d" '("doc"      . lsp-lookup-documentation)))
+#+end_src
+
+Do we want to load Robe /automatically/?
+#+begin_src emacs-lisp
+  (use-package robe :hook (ruby-mode . robe-mode))
+#+end_src
+** Bundler
+The [[https://github.com/endofunky/bundler.el][Bundler project]] integrates [[https://bundler.io/][bundler]] to install a projects Gems.
+
+#+begin_src emacs-lisp
+(use-package bundler
+  :config
+  (ha-ruby-leader
+      "g"  '(:ignore t :which-key "bundler")
+      "g o" '("open" . bundle-open)
+      "g g" '("console" . bundle-console)
+      "g c" '("check" . bundle-check)
+      "g i" '("install" . bundle-install)
+      "g u" '("update" . bundle-update)))
+#+end_src
+
 
 ** Rubocop?
   The lint-like style checker of choice for Ruby is [[https://github.com/bbatsov/rubocop][Rubocop]]. The [[https://github.com/bbatsov/rubocop-emacs][rubocop.el]] mode should work with [[https://github.com/flycheck/flycheck][Flycheck]]. First install it with:
@@ -202,6 +302,8 @@ Seems that to understand and edit Cucumber /feature/ definitions, you need [[htt
 #+begin_src emacs-lisp
   (use-package feature-mode)
 #+end_src
+** RSpec
+https://github.com/pezra/rspec-mode
 * LSP
 Need to install [[https://github.com/castwide/solargraph][Solargraph]] for the LSP server experience:
 #+begin_src sh

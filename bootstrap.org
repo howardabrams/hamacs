@@ -209,7 +209,9 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
                              "ha-programming-elisp.org"
                              "ha-programming-python.org"
                              ,(if (ha-emacs-for-work?)
-                                  '("ha-org-sprint.org" "ha-work.org")
+                                  '("ha-org-sprint.org"
+                                    ;; "ha-programming-ruby.org"
+                                    "ha-work.org")
                                 ;; Personal Editor
                                 '("ha-org-journaling.org"
                                   "ha-irc.org"
