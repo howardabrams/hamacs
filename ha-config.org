@@ -799,6 +799,11 @@ Since I use numbers for the window, I can make the commands more mnemonic, and a
     :bind ("s-w" . ace-window))
 #+end_src
 Keep in mind, these shortcuts work with more than two windows open. For instance, ~SPC w w d 3~ closes the "3" window.
+**** Transpose Windows
+My office at work has a monitor oriented vertically, and to move an Emacs with “three columned format” to a “stacked format” I use the [[https://www.emacswiki.org/emacs/TransposeFrame][transpose-frame]] package:
+#+begin_src emacs-lisp
+  (use-package transpose-frame)
+#+end_src
 **** Winum
 To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winum][winum package]]:
 #+begin_src emacs-lisp
@@ -878,6 +883,7 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
       ("h" evil-window-left)
       ("l" evil-window-right)
 
+      ("x" transpose-frame)
       ("s" hydra-window-split/body)
       ("n" hydra-window-split/body)
 
