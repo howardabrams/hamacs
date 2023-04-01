@@ -823,6 +823,81 @@ I think the [[https://fishshell.com/][fish shell]] is an interesting experiment 
     :hook
     (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
 #+end_src
+* Aux
+** AI Robot Helpers
+Seems like a number of personal projects to interface with the ChatGPT. Let’s try a few, and see what I like. All of the project require the OpenAI key that I store in [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
+#+begin_src emacs-lisp
+  (defvar ha-openai-key nil
+      "Decoded the OpenAI Key from the authinfo database.")
+
+  (defun ha-openai-key ()
+    "Return the decoded OpenAI Key stored in the authinfo database."
+    (unless ha-openai-key
+      (let* ((openai-encfun (--> "openai.com"
+                                 (auth-source-search :host it)
+                                 (first it)
+                                 (plist-get it :secret))))
+        (setq ha-openai-key (funcall openai-encfun))))
+    ha-openai-key)
+#+end_src
+
+The [[https://github.com/xenodium/chatgpt-shell][chatgpt-shell]] project attempts to be an interactive session.
+#+begin_src emacs-lisp
+  (use-package chatgpt-shell
+    :straight (:host github :repo "xenodium/chatgpt-shell")
+    :init
+    :config
+    (defun chatgpt-start-shell ()
+      "Get the password and then start the `chatgpt-shell' program."
+      (interactive)
+      (setq chatgpt-shell-openai-key (ha-openai-key))
+      (chatgpt-shell))
+
+    (ha-prog-leader
+      "a" '(:ignore t :which-key "ChatGPT")
+      "a s" '("shell" . chatgpt-start-shell)))
+#+end_src
+
+Let’s play with [[https://github.com/CarlQLange/chatgpt-arcana.el][ChatGPT Arcana]] project.
+#+begin_src emacs-lisp
+  (use-package chatgpt-arcana
+    :straight (:host github :repo "CarlQLange/ChatGPT-Arcana.el" :files ("*.el"))
+    :config
+    (defun chatgpt-arcana-start ()
+      "Get the password and then start the `chatgpt-arcana-start-chat' program."
+      (interactive)
+      (setq chatgpt-arcana-api-key (ha-openai-key))
+      (chatgpt-arcana-start-chat))
+
+    (use-package all-the-icons
+      :config
+      (add-to-list 'all-the-icons-mode-icon-alist
+                   '(chatgpt-arcana-chat-mode all-the-icons-octicon
+                                              "comment-discussion"
+                                              :height 1.0
+                                              :v-adjust -0.1
+                                              :face all-the-icons-purple)))
+    (use-package pretty-hydra
+      :config
+      (eval `(pretty-hydra-define chatgpt-arcana-hydra (:color blue :quit-key "q" :title "ChatGPT Arcana")
+               ("Query"
+                (("a" chatgpt-arcana-query "Query")
+                 ("r" chatgpt-arcana-replace-region "Replace region"))
+                "Insert"
+                (("i" chatgpt-arcana-insert-at-point-with-context "At point with context")
+                 ("I" chatgpt-arcana-insert-at-point "At point")
+                 ("j" chatgpt-arcana-insert-after-region "Before region")
+                 ("J" chatgpt-arcana-insert-before-region "After region"))
+                "Chat"
+                (("c" chatgpt-arcana-start-chat "Start chat"))
+                "Shortcuts"
+                (,@(chatgpt-arcana-generate-prompt-shortcuts))))))
+
+    (ha-prog-leader
+      "a"  '(:ignore t :which-key "ChatGPT")
+      "a c" '("Start chat" . chatgpt-arcana-start)
+      "a a" '("AI commands" . chatgpt-arcana-hydra/body)))
+#+end_src
 * Technical Artifacts                                :noexport:
 Provide a name to =require= this code.
 #+begin_src emacs-lisp :exports none
