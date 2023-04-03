@@ -614,13 +614,14 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
         (string-join '( "<style>"
                         "@import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
                         "@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
-                        "html { font-family: 'Literata', sans-serif; color: #333; }"
+                        "body { font-family: 'Literata', sans-serif; color: #333; }"
                         "h1,h2,h3,h4,h5 { font-family: 'Overpass', sans-serif; color: #333; }"
                         "pre.src { background-color: #eee; }"
-                        ;; "@importmedia (prefers-color-scheme: dark) {"
-                        " html { background-color: #1d1f21; color: white; }"
+                        "@media (prefers-color-scheme: dark) {"
+                        " body { background-color: #1d1f21; color: white; }"
+                        " h1,h2,h3,h4,h5 { color: #fcca1b; }"
                         " pre.src { background-color: black; }"
-                        ;; "}"
+                        "}"
                         "</style>")
                      hard-newline))
 #+end_src
