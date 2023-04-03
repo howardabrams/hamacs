@@ -244,7 +244,8 @@ With this function, we can test/debug/reload any individual file, via:
     (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
     (let ((full-file (f-join hamacs-source-dir file)))
       (when (f-exists? full-file)
-        (org-babel-load-file full-file))))
+        (ignore-errors
+            (org-babel-load-file full-file)))))
 #+end_src
 
 And we can now reload /all/ startup files:

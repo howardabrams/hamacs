@@ -751,7 +751,7 @@ The idea of linking org documents to email could be nice, however, the =ol-notmu
     :straight (:type built-in)
     :config (add-to-list 'org-modules 'ol-notmuch))
 #+end_src
-To use, read a message and save a link to it with ~SPC o l~. Next, in an org document, create a link with ~SPC m l~. Now, you can return to the message from that document with ~SPC m o~.  Regardless, I may need to store a local copy when I upgrade Org.
+To use, read a message and save a link to it with ~SPC o l~. Next, in an org document, create a link with ~, l~. Now, you can return to the message from that document with ~, o~.  Regardless, I may need to store a local copy when I upgrade Org.
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
 #+begin_src emacs-lisp
