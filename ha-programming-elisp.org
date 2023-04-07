@@ -121,8 +121,11 @@ My primary use-case is for its refactoring and other unique features. For instan
   (use-package lispy
     :config
     (evil-define-key 'normal emacs-lisp-mode-map
-      "gf" 'lispy-ace-paren
-      "gF" 'lispy-ace-symbol)
+      ;; Use C-SPC to mark single letter, as these seem to be nicer expansions:
+      "v" 'lispy-mark-symbol              ; Mark larger section at first?
+      "M-v" 'lispy-mark                   ; Mark entire s-expression
+      "g f" 'lispy-ace-paren
+      "g F" 'lispy-ace-symbol)
 
     (ha-elisp-leader
       "r i" '("cond→if" . lispy-to-ifs)
@@ -173,7 +176,7 @@ Use the ~>~ key to /slurp/ in outside objects into the current expression… in 
     :hook ((emacs-lisp-mode lisp-mode) . lispyville-mode))
 #+end_src
 
-Now
+Now we need to define additional key movements:
 #+begin_src emacs-lisp
   (use-package lispyville
     :config
@@ -202,7 +205,11 @@ Now
       "(" 'lispyville-previous-opening
       ")" 'lispyville-next-closing
       "{" 'lispyville-backward-up-list
-      "}" 'lispyville-next-opening)
+      "}" 'lispyville-next-opening
+
+      "[ f" 'lispyville-beginning-of-defun
+      "] f" 'lispyville-beginning-of-next-defun
+      "] F" 'lispyville-end-of-next-defun)
 
     ;; Visually high-light a region, just hit `(' to wrap it in parens.
     ;; Without smartparens, we need to insert a pair of delimiters:

@@ -360,7 +360,7 @@ What text objects are known?
   - ~’~ :: a string, surround by quotes, also ~`~ for backticks
   - ~)~ :: parenthesis, also ~}~ and ~]~, see ~g~
   - ~x~ :: within a brace, paren, etc., with the [[Better Parenthesis with Text Object][my extensions below]], see ~b~ and ~f~ for similar functionality.
-  - ~d~ :: a /defun/, or code block, similar to ~p~.
+  - ~f~ :: a /defun/, or code block, see [[file:ha-programming.org::*Evil Text Object from Tree Sitter][definition here]].
   - ~i~ :: indention area, for YAML and Python, with the [[Text Objects based on Indentation][evil-indent-plus]] package
   - ~t~ :: an HTML tag
   - ~c~ :: for comments
@@ -1541,9 +1541,20 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
   (use-package expand-region
     :bind ("C-=" . er/expand-region)
 
+    :config
+    (defun ha-start-region ()
+      "Increase the region when on special characters."
+      (interactive)
+      (if (looking-at (rx (any "{}()[]")))
+          (call-interactively 'er/expand-region)
+        (evil-visual-state)))
+
     :general
+    (:states 'normal "v" 'ha-start-region)
     ;; Use escape to get out of visual mode, but hitting v again expands the selection.
-    (:states 'visual "v" 'er/expand-region))
+    (:states 'visual
+             "v" 'er/expand-region
+             "V" 'er/contract-region))
 #+end_src
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
