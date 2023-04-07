@@ -206,6 +206,163 @@ But one of those functions doesn’t exist:
     (end-of-defun)
     (beginning-of-defun))
 #+end_src
+*** Tree Sitter
+Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project]]. For instance:
+#+begin_src sh
+  brew install tree-sitter
+#+end_src
+The tree-sitter project does not install any language grammars by default—after all, it would have no idea which particular languages to parse and analyze!
+
+First, using the =tree-sitter= command line tool, create the [[/Users/howard.abrams/Library/Application Support/tree-sitter/config.json][config.json]] file:
+#+begin_src sh
+  tree-sitter init-config
+#+end_src
+Normally, you would need to  add all the projects to directory clones in =~/src=, e.g.
+#+begin_src sh :dir ~/src
+  git clone https://github.com/tree-sitter/tree-sitter-python ~/src/tree-sitter-python
+  git clone https://github.com/tree-sitter/tree-sitter-css ~/src/tree-sitter-css
+  git clone https://github.com/tree-sitter/tree-sitter-json ~/src/tree-sitter-json
+  git clone https://github.com/tree-sitter/tree-sitter-python ~/src/tree-sitter-python
+  git clone https://github.com/tree-sitter/tree-sitter-bash ~/src/tree-sitter-bash
+  git clone https://github.com/tree-sitter/tree-sitter-ruby ~/src/tree-sitter-ruby
+  git clone https://github.com/ikatyang/tree-sitter-yaml ~/src/tree-sitter-yaml
+  # ...
+#+end_src
+At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
+
+However, Emacs already has the ability to download and install grammars, so following instructions from Mickey Petersen’s essay on [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][using Tree-sitter with Combobulate]]:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package treesit
+      :straight (:type built-in)
+      :preface
+      (defun mp-setup-install-grammars ()
+        "Install Tree-sitter grammars if they are absent."
+        (interactive)
+        (dolist (grammar
+                 '((css    "https://github.com/tree-sitter/tree-sitter-css")
+                   (json   "https://github.com/tree-sitter/tree-sitter-json")
+                   (python "https://github.com/tree-sitter/tree-sitter-python")
+                   (bash   "https://github.com/tree-sitter/tree-sitter-bash")
+                   (ruby   "https://github.com/tree-sitter/tree-sitter-ruby")
+                   (yaml   "https://github.com/ikatyang/tree-sitter-yaml")))
+          (add-to-list 'treesit-language-source-alist grammar)
+          (treesit-install-language-grammar (car grammar))))
+
+      ;; Optional, but recommended. Tree-sitter enabled major modes are
+      ;; distinct from their ordinary counterparts.
+      ;;
+      ;; You can remap major modes with `major-mode-remap-alist'. Note
+      ;; this does *not* extend to hooks! Make sure you migrate them also
+      (dolist (mapping '((css-mode    . css-ts-mode)
+                         (json-mode   . json-ts-mode)
+                         (python-mode . python-ts-mode)
+                         (ruby-mode   . ruby-ts-mode)
+                         (sh-mode     . bash-ts-mode)
+                         (yaml-mode   . yaml-ts-mode)))
+        (add-to-list 'major-mode-remap-alist mapping))
+
+      :config
+      (mp-setup-install-grammars)))
+#+end_src
+*** Combobulate
+I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]], but can we extend that to other languages generally? After reading Mickey Petersen’s essay, [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][Combobulate project]], I decided to try out his [[https://github.com/mickeynp/combobulate][combobulate package]]. Of course, this can only work with the underlying tooling supplied by the [[https://emacs-tree-sitter.github.io/][Tree Sitter]] →
+
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package combobulate
+      :straight (:host github :repo "mickeynp/combobulate")
+      :after treesit
+      :hook ((css-ts-mode    . combobulate-mode)
+             (json-ts-mode   . combobulate-mode)
+             (python-ts-mode . combobulate-mode)
+             (yaml-ts-mode   . combobulate-mode))))
+#+end_src
+
+I can create a /helper function/ to allow me to jump to various types of—well, /types/:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package combobulate
+        :config
+        (defun ha-comb-jump (&rest tree-sitter-types)
+          "Use `avy' to jump to a particular type of element.6 "
+          (lexical-let ((types tree-sitter-types))
+            (lambda ()
+              (interactive)
+              (with-navigation-nodes (:nodes types)
+                                     (combobulate-avy-jump)))))))
+#+end_src
+
+Now, I can create an /interface/ of keystrokes to jump around like a boss:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package combobulate
+      :general
+      (:states 'normal :keymaps 'combobulate-key-map
+               "v" 'combobulate-mark-node-dwim
+               "g J" '("avy jump" . combobulate-avy)
+
+               "[ [" '("prev node" . combobulate-navigate-logical-previous)
+               "] ]" '("next node" . combobulate-navigate-logical-next)
+               "[ f" '("prev defun" . combobulate-navigate-beginning-of-defun)
+               "] f" '("next defun" . combobulate-navigate-end-of-defun)
+
+               "[ m" '("drag back" . combobulate-drag-up)
+               "] m" '("drag forward" . combobulate-drag-down)
+               "[ r" '("raise" . combobulate-vanish-node)
+
+               "g j" '(:ignore t :which-key "combobulate jump")
+               "g j j" '("all" . combobulate-avy-jump)
+               "g j s" `("strings" . ,(ha-comb-jump "string"))
+               "g j c" `("comments" . ,(ha-comb-jump "comment"))
+               "g j i" `("conditionals" . ,(ha-comb-jump "conditional_expression" "if_statement"
+                                                         "if_clause" "else_clause" "elif_clause" ))
+               "g j l" `("loops" . ,(ha-comb-jump "for_statement" "for_in_clause" "while_statement"
+                                                  "list_comprehension" "dictionary_comprehension" "set_comprehension"))
+               "g j f" '("functions" . combobulate-avy-jump-defun))))
+#+end_src
+
+Mickey’s interface is the [[help:combobulate][combobulate]] function (or ~C-c o o~), but mine is more /evil/.
+
+*** Evil Text Object from Tree Sitter
+With Emacs version 29, we get a better approach to parsing languages, and this means that our [[https://github.com/nvim-treesitter/nvim-treesitter-textobjects#built-in-textobjects][text objects]] can be better too with the [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter project]]:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package evil-textobj-tree-sitter
+      :config
+      ;; We need to bind keys to the text objects found at:
+      ;; https://github.com/nvim-treesitter/nvim-treesitter-textobjects#built-in-textobjects
+
+      ;; bind `function.outer`(entire function block) to `f` for use in things like `vaf`, `yaf`
+      (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+      ;; bind `function.inner`(function block without name and args) to `f` for use in things like `vif`, `yif`
+      (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+
+      (define-key evil-outer-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "comment.outer"))
+      (define-key evil-inner-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "comment.inner"))
+      (define-key evil-outer-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.outer"))
+      (define-key evil-inner-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.inner"))
+      (define-key evil-outer-text-objects-map "b" (evil-textobj-tree-sitter-get-textobj "loop.outer"))
+      (define-key evil-inner-text-objects-map "b" (evil-textobj-tree-sitter-get-textobj "loop.inner"))))
+#+end_src
+
+Seems the macro, =evil-textobj-tree-sitter-get-textobj= has a bug, so the following—which would have been easier to write—doesn’t work:
+#+begin_src emacs-lisp :tangle no
+  (dolist (combo '(("f" "function.outer" "function.inner")
+                   ("b" "loop.outer" "loop.inner")
+                   ;; ...
+                   ("c" "comment.outer" "comment.inner")))
+    (destructuring-bind (key outer inner) combo
+      ;; bind an outer (e.g. entire function block) for use in things like `vaf`, `yaf` combo
+      (define-key evil-outer-text-objects-map key (evil-textobj-tree-sitter-get-textobj outer))
+      ;; bind an inner (e.g. function block without name and args) for use in things like `vif`, `yif`
+      (define-key evil-inner-text-objects-map key (evil-textobj-tree-sitter-get-textobj inner))))
+#+end_src
+*** Syntactical Jumps
+What if, when programming, we can jump to the nearest left-hand side of an assignment? Or a labeled loop?
+#+begin_src emacs-lisp :tangle no
+
+#+end_src
 *** dumb-jump
 Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should be able to use them.  but I want to:
   - Be in a function, and see its callers. For this, the [[help:rg-dwim][rg-dwim]] function is my bread-and-butter.
@@ -219,7 +376,6 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
           xref-show-definitions-function #'xref-show-definitions-completing-read)
 
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-    ;; (add-to-list 'evil-goto-definition-functions #'dumb-jump)
 
     ;; Remove this now that https://github.com/jacktasia/dumb-jump/issues/338
     ;; (defun evil-set-jump-args (&rest ns) (evil-set-jump))
