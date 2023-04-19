@@ -33,7 +33,7 @@ Customize the variable, `beep-alert-sound-file' to adjust the sound."
   "Call a program to speak the string, PHRASE.
 Customize the variable, `beep-speech-executable'."
   (let ((command (format beep-speech-executable phrase)))
-    (shell-command command)))
+    (async-shell-command command)))
 
 (defun beep--when-finished (phrase &optional to-speak)
   "Notify us with string, PHRASE, to grab our attention.

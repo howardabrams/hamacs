@@ -430,6 +430,7 @@ I took the following clever idea and code from [[http://blog.binchen.org/posts/c
             (setq found-range range)))))
       found-range))
 #+end_src
+
 Extend the text object to call this function for both /inner/ and /outer/:
 #+begin_src emacs-lisp
   (evil-define-text-object ha-evil-a-paren (count &optional beg end type)
@@ -442,12 +443,54 @@ Extend the text object to call this function for both /inner/ and /outer/:
     :extend-selection nil
     (ha-evil-paren-range count beg end type nil))
 #+end_src
+
 And the keybindings:
 #+begin_src emacs-lisp
   (define-key evil-inner-text-objects-map "x" #'ha-evil-inner-paren)
   (define-key evil-outer-text-objects-map "x" #'ha-evil-a-paren)
 #+end_src
+*** Text Object for Functions
+While Emacs has the ability to recognize functions, the Evil text object does not. But text objects have both an /inner/ and /outer/ form, and what does that mean for a function? The /inner/ will be the /function itself/ and the /outer/ (like words) would be the surrounding /non-function/ stuff … in other words, the distance between the next functions.
+#+begin_src emacs-lisp
+  (defun ha-evil-defun-range (count beg end type inclusive)
+    "Get minimum range of `defun` as a text object.
+  COUNT, is the number of _following_ defuns to count. BEG, END,
+  TYPE are not used. If INCLUSIVE is t, the text object is
+  inclusive acquiring the areas between the surrounding defuns."
+    (let ((start (save-excursion
+                   (beginning-of-defun)
+                   (when inclusive
+                     (beginning-of-defun)
+                     (end-of-defun))
+                   (point)))
+          (end (save-excursion
+                 (end-of-defun count)
+                 (when inclusive
+                   (end-of-defun)
+                   (beginning-of-defun))
+                 (point))))
+      (list start end)))
+#+end_src
 
+Extend the text object to call this function for both /inner/ and /outer/:
+#+begin_src emacs-lisp
+  (evil-define-text-object ha-evil-a-defun (count &optional beg end type)
+    "Select a defun and surrounding non-defun content."
+    :extend-selection t
+    (ha-evil-defun-range count beg end type t))
+
+  (evil-define-text-object ha-evil-inner-defun (count &optional beg end type)
+    "Select 'inner' (actual) defun."
+    :extend-selection nil
+    (ha-evil-defun-range count beg end type nil))
+#+end_src
+
+And the keybindings:
+#+begin_src emacs-lisp
+  (define-key evil-inner-text-objects-map "d" #'ha-evil-inner-defun)
+  (define-key evil-outer-text-objects-map "d" #'ha-evil-a-defun)
+#+end_src
+Why not use ~f~? I’m reserving the ~f~ for a tree-sitter version that is not always available for all modes… yet.
 *** Key Chord
 Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
 #+begin_src emacs-lisp
