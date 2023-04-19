@@ -26,6 +26,14 @@ A literate programming file for configuring the Emacs Shell.
 * Introduction
 While I like [[https://github.com/akermu/emacs-libvterm][vterm]] for logging into [[file:ha-remoting.org][remote systems]], I find Emacs’ shell, =eshell=, an interesting alternative.
 If you find the documentation lacking, I [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][documented most features]], and you might find the following helpful.
+
+Tell straight to use the built-in =eshell=:
+#+begin_src emacs-lisp
+  (use-package eshell
+    :straight (:type built-in)
+    :hook (eshell-mode . (lambda () (setq mode-line-format nil))))
+#+end_src
+After reading [[https://xenodium.com/my-emacs-eye-candy/][this essay]], I decided to try hiding the mode line in eshell windows … at least, until I get the mode line to display more important information. Note that hiding the mode line is fairly straight-forward, but others might want to use the [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]] package that turns that /mode-line definition/ into a minor mode that can be toggled.
 ** Navigation and Keys
 Along with the regular Emacs keybindings, Eshell comes with some interesting features:
 - ~M-RET~ gives you a prompt, even when you are running another command.  Since =eshell= passes all input to subprocesses, there is no automatic input queueing as there is with other shells.
@@ -1274,6 +1282,7 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
 Now that I often need to pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each buffer begins with =eshell=: allowing me to have more than one eshells, typically, one per project.
 ** Shell There
 The basis for distinguishing a shell is its /parent location/. Before starting =eshell=, we make a small window, set the buffer name (using the [[elisp:(describe-variable 'eshell-buffer-name)][eshell-buffer-name]]):
+
 #+begin_src emacs-lisp
   (defun eshell--buffer-from-dir (dir)
     "Return buffer name of an Eshell based on DIR."
