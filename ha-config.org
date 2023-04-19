@@ -1445,7 +1445,7 @@ Details on its job? We need to update its [[help:hippie-expand-try-functions-lis
 #+end_src
 
 In the shell, IDEs and other systems, the key binding is typically ~TAB~. In modes other than =org-mode=, ~TAB~ re-indents the line with [[help:indent-for-tab-command][indent-for-tab-command]], but I find that I want that feature when I’m in Evil’s =normal state= and hit the ~=~ key, so changing this sounds good. But why not /have both/?
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (advice-add #'indent-for-tab-command :after #'hippie-expand)
 #+end_src
 *** Corfu
