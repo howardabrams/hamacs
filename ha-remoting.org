@@ -164,6 +164,10 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
     :hook
     (vterm-mode . (lambda ()
                     (setq-local evil-insert-state-cursor 'box)
+                    (setq-local show-paren-mode nil)
+                    (setf truncate-lines nil)
+                    (flycheck-mode -1)
+                    (yas-minor-mode -1)
                     (evil-insert-state))))
 #+end_src
 
@@ -484,7 +488,9 @@ This file, so far, as been good-enough for a Vanilla Emacs installation, but to 
     "a v d o" '("open"        . multi-vterm-dedicated-open)
     "a v d s" '("switch"      . multi-vterm-dedicated-select)
     "a v d t" '("toggle"      . multi-vterm-dedicated-toggle)
-    "a v d x" '("close"       . multi-vterm-dedicated-close))
+    "a v d x" '("close"       . multi-vterm-dedicated-close)
+
+    "p t"   '("project vterm" . multi-vterm-project))
 #+end_src
 * Technical Artifacts                                :noexport:
 

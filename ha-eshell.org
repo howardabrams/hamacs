@@ -1352,7 +1352,7 @@ This version starts =eshell= in the project’s root, using [[help:projectile-pr
 #+end_src
 And we can attach this function to the =projectile= menu:
 #+begin_src emacs-lisp
-  (ha-leader "p t" '("eshell" . eshell-project))
+  (ha-leader "p s" '("eshell" . eshell-project))
 #+end_src
 
 ** Shell Over There
