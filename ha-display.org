@@ -112,7 +112,7 @@ Most of the time, Emacs is on my desk is a darkened room, so I choose the dark t
   (load-theme 'sanityinc-tomorrow-night t)
   (set-face-attribute 'region nil :background "#000096")
   (set-face-attribute 'mode-line nil :background "black")
-  (set-face-attribute 'mode-line-inactive nil :background "#333333"))
+  (set-face-attribute 'mode-line-inactive nil :background "#444444"))
 #+end_src
 
 But, when feeling adventurous, I /sometimes/ take my laptop outside:
@@ -141,6 +141,12 @@ And of course, the default is /inside/ where it is dark and safe:
 Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][this essay]], I figured I would start the initial frame automatically in fullscreen, but not any subsequent frames (as this could be part of the capturing system).
 #+begin_src emacs-lisp
   (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+#+end_src
+
+But when capturing, I subsequently open smaller frames that shouldn’t be /odd looking/:
+#+begin_src emacs-lisp
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
 #+end_src
 
 Now that I’m using v29 of Emacs, I can /un-decorate/ the non-full-sized frames:
