@@ -24,15 +24,7 @@ A literate programming file for helping me program.
   ;;; Code:
 #+end_src
 * Introduction
-Seems that all programming interfaces and workflows behave similarly. One other helper routine is a =general= macro for org-mode files:
-#+begin_src emacs-lisp
-  (general-create-definer ha-prog-leader
-      :states '(normal visual motion)
-      :keymaps 'prog-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
+Configuration for programming interfaces and workflows that behave similarly.
 * General
 The following work for all programming languages.
 ** direnv
@@ -110,7 +102,7 @@ I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is sim
     :general (:states 'normal "gD" 'devdocs-lookup)
 
     :config
-    (ha-prog-leader
+    (ha-local-leader :keymaps 'prog-mode-map
       "d"  '(:ignore t :which-key "docs")
       "d e" '("eldoc" . eldoc)
       "d d" '("open" . devdocs-lookup)
@@ -127,7 +119,7 @@ The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] proje
     :general (:states 'normal "gD" 'devdocs-browser-open)
 
     :config
-    (ha-prog-leader
+    (ha-local-leader :keymaps 'prog-mode-map
       "d"  '(:ignore t :which-key "docs")
       "d d" '("open" . devdocs-browser-open)
       "d D" '("open in" . devdocs-browser-open-in)
@@ -381,7 +373,7 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
     ;; (defun evil-set-jump-args (&rest ns) (evil-set-jump))
     ;; (advice-add 'dumb-jump-goto-file-line :before #'evil-set-jump-args)
 
-    (ha-prog-leader
+    (ha-local-leader :keymaps 'prog-mode-map
       "s"  '(:ignore t :which-key "search")
       "s s" '("search"       . xref-find-apropos)
       "s d" '("definitions"  . xref-find-definitions)
@@ -390,15 +382,16 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
       "s b" '("back"         . xref-go-back)
       "s f" '("forward"      . xref-go-forward))
 
-    :general (:states 'normal
-                      "g." 'xref-find-definitions
-                      "g>" 'xref-find-definitions-other-window
-                      "g," 'xref-go-back
-                      "g<" 'xref-go-forward
-                      "g/" 'xref-find-references
-                      "g?" 'xref-find-references-and-replace
-                      "gh" 'xref-find-apropos
-                      "gb" 'xref-go-back))
+    :general
+    (:states 'normal
+             "g ." '("find def"       . xref-find-definitions)
+             "g >" '("find def o/win" . xref-find-definitions-other-window)
+             "g ," '("def go back"    . xref-go-back)
+             "g <" '("def go forward" . xref-go-forward)
+             "g /" '("find refs"      . xref-find-references)
+             "g ?" '("find/rep refs"  . xref-find-references-and-replace)
+             "g h" '("find apropos"   . xref-find-apropos)
+             "g b" '("def go back"    . xref-go-back)))
 #+end_src
 
 I have two different /jumping/ systems, the [[info:emacs#Xref][Xref interface]] and Evil’s. While comparable goals, they are behave different. Let’s compare evil keybindings:
@@ -430,7 +423,7 @@ Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don�
 
     :config
     (global-set-key (kbd "s-m") 'lsp)
-    (ha-prog-leader
+    (ha-local-leader :keymaps 'prog-mode-map
       "w"  '(:ignore t :which-key "lsp")
       "l"  '(:ignore t :which-key "lsp")
       "ws" '("start" . lsp))
@@ -497,7 +490,7 @@ The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu
       :straight nil
       :after lsp-ui
       :config
-      (ha-prog-leader
+      (ha-local-leader :keymaps 'prog-mode-map
         "g"  '(:ignore t :which-key "goto")
         "g m" '("imenu" . lsp-ui-imenu))
       (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
@@ -565,7 +558,9 @@ I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd perso
 #+end_src
 And a keybinding:
 #+begin_src emacs-lisp
-  (ha-prog-leader "c" '("comment line" . ha-comment-line))
+  (ha-local-leader :keymaps 'prog-mode-map
+    "c"  '(:ignore t :which-key "comment")
+    "c l" '("comment line" . ha-comment-line))
 #+end_src
 ** Evaluation
 While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a bit of formatting in order to /keep the results/ in the file.
@@ -588,7 +583,7 @@ While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a
 
 Typical keybindings for all programming modes:
 #+begin_src emacs-lisp
-  (ha-prog-leader
+  (ha-local-leader :keymaps 'prog-mode-map
      "e"  '(:ignore t :which-key "eval")
      "e ;" '("expression" . eval-expression)
      "e b" '("buffer" . eval-buffer)

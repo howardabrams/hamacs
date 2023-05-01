@@ -50,17 +50,6 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     <<global-keybindings>>
     <<org-keybindings>>)
 #+end_src
-
-One other helper routine is a =general= macro for org-mode files:
-#+name: ha-org-leader
-#+begin_src emacs-lisp :tangle no
-  (general-create-definer ha-org-leader
-      :states '(normal visual motion)
-      :keymaps 'org-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
 * Initialization Section
 Begin by initializing these org variables:
 #+name: variables
@@ -525,7 +514,7 @@ Bindings specific to org files:
     "gb" #'org-next-block
     "gB" #'org-previous-block)
 
-  (ha-org-leader
+  (ha-local-leader :keymaps 'org-mode-map
     "e" '("exports"     . org-export-dispatch)
     "I" '("insert id" .  org-id-get-create)
     "l" '("insert link" . org-insert-link)
@@ -591,8 +580,8 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
     :after org
     :straight nil   ; Located in my "elisp" directory
     :config
-      (ha-org-leader
-        "E" '("to confluence"     . ox-export-to-confluence)))
+    (ha-local-leader :keymaps 'org-mode-map
+      "E" '("to confluence"     . ox-export-to-confluence)))
 #+end_src
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:

@@ -48,26 +48,13 @@ Then for each project, create the project directory with this command:
   lein new app fresh-app
 #+end_src
 * Emacs Support
-Let’s create a keybinding menu of Clojure-related commands:
-#+begin_src emacs-lisp
-  (general-create-definer ha-clojure-leader
-    :states '(normal visual motion)
-    :keymaps 'clojure-mode-map
-    :prefix ","
-    :global-prefix "<f17>"
-    :non-normal-prefix "S-SPC")
-#+end_src
-
-Next, install and configure [[https://github.com/clojure-emacs/clojure-mode/][clojure-mode]]:
+Install and configure [[https://github.com/clojure-emacs/clojure-mode/][clojure-mode]]:
 #+begin_src emacs-lisp
   (use-package clojure-mode
     :init
     (add-to-list 'org-babel-load-languages '(clojure . t))
 
     :config
-    ;; Predefine a "help" sequence used later on:
-    (ha-clojure-leader "h" '(:ignore t :which-key "help"))
-
     (defun ha-prettify-clojure ()
       "Make the Clojure syntax prettier."
       (push '("fn"   . ?𝝀) prettify-symbols-alist)
@@ -117,7 +104,7 @@ Need the IDE features associated with [[https://github.com/clojure-emacs/cider][
     :hook (cider-repl-mode . #'subword-mode)
 
     :config
-    (ha-clojure-leader
+    (ha-local-leader :keymaps clojure-mode-map
       "w" '(:ignore t :which-key "cider")
       "w s" '("start"            . cider-jack-in)
       "w r" '("restart"          . cider-restart)
@@ -215,7 +202,7 @@ This [[https://github.com/joshuamiller/clojars.el][clojars]] extension allows yo
   (use-package clojars
     :after clojure-mode
     :config
-    (ha-clojure-leader
+    (ha-local-leader :keymaps clojure-mode-map
      "h j" '("clojars" . clojars)))
 #+end_src
 ** Clojure Cheatsheet
@@ -224,7 +211,7 @@ The [[https://github.com/clojure-emacs/clojure-cheatsheet][clojure-cheatsheet]]
   (use-package clojure-cheatsheet
     :after clojure-mode
     :config
-    (ha-clojure-leader
+    (ha-local-leader :keymaps clojure-mode-map
      "h c" '("cheatsheet" . clojure-cheatsheet)))
 #+end_src
 ** Snippets
@@ -244,7 +231,7 @@ The [[https://github.com/clojure-emacs/clj-refactor.el][clj-refactor]] project:
     ;; Configure the Clojure Refactoring prefix.
     (cljr-add-keybindings-with-prefix "C-c .")
 
-    (ha-clojure-leader
+    (ha-local-leader :keymaps clojure-mode-map
      ;; Would really like to have this on the , prefix:
      "r"  '("refactoring" . hydra-cljr-help-menu/body)
 

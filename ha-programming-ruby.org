@@ -185,16 +185,6 @@ Next, create a =.envrc= in the project’s directory:
 #+end_src
 While that approach works /fairly well/ with [[file:ha-programming.org::*direnv][my direnv configuration]], [[file:ha-programming.org::*Flycheck][Flycheck]] seems to want the checkers to be installed globally.
 * Configuration
-Ruby-specific commands are attached to the =ha-ruby-leader=, bound to ~,~:
-#+begin_src emacs-lisp
-  (general-create-definer ha-ruby-leader
-      :states '(normal visual motion)
-      :keymaps 'ruby-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
-
 While Emacs supplies a Ruby editing environment, we’ll still use =use-package= to grab the latest:
 #+begin_src emacs-lisp
   (use-package ruby-mode
@@ -216,7 +206,7 @@ While Emacs supplies a Ruby editing environment, we’ll still use =use-package=
   #+BEGIN_SRC elisp
     (use-package inf-ruby
       :config
-      (ha-ruby-leader
+      (ha-local-leader 'ruby-mode-map
         "R" '("REPL" . inf-ruby)))
   #+END_SRC
 ** Electric Ruby
@@ -232,7 +222,7 @@ The [[https://github.com/r0man/ruby-test-mode][ruby-test-mode]] project aims a r
     :hook (ruby-mode . ruby-test-mode)
 
     :config
-    (ha-ruby-leader
+    (ha-local-leader 'ruby-mode-map
       "t"  '(:ignore t :which-key "test")
       "t t" '("test one" . ruby-test-run-at-point)
       "t g" '("toggle code/test" . ruby-test-toggle-implementation-and-specification)
@@ -245,7 +235,7 @@ The [[https://github.com/dgutov/robe][Robe project]] can be used instead of [[fi
   (use-package robe
 
     :config
-    (ha-ruby-leader
+    (ha-local-leader 'ruby-mode-map
      "w"  '(:ignore t :which-key "robe")
      "ws" '("start" . robe-start))
 
@@ -274,9 +264,9 @@ Do we want to load Robe /automatically/?
 The [[https://github.com/endofunky/bundler.el][Bundler project]] integrates [[https://bundler.io/][bundler]] to install a projects Gems.
 
 #+begin_src emacs-lisp
-(use-package bundler
-  :config
-  (ha-ruby-leader
+  (use-package bundler
+    :config
+    (ha-local-leader 'ruby-mode-map
       "g"  '(:ignore t :which-key "bundler")
       "g o" '("open" . bundle-open)
       "g g" '("console" . bundle-console)

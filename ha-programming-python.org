@@ -26,16 +26,7 @@ A literate programming file for configuring Python.
 * Introduction
 The critical part of Python integration with Emacs is running LSP in Python using [[file:ha-programming.org::*direnv][direnv]]. And the question to ask is if the Python we run it in Docker or in a virtual environment.
 
-#+begin_src emacs-lisp
-  (general-create-definer ha-python-leader
-      :states '(normal visual motion)
-      :keymaps 'python-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
 While Emacs supplies a Python editing environment, we’ll still use =use-package= to grab the latest:
-
 #+begin_src emacs-lisp
   (use-package python
     :after projectile flycheck
@@ -122,7 +113,7 @@ container_layout
     :after python
     :commands python-pytest-dispatch
     :init
-    (ha-python-leader
+    (ha-local-leader :keymaps 'python-mode-map
       "t" '(:ignore t :which-key "tests")
       "t a" '("all" . python-pytest)
       "t f" '("file dwim" . python-pytest-file-dwim)
@@ -176,7 +167,7 @@ Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integrat
   (use-package lsp-mode
     ;; :hook ((python-mode . lsp)))
     :config
-    (ha-python-leader
+    (ha-local-leader :keymaps 'lsp-mode-map
       "0" '("treemacs" . lsp-treemacs-symbols)
 
       "/" '("complete" . completion-at-point)

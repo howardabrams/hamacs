@@ -102,9 +102,7 @@ Next, we need some basic configuration settings and some global keybindings:
       "a m" '("read mail" . notmuch)
       "a c" '("compose mail" . compose-mail))
 
-    <<local-leader-keybindings>>
-
-    (ha-mail-hello-leader
+    (ha-local-leader :keymaps 'notmuch-hello-mode-map
      "u" '("new mail" . notmuch-retrieve-messages)
      "m" '("read mail" . notmuch)
      "c" '("compose"     . notmuch-mua-new-mail)
@@ -637,37 +635,10 @@ This means:
     (message "Noted! Reply Later: %s" email-string)))
 #+end_src
 ** Bucket Keybindings
-In /Emacs/ mode, we can just call =define-key=, but since it starts in Evil state (and we may want to use Evil keybindings, let's create some local leaders:
-
-#+NAME: local-leader-keybindings
-#+begin_src emacs-lisp :tangle no
-  (general-create-definer ha-mail-hello-leader
-      :states '(normal visual motion)
-      :keymaps 'notmuch-hello-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-
-  (general-create-definer ha-mail-search-leader
-      :states '(normal visual motion)
-      :keymaps 'notmuch-search-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-
-  (general-create-definer ha-mail-show-leader
-      :states '(normal visual motion)
-      :keymaps 'notmuch-show-mode-map
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
-
 A series of keybindings to quickly send messages to one of the pre-defined buckets.
-
 #+NAME: hey-show-keybindings
 #+begin_src emacs-lisp :tangle no
-  (ha-mail-show-leader
+  (ha-local-leader :keymaps 'notmuch-show-mode-map
       "c" '("compose"     . notmuch-mua-new-mail)
       "C" '("reply-later" . hey-notmuch-reply-later))
 
@@ -678,7 +649,7 @@ The bindings in =notmuch-search-mode= are available when looking at a list of me
 
 #+NAME: hey-search-keybindings
 #+begin_src emacs-lisp :tangle no
-  (ha-mail-search-leader
+  (ha-local-leader :keymaps 'notmuch-search-mode-map
       "r" '("reply"              . notmuch-search-reply-to-thread)
       "R" '("reply-all"          . notmuch-search-reply-to-thread-sender)
       "/" '("search"             . notmuch-search-filter)
@@ -715,8 +686,7 @@ The gods ordained that Mail and Org should dance together, so step one is compos
 #+begin_src emacs-lisp
   (use-package org-mime
     :config
-    (ha-local-leader
-       :keymaps 'notmuch-message-mode-map
+    (ha-local-leader :keymaps 'notmuch-message-mode-map
       "s" '("send" . notmuch-mua-send-and-exit)
       "m" '("mime it" . org-mime-htmlize)))
 #+end_src

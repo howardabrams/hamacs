@@ -245,7 +245,8 @@ This function does the heavy lifting. Note that I will need another function to 
 Bind these functions to the /local/ mode key sequence:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
-    (ha-org-leader "y" 'ha-org-yank-clipboard))
+    (ha-local-leader :keymaps 'org-mode-map
+       "y" 'ha-org-yank-clipboard))
 #+end_src
 * Technical Artifacts                                :noexport:
 Let's provide a name so we can =require= this file:

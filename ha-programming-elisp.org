@@ -30,16 +30,6 @@ New, /non-literal/ source code comes from [[file:templates/emacs-lisp-mode.el][e
 #+begin_src emacs-lisp
   (ha-auto-insert-file (rx ".el" eol) "emacs-lisp-mode.el")
 #+end_src
-
-Perhaps we should have an Emacs Lisp-specific leader for advanced commands:
-#+begin_src emacs-lisp
-  (general-create-definer ha-elisp-leader
-      :states '(normal visual motion)
-      :keymaps '(emacs-lisp-mode-map lisp-mode-map)
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
 * Syntax Display
 ** Dim those Parenthesis
 The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the color level of parenthesis which I find better.
@@ -65,8 +55,8 @@ And we should extend it with the [[https://github.com/xuchunyang/elisp-demos][el
   (use-package elisp-demos
     :after helpful
     :config
-    (ha-elisp-leader
-      "h a" '("add helpful demo" . elisp-demos-add-demo))
+    (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
+      "d a" '("add helpful demo" . elisp-demos-add-demo))
 
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
@@ -129,7 +119,8 @@ My primary use-case is for its refactoring and other unique features. For instan
     (evil-define-key 'visual emacs-lisp-mode-map
       "o" 'lispy-mark-symbol)              ; Mark symbol since "o" doesn't do anything
 
-    (ha-elisp-leader
+    (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
+      "r"  '(:ignore t :which-key "refactor")
       "r i" '("cond→if" . lispy-to-ifs)
       "r c" '("if→cond" . lispy-to-cond)
       "r d" '("λ→𝑓" . lispy-to-defun)
@@ -142,7 +133,7 @@ My primary use-case is for its refactoring and other unique features. For instan
       "e j" '("debug-step-in" . lispy-debug-step-in)
       "e R" '("eval-and-replace" . lispy-eval-and-replace)
 
-      "h d" '("describe" . lispy-describe)
+      "d d" '("describe" . lispy-describe)
       "t t" '("ert" . lispy-ert)))
 #+end_src
 ** Lispyville
@@ -287,7 +278,7 @@ A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression c
 
 And we just need to bind it.
 #+begin_src emacs-lisp
-  (ha-prog-leader
+  (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
     "e c" '("current" . ha-eval-current-expression))
 #+end_src
 * Technical Artifacts                                :noexport:

@@ -669,7 +669,7 @@ Here is the script I tangle to =~/bin/en=:
 Along with kicking off the org-capture, I want to be able to clock-in and out:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
-    (ha-org-leader
+    (ha-local-leader :keymaps 'org-mode-map
       "X" '("org capture" . org-capture)
       "c"  '(:ignore t :which-key "clocks")
       "c i" '("clock in" . org-clock-in)

@@ -1077,7 +1077,7 @@ Note we bind the key ~M-R~ to the [[help:rg-menu][rg-menu]], which is a Magit-li
 I don’t understand the bug associated with the =:general= extension to =use-package=, but it /works/, but stops everything else from working, so pulling it out into its own =use-package= section addresses that issue:
 #+begin_src emacs-lisp
   (use-package rg
-    :general (:states 'normal "gr" 'rg-dwim))
+    :general (:states 'normal "gS" 'rg-dwim))
 #+end_src
 **** wgrep
 The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
@@ -1312,7 +1312,7 @@ Notice that you can swap:
   - ~gx i w~ :: words, ~W~ words with dashes, or ~o~ for programming symbols (like variables)
   - ~gx i s~ :: sentences
   - ~gx i p~ :: paragraphs
-  - ~gx i g~ :: programming s-expressions between parens, braces, etc.
+  - ~gx i x~ :: programming s-expressions between parens, braces, etc.
   - ~gx i l~ :: lines, with the [[Evil Text Object Line][line-based text object]] project installed
 *** Evil Commentary
 The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
@@ -1516,7 +1516,7 @@ I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp pac
   (use-package visual-regexp
     :bind (("C-c r" . vr/replace)
            ("C-c q" . vr/query-replace))
-    :general (:states 'normal "gR" '("replace" . vr/replace))
+    :general (:states 'normal "g r" '("replace" . vr/replace))
     :config (ha-leader
               "r" '("replace" . vr/replace)
               "R" '("query replace" . vr/query-replace)))
@@ -1584,20 +1584,12 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
   (use-package expand-region
     :bind ("C-=" . er/expand-region)
 
-    :config
-    (defun ha-start-region ()
-      "Increase the region when on special characters."
-      (interactive)
-      (if (looking-at (rx (any "{}()[]")))
-          (call-interactively 'er/expand-region)
-        (evil-visual-state)))
-
     :general
-    (:states 'normal "v" 'ha-start-region)
     ;; Use escape to get out of visual mode, but hitting v again expands the selection.
     (:states 'visual
              "v" 'er/expand-region
-             "V" 'er/contract-region))
+             "V" 'er/contract-region
+             "-" 'er/contract-region))
 #+end_src
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).

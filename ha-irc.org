@@ -118,19 +118,9 @@ And some global keys to display them:
   "a I" '("irc start"  . ha-irc-persp-start))
 #+end_src
 
-Let's create a leader for this mode:
+And a quick shortcuts to call it:
 #+begin_src emacs-lisp
-  (general-create-definer ha-irc-leader
-      :states '(normal visual motion)
-      :keymaps '(erc-mode-map)
-      :prefix ","
-      :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC")
-#+end_src
-
-And a quick shortcut to call it:
-#+begin_src emacs-lisp
-  (ha-irc-leader
+  (ha-local-leader :keymaps '(erc-mode-map)
    "o" '("next channel" . erc-track-switch-buffer)
    "w" '("resize text" . ha-erc-resize-text)
    "r" '("reconnect" . ha-erc-connect-irc)

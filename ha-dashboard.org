@@ -184,7 +184,7 @@ Lots of things to learn and keep straight. Let’s try the [[https://github.com/
                           '(:key "g c" :description "comment line")
                           '(:key "g e" :description "go backward word end")
                           '(:key "g s" :description "visual search for line")
-                          '(:key "g r" :description "search for symbol (SPC s j/k)")))
+                          '(:key "g r" :description "visual search/replace")))
                           #+end_src
 ** Learn This
 Simple function to display a file in the top-right corner (if the file exists):
