@@ -201,24 +201,45 @@ But one of those functions doesn’t exist:
 *** Tree Sitter
 Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project]]. For instance:
 #+begin_src sh
-  brew install tree-sitter
+  brew install tree-sitter npm # Since most support packages need that too.
 #+end_src
 The tree-sitter project does not install any language grammars by default—after all, it would have no idea which particular languages to parse and analyze!
 
-First, using the =tree-sitter= command line tool, create the [[/Users/howard.abrams/Library/Application Support/tree-sitter/config.json][config.json]] file:
+Next, using the =tree-sitter= command line tool, create the [[/Users/howard.abrams/Library/Application Support/tree-sitter/config.json][config.json]] file:
 #+begin_src sh
   tree-sitter init-config
 #+end_src
+
 Normally, you would need to  add all the projects to directory clones in =~/src=, e.g.
 #+begin_src sh :dir ~/src
-  git clone https://github.com/tree-sitter/tree-sitter-python ~/src/tree-sitter-python
   git clone https://github.com/tree-sitter/tree-sitter-css ~/src/tree-sitter-css
+
   git clone https://github.com/tree-sitter/tree-sitter-json ~/src/tree-sitter-json
+  cd ~/src/tree-sitter-json && make install
+
   git clone https://github.com/tree-sitter/tree-sitter-python ~/src/tree-sitter-python
+  cd ~/src/tree-sitter-python && npm install
+
   git clone https://github.com/tree-sitter/tree-sitter-bash ~/src/tree-sitter-bash
+  cd ~/src/tree-sitter-bash && npm install
+
   git clone https://github.com/tree-sitter/tree-sitter-ruby ~/src/tree-sitter-ruby
+  cd ~/src/tree-sitter-ruby && make install
+
+  git clone https://github.com/camdencheek/tree-sitter-dockerfile ~/src/tree-sitter-dockerfile
+  cd ~/src/tree-sitter-dockerfile && npm install
+
   git clone https://github.com/ikatyang/tree-sitter-yaml ~/src/tree-sitter-yaml
-  # ...
+  cd ~/src/tree-sitter-yaml && npm install tree-sitter-yaml tree-sitter
+  # Sigh ... why can they fail so often?
+#+end_src
+And then compile them:
+#+begin_src sh
+for TSS in ~/src/tree-sitter-*
+do
+  cd $TSS
+  cargo build ; npm install   # Various build processes!?
+done
 #+end_src
 At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
 
@@ -231,11 +252,12 @@ However, Emacs already has the ability to download and install grammars, so foll
       (defun mp-setup-install-grammars ()
         "Install Tree-sitter grammars if they are absent."
         (interactive)
+        (sit-for 10)
         (dolist (grammar
-                 '((css    "https://github.com/tree-sitter/tree-sitter-css")
+                 '((bash   "https://github.com/tree-sitter/tree-sitter-bash")
+                   (css    "https://github.com/tree-sitter/tree-sitter-css")
                    (json   "https://github.com/tree-sitter/tree-sitter-json")
                    (python "https://github.com/tree-sitter/tree-sitter-python")
-                   (bash   "https://github.com/tree-sitter/tree-sitter-bash")
                    (ruby   "https://github.com/tree-sitter/tree-sitter-ruby")
                    (yaml   "https://github.com/ikatyang/tree-sitter-yaml")))
           (add-to-list 'treesit-language-source-alist grammar)
@@ -349,11 +371,6 @@ Seems the macro, =evil-textobj-tree-sitter-get-textobj= has a bug, so the follow
       (define-key evil-outer-text-objects-map key (evil-textobj-tree-sitter-get-textobj outer))
       ;; bind an inner (e.g. function block without name and args) for use in things like `vif`, `yif`
       (define-key evil-inner-text-objects-map key (evil-textobj-tree-sitter-get-textobj inner))))
-#+end_src
-*** Syntactical Jumps
-What if, when programming, we can jump to the nearest left-hand side of an assignment? Or a labeled loop?
-#+begin_src emacs-lisp :tangle no
-
 #+end_src
 *** dumb-jump
 Once upon a time, we use to create a =TAGS= file that contained the database for navigating code bases, but with new faster versions of grep, e.g.  [[https://beyondgrep.com][ack]], [[https://github.com/ggreer/the_silver_searcher][ag]] (aka, the Silver Searcher),  [[https://github.com/Genivia/ugrep][ugrep]] and [[https://github.com/BurntSushi/ripgrep][ripgrep]], we should be able to use them.  but I want to:
@@ -827,67 +844,141 @@ All the READMEs and other documentation use [[https://jblevins.org/projects/mark
              ", p" '("preview" . markdown-export-and-preview)))
 #+end_src
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
-** Ansible
-Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this project needs a new maintainer.
+
+Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to Markdown code blocks similar to what we do with Org:
+
 #+begin_src emacs-lisp
-  (use-package yaml-mode
-    :mode (rx ".y" (optional "a") "ml" string-end)
-          (rx (optional ".") "yamllint")
-    :hook (yaml-mode . display-line-numbers-mode))
+  (use-package polymode
+    :config
+    (define-hostmode poly-markdown-hostmode :mode 'markdown-mode)
+    (define-auto-innermode poly-markdown-fenced-code-innermode
+                           :head-matcher (cons "^[ \t]*\\(```{?[[:alpha:]].*\n\\)" 1)
+                           :tail-matcher (cons "^[ \t]*\\(```\\)[ \t]*$" 1)
+                           :mode-matcher (cons "```[ \t]*{?\\(?:lang *= *\\)?\\([^ \t\n;=,}]+\\)" 1)
+                           :head-mode 'host
+                           :tail-mode 'host)
+    (define-polymode poly-markdown-mode
+                     :hostmode 'poly-markdown-hostmode
+                     :innermodes '(poly-markdown-fenced-code-innermode))
+
+    :mode ((rx ".md" string-end) . poly-markdown-mode))
 #+end_src
-Note this needs the following to run properly:
+** YAML
+Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this projeDoing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
+#+begin_src emacs-lisp
+  (if (string-search "TREE_SITTER" system-configuration-features)
+      (progn
+        (use-package yaml-ts-mode
+          :mode (rx ".y" (optional "a") "ml" string-end)
+                (rx (optional ".") "yamllint")
+          :hook (yaml-ts-mode . display-line-numbers-mode))
+
+        (use-package yaml-pro
+          :straight (:host github :repo "zkry/yaml-pro")
+          :after yaml-ts-mode
+          :hook (yaml-ts-mode . yaml-pro-ts-mode)))
+
+    (use-package yaml-mode
+      :mode (rx ".y" (optional "a") "ml" string-end)
+            (rx (optional ".") "yamllint")
+      :hook (yaml-mode . display-line-numbers-mode)))
+#+end_src
+
+This comes with a list of nice refactoring features that we can attach to the local leader:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package yaml-pro
+      :config
+      (ha-local-leader :keymaps 'yaml-pro-ts-mode-map
+        "u" '("up" . yaml-pro-ts-up-level)                   ; C-c C-u
+        "j" '("next" . yaml-pro-ts-next-subtree)             ; C-c C-n
+        "k" '("previous" . yaml-pro-ts-prev-subtree)         ; C-c C-p
+
+        "m" '("mark tree" . yaml-pro-ts-mark-subtree)        ; C-c C-@
+        "d" '("kill subtree" . yaml-pro-ts-kill-subtree)     ; C-c C-x C-w
+        "y" '("paste tree" . yaml-pro-ts-paste-subtree)      ; C-c C-x C-y
+
+        "'" '("edit" . yaml-pro-edit-ts-scalar)              ; C-c '
+
+        "r"  '(:ignore t :which-key "refactor")
+        "r k" '("move up" . yaml-pro-ts-move-subtree-up)     ; s-↑
+        "r j" '("move down" . yaml-pro-ts-move-subtree-down) ; s-↓
+
+        ;; "r " '("" . yaml-pro-ts-meta-return)              ; M-<return>
+        "r c" '("convolute" . yaml-pro-ts-convolute-tree)    ; M-?
+        "r i" '("indent" . yaml-pro-ts-indent-subtree)       ; C-c >
+        "r o" '("outdent" . yaml-pro-ts-unindent-subtree)))) ; C-c <
+#+end_src
+Seems like I need a predicate to check for the existence of Tree Sitter support?
+
+Note that these packages need the following to run properly:
 #+begin_src sh
   pip install yamllint
 #+end_src
-
-Ansible uses Jinja, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
+** Jinja2
+A lot of projects (like Ansible and Zuul) uses [[https://jinja.palletsprojects.com][Jinja2]] with YAML, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
 #+begin_src emacs-lisp
   (use-package jinja2-mode
     :mode (rx ".j2" string-end))
 #+end_src
 
-Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]?
+Jinja is a /templating/ system that integrates /inside/ formats like JSON, HTML or YAML.
+The [[https://polymode.github.io/][polymode]] project /glues/ modes like [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] to [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
+
+I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project:
+#+begin_src emacs-lisp
+  (use-package polymode
+    :config
+    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
+    (defcustom pm-inner/jinja2
+      (pm-inner-chunkmode :mode #'jinja2-mode
+                          :head-matcher "{[%{#][+-]?"
+                          :tail-matcher "[+-]?[%}#]}"
+                          :head-mode 'body
+                          :tail-mode 'body
+                          :head-adjust-face t)
+      "Jinja2 chunk."
+      :group 'innermodes
+      :type 'object)
+    (define-polymode poly-yaml-jinja2-mode
+      :hostmode 'poly-yaml-hostmode
+      :innermodes '(pm-inner/jinja2))
+
+    :mode ((rx ".y" (optional "a") "ml" string-end) . poly-yaml-jinja2-mode))
+#+end_src
+** Ansible
+Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]? Maybe we just have a toggle for when we want the Ansible feature.
 #+begin_src emacs-lisp
   (use-package ansible
-    :init
-    (setq ansible-vault-password-file "~/.ansible-vault-passfile")
-    ;; :hook (yaml-mode . ansible-mode)
+    :mode (rx (or "playbooks" "roles"))
     :config
+    (setq ansible-vault-password-file "~/.ansible-vault-passfile")
     (ha-leader "t y" 'ansible))
 #+end_src
+
 The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable needs to change /per project/, so let’s use the =.dir-locals.el= file, for instance:
 #+begin_src emacs-lisp :tangle no
   ((nil . ((ansible-vault-password-file . "playbooks/.vault-password"))))
-
 #+end_src
 
 The YAML files get access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
 #+begin_src emacs-lisp
   (use-package ansible-doc
-    :hook (yaml-mode . ansible-doc-mode)
+    :hook (ansible-mode . ansible-doc-mode)
     :config
-    (ha-local-leader :keymaps 'yaml-mode-map
+    (ha-local-leader :keymaps 'ansible-key-map
       "d"  '(:ignore t :which-key "docs")
       "d d" 'ansible-doc))
 #+end_src
 
-The [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project uses [[https://polymode.github.io/][polymode]], gluing [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] into [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
-#+begin_src emacs-lisp :tangle no
-  (use-package polymode)
-
-  (use-package poly-ansible
-    :after polymode
-    :straight (:host github :repo "emacsmirror/poly-ansible")
-    :hook ((yaml-mode . poly-ansible-mode)
-           (poly-ansible-mode . font-lock-update)))
-#+end_src
 
 Can we integrate Ansible with LSP using [[https://github.com/ansible/ansible-language-server][ansible-language-server]] project (see [[https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/][this documentation]])?
 
-First, use =npm= to install the program:
+Using =npm= to install the program:
 #+begin_src sh
   npm installl -g @ansible/ansible-language-server
 #+end_src
+But … will I get some use out of this? I’ll come back to it later.
 ** Docker
 Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][dockerfile-mode]] project:
 #+BEGIN_SRC emacs-lisp
