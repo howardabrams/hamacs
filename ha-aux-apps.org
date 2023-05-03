@@ -27,8 +27,7 @@ A literate programming file for helper apps in Emacs.
 The following applications are not needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and using a stand-alone app on my Workday computer.
 * Twitter
 The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
-
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package twittering-mode
     :init
     (setq twittering-use-master-password t
@@ -37,6 +36,7 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
     (defalias 'epa--decode-coding-string 'decode-coding-string)
     (ha-leader "a t" '("twitter" . twit)))
 #+end_src
+And we are no longer using this package.
 * Mastodon
 Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project, and even more glad to see the great birdland diaspora arrive in the land of the toots.
 #+begin_src emacs-lisp
