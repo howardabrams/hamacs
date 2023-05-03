@@ -988,8 +988,9 @@ Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][docker
     (make-local-variable 'docker-image-name)
     (defvaralias 'docker-image-name 'dockerfile-image-name nil)
 
-    (ha-local-leader  :keymaps 'dockerfile-mode-map
+    (ha-local-leader :keymaps 'dockerfile-mode-map
       "b" '("build" . dockerfile-build-buffer)
+      "B" '("build no cache" . dockerfile-build-no-cache-buffer)
       "t" '("insert build tag" . ha-dockerfile-build-insert-header))
 
     (defun ha-dockerfile-build-insert-header (image-name)
@@ -998,10 +999,7 @@ Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][docker
       (save-excursion
         (goto-char (point-min))
         (insert (format "## -*- dockerfile-image-name: \"%s\" -*-" image-name))
-        (newline)))
-
-    :hook
-    (dockerfile-mode . display-line-numbers-mode))
+        (newline))))
 #+END_SRC
 
 /Control/ Docker from Emacs using the [[https://github.com/Silex/docker.el][docker.el]] project:
