@@ -281,7 +281,6 @@ However, Emacs already has the ability to download and install grammars, so foll
 #+end_src
 *** Combobulate
 I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]], but can we extend that to other languages generally? After reading Mickey Petersen’s essay, [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][Combobulate project]], I decided to try out his [[https://github.com/mickeynp/combobulate][combobulate package]]. Of course, this can only work with the underlying tooling supplied by the [[https://emacs-tree-sitter.github.io/][Tree Sitter]] →
-
 #+begin_src emacs-lisp
   (when (string-search "TREE_SITTER" system-configuration-features)
     (use-package combobulate
@@ -895,7 +894,7 @@ This comes with a list of nice refactoring features that we can attach to the lo
         "k" '("previous" . yaml-pro-ts-prev-subtree)         ; C-c C-p
 
         "m" '("mark tree" . yaml-pro-ts-mark-subtree)        ; C-c C-@
-        "d" '("kill subtree" . yaml-pro-ts-kill-subtree)     ; C-c C-x C-w
+        "d" '("kill subtree" . yaml-pro-kill-subtree)     ; C-c C-x C-w
         "y" '("paste tree" . yaml-pro-ts-paste-subtree)      ; C-c C-x C-y
 
         "'" '("edit" . yaml-pro-edit-ts-scalar)              ; C-c '
