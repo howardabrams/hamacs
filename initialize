@@ -6,12 +6,14 @@
 HAMACS_DIR=$(cd "$(dirname "$0")"; pwd)
 HAMACS_DEST=$HOME/.emacs.d
 
+cd $HAMACS_DIR
 mkdir -p $HAMACS_DEST
 
 for LINK in snippets templates elisp
 do
+    echo Symlinking $HAMACS_DEST/$LINK to $HAMACS_DIR/$LINK ...
     rm -rf $HAMACS_DEST/$LINK
-    ln -s --force $HAMACS_DIR/$LINK $HAMACS_DEST
+    ln -s $HAMACS_DIR/$LINK $HAMACS_DEST
 done
 
 cat > $HAMACS_DEST/early-init.el <<EOF
@@ -94,9 +96,13 @@ cat > $HAMACS_DEST/init.el <<EOF
 
 ;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
 
+;; Bug fixes for ORG (there always seems to be something):
+(defvar native-comp-deferred-compilation-deny-list nil)
 
-;; Download and use the latest version of org:
-;; (use-package org)  ; We'll configure this in ernest later.
+(use-package org
+  ;; TODO: Using the latest org-mode
+  ;; :straight (:type built-in)
+  )
 
 ;; Let's rock:
 (org-babel-load-file "$HAMACS_DIR/bootstrap.org")
