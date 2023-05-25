@@ -979,8 +979,8 @@ And when creating new windows, why isn't the new window selected? Also, when I c
               (other-window 1)))
     (pcase file-or-buffer
       (:file   (call-interactively 'consult-projectile-find-file))
-      (:buffer (call-interactively 'consult-projectile-switch-to-buffer))))
-
+      (:buffer (call-interactively 'consult-projectile-switch-to-buffer))
+      (:term   (ha-shell (projectile-project-root)))))
 #+end_src
 
 Shame that hydra doesn’t have an /ignore-case/ feature.
@@ -998,23 +998,27 @@ Shame that hydra doesn’t have an /ignore-case/ feature.
     (defhydra hydra-window-split-above (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :above :buffer)) "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :above :file))   "load file")
+      ("t" (lambda () (interactive) (ha-new-window :above :term))   "terminal")
       ("k" split-window-below                                  "split window"))
 
     (defhydra hydra-window-split-below (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :below :buffer))        "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :below :file))          "load file    ")
+      ("t" (lambda () (interactive) (ha-new-window :below :term))          "terminal")
       ("j" (lambda () (interactive) (split-window-below) (other-window 1)) "split window ")
       ("s" (lambda () (interactive) (split-window-below) (other-window 1)) "split window "))
 
     (defhydra hydra-window-split-right (:color blue :hint nil)
       ("b" (lambda () (interactive) (ha-new-window :right :buffer))        "switch buffer")
       ("f" (lambda () (interactive) (ha-new-window :right :file))          "load file")
+      ("t" (lambda () (interactive) (ha-new-window :right :term))          "terminal")
       ("l" (lambda () (interactive) (split-window-right) (other-window 1)) "split window ")
       ("n" (lambda () (interactive) (split-window-right) (other-window 1)) "split window "))
 
     (defhydra hydra-window-split-left (:color blue :hint nil)
-      ("b" (lambda () (interactive) (ha-new-window :left :buffer))        "switch buffer")
-      ("f" (lambda () (interactive) (ha-new-window :left :file))          "load file    ")
+      ("b" (lambda () (interactive) (ha-new-window :left :buffer))         "switch buffer")
+      ("f" (lambda () (interactive) (ha-new-window :left :file))           "load file    ")
+      ("t" (lambda () (interactive) (ha-new-window :left :term))           "terminal")
       ("h" split-window-right                                         "split window")))
 #+end_src
 This means that, without thinking, the following just works:

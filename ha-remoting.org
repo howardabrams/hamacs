@@ -117,13 +117,6 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
 
 #+begin_src emacs-lisp
   (use-package vterm
-    :init
-    ;; Granted, I seldom pop out to the shell except during code demonstrations,
-    ;; but I like how C-p/C-n jumps up to each prompt entry using this setting
-    ;; that works with my prompt:
-    (setq vterm-use-vterm-prompt-detection-method nil
-          term-prompt-regexp "^.* $ ")
-
     :config
     (dolist (k '("<C-backspace>" "<M-backspace>"))
       (define-key vterm-mode-map (kbd k)
@@ -132,40 +125,13 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
     ;; Enter copy mode? Go to Evil's normal state to move around:
     (advice-add 'vterm-copy-mode :after 'evil-normal-state)
 
-    ;; I don't know if I need any of these ... yet. Because when I am in a shell,
-    ;; I default to Emacs keybindings...
-    ;; (setq vterm-keymap-exceptions nil)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-e")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-f")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-a")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-v")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-b")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-w")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-u")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-n")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-m")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-p")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-j")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-k")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-r")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-t")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-g")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-c")      #'vterm--self-insert)
-    ;; (evil-define-key 'insert vterm-mode-map (kbd "C-SPC")    #'vterm--self-insert)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd ",c")       #'multi-vterm)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd ",n")       #'multi-vterm-next)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd ",p")       #'multi-vterm-prev)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd "i")        #'evil-insert-resume)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd "o")        #'evil-insert-resume)
-    ;; (evil-define-key 'normal vterm-mode-map (kbd "<return>") #'evil-insert-resume)
-
     :hook
     (vterm-mode . (lambda ()
                     (setq-local evil-insert-state-cursor 'box)
                     (setq-local show-paren-mode nil)
-                    (setf truncate-lines nil)
+                    (setf truncate-lines nil
+                          vterm-use-vterm-prompt-detection-method nil
+                          term-prompt-regexp "^.* $ ")
                     (flycheck-mode -1)
                     (yas-minor-mode -1)
                     (evil-insert-state))))
@@ -173,30 +139,24 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
 
 The advantage of running terminals in Emacs is the ability to copy text without a mouse. For that, hit ~C-c C-t~ to enter a special copy-mode. If I go into this mode, I might as well also go into normal mode to move the cursor. To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
 
-*** Multi Vterm
-The [[https://github.com/suonlight/multi-vterm][multi-vterm]] project adds functions for renaming =vterm= instances.
-#+begin_src emacs-lisp
-  (use-package multi-vterm)
-#+end_src
-Keybindings at the end of this file.
 ** Variables
 Let's begin by defining some variables used for communication between the functions.
 
 #+begin_src emacs-lisp
-(defvar ha-latest-ssh-window-name nil
-  "The window-name of the latest ssh session. Most commands default to the last session.")
+  (defvar ha-latest-ssh-window-name nil
+    "The window-name of the latest ssh session. Most commands default to the last session.")
 
-(defvar ha-ssh-host-history '() "List of hostnames we've previously connected.")
+  (defvar ha-ssh-host-history '() "List of hostnames we've previously connected.")
 
-(defvar ha-ssh-favorite-hostnames '()
-  "A list of tuples (associate list) containing a hostname and its IP address.
-See =ha-ssh-add-favorite-host= for easily adding to this list.")
+  (defvar ha-ssh-favorite-hostnames '()
+    "A list of tuples (associate list) containing a hostname and its IP address.
+  See =ha-ssh-add-favorite-host= for easily adding to this list.")
 #+end_src
 
 Also, let's make it easy for me to change my default shell:
 #+begin_src emacs-lisp
-(defvar ha-ssh-shell (shell-command-to-string "type -p fish")
-  "The executable to the shell I want to use locally.")
+  (defvar ha-ssh-shell (shell-command-to-string "type -p fish")
+    "The executable to the shell I want to use locally.")
 #+end_src
 
 ** Interactive Interface to Remote Systems
@@ -245,10 +205,10 @@ This is used in calls to =interactive= to select a host."
 Simply calling =vterm= fails to load my full environment, so this allows me to start the terminal in a particular directory (defaulting to the root of the current project):
 
 #+begin_src emacs-lisp
-  (defun ha-shell (&optional directory)
+  (defun ha-shell (&optional directory name)
     "Creates and tidies up a =vterm= terminal shell in side window."
     (interactive (list (read-directory-name "Starting Directory: " (projectile-project-root))))
-    (let* ((win-name (ha--terminal-name-from-dir directory))
+    (let* ((win-name (or name (ha-shell--name-from-dir directory)))
            (buf-name (format "*%s*" win-name))
            (default-directory (or directory default-directory)))
       (setq ha-latest-ssh-window-name buf-name)
@@ -264,38 +224,78 @@ Before we leave this section, I realize that I would like a way to /add/ to my l
   (interactive "sHostname: \nsIP Address: ")
   (add-to-list 'ha-ssh-favorite-hostnames (cons hostname ip-address)))
 #+end_src
+
+Let's have a quick way to bugger out of the terminal:
+#+begin_src emacs-lisp
+(defun ha-ssh-exit (&optional window-name)
+  "End the SSH session specified by WINDOW-NAME (or if not, the latest session)."
+  (interactive)
+  (unless (string-match-p "v?term" (buffer-name))
+    (unless window-name
+      (setq window-name ha-latest-ssh-window-name))
+    (pop-to-buffer window-name))
+
+  (ignore-errors
+    (term-send-eof))
+  (kill-buffer window-name)
+  (delete-window))
+#+end_src
 ** Programmatic Interface
-Let’s send stuff to it:
+Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ send commands to the running terminal, e.g. =(ha-shell-send "ls *.py")=
+
+Since every project perspective may have a shell terminal, let’s see if I can figure which shell buffer to send—based on the =current-directory=.
 #+begin_src emacs-lisp
   (defun ha-shell-send (command &optional directory)
-    "Send COMMAND to existing shell based on DIRECTORY.
+    "Send COMMAND to existing shell terminal based on DIRECTORY.
   If the shell doesn't already exist, start on up by calling
-  the `ha-shell' function."
-    (let* ((win-name (ha--terminal-name-from-dir directory))
-           (win-rx   (rx "*" (literal win-name) "*"))
-           (bufs     (seq-filter (lambda (b) (when (string-match win-rx (buffer-name b)) b))
-                                 (buffer-list)))
-           (buf (first bufs)))
+  the `ha-shell' function.
+
+  The real work for this is done by `ha-ssh-send'.
+
+  If DIRECTORY is nil, use the project root from projectile."
+    (let ((buf (ha-shell--buf-from-dir directory)))
       (unless buf
         (setq buf (ha-shell directory)))
       (ha-ssh-send command buf)))
 
-  (defun ha--terminal-name-from-dir (&optional directory)
+  (defun ha-shell--buf-from-dir (directory)
+    "Return Terminal buffer associated with DIRECTORY.
+  Or nil if no buffer has been found."
+    (let* ((win-name (ha-shell--name-from-dir directory))
+           (win-rx   (rx "*" (literal win-name) "*"))
+           (bufs     (seq-filter (lambda (b) (when (string-match win-rx (buffer-name b)) b))
+                                 (buffer-list))))
+       (first bufs)))
+
+  (defun ha-shell--name-from-dir (&optional directory)
     "Return an appropriate title for a terminal based on DIRECTORY.
   If DIRECTORY is nil, use the `projectile-project-name'."
     (unless directory
       (setq directory (projectile-project-name)))
-    (format "Terminal: %s" (file-name-base (directory-file-name directory))))
+    (let ((name
+           ;; Most of the time I just want the base project name, but in
+           ;; my "work" directory, the projects are too similar, and I
+           ;; need two levels of directories to distinguish them as a
+           ;; project.
+           (if (s-contains? "/work/" directory)
+               (thread-last directory
+                            (s-split "/")
+                            (-remove 's-blank-str?)
+                            (-take-last 2)
+                            (s-join "/"))
+             (file-name-base (directory-file-name directory)))))
+      (format "Terminal: %s" name)))
 
   (ert-deftest ha--terminal-name-from-dir-test ()
     (should
-     (string= (ha--terminal-name-from-dir "~/other/hamacs/") "Terminal: hamacs"))
+     (string= (ha-shell--name-from-dir "~/other/hamacs/") "Terminal: hamacs"))
     (should
-     (string= (ha--terminal-name-from-dir) "Terminal: hamacs")))
+     (string= (ha-shell--name-from-dir "~/work/foo/bar") "Terminal: foo/bar"))
+    (should
+     (string= (ha-shell--name-from-dir) "Terminal: hamacs")))
 #+end_src
 
 The previous functions (as well as my own end of sprint demonstrations) often need to issue some commands to a running terminal session, which is a simple wrapper around a /send text/ and /send return/ sequence:
-
 #+begin_src emacs-lisp
   (defun ha-ssh-send (phrase &optional window-name)
     "Send command PHRASE to the currently running SSH instance.
@@ -315,43 +315,85 @@ The previous functions (as well as my own end of sprint demonstrations) often ne
           (term-send-input)))))
 #+end_src
 
-On the rare occasion that I write a shell script, or at least, need to execute some one-line shell commands from some document, I have a function that combines a /read line from buffer/ and then send it to the currently running terminal:
-
+As you may know, I’m big into /literate devops/ where I put my shell commands in org files. However, I also work as part of a team that for some reason, doesn’t accept Emacs as their One True Editor. At least, I am able to talk them into describing commands in Markdown files, e.g. =README.md=. Instead of /copying-pasting/ into the shell, could I /send/ the /current command/ to that shell?
 #+begin_src emacs-lisp
-(defun ha-ssh-send-line ()
-  "Copy the contents of the current line in the current buffer,
-and call =ha-ssh-send= with it. After sending the contents, it
-returns to the current line."
-  (interactive)
-  ;; The function =save-excursion= doesn't seem to work...
-  (let* ((buf (current-buffer))
-         (cmd-line (buffer-substring-no-properties
-                    (line-beginning-position) (line-end-position)))
-         (trim-cmd (s-trim cmd-line)))
-    (ha-ssh-send trim-cmd)
-    ;; (sit-for 0.25)
-    (pop-to-buffer buf)))
+  (defun ha-ssh-send-line (prefix)
+    "Copy the contents of the current line in the current buffer,
+  and call =ha-ssh-send= with it. After sending the contents, it
+  returns to the current line."
+    (interactive "P")
+    ;; The function =save-excursion= doesn't seem to work...
+    (let ((buf (current-buffer)))
+      (dolist (line (ha-ssh--line-or-block prefix))
+        ;; (sit-for 0.25)
+        (ha-ssh-send line))
+      (pop-to-buffer buf)))
 #+end_src
 
-Let's have a quick way to bugger out of the terminal:
-
+What does /current command/ mean? The current line? A good fall back. Selected region? Sure, if active, but that seems like more work. In a Markdown file, I can gather the entire source code block, just like in an Org file.
+So the following function may be a bit complicated in determining what is this /current code/:
 #+begin_src emacs-lisp
-(defun ha-ssh-exit (&optional window-name)
-  "End the SSH session specified by WINDOW-NAME (or if not, the latest session)."
-  (interactive)
-  (unless (string-match-p "v?term" (buffer-name))
-    (unless window-name
-      (setq window-name ha-latest-ssh-window-name))
-    (pop-to-buffer window-name))
+  (defun ha-ssh--line-or-block (num-lines)
+    "Return a list of the NUM-LINES from current buffer.
+  If NUM-LINES is nil, then follow these rules:
+  If the region is active, return the lines from that.
+  If in an org-mode block, return that block.
+  If in a Markdown file, return the triple-back-tick code,
+  or the indented code, or the inline code between single ticks.
+  Otherwise, just return the current line."
+    (ha-ssh--line-cleanup
+     (cond
+      ((and num-lines (numberp num-lines))
+       (buffer-substring-no-properties
+        (line-beginning-position) (line-end-position num-lines)))
 
-  (ignore-errors
-    (term-send-eof))
-  (kill-buffer window-name)
-  (delete-window))
+      ;; Region active?
+      ((region-active-p)
+       (buffer-substring-no-properties
+        (region-beginning) (region-end)))
+
+      ;; In org? Use the block
+      ((and (eq major-mode 'org-mode) (org-in-src-block-p))
+       (org-element-property :value (org-element-at-point)))
+
+      ;; In Markdown block?
+      ((and (eq major-mode 'markdown-mode) (markdown-code-block-at-point-p))
+       (buffer-substring-no-properties
+        (car (markdown-code-block-at-point-p))
+        (cadr (markdown-code-block-at-point-p))))
+
+      ;; In Markdown code that is just on part of the line?
+      ((and (eq major-mode 'markdown-mode) (markdown-inline-code-at-point-p))
+       (buffer-substring-no-properties
+        (car (markdown-inline-code-at-point-p))
+        (cadr (markdown-inline-code-at-point-p))))
+
+      (t      ; Otherwise, just grab the current line:
+       (buffer-substring-no-properties
+        (line-beginning-position) (line-end-position))))))
+#+end_src
+
+In Markdown (and org), I might have initial spaces that should be removed (but not all initial spaces):
+#+begin_src emacs-lisp
+  (defun ha-ssh--line-cleanup (str)
+    "Return STR as a list of strings."
+    (let* ((lst-contents (thread-last str
+                                      (s-split "\n")
+                                      (-remove 's-blank-str-p)))
+           (first-line   (car lst-contents))
+           (trim-amount  (when (string-match (rx bol (group (* space))) first-line)
+                           (length (match-string 1 first-line)))))
+      (mapcar (lambda (line) (substring line trim-amount)) lst-contents)))
+
+  (ert-deftest ha-ssh--line-cleanup-test ()
+    (should (equal (ha-ssh--line-cleanup "bob") '("bob")))
+    (should (equal (ha-ssh--line-cleanup "  bob") '("bob")))
+    (should (equal (ha-ssh--line-cleanup "bob\nfoo") '("bob" "foo")))
+    (should (equal (ha-ssh--line-cleanup "  bob\n  foo") '("bob" "foo")))
+    (should (equal (ha-ssh--line-cleanup "  bob\n    foo") '("bob" "  foo"))))
 #+end_src
 
 ** Editing Remote Files
-
 TRAMP, when it works, is amazing that we can give it a reference to a remote directory, and have =find-file= magically autocomplete.
 
 #+begin_src emacs-lisp
@@ -473,32 +515,19 @@ This file, so far, as been good-enough for a Vanilla Emacs installation, but to 
     "a s o" '("overcloud"     . ha-ssh-overcloud)
     "a s l" '("local shell"   . ha-shell)
     "a s s" '("remote shell"  . ha-ssh)
+    "a s p" '("project shell" . (lambda () (interactive) (ha-shell (projectile-project-root))))
     "a s q" '("quit shell"    . ha-ssh-exit)
     "a s f" '("find-file"     . ha-ssh-find-file)
     "a s r" '("find-root"     . ha-ssh-find-root)
+    "a s b" '("send line"     . ha-ssh-send-line)
 
-    "a v"  '(:ignore t :which-key "vterm")
-    "a v v" '("vterm"         . multi-vterm)
-    "a v j" '("next vterm"    . multi-vterm-next)
-    "a v k" '("prev vterm"    . multi-vterm-prev)
-    "a v p" '("project vterm" . multi-vterm-project)
-    "a v r" '("rename"        . multi-vterm-rename-buffer)
-
-    "a v d"  '(:ignore t :which-key "dedicated")
-    "a v d o" '("open"        . multi-vterm-dedicated-open)
-    "a v d s" '("switch"      . multi-vterm-dedicated-select)
-    "a v d t" '("toggle"      . multi-vterm-dedicated-toggle)
-    "a v d x" '("close"       . multi-vterm-dedicated-close)
-
-    "p t"   '("project vterm" . multi-vterm-project))
+    "p t"   '("project vterm" . (lambda () (interactive) (ha-shell (projectile-project-root)))))
 #+end_src
 * Technical Artifacts                                :noexport:
-
 Provide a name so we can =require= the file:
-
 #+begin_src emacs-lisp :exports none
-(provide 'ha-remoting)
-;;; ha-remoting.el ends here
+  (provide 'ha-remoting)
+  ;;; ha-remoting.el ends here
 #+end_src
 
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
