@@ -2379,7 +2379,8 @@ When having your point on a key entry, you can copy fields to kill-ring using:
 Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/demo-it][demo-it]] project. While on MELPA, I want to use my own cloned version to make sure I can keep debugging it.
 #+begin_src emacs-lisp
   (use-package demo-it
-    :straight (:host github :repo "howardabrams/demo-it")
+    :straight (:local-repo "~/other/demo-it")
+    ;; :straight (:host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
 #+end_src
 ** PDF Viewing
