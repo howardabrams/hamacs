@@ -1839,6 +1839,7 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g /" '("Magit dispatch"             . magit-dispatch)
       "g ." '("Magit file dispatch"        . magit-file-dispatch)
       "g b" '("Magit switch branch"        . magit-branch-checkout)
+      "g u" '("Git Update"                 . vc-update)
 
       "g g" '("Magit status"               . magit-status)
       "g s" '("Magit status here"          . magit-status-here)
