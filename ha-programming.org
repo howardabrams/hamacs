@@ -212,34 +212,36 @@ Next, using the =tree-sitter= command line tool, create the [[/Users/howard.abra
 
 Normally, you would need to  add all the projects to directory clones in =~/src=, e.g.
 #+begin_src sh :dir ~/src
-  git clone https://github.com/tree-sitter/tree-sitter-css ~/src/tree-sitter-css
-
-  git clone https://github.com/tree-sitter/tree-sitter-json ~/src/tree-sitter-json
-  cd ~/src/tree-sitter-json && make install
-
-  git clone https://github.com/tree-sitter/tree-sitter-python ~/src/tree-sitter-python
-  cd ~/src/tree-sitter-python && npm install
-
-  git clone https://github.com/tree-sitter/tree-sitter-bash ~/src/tree-sitter-bash
-  cd ~/src/tree-sitter-bash && npm install
-
-  git clone https://github.com/tree-sitter/tree-sitter-ruby ~/src/tree-sitter-ruby
-  cd ~/src/tree-sitter-ruby && make install
-
-  git clone https://github.com/camdencheek/tree-sitter-dockerfile ~/src/tree-sitter-dockerfile
-  cd ~/src/tree-sitter-dockerfile && npm install
-
-  git clone https://github.com/ikatyang/tree-sitter-yaml ~/src/tree-sitter-yaml
-  cd ~/src/tree-sitter-yaml && npm install tree-sitter-yaml tree-sitter
-  # Sigh ... why can they fail so often?
+  while read REPO
+  do
+    LOCATION=~/src/$(basename ${REPO})
+    if [ ! -d ${LOCATION} ]
+    then
+      git clone ${REPO} ${LOCATION}
+    fi
+    cd ${LOCATION}
+    git pull origin
+    npm install
+  done <<EOL
+  https://github.com/tree-sitter/tree-sitter-css
+  https://github.com/tree-sitter/tree-sitter-json
+  https://github.com/tree-sitter/tree-sitter-python
+  https://github.com/tree-sitter/tree-sitter-bash
+  https://github.com/tree-sitter/tree-sitter-ruby
+  https://github.com/camdencheek/tree-sitter-dockerfile
+  https://github.com/alemuller/tree-sitter-make
+  https://github.com/ikatyang/tree-sitter-yaml
+  https://github.com/Wilfred/tree-sitter-elisp
+  EOL
 #+end_src
-And then compile them:
+
+The =npm install= /usually/ works, but I may work on some sort of various process, for instance:
 #+begin_src sh
-for TSS in ~/src/tree-sitter-*
-do
-  cd $TSS
-  cargo build ; npm install   # Various build processes!?
-done
+  for TSS in ~/src/tree-sitter-*
+  do
+    cd $TSS
+    npm install || cargo build || make install   # Various build processes!?
+  done
 #+end_src
 At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
 
@@ -254,12 +256,15 @@ However, Emacs already has the ability to download and install grammars, so foll
         (interactive)
         (sit-for 10)
         (dolist (grammar
-                 '((bash   "https://github.com/tree-sitter/tree-sitter-bash")
-                   (css    "https://github.com/tree-sitter/tree-sitter-css")
-                   (json   "https://github.com/tree-sitter/tree-sitter-json")
-                   (python "https://github.com/tree-sitter/tree-sitter-python")
-                   (ruby   "https://github.com/tree-sitter/tree-sitter-ruby")
-                   (yaml   "https://github.com/ikatyang/tree-sitter-yaml")))
+                 '((bash          "https://github.com/tree-sitter/tree-sitter-bash")
+                   (make          "https://github.com/alemuller/tree-sitter-make")
+                   (css           "https://github.com/tree-sitter/tree-sitter-css")
+                   (json          "https://github.com/tree-sitter/tree-sitter-json")
+                   (html          "https://github.com/tree-sitter/tree-sitter-html")
+                   ;; (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+                   (python        "https://github.com/tree-sitter/tree-sitter-python")
+                   (ruby          "https://github.com/tree-sitter/tree-sitter-ruby")
+                   (yaml          "https://github.com/ikatyang/tree-sitter-yaml")))
           (add-to-list 'treesit-language-source-alist grammar)
           (treesit-install-language-grammar (car grammar))))
 
@@ -270,6 +275,7 @@ However, Emacs already has the ability to download and install grammars, so foll
       ;; this does *not* extend to hooks! Make sure you migrate them also
       (dolist (mapping '((css-mode    . css-ts-mode)
                          (json-mode   . json-ts-mode)
+                         ;; (makefile-mode . makefile-ts-mode)
                          (python-mode . python-ts-mode)
                          (ruby-mode   . ruby-ts-mode)
                          (sh-mode     . bash-ts-mode)
@@ -868,8 +874,8 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this pro
   (if (string-search "TREE_SITTER" system-configuration-features)
       (progn
         (use-package yaml-ts-mode
-          :mode (rx ".y" (optional "a") "ml" string-end)
-                (rx (optional ".") "yamllint")
+          :mode ((rx ".y" (optional "a") "ml" string-end)
+                 (rx (optional ".") "yamllint"))
           :hook (yaml-ts-mode . display-line-numbers-mode))
 
         (use-package yaml-pro
