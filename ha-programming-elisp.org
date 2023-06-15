@@ -83,6 +83,9 @@ While I love packages that add functionality and I don’t have to learn anythin
     ;; Sometimes I wrap a function name in `=' characters, and these should be removed:
     (when (string-match (rx "=" (group (one-or-more any)) "=") str)
       (setq str (match-string 1 str)))
+    ;; In an org-file, a function may pick up the initial #'
+    (when (string-match (rx (optional "#") "'" (group (one-or-more any))) str)
+      (setq str (match-string 1 str)))
     (ignore-errors
       (let* ((default-directory (projectile-project-root))
              (command (format "rg --json '\\(def[^ ]+ %s ' *.org" str))
