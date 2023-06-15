@@ -99,7 +99,8 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
 I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is similar, but keeps it all /inside/ Emacs (and works on my Linux system). Two Emacs projects compete for this position. The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
 #+begin_src emacs-lisp
   (use-package devdocs
-    :general (:states 'normal "gD" 'devdocs-lookup)
+    :general (:states 'normal
+      "gD" '("devdocs" . devdocs-lookup))
 
     :config
     (ha-local-leader :keymaps 'prog-mode-map

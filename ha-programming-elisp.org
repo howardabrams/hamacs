@@ -113,14 +113,11 @@ My primary use-case is for its refactoring and other unique features. For instan
 #+begin_src emacs-lisp
   (use-package lispy
     :config
-    (evil-define-key 'normal emacs-lisp-mode-map
-      ;; Use C-SPC to mark single letter, as these seem to be nicer expansions:
-      "M-v" 'lispy-mark                   ; Mark entire s-expression
-      "g f" 'lispy-ace-paren
-      "g F" 'lispy-ace-symbol)
-
-    (evil-define-key 'visual emacs-lisp-mode-map
-      "o" 'lispy-mark-symbol)              ; Mark symbol since "o" doesn't do anything
+    (evil-define-key '(normal visual) lispyville-mode-map
+      ;; Jump to interesting places:
+      "gf" '("ace paren"  . lispy-ace-paren)
+      "gF" '("ace symbol" . lispy-ace-symbol)
+      (kbd "M-v") '("mark s-exp" . lispy-mark))   ; Mark entire s-expression
 
     (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
       "r"  '(:ignore t :which-key "refactor")

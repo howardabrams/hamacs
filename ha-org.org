@@ -533,9 +533,9 @@ Global keybindings available to all file buffers:
 #+name: global-keybindings
 #+begin_src emacs-lisp :tangle no
   (ha-leader
-    "o l" '("store link" . org-store-link)
+    "o l" '("store link"  . org-store-link)
     "o x" '("org capture" . org-capture)
-    "o c" '("clock out" . org-clock-out))
+    "o c" '("clock out"   . org-clock-out))
 #+end_src
 
 Bindings specific to org files:
@@ -543,9 +543,10 @@ Bindings specific to org files:
 #+begin_src emacs-lisp :tangle no
   (evil-define-key '(normal motion operator visual)
     org-mode-map
-    "gu" #'org-up-element
-    "gb" #'org-next-block
-    "gB" #'org-previous-block)
+    "gj" '("next heading" . #'org-forward-heading-same-level)
+    "gk" '("prev heading" . #'org-backward-heading-same-level)
+    "gb" '("next block" . #'org-next-block)
+    "gB" '("prev block" . #'org-previous-block))
 
   (ha-local-leader :keymaps 'org-mode-map
     "e" '("exports"     . org-export-dispatch)
@@ -1084,8 +1085,8 @@ Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://prote
 
     :general
     (:states 'normal
-             "g [" 'logos-backward-page-dwim
-             "g ]" 'logos-forward-page-dwim))
+             "g [" '("back page" . logos-backward-page-dwim)
+             "g ]" '("next page" . logos-forward-page-dwim)))
 #+end_src
 * Technical Artifacts                   :noexport:
 Let's provide a name, to allow =require= to work:

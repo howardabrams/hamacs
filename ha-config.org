@@ -278,8 +278,8 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
 #+end_src
 ** Evil-Specific Keybindings
 Can we change Evil at this point? Some tips:
- - [[https://github.com/noctuid/evil-guide]]
- - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html]]
+ - [[https://github.com/noctuid/evil-guide][Evil Guide]]
+ - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html][A Vim-like Emacs Configuration from Nathan Typanski]]
  - [[https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically][Evil insert state is really Emacs?]] Real answer to that is to set [[help:evil-disable-insert-state-bindings][evil-disable-insert-state-bindings]]
 
 #+begin_src emacs-lisp
@@ -295,29 +295,21 @@ Can we change Evil at this point? Some tips:
           evil-want-C-u-scroll nil
           evil-want-C-i-jump nil
           evil-escape-key-sequence "jk"
-          evil-escape-unordered-key-sequence t)
+          evil-escape-unordered-key-sequence t))
+#+end_src
 
+The Escape key act like ~C-g~ and always go back to normal mode?
+#+begin_src emacs-lisp
+  (use-package evil
     :config
-    ;; The Escape key act like C-g and always go back to normal mode?
     (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+    (evil-mode))
+#+end_src
 
-    ;; Underscores are part of a symbolic word in programming languages:
-    ;; Sure, I could use capital `W' and `B', but I often forget that.
-    (modify-syntax-entry ?_ "w")
-
-    ;; Now that `evil-disable-insert-state-bindings' works to use Emacs
-    ;; keybindings in Evil's insert mode, we no longer need this code:
-    ;; (setq evil-insert-state-map (make-sparse-keymap))
-    ;; (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
-
-    ;; Not a long-term VI user, so let's Emacsify some other keybindings:
-    (define-key evil-normal-state-map (kbd "C-b") 'scroll-up-command)
-    (define-key evil-normal-state-map (kbd "C-f") 'scroll-down-command)
-    (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
-    (define-key evil-normal-state-map (kbd "C-n") 'next-line)
-    (define-key evil-normal-state-map (kbd "C-w") 'sp-kill-region)  ; I have better window control
-
-    ;; Even with the `evil-collections' (see below), some modes should be Emacs:
+Even with the [[Evil Collection]], some modes should be Emacs:
+#+begin_src emacs-lisp
+  (use-package evil
+    :config
     (dolist (mode '(custom-mode
                     eshell-mode
                     git-rebase-mode
@@ -326,14 +318,47 @@ Can we change Evil at this point? Some tips:
                     circe-chat-mode
                     circe-query-mode
                     vterm-mode))
-      (add-to-list 'evil-emacs-state-modes mode))
-
-    (evil-mode))
+      (add-to-list 'evil-emacs-state-modes mode)))
 #+end_src
 
+I’m not a long term VI user, and I generally like /easy keys/, e.g. ~w~, have larger jumps, and /harder keys/, e.g. ~W~ (shifted), have smaller, fine-grained jumps. So I am switching these around:
+#+begin_src emacs-lisp
+  (use-package evil
+    :config
+    (require 'evil-commands)
+    (evil-define-key '(normal visual motion operator) 'global
+      "w" 'evil-forward-WORD-begin
+      "W" 'evil-forward-word-begin
+      "e" 'evil-forward-WORD-end
+      "E" 'evil-forward-word-end)
+
+    ;; The `b' key seems to need its own configuration setting:
+    (evil-define-key '(normal visual motion operator) 'global
+      "b" 'evil-backward-WORD-begin)
+    (evil-define-key '(normal visual motion operator) 'global
+      "B" 'evil-backward-word-begin)
+    ;; Note that evil-backward-word-end is on the `g e':
+
+    ;; Not a long-term VI user, so let's Emacsify some other keybindings:
+    (evil-define-key '(normal visual motion operator) 'global
+      (kbd "C-b") 'scroll-up-command
+      (kbd "C-f") 'scroll-down-command
+      (kbd "C-p") 'previous-line
+      (kbd "C-n") 'next-line
+      ;; I have better window control:
+      (kbd "C-w") 'sp-kill-region))
+#+end_src
+Testing:
+  - =word-subword-subword=
+  - =word_subword_subword=
+
 This clever hack from [[https://manueluberti.eu//emacs/2022/10/16/back-last-edit/][Manuel Uberti]] got me finding these useful bindings:
-- ~g ;~ ::  [[help:goto-last-change][goto-last-change]]
-- ~g ,~ :: [[help:goto-last-change-reverse][goto-last-change-reverse]]
+  - ~g ;~ ::  [[help:goto-last-change][goto-last-change]]
+  - ~g ,~ :: [[help:goto-last-change-reverse][goto-last-change-reverse]]
+
+Keybindings I would like to use more:
+  - ~*~ :: jumps to the next instance of the word under point
+  - ~#~ :: jumps to the previous instance of the word under point
 
 While I’m pretty good with the VIM keybindings, I would like to play around with the [[https://evil.readthedocs.io/en/latest/extension.html#text-objects][text objects]] and how it compares to others (including the surround), for instance:
   - ~diw~ :: deletes a word, but can be anywhere in it, while ~de~ deletes to the end of the word.
@@ -501,45 +526,6 @@ Using the key-chord project allows me to make Escape be on two key combo presses
     (key-chord-define-global "jk" 'evil-normal-state)
     (key-chord-define-global "JK" 'evil-normal-state))
 #+end_src
-*** Evil Lion
-The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper around Emacs’ [[help:align][align]] function. Just a little easier to use. Primary sequence is ~g a i p =~ to align along all the equal characters in the paragraph (block), or ~g a i b RET~ to use a built in rule to align (see below), or ~g a i b /~ to specify a regular expression, similar to [[help:align-regexp][align-regexp]].
-
-#+begin_src emacs-lisp
-  (use-package evil-lion
-    :after evil
-    :bind (:map evil-normal-state-map
-                ("g a" . evil-lion-left)
-                ("g A" . evil-lion-right)
-                :map evil-visual-state-map
-                ("g a" . evil-lion-left)
-                ("g A" . evil-lion-right)))
-#+end_src
-Lion sounds like /align/ … get it?
-
-Where I like to align, is on variable assignments, e.g.
-#+begin_src emacs-lisp :tangle no
-  (let ((foobar        "Something something")
-        (a             42)
-        (very-long-var "odd string"))
-    ;;
-    )
-#+end_src
-
-If you press ~RETURN~ for the /character/ to align, =evil-lion= package simply calls the built-in [[help:align][align]] function. This function chooses a regular expression based on a list of /rules/, and aligning Lisp variables requires a complicated regular expression. Extend [[elisp:(describe-variable 'align-rules-list)][align-rules-list]]:
-#+begin_src emacs-lisp
-  (use-package align
-    :straight (:type built-in)
-    :config
-    (add-to-list 'align-rules-list
-                 `("lisp-assignments"
-                   (regexp . ,(rx (group (one-or-more space))
-                                  (or
-                                   (seq "\"" (zero-or-more any) "\"")
-                                   (one-or-more (not space)))
-                                  (one-or-more ")") (zero-or-more space) eol))
-                   (group . 1)
-                   (modes . align-lisp-modes))))
-#+end_src
 ** General Leader Key Sequences
 The one thing that both Spacemacs and Doom taught me, is how much I like the /key sequences/ that begin with a leader key. In both of those systems, the key sequences begin in the /normal state/ with a space key. This means, while typing in /insert state/, I have to escape to /normal state/ and then hit the space.
 
@@ -565,6 +551,69 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :prefix ","
       :global-prefix "<f17>"
       :non-normal-prefix "S-SPC"))
+#+end_src
+*** Relabel the G Keys
+Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the entire function, so let’s /re-add/ those keybindings, but with labels. The ~g~ is extemely convenient, yet I realize that I will never use some of the default keybindings (like ~g m~ to go to the middle of the line? Too imprecise). So I am also going to delete some of them.
+
+#+begin_src emacs-lisp
+  (use-package evil
+    :general
+    (:states '(normal visual motion operator)
+             ;; These go into operator mode, so the key sequence, g U i o
+             ;; upper cases the symbol at point:
+             "g u" '("downcase" . evil-downcase)
+             "g U" '("upcase" . evil-case)
+             "g ~" '("invert case" . evil-invert-case)
+
+             ;; Use this ALL the time:
+             "g ;" '("last change" . evil-goto-last-change)
+             "g d" '("goto def" . evil-goto-definition)
+             "g i" '("resume insert" . evil-insert-resume)
+             "g v" '("resume visual" . evil-visual-restore)
+
+             "g g" '("goto first line" . evil-goto-first-line)
+             "g f" '("find file" . find-file-at-point)
+             "g q" '("fill para" . fill-paragraph)
+             "g Q" '("unfill para" . unfill-paragraph)
+
+             "g e" '("← WORD end" . evil-backward-WORD-end) ; like b
+             "g E" '("← word end" . evil-backward-word-end) ; like B
+             "g w" '("→ WORD end" . evil-forward-WORD-end)
+             "g W" '("→ word end" . evil-forward-word-end)
+
+             ;; Not sure how to use these two as they need text objs
+             "g n" '("next match" , evil-next-match)
+             "g N" '("prev match" , evil-previous-match)
+
+             "g P" '("paste after" . evil-paste-before-cursor-after)
+
+             ;; Let's clean out keybindings already in normal mode
+             ;; without the initial g:
+             "g #" nil   ; evil-search-unbounded-word-backward
+             "g *" nil   ; evil-search-unbounded-word-forward
+             "g ^" nil   ; evil-first-non-blank
+             "g $" nil   ; evil-end-of-line
+             "g _" nil   ; evil-last-non-blank ... eh
+             "g 0" nil   ; evil-beginning-of-line
+             "g &" nil   ; evil-ex-repeat-global-substitute
+             "g 8" nil   ; what-cursor-position
+             "g F" nil   ; evil-find-file-at-point-with-line
+             "g J" nil   ; evil-join-whitespace
+             "g I" nil   ; evil-insert-0-line ... just use I
+             "g m" nil   ; evil-middle-of-visual-line
+             "g M" nil   ; evil-percentage-of-line ... middle?
+             "g T" nil   ; tab-bar-switch-to-prev-tab
+             "g t" nil   ; tab-bar-switch-to-next-tab
+
+             "g j" nil   ; This will be a major-mode-specific keybinding
+             "g k" nil
+
+             (kbd "g <up>") nil
+             (kbd "g <down>") nil
+             (kbd "g <left>") nil
+             (kbd "g <right>") nil
+             (kbd "g <home>") nil
+             (kbd "g <end>") nil))
 #+end_src
 *** Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
@@ -1120,6 +1169,7 @@ Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
+    "h ." '("cursor position"  . what-cursor-position)
     "h a" '("apropos"          . apropos-command)
     "h c" '("elisp cheatsheet" . shortdoc-display-group)
     "h e" '("errors"           . view-echo-area-messages)
@@ -1189,8 +1239,8 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
 
     :general
     (:states 'normal
-             "gp" 'consult-yank-pop
-             "gs" 'consult-line))
+             "gp" '("preview paste" . 'consult-yank-pop)
+             "gs" '("go to line" . 'consult-line)))
 #+end_src
 *** Consult for Projects
 One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile.  The [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can help with this.
@@ -1291,13 +1341,13 @@ I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot,
           evil-exchange-cancel-key (kbd "gX"))
 
     :general (:states 'normal
-                      "g x" 'evil-exchange
-                      "g X" 'evil-exchange-cancel
+                      "g x" '("exchange" . 'evil-exchange)
+                      "g X" '("cancel exchange" . 'evil-exchange-cancel)
 
                       ;; What about a "normal mode" binding to regular emacs transpose?
-                      "z x" 'transpose-words
-                      "z X" 'transpose-sexps
-                      "z T" 'transpose-lines)
+                      "z w" '("transpose words" . transpose-words)
+                      "z x" '("transpose sexps" . transpose-sexps)
+                      "z k" '("transpose lines" . transpose-lines))
 
     :config (evil-exchange-install))
 #+end_src
@@ -1318,12 +1368,54 @@ Notice that you can swap:
   - ~gx i p~ :: paragraphs
   - ~gx i x~ :: programming s-expressions between parens, braces, etc.
   - ~gx i l~ :: lines, with the [[Evil Text Object Line][line-based text object]] project installed
+*** Evil Lion
+The [[https://github.com/edkolev/evil-lion][evil-lion]] package is a wrapper around Emacs’ [[help:align][align]] function. Just a little easier to use. Primary sequence is ~g a i p =~  to align along all the equal characters in the paragraph (block), or ~g a i b RET~ to use a built in rule to align (see below), or ~g a i b /~ to specify a regular expression, similar to [[help:align-regexp][align-regexp]].
+
+#+begin_src emacs-lisp
+  (use-package evil-lion
+    :after evil
+    :general
+    (:states '(normal visual)
+             "g a" '("lion ←" . evil-lion-left)
+             "g A" '("lion →" . evil-lion-right)))
+#+end_src
+Lion sounds like /align/ … get it?
+
+Where I like to align, is on variable assignments, e.g.
+#+begin_src emacs-lisp :tangle no
+  (let ((foobar        "Something something")
+        (a             42)
+        (very-long-var "odd string"))
+    ;;
+    )
+#+end_src
+
+If you press ~RETURN~ for the /character/ to align, =evil-lion= package simply calls the built-in [[help:align][align]] function. This function chooses a regular expression based on a list of /rules/, and aligning Lisp variables requires a complicated regular expression. Extend [[elisp:(describe-variable 'align-rules-list)][align-rules-list]]:
+#+begin_src emacs-lisp
+  (use-package align
+    :straight (:type built-in)
+    :config
+    (add-to-list 'align-rules-list
+                 `("lisp-assignments"
+                   (regexp . ,(rx (group (one-or-more space))
+                                  (or
+                                   (seq "\"" (zero-or-more any) "\"")
+                                   (one-or-more (not space)))
+                                  (one-or-more ")") (zero-or-more space) eol))
+                   (group . 1)
+                   (modes . align-lisp-modes))))
+#+end_src
 *** Evil Commentary
-The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ takes text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
+The [[https://github.com/linktohack/evil-commentary][evil-commentary]] is a VI-like way of commenting text. Yeah, I typically type ~M-;~ to call Emacs’ originally functionality, but in this case, ~g c c~ comments out a line(s), and ~g c~ comments text objects and whatnot. For instance, ~g c $~ comments to the end of the line.
 
 #+begin_src emacs-lisp
   (use-package evil-commentary
-    :config (evil-commentary-mode))
+    :config (evil-commentary-mode)
+
+    :general
+    (:states '(normal visual motion operator)
+             "g c" '("comments" . evil-commentary)
+             "g y" '("yank comment" . evil-commentary-yank)))
 #+end_src
 *** Evil Collection
 Dropping into Emacs state is better than pure Evil state for applications, however, [[https://github.com/emacs-evil/evil-collection][the evil-collection package]] creates a hybrid between the two, that I like.
@@ -1541,7 +1633,7 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
     :config (ha-leader "j" '("jump" . avy-goto-char-timer))
 
     :general
-    (:states 'normal "go" 'avy-goto-char-timer)
+    (:states 'normal "go" '("avy goto" . avy-goto-char-timer))
 
     :bind ("<f18>" . avy-goto-char-timer))
 #+end_src
