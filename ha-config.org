@@ -573,8 +573,6 @@ Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the 
 
              "g g" '("goto first line" . evil-goto-first-line)
              "g f" '("find file" . find-file-at-point)
-             "g q" '("fill para" . fill-paragraph)
-             "g Q" '("unfill para" . unfill-paragraph)
 
              "g e" '("← WORD end" . evil-backward-WORD-end) ; like b
              "g E" '("← word end" . evil-backward-word-end) ; like B
@@ -608,12 +606,49 @@ Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the 
              "g j" nil   ; This will be a major-mode-specific keybinding
              "g k" nil
 
+             (kbd "g C-]") nil
              (kbd "g <up>") nil
              (kbd "g <down>") nil
              (kbd "g <left>") nil
              (kbd "g <right>") nil
              (kbd "g <home>") nil
              (kbd "g <end>") nil))
+#+end_src
+
+While we are at it, let’s readd, and relabel the ~z~ command functions:
+#+begin_src emacs-lisp
+  (use-package evil
+    :general
+    (:states '(normal visual motion operator)
+             "z q" '("fill para" . fill-paragraph)
+             "z Q" '("unfill para" . unfill-paragraph)
+             "z p" '("unfill para" . unfill-paragraph)
+
+             "z z" '("scroll to center" . evil-scroll-line-to-center)
+             "z t" '("scroll to top" . evil-scroll-line-to-top)
+             "z b" '("scroll to bottom" . evil-scroll-line-to-bottom)
+             (kbd "z <left>") '("scroll left" . evil-scroll-column-left)
+             (kbd "z <right>") '("scroll right" . evil-scroll-column-right)
+
+             "z a" '("toggle fold" . evil-toggle-fold)
+             "z c" '("close fold" . evil-close-fold)
+             "z o" '("open fold" . evil-open-fold)
+             "z m" '("close all folds" . evil-close-folds)
+             "z r" '("open all folds" . evil-open-folds)
+             ;; Open a fold at point recursively? Never see a need:
+             "z O" nil ; evil-open-fold-rec
+
+             ;; Since I have overridden z-l, why have z-h?
+             "z e" nil   ; evil-scroll-end-column
+             "z h" nil   ; evil-scroll-column-left
+             "z l" nil   ; evil-scroll-column-right
+             "z s" nil   ; evil-scroll-start-column
+             "z ^" nil   ; evil-scroll-top-line-to-bottom
+             "z +" nil   ; evil-scroll-bottom-line-to-top
+             "z -" nil   ; evil-scroll-line-to-bottom-first-non-blank
+             "z ." nil   ; evil-scroll-line-to-center-first-non-blank
+             (kbd "z RET") nil ; evil-scroll-line-to-top
+             (kbd "z <return>") nil)) ; evil-scroll-line-to-top
 #+end_src
 *** Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
@@ -1649,13 +1684,12 @@ I appreciated [[https://github.com/abo-abo/ace-link][ace-link]]’s idea for hyp
   (use-package link-hint
     :bind
     ("s-o" . link-hint-open-link)
-    ("C-c l o" . link-hint-open-link)
-    ("C-c l c" . link-hint-copy-link)
+    ("s-y" . link-hint-copy-link)
     :general
     (:states 'normal
              "gl" '("open link" . link-hint-open-link)
-             "gL" '("copy link" . link-hint-copy-link)
-             "g C-l" '("open link→window" . link-hint-open-link-ace-window))
+             "gL" '("open link→window" . link-hint-open-link-ace-window)
+             "gm" '("copy link" . link-hint-copy-link))
     (:states 'normal :keymaps 'eww-mode-map
              "o" 'link-hint-open-link)
     (:states 'normal :keymaps 'Info-mode-map
@@ -1668,10 +1702,7 @@ Can I open a link in another window? The idea with this is that I can select a l
   (defun link-hint-open-link-ace-window ()
     (interactive)
     (link-hint-copy-link)
-    (aw-select "Open EWW Link" #'link-hint-open-link-window))
-
-  (defun link-hint-open-link-window (window)
-    (aw-switch-to-window window)
+    (ace-select-window)
     (eww (current-kill 0)))
 #+end_src
 *** Expand Region
