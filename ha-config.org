@@ -533,10 +533,9 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
 
 #+begin_src emacs-lisp
   (use-package general
-    :custom
-    (general-use-package-emit-autoloads t)
-
     :config
+    (setq general-use-package-emit-autoloads t)
+
     (general-evil-setup t)
 
     (general-create-definer ha-leader
@@ -2539,7 +2538,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+DESCRIPTION: A literate programming file for configuring Emacs.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle ~/.emacs.d/elisp/ha-config.el
+#+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args   :results none   :eval no-export   :comments no
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil

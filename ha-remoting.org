@@ -535,7 +535,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+DESCRIPTION: A literate configuration for accessing remote systems.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle ~/.emacs.d/elisp/ha-remoting.el
+#+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil

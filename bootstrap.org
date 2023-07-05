@@ -248,6 +248,23 @@ With this function, we can test/debug/reload any individual file, via:
             (org-babel-load-file full-file)))))
 #+end_src
 
+And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
+
+#+begin_src emacs-lisp
+(defun ha-hamacs-tangle (file)
+  "Tangle an org-mode FILE containing literate Emacs configuration code."
+  (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
+  (let ((full-file (f-join hamacs-source-dir file))
+        (target (file-name-concat "~/emacs.d/elisp"
+                    (concat (file-name-sans-extension file) ".el"))))
+    (when (f-exists? full-file)
+      (ignore-errors
+        (with-temp-buffer
+          (insert-file-contents full-file)
+          (with-current-buffer (concat temporary-file-directory file)
+            (org-babel-tangle nil target (rx "emacs-lisp"))))))))
+#+end_src
+
 And we can now reload /all/ startup files:
 #+begin_src emacs-lisp
   (defun ha-hamacs-reload-all ()
@@ -256,6 +273,16 @@ And we can now reload /all/ startup files:
     (dolist (file (ha-hamacs-files))
       (unless (equal file "bootstrap.org")
         (ha-hamacs-load file))))
+#+end_src
+
+And we can tangle /all/ the files:
+#+begin_src emacs-lisp
+  (defun ha-hamacs-tangle-all ()
+    "Tangle all my Org initialization/configuration files."
+    (interactive)
+    (dolist (file (ha-hamacs-files))
+      (unless (equal file "bootstrap.org")
+        (ha-hamacs-tangle file))))
 #+end_src
 
 And do it:
@@ -275,7 +302,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+DESCRIPTION: A literate programming file for bootstrapping my environment.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp  :tangle ~/.emacs.d/elisp/bootstrap.el
+#+PROPERTY:    header-args:emacs-lisp  :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil

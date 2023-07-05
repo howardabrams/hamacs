@@ -253,7 +253,7 @@ Let's /provide/ a name so we can =require= the file:
 #+DESCRIPTION: A literate programming file for configuring elfeed.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle ~/.emacs.d/elisp/ha-feed-reader.el
+#+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args   :results none   :eval no-export   :comments no
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil

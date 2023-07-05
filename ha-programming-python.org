@@ -313,7 +313,7 @@ Let's =provide= a name so we can =require= this file:
 #+DESCRIPTION: A literate programming file for configuring Python.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp  :tangle ~/.emacs.d/elisp/ha-programming-python.el
+#+PROPERTY:    header-args:emacs-lisp  :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
