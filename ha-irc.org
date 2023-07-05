@@ -143,7 +143,7 @@ This will =provide= a code name, so that we can =require= this.
 #+DESCRIPTION: A literate programming configuration file for IRC.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle yes
+#+PROPERTY:    header-args:emacs-lisp :tangle ~/.emacs.d/elisp/ha-irc.el
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
