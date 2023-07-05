@@ -1453,14 +1453,14 @@ Tramp reference can be long when attempting to connect as another user account u
   (defun ha-eshell-host->tramp (username hostname &optional prefer-root)
     "Return a TRAMP reference based on a USERNAME and HOSTNAME
   that refers to any host or IP address."
-    (cond ((string-match-p "^/" host)
-             host)
+    (cond ((string-match-p "^/" hostname)
+             hostname)
           ((or (and prefer-root (not username)) (equal username "root"))
              (format "/ssh:%s|sudo:%s:" hostname hostname))
           ((or (null username) (equal username user-login-name))
              (format "/ssh:%s:" hostname))
           (t
-             (format "/ssh:%s|sudo:%s|sudo@%s:%s:" hostname hostname username hostname))))
+           (format "/ssh:%s@%s:" username hostname))))
 #+end_src
 
 This function pulls it all together:
