@@ -26,7 +26,7 @@ A literate programming file for configuring org-mode and those files.
 #+end_src
 * Use Package
 Org is a /large/ complex beast with a gazillion settings, so I discuss these later in this document.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb yes
   (use-package org
     ;; TODO: Using the latest org-mode
     ;; :straight (:type built-in)
@@ -361,7 +361,7 @@ And turn on ALL the languages:
 A noweb definition, e.g. =<<something-something>>= could /jump/ to the =#name= definition.
 Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb no
   (defun ha-org-noweb-block-jump (str pos)
     "Go to a literate org file containing a symbol, STR.
   The POS is ignored."
