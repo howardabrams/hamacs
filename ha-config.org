@@ -562,7 +562,7 @@ Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the 
              ;; These go into operator mode, so the key sequence, g U i o
              ;; upper cases the symbol at point:
              "g u" '("downcase" . evil-downcase)
-             "g U" '("upcase" . evil-case)
+             "g U" '("upcase" . evil-upcase)
              "g ~" '("invert case" . evil-invert-case)
 
              ;; Use this ALL the time:
