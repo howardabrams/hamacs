@@ -1,0 +1,273 @@
+#+title:  Installing Emacs on Ubuntu
+#+author: Howard X. Abrams
+#+email:  howard.abrams@gmail.com
+#+date:   2022-09-02 September
+#+tags:   emacs macos
+
+These instructions originally came from [[https://practical.li/blog/posts/build-emacs-from-source-on-ubuntu-linux/][this essay]].
+
+To get the native compilation for Emacs working, first install all the pre-reqs, and we seem to need a lot of them:
+#+begin_src sh
+  sudo apt update
+  sudo apt upgrade
+  # Instead of this:
+  sudo apt install -y build-essential autoconf
+  # We can not just call this:
+  sudo apt build-dep -y emacs
+
+  # We will build using the GTK and related libraries,
+  # instead of good ol' X11:
+  sudo apt install -y libc6-dev libgtk-3-dev xaw3dg-dev \
+       zlib1g-dev libice-dev libsm-dev libx11-dev libxext-dev
+
+  # Nifty new stuff supported in Emacs needs libraries:
+  sudo apt install -y libjansson4 libjansson-dev \
+       gnutls-bin libtree-sitter-dev
+
+  # I am not sure if/why we need these guys, but ...
+  sudo apt install -y libxi-dev libxmu-dev libxmuu-dev \
+       libxrandr-dev libxt-dev libxtst-dev libxv-dev \
+       libattr1-dev
+
+  # And install all the image libraries (otherwise, we need
+  # the venerable imagemagick library):
+  sudo apt install -y  libtiff5-dev libgif-dev  \
+    libpng-dev libxpm-dev libncurses-dev libtiff-dev \
+    libwebkit2gtk-4.0-dev libjpeg-dev
+  # Or do we want the specific: libjpeg62-dev
+#+end_src
+
+Oh, and if we are still building with [[https://imagemagick.org/][ImageMagick]], install that too:
+#+begin_src sh
+sudo apt-get install texinfo imagemagick
+#+end_src
+
+We need libgccjit that matches the GCC installed, e.g. =12=:
+#+begin_src sh
+GCC_VERSION=$(gcc --version | head -1 | cut -d' ' -f4 | cut -d. -f1)
+sudo apt install libgccjit-${GCC_VERSION}-dev
+#+end_src
+
+Clone the Emacs repo, and jump on the latest, /almost-released/ branch:
+#+begin_src sh
+mkdir -p ~/other ; cd ~/other
+git clone git://git.sv.gnu.org/emacs emacs
+cd emacs
+
+git checkout -b emacs29
+#+end_src
+
+Then let’s build it:
+#+begin_src sh
+./autogen.sh
+
+./configure --with-native-compilation --with-cairo --with-json \
+  --with-xml2 --with-mailutils --with-tree-sitter --with-pgtk \
+  --with-gnutls=ifavailable --with-tiff=ifavailable \
+  --program-suffix=30 \
+    CFLAGS="-O3 -mtune=native -march=native -fomit-frame-pointer"
+
+make -j$(nproc)  && sudo make install
+#+end_src
+
+* Supporting Packages
+Now install all the extras:
+#+begin_src sh
+  brew install git-delta
+  brew install libvterm
+  brew install mu
+  brew install isync
+  brew install gpg
+#+end_src
+** Mu4a
+See [[file:ha-email.org][ha-email]] for better instructions.
+#+begin_src sh
+  mkdir -p ~/.mail/work ~/.mail/gmail
+  mu init --maildir=~/.mail --my-address=howard.abrams@gmail.com --my-address=howard@howardabrams.com
+  mu index
+  mbsync -Va
+  mu index
+#+end_src
+** Mbsync config
+See [[file:ha-email.org][ha-email]] for better instructions.
+#+begin_src sh
+  cat ~/.mbsyncrc
+#+end_src
+Basic configuration, that I actually supersede.
+#+begin_src conf
+  # ========== Gmail ==========
+  IMAPAccount gmail
+  Host imap.gmail.com
+  User username@gmail.com
+  PassCmd "/opt/homebrew/bin/gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.password-store/mbsync/gmail.gpg"
+  AuthMechs LOGIN
+  SSLType IMAPS
+
+  IMAPStore gmail-remote
+  Account gmail
+
+  MaildirStore gmail-local
+  Subfolders Verbatim
+  Path ~/.mail/gmail/
+  Inbox ~/.mail/gmail/Inbox
+
+  Channel gmail
+  Far :gmail-remote:
+  Near :gmail-local:
+  Patterns * ![Gmail]* "[Gmail]/Sent Mail" "[Gmail]/Starred" "[Gmail]/All Mail"
+  Expunge None
+  CopyArrivalDate yes
+  Sync All
+  Create Near
+  SyncState *
+  # ========== Gmail ==========
+#+end_src
+* Dæmon Processes
+On the Mac, =cron= has been removed and replaced with =LaunchAgent=. I find my [[file:ha-capturing-notes.org::*Push MacOS-Specific Content][ICanHazShortcut]] process pretty simple to start Emacs, so I’m not sure about this dæmon, but …
+** Emacs dæmon via LaunchAgent
+Notice that =UserName= section should be your =$USER= value.
+#+begin_src xml :tangle ~/Library/LaunchAgents/gnu.emacs.plist
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+    <dict>
+      <key>KeepAlive</key>
+      <true/>
+      <key>Label</key>
+      <string>gnu.emacs</string>
+      <key>ProgramArguments</key>
+      <array>
+        <string>/opt/homebrew/bin/emacs</string>
+        <string>--fg-dæmon</string>
+      </array>
+      <key>RunAtLoad</key>
+      <true/>
+      <key>StandardErrorPath</key>
+      <string>/tmp/gnu-emacs-dæmon.log</string>
+      <key>StandardOutPath</key>
+      <string>/tmp/gnu-emacs-dæmon.log</string>
+      <key>UserName</key>
+      <string>howard</string>
+    </dict>
+  </plist>
+#+end_src
+
+Verify that the plist file is correct.
+#+begin_src sh
+  plutil -lint ~/Library/LaunchAgents/gnu.emacs.plist
+#+end_src
+
+Start, stop and list service.
+#+begin_src sh
+  launchctl load -w /Users/USERNAME/Library/LaunchAgents/gnu.emacs.plist
+  launchctl unload /Users/USERNAME/Library/LaunchAgents/gnu.emacs.plist
+  launchctl list
+#+end_src
+** Fetch mails periodically
+Let’s make another dæmon for fetching mail. Again, replace =UserName= with your user account name.
+#+begin_src xml :tangle ~/Library/LaunchAgents/periodic.mbsync.plist
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+    <dict>
+      <key>KeepAlive</key>
+      <true/>
+      <key>Label</key>
+      <string>periodic.mbsync</string>
+      <key>ProgramArguments</key>
+      <array>
+        <string>/Users/USERNAME/.bin/mbsync-task</string>
+      </array>
+
+      <key>StandardOutPath</key>
+      <string>/tmp/mbsync-task.log</string>
+
+      <key>StandardErrorPath</key>
+      <string>/tmp/mbsync-task.log</string>
+
+      <key>ThrottleInterval</key>
+      <integer>180</integer>
+
+      <key>RunAtLoad</key>
+      <true/>
+
+      <key>UserName</key>
+      <string>howard</string>
+    </dict>
+  </plist>
+#+end_src
+
+Verify that the plist file is correct.
+#+begin_src sh
+  plutil -lint ~/Library/LaunchAgents/periodic.mbsync.plist
+#+end_src
+
+Start, stop and list service.
+#+begin_src sh
+  launchctl load -w /Users/USERNAME/Library/LaunchAgents/periodic.mbsync.plist
+  launchctl unload /Users/USERNAME/Library/LaunchAgents/periodic.mbsync.plist
+  launchctl list
+#+end_src
+
+Script that fetches mails and updates the mail index.
+#+begin_src sh :tangle ~/.bin/mbsync-task :shebang #!/bin/bash
+  echo ""
+  echo "Running $(date +"%Y-%m-%d %H:%M")"
+  /opt/homebrew/bin/mbsync -Va
+  echo "Exit code:"
+  echo $?
+  /opt/homebrew/bin/emacsclient -e '(mu4e-update-index)'
+  echo "Exit code:"
+  echo $?
+#+end_src
+* Emacsclient
+Simple /Automator/ script that's wrapped into an application and placed in the =Applications= folder. Select *New Document*, then select *Application*. Open the *Library*, and drag the *Run Shell Script* to the /workflow/. In the box, add this:
+#+begin_src sh
+  /usr/local/bin/emacsclient -nc --socket-name work $*
+#+end_src
+Change the *Pass Input* to =as arguments=.
+
+Select to *Save* as =Emacsclient= into the *Applications* folder.
+** Utils
+Convert a plist XML file into a JSON file. Not sure why this is important to know…
+#+begin_src sh
+  plutil -convert json -r ~/Library/LaunchAgents/gnu.emacs.plist
+#+end_src
+Which should look a bit like:
+#+begin_src js
+  {
+      "KeepAlive" : true,
+      "Label" : "gnu.emacs",
+      "ProgramArguments" : [
+          "\/opt\/homebrew\/bin\/emacs",
+          "--fg-dæmon"
+      ],
+      "RunAtLoad" : true,
+      "StandardErrorPath" : "\/tmp\/gnu-emacs-dæmon.log",
+      "StandardOutPath" : "\/tmp\/gnu-emacs-dæmon.log",
+      "UserName" : "USERNAME"
+  }
+#+end_src
+
+Convert it back to XML
+#+begin_src sh
+  plutil -convert xml1 ~/Library/LaunchAgents/gnu.emacs.plist
+#+end_src
+** Resources
+#+begin_src sh
+  man launchd
+  man launchctl
+  man launchd.plist
+  man plutil
+  man plist
+#+end_src
+
+#+DESCRIPTION: A literate programming file for installing a dæmon version of Emacs on MacOS.
+
+#+PROPERTY:    header-args:sh :tangle no
+#+PROPERTY:    header-args:emacs-lisp :tangle no
+#+PROPERTY:    header-args   :results none   :eval no-export   :comments no
+
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

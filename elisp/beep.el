@@ -23,7 +23,8 @@
   "Play a default notification sound file.
 Customize the variable, `beep-alert-sound-file' to adjust the sound."
   (if (fboundp 'play-sound-internal)
-      (play-sound-file beep-alert-sound-file)
+      (ignore-errors
+        (play-sound-file beep-alert-sound-file))
     (call-process-shell-command (format "afplay %s &" beep-alert-sound-file) nil 0)))
 
 (defvar beep-speech-executable "say %s"

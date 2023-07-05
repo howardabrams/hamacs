@@ -357,7 +357,7 @@ And turn the prettifier on:
 #+end_src
 
 In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. My systems, seems to work fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   ;; set font for symbols
   (set-fontset-font t 'symbol
    (cond
