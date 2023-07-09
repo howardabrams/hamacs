@@ -91,7 +91,7 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
       :commands (telega)
       :config
       (setq telega-user-use-avatars nil
-        telega-use-tracking-for '(any pin unread)
+        telega-use-tracking-for nil ; '(any pin unread)
         telega-chat-use-markdown-formatting t
         telega-emoji-use-images t
         ; telega-completing-read-function #'ivy-completing-read

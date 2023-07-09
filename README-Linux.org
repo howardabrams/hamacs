@@ -73,11 +73,10 @@ make -j$(nproc)  && sudo make install
 * Supporting Packages
 Now install all the extras:
 #+begin_src sh
-  brew install git-delta
-  brew install libvterm
-  brew install mu
-  brew install isync
-  brew install gpg
+  sudo apt install -y libvterm-dev
+  sudo apt install -y git-delta
+  sudo apt install -y mu4e isync
+  sudo apt install -y gpg
 #+end_src
 ** Mu4a
 See [[file:ha-email.org][ha-email]] for better instructions.
@@ -99,7 +98,7 @@ Basic configuration, that I actually supersede.
   IMAPAccount gmail
   Host imap.gmail.com
   User username@gmail.com
-  PassCmd "/opt/homebrew/bin/gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.password-store/mbsync/gmail.gpg"
+  PassCmd "/usr/bin/gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.password-store/mbsync/gmail.gpg"
   AuthMechs LOGIN
   SSLType IMAPS
 
@@ -123,48 +122,57 @@ Basic configuration, that I actually supersede.
   # ========== Gmail ==========
 #+end_src
 * Dæmon Processes
-On the Mac, =cron= has been removed and replaced with =LaunchAgent=. I find my [[file:ha-capturing-notes.org::*Push MacOS-Specific Content][ICanHazShortcut]] process pretty simple to start Emacs, so I’m not sure about this dæmon, but …
-** Emacs dæmon via LaunchAgent
-Notice that =UserName= section should be your =$USER= value.
-#+begin_src xml :tangle ~/Library/LaunchAgents/gnu.emacs.plist
-  <?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  <plist version="1.0">
-    <dict>
-      <key>KeepAlive</key>
-      <true/>
-      <key>Label</key>
-      <string>gnu.emacs</string>
-      <key>ProgramArguments</key>
-      <array>
-        <string>/opt/homebrew/bin/emacs</string>
-        <string>--fg-dæmon</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>StandardErrorPath</key>
-      <string>/tmp/gnu-emacs-dæmon.log</string>
-      <key>StandardOutPath</key>
-      <string>/tmp/gnu-emacs-dæmon.log</string>
-      <key>UserName</key>
-      <string>howard</string>
-    </dict>
-  </plist>
+According to [[https://medium.com/@nevinvalsaraj/setting-up-emacs-as-a-daemon-in-ubuntu-20-04-6c4f8c441a83][this essay]], we have several ways to launch Emacs as a daemon during startup. Since =systemd= is the =init= daemon in v20+, we register Emacs as a service under =systemd= to be launched during startup. Systemd will monitor this service and restart if the service crashes for any reason. To configure the service, we first create the file =~/.config/systemd/user/emacs.service= and copy the below:
+
+#+begin_src conf :tangle ~/.config/systemd/user/emacs.service
+[Unit]
+Description=Emacs text editor
+Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/emacs --daemon
+ExecStop=/usr/local/bin/emacsclient --eval "(kill-emacs)"
+Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
 #+end_src
 
-Verify that the plist file is correct.
-#+begin_src sh
-  plutil -lint ~/Library/LaunchAgents/gnu.emacs.plist
-#+end_src
+Then run the following in the terminal:
+#+begin_example
+systemctl enable --user emacs
+systemctl start --user emacs
+#+end_example
 
-Start, stop and list service.
-#+begin_src sh
-  launchctl load -w /Users/USERNAME/Library/LaunchAgents/gnu.emacs.plist
-  launchctl unload /Users/USERNAME/Library/LaunchAgents/gnu.emacs.plist
-  launchctl list
-#+end_src
+Verify that the emacs service is running by using:
+#+begin_example
+systemctl status --user emacs
+#+end_example
+
+Now, we only use =emacsclient=. We have these terminal alias:
+  - =e=: Open a terminal version
+  - =ee=: Open an Emacs frame
 ** Fetch mails periodically
-Let’s make another dæmon for fetching mail. Again, replace =UserName= with your user account name.
+Let’s make another dæmon for fetching mail. Perhaps we should use [[https://github.com/rlue/little_red_flag][gnubiff]] instead.
+
+#+begin_src conf :tangle ~/.config/systemd/user/mbsync.service
+  [Unit]
+  Description=Mbsync Mail Fetcher
+  Documentation=https://www.systutorials.com/docs/linux/man/1-mbsync/
+
+  [Service]
+  Type=forking
+  ExecStart=/usr/bin/mbsync --daemon
+  ExecStop=/usr/bin/mbsync --eval "(kill-mbsync)"
+  Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+  Restart=on-failure
+
+  [Install]
+  WantedBy=default.target
+
+#+end_src
 #+begin_src xml :tangle ~/Library/LaunchAgents/periodic.mbsync.plist
   <?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -213,10 +221,10 @@ Script that fetches mails and updates the mail index.
 #+begin_src sh :tangle ~/.bin/mbsync-task :shebang #!/bin/bash
   echo ""
   echo "Running $(date +"%Y-%m-%d %H:%M")"
-  /opt/homebrew/bin/mbsync -Va
+  /usr/bin/mbsync -Va
   echo "Exit code:"
   echo $?
-  /opt/homebrew/bin/emacsclient -e '(mu4e-update-index)'
+  /usr/local/bin/emacsclient -e '(mu4e-update-index)'
   echo "Exit code:"
   echo $?
 #+end_src
