@@ -2429,7 +2429,9 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
           '(:left (sort symlink) :right (omit yank index)))
     (setq dirvish-attributes
           '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
-    (setq delete-by-moving-to-trash t)
+
+    (setq delete-by-moving-to-trash t
+          dired-auto-revert-buffer t)
 
     ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
     ;;       (setq insert-directory-program "gls")
@@ -2465,6 +2467,31 @@ While in =dirvish-mode=, we can rebind some keys:
      ("M-s" . dirvish-setup-menu)
      ("M-e" . dirvish-emerge-menu)
      ("M-j" . dirvish-fd-jump)))
+#+end_src
+** ediff
+Love me ediff, but with monitors that are wider than they are tall, let’s put the diffs side-by-side:
+#+begin_src emacs-lisp
+  (setq ediff-split-window-function 'split-window-horizontally)
+#+end_src
+Frames, er, windows, are actually annoying for me, as Emacs is always in full-screen mode.
+#+begin_src emacs-lisp
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+#+end_src
+When =ediff= is finished, it leaves the windows /borked/. This is annoying, but according to [[http://yummymelon.com/devnull/surprise-and-emacs-defaults.html][this essay]], we can fix it:
+#+begin_src emacs-lisp
+  (defvar my-ediff-last-windows nil
+    "Session for storing window configuration before calling `ediff'.")
+
+  (defun my-store-pre-ediff-winconfig ()
+    "Store `current-window-configuration' in variable `my-ediff-last-windows'."
+    (setq my-ediff-last-windows (current-window-configuration)))
+
+  (defun my-restore-pre-ediff-winconfig ()
+    "Restore window configuration to stored value in `my-ediff-last-windows'."
+    (set-window-configuration my-ediff-last-windows))
+
+  (add-hook 'ediff-before-setup-hook #'my-store-pre-ediff-winconfig)
+  (add-hook 'ediff-quit-hook #'my-restore-pre-ediff-winconfig)
 #+end_src
 ** Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
