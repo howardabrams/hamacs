@@ -42,10 +42,8 @@ I give each sprint a nickname, based on a /theme/ of some sorts, alphabetized. S
 
 At the beginning of the year, I choose a theme, and make a list for the upcoming sprints. In the org file, this is a list, that gets /tangled/ into an actual Emacs LIsp list. This is pretty cool.
 
-#+begin_src emacs-lisp :noweb yes
-  (defvar sprint-nicknames
-    (--map (replace-regexp-in-string " *[:#].*" "" (first it))
-           '<<sprint-names-2023()>>)
+#+begin_src emacs-lisp :var sprint-names=sprint-names-2023
+  (defvar sprint-nicknames sprint-names
     "List of 26 Sprint Nicknames from A to Z.")
 #+end_src
 ** 2023
@@ -449,7 +447,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+DESCRIPTION: A literate program for configuring org files for work-related notes.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp yes
+#+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
