@@ -558,65 +558,23 @@ While there are language-specific ways to rename variables and functions, [[http
     (ha-leader "s e" '("iedit" . iedit-mode)))
 #+end_src
 ** Case Conversion
-Sure we can upper– and lower–case stuff, but can we change from Camel to Snake case and back? For instance, =fooBarBaz=, would with ~z s~ keybinding, change to =foo_bar_baz= (and repeating that sequence would return it to =fooBarBaz=).
-
+The [[https://github.com/akicho8/string-inflection][string-inflection]] project (see [[http://sodaware.sdf.org/notes/converting-to-snake-case-in-emacs/][this overview]]) converts symbol variables to /appropriate format/ for the mode. This replaces my home-brewed functions.
 #+begin_src emacs-lisp
-  (defun get-bounds-of-symbol ()
-    "Return a list of the start and end of the current symbol at point.
-  Return the start and end of region, if the region is active."
-   (if (region-active-p)
-        (cons (region-beginning) (region-end))
-     (bounds-of-thing-at-point 'symbol)))
-
-  (defun camel-to-snake-case ()
-    "Convert the active region or current symbol to snake case.
-  For instance, fooBarBaz will be foo_bar_baz."
-    (interactive)
-    (cl-destructuring-bind (start . end) (get-bounds-of-symbol)
-      (save-excursion
-        (goto-char start)
-        (narrow-to-region start end)
-        (let ((case-fold-search nil))
-          (while (re-search-forward (rx (group (one-or-more upper))) nil t)
-            (replace-match (concat "_" (downcase (match-string 1))) t nil)))
-        (widen))))
-
-  (defun snake-to-camel-case ()
-    "Convert the active region or current symbol to camel case.
-  For instance, foo_bar_baz will be fooBarBaz."
-    (interactive)
-    (cl-destructuring-bind (start . end) (get-bounds-of-symbol)
-      (save-excursion
-        (goto-char start)
-        (narrow-to-region start end)
-        (let ((case-fold-search nil))
-          (while (re-search-forward (rx "_" (group  alpha)) nil t)
-            (replace-match (upcase (match-string 1)) t nil)))
-        (widen))))
-
-  (defun toggle-snake-to-camel-case ()
-    "Toggle current symbol from snake to camel, and visa-versa."
-    (interactive)
-    (cl-destructuring-bind (start . end) (get-bounds-of-symbol)
-      (save-excursion
-        (goto-char start)
-        (if (looking-at (rx (zero-or-more alphanumeric) "_"))
-            (snake-to-camel-case)
-          (camel-to-snake-case)))))
-#+end_src
-And we can put this on the ~z~ keybinding:
-#+begin_src emacs-lisp
-  (use-package evil
+  (use-package string-inflection
     :general
     (:states '(normal visual motion operator)
-             "z s" '("toggle snake/camel" . toggle-snake-to-camel-case)
-             "z S" '("to snake case" . camel-to-snake-case)
-             "z C" '("to camel case" . snake-to-camel-case)))
+             "z s" '("to snake case" . string-inflection-underscore)
+             "z S" '("to Snake Case" . string-inflection-upcase)
+             "z c" '("to camelCase" . string-inflection-lower-camelcase)
+             "z C" '("to CamelCase" . string-inflection-camelcase)
+             "z -" '("to kebab case" . string-inflection-kebab-case)
+             "z z" '("toggle snake/camel" . string-inflection-all-cycle)))
 #+end_src
 I would like to have this bound on the ~g~ sequence, but that is crowded.
+
+Note that ~g u~ (for lower-casing stuff), and  ~g U~ (for up-casing) requires /something/, for instance ~g U i o~ upper-cases the symbol at point. These functions, however, only work with a symbol (which is the typical case).
 ** Commenting
 I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd personal style that I like to codify:
-
 #+begin_src emacs-lisp
   (defun ha-comment-line (&optional start end)
     "Comment a line or region with a block-level format.

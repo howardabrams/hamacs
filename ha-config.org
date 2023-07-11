@@ -623,24 +623,24 @@ While we are at it, let’s readd, and relabel the ~z~ command functions:
              "z Q" '("unfill para" . unfill-paragraph)
              "z p" '("unfill para" . unfill-paragraph)
 
-             "z z" '("scroll to center" . evil-scroll-line-to-center)
+             "z m" '("scroll to center" . evil-scroll-line-to-center)
              "z t" '("scroll to top" . evil-scroll-line-to-top)
              "z b" '("scroll to bottom" . evil-scroll-line-to-bottom)
              (kbd "z <left>") '("scroll left" . evil-scroll-column-left)
              (kbd "z <right>") '("scroll right" . evil-scroll-column-right)
 
              "z a" '("toggle fold" . evil-toggle-fold)
-             "z c" '("close fold" . evil-close-fold)
+             "z f" '("close fold" . evil-close-fold)
              "z o" '("open fold" . evil-open-fold)
-             "z m" '("close all folds" . evil-close-folds)
-             "z r" '("open all folds" . evil-open-folds)
+             "z F" '("close all folds" . evil-close-folds)
+             "z O" '("open all folds" . evil-open-folds)
              ;; Open a fold at point recursively? Never see a need:
-             "z O" nil ; evil-open-fold-rec
 
              ;; Since I have overridden z-l, why have z-h?
              "z e" nil   ; evil-scroll-end-column
              "z h" nil   ; evil-scroll-column-left
              "z l" nil   ; evil-scroll-column-right
+             "z r" nil
              "z s" nil   ; evil-scroll-start-column
              "z ^" nil   ; evil-scroll-top-line-to-bottom
              "z +" nil   ; evil-scroll-bottom-line-to-top
