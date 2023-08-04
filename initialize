@@ -72,6 +72,9 @@ cat > $HAMACS_DEST/init.el <<EOF
 
 (defvar hamacs-source-dir "$HAMACS_DIR" "Where we be.")
 
+;; Bug fixes for ORG (there always seems to be something):
+(defvar native-comp-deferred-compilation-deny-list nil)
+
 ;; Configure straight https://github.com/raxod502/straight.el#getting-started
 
 (defvar bootstrap-version)
@@ -95,9 +98,6 @@ cat > $HAMACS_DEST/init.el <<EOF
            straight-default-vc 'git))
 
 ;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
-
-;; Bug fixes for ORG (there always seems to be something):
-(defvar native-comp-deferred-compilation-deny-list nil)
 
 (use-package org
   ;; TODO: Using the latest org-mode

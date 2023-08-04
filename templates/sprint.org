@@ -17,25 +17,6 @@ Anything that doesn't fit the above goes here.
 * Meeting Notes                                                     :meeting:
 * Scrum Status                                                       :status:
 
-* Sprint Demonstration
-New approach for giving presentations. First create [[file:`(file-name-sans-extension (buffer-name))`-demo.org][`(file-name-sans-extension (buffer-name))`-demo.org]], and then add the bits to the code below.
-
-#+BEGIN_SRC emacs-lisp :results silent
-  (defun org-present-file (filename)
-    (find-file (filename))
-    (delete-other-windows)
-    (org-present))
-
-  (demo-it-create :advanced-mode :single-window
-                  (org-present-file "`(file-name-sans-extension (buffer-name))`-demo.org")
-                  (org-present-next)
-                  (osx-browse-url-forwork "https://...")
-                  (demo-it-load-fancy-file "~/work/wpc4/wpc/dashboards/wpc4/hypervisor.yml" :line 116 133)
-                  ;; ...
-  )
-#+END_SRC
-
-Have fun and start the show: =demo-it-start= and hit ~F5~.
 * Notes for Next Sprint
 
 

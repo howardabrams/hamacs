@@ -1906,7 +1906,8 @@ Often, but not always, I want a perspective based on an actual Git repository, e
                                        (--filter (s-starts-with? project it))
                                        (-take 3)))
             (readme-org (f-join project "README.org"))
-            (readme-md  (f-join project "README.md")))
+            (readme-org (f-join project "README.md"))
+            (readme-md  (f-join project "README.rst")))
         (cond
          (files                  (ha--project-show-files project files))
          (recent-files           (ha--project-show-files project recent-files))
