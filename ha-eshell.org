@@ -402,13 +402,12 @@ This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return
   (defun ha-eshell-ebbflow-return ()
     "Close the ebb-flow window and return to Eshell session."
     (interactive)
-    (when (boundp 'ha-eshell-ebbflow-close-window)
-      (bury-buffer))
-    (when (boundp 'ha-eshell-ebbflow-return-buffer)
-      (pop-to-buffer ha-eshell-ebbflow-return-buffer)))
+    (if (boundp 'ha-eshell-ebbflow-return-buffer)
+        (pop-to-buffer ha-eshell-ebbflow-return-buffer)
+      (bury-buffer)))
 
   (define-minor-mode ebbflow-mode
-    "Get your foos in the right places."
+    "Editing a flow from the Eshell ebb command, so flow can pull it back."
     :lighter " ebb"
     :keymap (let ((map (make-sparse-keymap)))
               (define-key map (kbd "C-c C-q") 'ha-eshell-ebbflow-return)
@@ -509,6 +508,7 @@ We have three separate use-cases:
     (let* ((options  (eshell-getopts '((:name insert  :short "i" :long "insert")
                                        (:name append  :short "a" :long "append")
                                        (:name prepend :short "p" :long "prepend")
+                                       (:name mode    :short "m" :long "mode" :parameter string)
                                        (:name help    :short "h" :long "help"
                                               :help eshell/ebb))
                                      args))
@@ -521,11 +521,18 @@ We have three separate use-cases:
       (cond
        ((seq-empty-p params)         (ha-eshell-ebb-output  location))
        ((file-exists-p (car params)) (ha-eshell-ebb-files   location params))
-       (t                            (ha-eshell-ebb-command location params))))
+       (t                            (ha-eshell-ebb-command location params)))
 
-    ;; At this point, we are in the `ha-eshell-ebbflow-buffername', and
-    ;; the buffer contains the inserted data, so:
-    (goto-char (point-min))
+      ;; At this point, we are in the `ha-eshell-ebbflow-buffername', and
+      ;; the buffer contains the inserted data. Did we specify a major-mode?
+      (let ((mode (gethash 'mode options)))
+        (if (s-starts-with? "js" mode)
+            (js-json-mode)  ; Or should we just go to json-ts-mode?
+          (funcall (concat mode "-mode"))))
+
+      ;; Flip on the minor mode so we can close the window later on:
+      (ebbflow-mode +1)
+      (goto-char (point-min)))
 
     nil) ; Return `nil' so that it doesn't print anything in `eshell'.
 #+end_src
@@ -585,6 +592,22 @@ If we were not given a command to execute or a list of files to insert, we want 
            (contents (buffer-substring-no-properties start end)))
       (ha-eshell-ebb-switch-to-buffer insert-location)
       (insert contents)))
+#+end_src
+*** Using the Ebb and Flow Functions
+In Summary, to place the output of a command in an /editable/ buffer, either begin command with =ebb=, like:
+#+begin_src sh
+  ebb make image-status
+#+end_src
+Or run the command, as normal, and then call =ebb= without any parameters to grab the output of the last command.
+
+Note, you can run additional commands to add to the =*eshell-edit*= buffer, calling =ebb= with one of these parameters:
+  - =-a= :: append the command output to the buffer
+  - =-p= :: prepend the output to the buffer
+  - =-i= :: insert at the current point position in the buffer
+
+After altering the =*eshell-edit*= buffer, use =flow= to pull it back, as in:
+#+begin_src sh
+
 #+end_src
 ** Git
 I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
