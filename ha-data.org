@@ -49,11 +49,14 @@ These functions focus on the data in the buffer as a series of lines:
 #+begin_src emacs-lisp
   (ha-leader
     "d l"   '(:ignore t :which-key "on lines")
-    "d l f" '("flush lines"         . flush-lines)
-    "d l k" '("keep lines"          . keep-lines)
-    "d l s" '("sort lines"          . ha-sort-lines)
-    "d l u" '("unique lines"        . delete-duplicate-lines)
-    "d l b" '("flush blanks"        . flush-blank-lines))
+    "d l d" '("flush lines"    . flush-lines)
+    "d l k" '("keep lines"     . keep-lines)
+    "d l s" '("sort lines"     . ha-sort-lines)
+    "d l f" '("sort fields"    . ha-sort-fields)
+    "d l n" '("sort field num" . ha-sort-fields-numerically)
+    "d l r" '("reverse lines"  . ha-reverse-lines)
+    "d l u" '("unique lines"   . delete-duplicate-lines)
+    "d l b" '("flush blanks"   . flush-blank-lines))
 #+end_src
 
 One issue I have is [[help:keep-lines][keep-lines]] operate on the lines /starting with the point/, not on the entire buffer. Let’s fix that:
@@ -69,16 +72,20 @@ One issue I have is [[help:keep-lines][keep-lines]] operate on the lines /starti
   (advice-add 'flush-lines :around #'call-function-at-buffer-beginning)
 #+end_src
 
-The [[help:sort-lines][sort-lines]] is useful, but insists on an /active/ region. Let’s made a data-focused version:
+The [[help:sort-lines][sort-lines]] is useful, but insists on an /active/ region. Let’s make a collection of data-focused versions that work on both a region (if it is active) or the entire buffer, regardless of the position of the cursor.
 #+begin_src emacs-lisp
-  (defun ha-sort-lines (prefix)
-    "Sort the lines in a buffer or region (if active).
-  If PREFIX given, sort in reverse order."
-    (interactive "P")
-    (save-excursion
-      (if (region-active-p)
-          (sort-lines prefix (region-beginning) (region-end))
-        (sort-lines prefix (point-min) (point-max)))))
+  (dolist (tuple '((ha-sort-lines sort-lines)
+                   (ha-sort-fields sort-fields)
+                   (ha-sort-fields-numerically sort-numeric-fields)))
+    (cl-destructuring-bind (func orig-func) tuple
+      (eval `(defun ,func (prefix)
+               ,(format "Call `%s' with all lines in a buffer or region (if active).
+  Passes PREFIX to the function." orig-func)
+               (interactive "P")
+               (save-excursion
+                 (if (region-active-p)
+                     (,orig-func prefix (region-beginning) (region-end))
+                   (,orig-func prefix (point-min) (point-max))))))))
 #+end_src
 
 Getting rid of blank lines seems somewhat useful:
@@ -95,6 +102,8 @@ These functions focus on the data in the buffer as a table consisting of columns
 #+begin_src emacs-lisp
   (ha-leader
     "d t"   '(:ignore t :which-key "on tables")
+    "d t f" '("sort by columns"    . ha-sort-fields)
+    "d t n" '("sort by columns numerically" . ha-sort-fields-numerically)
     "d t k" '("keep columns" . keep-columns)
     "d t f" '("flush columns" . flush-columns))
 #+end_src
@@ -214,6 +223,40 @@ Does this work?
     (should (equal (numbers-to-number-list "2") '(2)))
     (should (equal (numbers-to-number-list "1, 2 3") '(1 2 3)))
     (should (equal (numbers-to-number-list "1, 4-7 9") '(1 4 5 6 7 9))))
+#+end_src
+
+The [[help:sort-fields][sort-fields]] function does a good job if the table is space separated, but if we separate by some other character(s), it doesn’t work. Can we write a function that does this? Here we make a /helper/ to some regular expression for the [[help:sort-regexp-fields][sort-regexp-fields]] function.
+#+begin_src emacs-lisp
+  (defun ha-sort-table-by-column (separator field)
+    "Sort the active region or entire buffer by column, FIELD.
+  Columns are denoted by a regular expression, SEPARATOR, which
+  could be a single character. For instance, given a buffer:
+
+   d, a, c, b
+   x, y
+   e, f, g
+   i, m, a, o
+
+  Calling this function with a `,' separator, and `2' for the
+  column, would result in:
+
+   d, a, c, b
+   e, f, g
+   i, m, a, o
+   x, y"
+    (interactive "sSeparator: \nnSorting field: ")
+    ;; Create a regular expression of grouped fields, separated
+    ;; by the separator sequence, for commas, this would be e.g.
+    ;;    \\(.*\\),\\(.*\\),\\(.*\\),\\(.*\\)
+    (let* ((rx-list (mapconcat (lambda (x) (rx (group (zero-or-more any))))
+                               (number-sequence 1 field)
+                               separator))
+           ;; Prepend the beginning of line to the regular expression:
+           (regexp (concat (rx bol) rx-list))
+           (start  (if (region-active-p) (region-beginning) (point-min)))
+           (end    (if (region-active-p) (region-end)       (point-max))))
+      (save-excursion
+        (sort-regexp-fields nil regexp (format "\\%d" field) start end))))
 #+end_src
 * Buffer-Oriented Functions
 If there is no specific function, but you can think of a shell command that will work, then

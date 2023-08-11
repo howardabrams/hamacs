@@ -849,6 +849,84 @@ So many configuration files to track:
 #+end_src
 ** JSON
 While interested in the [[https://github.com/emacs-tree-sitter/tree-sitter-langs][tree-sitter]] extensions for JSON, e.g. =json-ts-mode=, that comes with Emacs 29, I’ll deal with what is bundled now.
+
+However, what about taking a buffer of JSON data, and whittling it down with [[https://jqlang.github.io/jq/][jq]]?
+#+begin_src emacs-lisp
+  (defun ha-json-buffer-to-jq (query)
+    "Runs JSON buffer with QUERY through an external `jq' program.
+  Attempts to find the first JSON object in the buffer, and limits
+  the data to that region. The `jq' program is the first found in
+  the standard path."
+    (interactive "sjq Query: ")
+    (let (s e)
+      (save-excursion
+        (if (region-active-p)
+            (setq s (region-beginning)
+                  e (region-end))
+          (goto-char (point-min))
+          (unless (looking-at "{")
+            (re-search-forward "{")
+            (goto-char (match-beginning 0)))
+          (setq s (point))
+          (evil-jump-item)
+          (setq e (1+ (point))))
+        ;; (narrow-to-region s e)
+        (shell-command-on-region s e (concat "jq " query) nil t "*jq errors*"))))
+
+  (ha-local-leader :keymaps '(js-json-mode-map json-ts-mode-map)
+    "j" 'ha-json-buffer-to-jq)
+#+end_src
+
+This means, that some data like:
+#+begin_src json :tangle no
+  {
+    "common_id": "GMC|F2BADC23|64D52BF7|awardlateengine",
+    "data": {
+      "name": "Create And Wait for Service Image",
+      "description": "Creates a new Service Image using IMaaS",
+      "long_description": "This job creates a new yawxway service image with name yawxway-howard.abrams-test and docker-dev-artifactory.workday.com/dev/yawxway-service:latest docker url in development folder",
+      "job_id": "5e077245-0f4a-4dc9-b473-ce3ec0b811ba",
+      "state": "success",
+      "progress": "100",
+      "timeout": {
+        "seconds": 300,
+        "strategy": "real_time",
+        "elapsed": 1291.8504
+      },
+      "started_at": "2023-08-10T16:20:49Z",
+      "finished_at": "2023-08-10T16:42:20Z",
+      "links": [
+        {
+          "rel": "child-4aa5978c-4537-4aa9-9568-041ad97c2374",
+          "href": "https://eng501.garmet.howardism.org/api/jobs/4aa5978c-4537-4aa9-9568-041ad97c2374"
+        },
+        {
+          "rel": "project",
+          "href": "https://eng501.garmet.howardism.org/api/projects/8abe0f6e-161e-4423-ab27-d4fb0d5cfd0c"
+        },
+        {
+          "rel": "details",
+          "href": "https://eng501.garmet.howardism.org/api/jobs/5e077245-0f4a-4dc9-b473-ce3ec0b811ba/details"
+        }
+      ],
+      "tags": [
+        "foobar", "birdie"
+      ],
+      "progress_comment": null,
+      "children": [
+        {
+          "id": "4aa5978c-4537-4aa9-9568-041ad97c2374"
+        }
+      ]
+    },
+    "status": "SUCCESS"
+  }
+#+end_src
+
+I can type, ~, j~ and then type =.data.timeout.seconds= and end up with:
+#+begin_src json
+  300
+#+end_src
 ** Markdown
 All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
 #+begin_src emacs-lisp
