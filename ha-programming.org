@@ -200,6 +200,8 @@ But one of those functions doesn’t exist:
     (beginning-of-defun))
 #+end_src
 *** Tree Sitter
+Let’s follow along with Mickey Petersen’s [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter][Getting Started with Tree Sitter]] guide.
+**** Operating System Part
 Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project]]. For instance:
 #+begin_src sh
   brew install tree-sitter npm # Since most support packages need that too.
@@ -236,55 +238,121 @@ Normally, you would need to  add all the projects to directory clones in =~/src=
   EOL
 #+end_src
 
-The =npm install= /usually/ works, but I may work on some sort of various process, for instance:
+Seems that Docker is a bit of an odd-ball:
 #+begin_src sh
+  mkdir -p ~/src
+  git -C ~/src clone https://github.com/camdencheek/tree-sitter-dockerfile
+  make -C ~/src/tree-sitter-dockerfile && \
+  make -C ~/src/tree-sitter-dockerfile install
+  if [[ $(uname -n) = "Darwin" ]]
+  then
+    cp ~/src/tree-sitter-dockerfile/libtree-sitter-dockerfile.dylib \
+       ~/.emacs.d/tree-sitter
+  else
+    cp ~/src/tree-sitter-dockerfile/libtree-sitter-dockerfile.so \
+       ~/.emacs.d/tree-sitter
+  fi
+#+end_src
+
+In most cases,the =npm install= /usually/ works, but I may work on some sort of various process, for instance:
+#+begin_src shell
   for TSS in ~/src/tree-sitter-*
   do
     cd $TSS
+    NAME=$(pwd | sed 's/.*-//')
+
+    git pull origin
     npm install || cargo build || make install   # Various build processes!?
+
+    # echo "Let's copy the library into ~/.emacs.d/tree-sitter/$NAME"
+    # pwd
+    # if [ "$(uname -o)" = "Darwin" ]
+    # then
+    #   cp libtree-sitter-$NAME.dylib ~/.emacs.d/tree-sitter
+    # else
+    #   cp libtree-sitter-$NAME.so ~/.emacs.d/tree-sitter
+    # fi
   done
 #+end_src
-At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
 
+At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
+**** Emacs Part
 However, Emacs already has the ability to download and install grammars, so following instructions from Mickey Petersen’s essay on [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][using Tree-sitter with Combobulate]]:
 #+begin_src emacs-lisp
   (when (string-search "TREE_SITTER" system-configuration-features)
     (use-package treesit
       :straight (:type built-in)
       :preface
+      (setq treesit-language-source-alist
+            '((bash       "https://github.com/tree-sitter/tree-sitter-bash")
+              ;; (c          "https://github.com/tree-sitter/tree-sitter-c/" "master" "src")
+              (clojure    "https://github.com/sogaiu/tree-sitter-clojure" "master" "src")
+              ;; (cpp        "https://github.com/tree-sitter/tree-sitter-cpp/" "master" "src")
+              ;; (cmake      "https://github.com/uyha/tree-sitter-cmake")
+              (css        "https://github.com/tree-sitter/tree-sitter-css")
+              (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile" "main" "src")
+              ;; From my private cloned repository:
+              ;; (dockerfile "file:///opt/src/github/tree-sitter-dockerfile" "main" "src")
+              ;; The Emacs Lisp Tree Sitter doesn't work with Emacs (go figure):
+              ;; (elisp      "https://github.com/Wilfred/tree-sitter-elisp")
+              ;; (elixir     "https://github.com/elixir-lang/tree-sitter-elixir" "main" "src")
+              ;; (erlang     "https://github.com/WhatsApp/tree-sitter-erlang" "main" "src")
+              (go         "https://github.com/tree-sitter/tree-sitter-go")
+              ;; (haskell    "https://github.com/tree-sitter/tree-sitter-haskell" "master" "src")
+              (html       "https://github.com/tree-sitter/tree-sitter-html")
+              ;; (java       "https://github.com/tree-sitter/tree-sitter-java" "master" "src")
+              ;; (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+              (json       "https://github.com/tree-sitter/tree-sitter-json")
+              ;; (julia      "https://github.com/tree-sitter/tree-sitter-julia" "master" "src")
+              ;; (lua        "https://github.com/MunifTanjim/tree-sitter-lua" "main" "src")
+              (make       "https://github.com/alemuller/tree-sitter-make")
+              (markdown   "https://github.com/ikatyang/tree-sitter-markdown")
+              ;; (meson      "https://github.com/Decodetalkers/tree-sitter-meson" "master" "src")
+              (python     "https://github.com/tree-sitter/tree-sitter-python")
+              (ruby       "https://github.com/tree-sitter/tree-sitter-ruby" "master" "src")
+              (rust       "https://github.com/tree-sitter/tree-sitter-rust" "master" "src")
+              (toml       "https://github.com/tree-sitter/tree-sitter-toml")
+              ;; (tsx        "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+              ;; (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+              (yaml       "https://github.com/ikatyang/tree-sitter-yaml")))
+
       (defun mp-setup-install-grammars ()
         "Install Tree-sitter grammars if they are absent."
         (interactive)
-        (sit-for 10)
-        (dolist (grammar
-                 '((bash          "https://github.com/tree-sitter/tree-sitter-bash")
-                   (make          "https://github.com/alemuller/tree-sitter-make")
-                   (css           "https://github.com/tree-sitter/tree-sitter-css")
-                   (json          "https://github.com/tree-sitter/tree-sitter-json")
-                   (html          "https://github.com/tree-sitter/tree-sitter-html")
-                   ;; (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-                   (python        "https://github.com/tree-sitter/tree-sitter-python")
-                   (ruby          "https://github.com/tree-sitter/tree-sitter-ruby")
-                   (yaml          "https://github.com/ikatyang/tree-sitter-yaml")))
-          (add-to-list 'treesit-language-source-alist grammar)
-          (treesit-install-language-grammar (car grammar))))
+        (sit-for 30)
+        (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist)))
 
-      ;; Optional, but recommended. Tree-sitter enabled major modes are
-      ;; distinct from their ordinary counterparts.
-      ;;
-      ;; You can remap major modes with `major-mode-remap-alist'. Note
-      ;; this does *not* extend to hooks! Make sure you migrate them also
-      (dolist (mapping '((css-mode    . css-ts-mode)
-                         (json-mode   . json-ts-mode)
-                         ;; (makefile-mode . makefile-ts-mode)
-                         (python-mode . python-ts-mode)
-                         (ruby-mode   . ruby-ts-mode)
-                         (sh-mode     . bash-ts-mode)
-                         (yaml-mode   . yaml-ts-mode)))
-        (add-to-list 'major-mode-remap-alist mapping))
+        ;; Optional, but Mickey recommends. Tree-sitter enabled major
+        ;; modes are distinct from their ordinary counterparts, however,
+        ;; the `tree-sitter-mode' can't be enabled if we use this
+        ;; feature.
+        ;;
+        ;; You can remap major modes with `major-mode-remap-alist'. Note
+        ;; this does *not* extend to hooks! Make sure you migrate them also
+        ;; (dolist (mapping '((bash-mode       . bash-ts-mode)
+        ;;                    (sh-mode         . bash-ts-mode)
+        ;;                    (css-mode        . css-ts-mode)
+        ;;                    (dockerfile-mode . dockerfile-ts-mode)
+        ;;                    (json-mode       . json-ts-mode)
+        ;;                    (makefile-mode   . makefile-ts-mode)
+        ;;                    (python-mode     . python-ts-mode)
+        ;;                    (ruby-mode       . ruby-ts-mode)
+        ;;                    (yaml-mode       . yaml-ts-mode)))
+        ;;   (add-to-list 'major-mode-remap-alist mapping))
+
+        ;; Can we (do we need to) update this list?
+        ;;   (add-to-list 'tree-sitter-major-mode-language-alist mapping))
 
       :config
       (mp-setup-install-grammars)))
+#+end_src
+
+And enable the languages:
+#+begin_src emacs-lisp
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package tree-sitter-langs
+      :config
+      (global-tree-sitter-mode)))
 #+end_src
 *** Combobulate
 I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]], but can we extend that to other languages generally? After reading Mickey Petersen’s essay, [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][Combobulate project]], I decided to try out his [[https://github.com/mickeynp/combobulate][combobulate package]]. Of course, this can only work with the underlying tooling supplied by the [[https://emacs-tree-sitter.github.io/][Tree Sitter]] →
@@ -293,10 +361,11 @@ I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]
     (use-package combobulate
       :straight (:host github :repo "mickeynp/combobulate")
       :after treesit
-      :hook ((css-ts-mode    . combobulate-mode)
-             (json-ts-mode   . combobulate-mode)
-             (python-ts-mode . combobulate-mode)
-             (yaml-ts-mode   . combobulate-mode))))
+      ;; :hook ((css-ts-mode    . combobulate-mode)
+      ;;        (json-ts-mode   . combobulate-mode)
+      ;;        (python-ts-mode . combobulate-mode)
+      ;;        (yaml-ts-mode   . combobulate-mode))
+     ))
 #+end_src
 
 I can create a /helper function/ to allow me to jump to various types of—well, /types/:
@@ -360,8 +429,8 @@ With Emacs version 29, we get a better approach to parsing languages, and this m
 
       (define-key evil-outer-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "comment.outer"))
       (define-key evil-inner-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "comment.inner"))
-      (define-key evil-outer-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.outer"))
-      (define-key evil-inner-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.inner"))
+      (define-key evil-outer-text-objects-map "u" (evil-textobj-tree-sitter-get-textobj "conditional.outer"))
+      (define-key evil-inner-text-objects-map "u" (evil-textobj-tree-sitter-get-textobj "conditional.inner"))
       (define-key evil-outer-text-objects-map "b" (evil-textobj-tree-sitter-get-textobj "loop.outer"))
       (define-key evil-inner-text-objects-map "b" (evil-textobj-tree-sitter-get-textobj "loop.inner"))))
 #+end_src
@@ -963,24 +1032,28 @@ Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to 
     :mode ((rx ".md" string-end) . poly-markdown-mode))
 #+end_src
 ** YAML
-Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this projeDoing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
+Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
+#+begin_src emacs-lisp :tangle no
+  (when (string-search "TREE_SITTER" system-configuration-features)
+    (use-package yaml-ts-mode
+      :mode ((rx ".y" (optional "a") "ml" string-end)
+             (rx (optional ".") "yamllint"))
+      :hook (yaml-ts-mode . display-line-numbers-mode)))
+#+end_src
+Get the latest version of =yaml-mode=:
 #+begin_src emacs-lisp
-  (if (string-search "TREE_SITTER" system-configuration-features)
-      (progn
-        (use-package yaml-ts-mode
-          :mode ((rx ".y" (optional "a") "ml" string-end)
-                 (rx (optional ".") "yamllint"))
-          :hook (yaml-ts-mode . display-line-numbers-mode))
+  (use-package yaml-mode
+        :mode (rx ".y" (optional "a") "ml" string-end)
+              (rx (optional ".") "yamllint")
+        :hook (yaml-mode . display-line-numbers-mode))
+#+end_src
 
-        (use-package yaml-pro
-          :straight (:host github :repo "zkry/yaml-pro")
-          :after yaml-ts-mode
-          :hook (yaml-ts-mode . yaml-pro-ts-mode)))
-
-    (use-package yaml-mode
-      :mode (rx ".y" (optional "a") "ml" string-end)
-            (rx (optional ".") "yamllint")
-      :hook (yaml-mode . display-line-numbers-mode)))
+And we hook
+#+begin_src emacs-lisp
+  (use-package yaml-pro
+    :straight (:host github :repo "zkry/yaml-pro")
+    :after yaml-mode
+    :hook (yaml-mode . yaml-pro-mode))
 #+end_src
 
 This comes with a list of nice refactoring features that we can attach to the local leader:
@@ -1028,7 +1101,7 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+begin_src emacs-lisp
   (use-package polymode
     :config
-    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
+    (define-hostmode poly-yaml-hostmode :mode 'yaml-mode)
     (defcustom pm-inner/jinja2
       (pm-inner-chunkmode :mode #'jinja2-mode
                           :head-matcher "{[%{#][+-]?"
@@ -1039,6 +1112,7 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
       "Jinja2 chunk."
       :group 'innermodes
       :type 'object)
+
     (define-polymode poly-yaml-jinja2-mode
       :hostmode 'poly-yaml-hostmode
       :innermodes '(pm-inner/jinja2))
@@ -1047,9 +1121,11 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+end_src
 ** Ansible
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]? Maybe we just have a toggle for when we want the Ansible feature.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package ansible
-    :mode (rx (or "playbooks" "roles"))
+    :straight (:host github :repo "k1LoW/emacs-ansible")
+    :defer t
+    :mode ((rx (or "playbooks" "roles") (one-or-more any) ".y" (optional "a") "ml") . ansible-mode)
     :config
     (setq ansible-vault-password-file "~/.ansible-vault-passfile")
     (ha-leader "t y" 'ansible))
@@ -1061,21 +1137,21 @@ The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable n
 #+end_src
 
 The YAML files get access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package ansible-doc
     :hook (ansible-mode . ansible-doc-mode)
+    :after ansible
     :config
     (ha-local-leader :keymaps 'ansible-key-map
       "d"  '(:ignore t :which-key "docs")
       "d d" 'ansible-doc))
 #+end_src
 
-
 Can we integrate Ansible with LSP using [[https://github.com/ansible/ansible-language-server][ansible-language-server]] project (see [[https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/][this documentation]])?
 
 Using =npm= to install the program:
 #+begin_src sh
-  npm installl -g @ansible/ansible-language-server
+  npm install -g @ansible/ansible-language-server
 #+end_src
 But … will I get some use out of this? I’ll come back to it later.
 ** Docker
