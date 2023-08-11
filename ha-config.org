@@ -211,8 +211,9 @@ While the space can be use to separate words (acting a bit like a =.*= regular e
 #+begin_src emacs-lisp
   (use-package orderless
     :commands (orderless-filter)
+    :config
+    (push 'orderless completion-styles)
     :custom
-    (completion-styles '(orderless basic))
     (completion-ignore-case t)
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion)))))

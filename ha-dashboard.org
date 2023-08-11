@@ -63,6 +63,34 @@ For this, I use the [[https://github.com/tkf/emacs-request][request]] package (a
                    (lambda (&key data &allow-other-keys)
                      (setq ha-dad-joke data))))))
 #+end_src
+** Features
+I would appreciate seeing if my Emacs installation has the features that I expect:
+#+begin_src emacs-lisp
+  (defun ha-hamacs-features (&optional iconic)
+    "Simple display of features I'm most keen about.
+    If ICONIC is non-nil, return a string of icons."
+    (interactive)
+    (let* ((png-icon  (all-the-icons-material "image"))
+           (svg-icon  (all-the-icons-alltheicon "svg"))
+           (ts-icon   (all-the-icons-faicon "tree"))
+           (tls-icon  (all-the-icons-faicon "expeditedssl"))
+           (json-icon (all-the-icons-fileicon "jsx"))
+           (mag-icon  (all-the-icons-faicon "magic"))
+           (jit-icon  (all-the-icons-faicon "cog"))
+           (results (s-join " "
+                            (list (when (and (fboundp 'native-comp-available-p)
+                                             (native-comp-available-p))
+                                                                        (if iconic jit-icon "Native-Compilation"))
+                                  (when (treesit-available-p)           (if iconic ts-icon  "TreeSit"))
+                                  (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
+                                  (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
+                                  (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
+                                  (when (json-available-p)              (if iconic json-icon "JSON"))
+                                  (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
+      (if (called-interactively-p)
+          (message "Enabled features: %s" results)
+        results)))
+#+end_src
 ** Dashboard
 The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] project makes a nicer startup screen.
 #+begin_src emacs-lisp
@@ -85,8 +113,9 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
           dashboard-projects-switch-function 'projectile-persp-switch-project
           dashboard-items '((projects . 5)
                             ;; (agenda . 5)
-                            (bookmarks . 5)))
-    (setq dashboard-footer-messages (list (ha--dad-joke)))
+                            (bookmarks . 5))
+          dashboard-set-heading-icons t
+          dashboard-footer-messages (list (ha--dad-joke)))
 
     :config
     (dashboard-setup-startup-hook)
@@ -99,32 +128,6 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
  This dashboard project requires [[https://github.com/purcell/page-break-lines][page-break-lines]] (which is a nice project):
 #+begin_src emacs-lisp
   (use-package page-break-lines)
-#+end_src
-
-I would appreciate seeing if my Emacs installation has the features that I expect:
-#+begin_src emacs-lisp
-  (defun ha-hamacs-features (&optional iconic)
-    "Simple display of features I'm most keen about.
-    If ICONIC is non-nil, return a string of icons."
-    (interactive)
-    (let* ((png-icon  (all-the-icons-material "image"))
-           (svg-icon  (all-the-icons-alltheicon "svg"))
-           (tls-icon  (all-the-icons-faicon "expeditedssl"))
-           (json-icon (all-the-icons-fileicon "jsx"))
-           (mag-icon  (all-the-icons-faicon "magic"))
-           (jit-icon  (all-the-icons-faicon "cog"))
-           (results (s-join " "
-                            (list (when (and (fboundp 'native-comp-available-p)
-                                             (native-comp-available-p))
-                                                                        (if iconic jit-icon "Native-Compilation"))
-                                  (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
-                                  (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
-                                  (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
-                                  (when (json-available-p)              (if iconic json-icon "JSON"))
-                                  (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
-      (if (called-interactively-p)
-          (message "Enabled features: %s" results)
-        results)))
 #+end_src
 
 * Right Side
@@ -145,6 +148,9 @@ Lots of things to learn and keep straight. Let’s try the [[https://github.com/
                           '(:key "x" :description "s-exp")
                           '(:key "'" :description "string")
                           '(:key "d" :description "function")
+                          '(:key "f" :description "function ... tree-sitter")
+                          '(:key "b" :description "loop ... tree-sitter")
+                          '(:key "u" :description "condition ... tree-sitter")
                           '(:key "j" :description "smaller indent block")
                           '(:key "k" :description "larger indent block")
                           '(:key "i" :description "indented block")
@@ -202,19 +208,23 @@ Simple function to display a file in the top-right corner (if the file exists):
 
 * Altogether
 The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]] and this =ha-dashboard= function hooks to dashboard’s [[help:dashboard-after-initialize-hook][dashboard-after-initialize-hook]]:
-
 #+begin_src emacs-lisp
   (defun ha-dashboard ()
     "Shows the extra stuff with the dashboard."
     (interactive)
-    (let ((width (thread-first (window-total-width)
-                               (/ 3)
-                               (* 2))))
-      (split-window-right width)
-      (cheatsheet-show)
-      (ha-show-learn-this)))
+    (switch-to-buffer "*dashboard*")
+    (delete-other-windows)
+    (split-window-horizontally)
+    (other-window 1)
+    (switch-to-buffer "*cheatsheet*")
+    (cheatsheet-mode)
+    (erase-buffer)
+    (insert (cheatsheet--format))
+    (setq buffer-read-only t)
+    ;; (shrink-window-horizontally (- (window-size nil t) 50))
+    (shrink-window-horizontally 40)
+    (goto-char (point-min)))
 #+end_src
-
 * Technical Artifacts                                :noexport:
 
 Let's =provide= a name so we can =require= this file:
