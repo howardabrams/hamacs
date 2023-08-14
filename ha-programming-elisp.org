@@ -261,7 +261,7 @@ The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Resu
     :hook (emacs-lisp-mode . eros-mode))
 #+end_src
 
-A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but [[help:evil-cp-next-closing ][evil-cp-next-closing]] from cleverparens can help:
+A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but Lispyville has a =lispyville-next-closing= function to jump to that closing paren (allowing a call to =eval-last=sexp=), and if I save the position using =save-excursion=, I get this feature.
 
 #+begin_src emacs-lisp
   (defun ha-eval-current-expression ()
@@ -271,15 +271,21 @@ A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression c
   finds at that point."
     (interactive)
     (save-excursion
-      (unless (looking-at (rx (any ")" "]")))
-        (lispyville-next-closing))
-      (call-interactively 'eval-last-sexp)))
+      (if (region-active-p)
+          (eval-region (region-beginning) (region-end))
+
+        (unless (looking-at (rx (any ")" "]")))
+          (lispyville-next-closing))
+
+        (if (fboundp 'eros-eval-last-sexp)
+            (call-interactively 'eros-eval-last-sexp)
+          (call-interactively 'eval-last-sexp)))))
 #+end_src
 
 And we just need to bind it.
 #+begin_src emacs-lisp
   (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
-    "e c" '("current" . ha-eval-current-expression))
+    "e e" '("current" . ha-eval-current-expression))
 #+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:

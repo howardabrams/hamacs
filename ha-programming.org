@@ -696,7 +696,7 @@ Typical keybindings for all programming modes:
      "e b" '("buffer" . eval-buffer)
      "e f" '("function" . eval-defun)
      "e r" '("region" . eval-region)
-     "e e" '("last s-exp" . eval-last-sexp)
+     "e e" '("eval exp" . eval-last-sexp)
      "e p" '("print s-exp" . ha-eval-print-last-sexp))
 #+end_src
 ** Ligatures
