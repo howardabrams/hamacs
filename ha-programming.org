@@ -997,21 +997,46 @@ I can type, ~, j~ and then type =.data.timeout.seconds= and end up with:
   300
 #+end_src
 ** Markdown
-All the READMEs and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]].
+Most project =README= files and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]]. Note that the /preview/ is based on =multimarkdown=, when needs to be /pre-installed/, for instance:
+#+begin_src sh
+  brew install multimarkdown
+#+end_src
+
+Also, I like Markdown is look like a word processor, similarly to my org files:
 #+begin_src emacs-lisp
   (use-package markdown-mode
     :straight (:host github :repo "jrblevin/markdown-mode")
     :mode ((rx ".md" string-end) . gfm-mode)
-    :init (setq markdown-command "multimarkdown")
+    :init (setq markdown-command "multimarkdown"
+                markdown-header-scaling t)
+    :hook (markdown-mode . variable-pitch-mode)
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
-             ", l" '("insert link" . markdown-insert-link)
+             ", l" '("insert link" . markdown-insert-link) ; Also C-c C-l
+             ", i" '("insert image" . markdown-insert-image) ; Also C-c C-i
              ;; SPC u 3 , h for a third-level header:
              ", h" '("insert header" . markdown-insert-header-dwim)
+             ", t"  '(:ignore t :which-key "toggles")
+             ", t t" '("toggle markup" . markdown-toggle-markup-hiding)
+             ", t u" '("toggle urls" . markdown-toggle-markup-url-hiding)
+             ", t i" '("toggle images" . markdown-toggle-markup-inline-images)
+             ", t m" '("toggle math" . markdown-toggle-markup-math-hiding)
+             ", d" '("do" . markdown-do)
              ", e" '("export" . markdown-export)
-             ", p" '("preview" . markdown-export-and-preview)))
+             ", p" '("preview" . markdown-preview)))
 #+end_src
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
+
+With the =markdown-header-scaling= set, we no longer need to color the headers in Markdown.
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :config
+    (when window-system
+      (let ((default-color (face-attribute 'default :foreground)))
+        (set-face-attribute 'markdown-header-face nil
+                            :font ha-variable-header-font
+                            :foreground default-color))))
+#+end_src
 
 Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to Markdown code blocks similar to what we do with Org:
 
@@ -1030,6 +1055,14 @@ Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to 
                      :innermodes '(poly-markdown-fenced-code-innermode))
 
     :mode ((rx ".md" string-end) . poly-markdown-mode))
+#+end_src
+** ReStructured Text
+Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[https://www.emacswiki.org/emacs/reStructuredText][well supported]] in Emacs.
+#+begin_src emacs-lisp
+  (use-package rst
+    :hook (rst-mode . variable-pitch-mode)
+    :config
+    (set-face-attribute 'rst-literal nil :font ha-fixed-font))
 #+end_src
 ** YAML
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:

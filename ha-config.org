@@ -89,6 +89,7 @@ And some Mac-specific settings:
 Let's turn off the menu and other settings:
 #+begin_src emacs-lisp
   (when (display-graphic-p)
+    (context-menu-mode 1)
     (tool-bar-mode -1)
     (scroll-bar-mode -1)
     (horizontal-scroll-bar-mode -1)
