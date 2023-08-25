@@ -1624,7 +1624,12 @@ Since auto insertion requires entering data for particular fields, and for that 
 #+begin_src emacs-lisp
   (defun ha-autoinsert-yas-expand()
     "Replace text in yasnippet template."
-    (yas-expand-snippet (buffer-string) (point-min) (point-max)))
+    (let ((orig-mode major-mode)
+          (auto-insert-query nil)
+          (yas-indent-line nil))
+      (yas/minor-mode 1)
+      (evil-insert-state)
+      (yas-expand-snippet (buffer-string) (point-min) (point-max))))
 #+end_src
 
 And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
