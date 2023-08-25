@@ -251,6 +251,7 @@ The [[https://github.com/minad/marginalia][marginalia]] package gives a preview 
     :init
     (setq marginalia-annotators-heavy t)
     :config
+    (add-to-list 'marginalia-command-categories '(projectile-find-file . file))
     (marginalia-mode))
 #+end_src
 * Key Bindings
@@ -828,6 +829,7 @@ And the collection of useful operations:
 
     ;; And double up on the bookmarks:
     "b m" '("set bookmark" . bookmark-set)
+    "b g" '("goto bookmark" . bookmark-jump)
     "b M" '("delete mark" . bookmark-delete))
 #+end_src
 *** Toggle Switches
@@ -1309,8 +1311,66 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
     (ha-leader "h K" '("keybindings" . embark-bindings)))
 #+end_src
 
-According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
+In [[https://karthinks.com/software/fifteen-ways-to-use-embark/][15 Ways to Use Embark]], Karthik Chikmagalur suggests a nifty macro for integrating Embark with [[Ace Window][Ace Window]]:
+#+begin_src emacs-lisp
+  (use-package embark
+    :after ace-window
+    :config
+    (defmacro my/embark-ace-action (fn)
+      `(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
+         (interactive)
+         (with-demoted-errors "%s"
+           (require 'ace-window)
+           (let ((aw-dispatch-always t))
+             (aw-switch-to-window (aw-select nil))
+             (call-interactively (symbol-function ',fn))))))
 
+    (defmacro my/embark-split-action (fn split-type)
+      `(defun ,(intern (concat "my/embark-"
+                               (symbol-name fn)
+                               "-"
+                               (car (last  (split-string
+                                            (symbol-name split-type) "-"))))) ()
+         (interactive)
+         (funcall #',split-type)
+         (call-interactively #',fn)))
+
+    ;; Use the macros to define some helper functions:
+    (my/embark-ace-action find-file)                             ; --> my/embark-ace-find-file
+    (my/embark-ace-action switch-to-buffer)                      ; --> my/embark-ace-switch-to-buffer
+    (my/embark-ace-action bookmark-jump)                         ; --> my/embark-ace-bookmark-jump
+    (my/embark-split-action find-file split-window-below)        ; --> my/embark-find-file-below
+    (my/embark-split-action find-file split-window-right)        ; --> my/embark-find-file-right
+    (my/embark-split-action switch-to-buffer split-window-below) ; --> my/embark-switch-to-buffer-below
+    (my/embark-split-action switch-to-buffer split-window-right) ; --> my/embark-switch-to-buffer-right
+    (my/embark-split-action bookmark-jump split-window-below)    ; --> my/embark-bookmark-jump-below
+    (my/embark-split-action bookmark-jump split-window-right))   ; --> my/embark-bookmark-jump-right
+#+end_src
+
+We can rebind the various =embark-xyz-map= with calls to our macroized functions:
+#+begin_src emacs-lisp
+  (use-package embark
+    :bind
+    (:map embark-file-map
+     ("y" . embark-copy-as-kill)
+     ("Y" . embark-save-relative-path)
+     ("W" . nil)
+     ("w" . my/embark-ace-find-file)
+     ("2" . my/embark-find-file-below)
+     ("3" . my/embark-find-file-right)
+     :map embark-buffer-map
+     ("y" . embark-copy-as-kill)
+     ("w" . my/embark-ace-switch-to-buffer)
+     ("2" . my/embark-switch-to-buffer-below)
+     ("3" . my/embark-switch-to-buffer-right)
+     :map embark-file-map
+     ("y" . embark-copy-as-kill)
+     ("w" . my/embark-ace-bookmark-jump)
+     ("2" . my/embark-bookmark-jump-below)
+     ("3" . my/embark-bookmark-jump-right)))
+#+end_src
+
+According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
 #+begin_src emacs-lisp
   (use-package embark-consult
     :after (embark consult)
