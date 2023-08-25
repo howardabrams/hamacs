@@ -552,7 +552,9 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :states '(normal visual motion)
       :prefix ","
       :global-prefix "<f17>"
-      :non-normal-prefix "S-SPC"))
+      :non-normal-prefix "S-SPC")
+
+    (general-nmap "SPC m" (general-simulate-key "," :which-key "major mode")))
 #+end_src
 *** Relabel the G Keys
 Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the entire function, so let’s /re-add/ those keybindings, but with labels. The ~g~ is extemely convenient, yet I realize that I will never use some of the default keybindings (like ~g m~ to go to the middle of the line? Too imprecise). So I am also going to delete some of them.

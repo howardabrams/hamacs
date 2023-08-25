@@ -1516,7 +1516,7 @@ Sometimes you need to change something about the current file you are editing...
 
   Will rename the current file to now have a .txt extension.
   See `eshell-display-modifier-help' for details on that."
-
+    (interactive "sExecute command on File Buffer: ")
     (let* ((file-name (buffer-file-name))
            (full-cmd (cond ((string-match (rx "$$") cmd)
                             (replace-regexp-in-string (rx "$$") file-name cmd))
