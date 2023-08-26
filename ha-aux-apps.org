@@ -25,19 +25,8 @@ A literate programming file for helper apps in Emacs.
   #+end_src
 * Introduction
 The following applications are not needed. I alternate between trying to /stay in Emacs/ taking advantage of the consistent interface, and using a stand-alone app on my Workday computer.
-* Twitter
-The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
-#+begin_src emacs-lisp :tangle no
-  (use-package twittering-mode
-    :init
-    (setq twittering-use-master-password t
-          epa-pinentry-mode 'loopback)
-    :config
-    (defalias 'epa--decode-coding-string 'decode-coding-string)
-    (ha-leader "a t" '("twitter" . twit)))
-#+end_src
-And we are no longer using this package.
-* Mastodon
+* Federation
+** Mastodon
 Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project, and even more glad to see the great birdland diaspora arrive in the land of the toots.
 #+begin_src emacs-lisp
   (use-package mastodon
@@ -84,25 +73,7 @@ Starting the =mastodon= perspective, I set some initial windows:
       (mastodon-tl--get-local-timeline)
       (switch-to-buffer "*mastodon-local*")))
 #+end_src
-* Telega
-I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
-#+begin_src emacs-lisp
-  (use-package telega
-      :commands (telega)
-      :config
-      (setq telega-user-use-avatars nil
-        telega-use-tracking-for nil ; '(any pin unread)
-        telega-chat-use-markdown-formatting t
-        telega-emoji-use-images t
-        ; telega-completing-read-function #'ivy-completing-read
-        telega-msg-rainbow-title nil)
-
-      (add-hook 'telega-chat-mode-hook 'evil-insert-state)
-
-      (ha-leader "a t" 'telega))
-#+end_src
-For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
-* Matrix/Element
+** Matrix/Element
 Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [[matrix.org][Matrix]] is act ually open source. In other words, a project for nerds. We’ll be using Alphapapa’s latest [[https://github.c om/alphapapa/ement.el][ement]] project.
 #+begin_src emacs-lisp
   (use-package ement
@@ -139,6 +110,37 @@ Perhaps we can make it more attractive:
     (setq ement-save-sessions t
           ement-room-send-message-filter 'ement-room-send-org-filter))
 #+end_src
+* Other
+** Twitter
+The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twittering-mode]] allows me to follow all the twits.
+#+begin_src emacs-lisp :tangle no
+  (use-package twittering-mode
+    :init
+    (setq twittering-use-master-password t
+          epa-pinentry-mode 'loopback)
+    :config
+    (defalias 'epa--decode-coding-string 'decode-coding-string)
+    (ha-leader "a t" '("twitter" . twit)))
+#+end_src
+And we are no longer using this package.
+** Telega
+I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
+#+begin_src emacs-lisp
+  (use-package telega
+      :commands (telega)
+      :config
+      (setq telega-user-use-avatars nil
+        telega-use-tracking-for nil ; '(any pin unread)
+        telega-chat-use-markdown-formatting t
+        telega-emoji-use-images t
+        ; telega-completing-read-function #'ivy-completing-read
+        telega-msg-rainbow-title nil)
+
+      (add-hook 'telega-chat-mode-hook 'evil-insert-state)
+
+      (ha-leader "a t" 'telega))
+#+end_src
+For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 * RPG DM
 Been working on my [[https://gitlab.com/howardabrams/emacs-rpgdm][RPG DM project]] for getting Emacs helping as a /Dungeon Master's Assistant/. The idea is to be able to roll dice and whatnot. What I find most useful is the [[https://gitlab.com/howardabrams/emacs-rpgdm/-/blob/main/rpgdm-tables.el][random tables]].
 #+begin_src emacs-lisp
@@ -164,6 +166,19 @@ And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]
                                                    (one-or-more any)))))
 #+end_src
 The project is interesting, and I should record a tutorial how to use it.
+* Playing Music
+Why not? Let’s see if the [[https://github.com/isamert/empv.el][empv]] project is sufficient. First install =mpv=, as in:
+#+begin_src sh
+  brew install mpv
+#+end_src
+What else?
+#+begin_src emacs-lisp
+  (use-package empv
+    :straight (:host github :repo "isamert/empv.el")
+    :general (ha-leader
+               "a P" '(projectile-command-map :wk "project")
+               "a p" '(empv-map :wk "play music")))
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
