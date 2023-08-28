@@ -827,11 +827,36 @@ And the collection of useful operations:
     "b 6" '("load win-6" . (lambda () (interactive) (switch-buffer-in-window 6)))
     "b 7" '("load win-7" . (lambda () (interactive) (switch-buffer-in-window 7)))
     "b 8" '("load win-8" . (lambda () (interactive) (switch-buffer-in-window 8)))
-    "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9)))
+    "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9))))
+#+end_src
+*** Bookmarks
+I like the idea of dropping returnable bookmarks, however, the built-in behavior doesn’t honor either /projects/ or /perspectives/, but I can make a =projectile=-specific filter and use that to jump to only bookmarks in the current project. Likewise, if I want to jump to /any/ bookmark, I can switch to that buffer’s perspective.
 
-    ;; And double up on the bookmarks:
+#+begin_src emacs-lisp
+  (defun projectile-bookmark-jump (bmark)
+    "Jump to the bookmark, BMARK, showing a filtered list based on current project."
+    (interactive (list (completing-read "Jump to Bookmark: " (projectile-bookmarks))))
+    (bookmark-jump bmark))
+
+  (defun projectile-bookmarks ()
+    "Return a list of bookmarks associated with the current projectile project."
+    (let ((bmarks (bookmark-all-names)))
+      (cl-remove-if-not #'projectile-bookmark-p bmarks)))
+
+  (defun projectile-bookmark-p (bmark)
+    "Use as a filter to compare bookmark, BMARK with current project."
+    (let ((bmark-path (expand-file-name (bookmark-location bmark))))
+      (string-prefix-p (projectile-project-root) bmark-path)))
+
+  (defun persp-bookmark-jump (bmark)
+    "Jump to bookmkar, BMARK, but switch to its perspective first."
+    (interactive (list (completing-read "Jump to Bookmark:" (bookmark-all-names))))
+    (bookmark-jump bmark 'persp-switch-to-buffer))
+
+  (ha-leader
     "b m" '("set bookmark" . bookmark-set)
-    "b g" '("goto bookmark" . bookmark-jump)
+    "b g" '("goto proj bookmark" . projectile-bookmark-jump)
+    "b G" '("goto any bookmark" . persp-bookmark-jump)
     "b M" '("delete mark" . bookmark-delete))
 #+end_src
 *** Toggle Switches
@@ -1286,7 +1311,7 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
 One of the reasons that Consult hasn’t been too important to me, is that I often narrow my searching based on projectile.  The [[https://gitlab.com/OlMon/consult-projectile][consult-projectile]] can help with this.
 #+begin_src emacs-lisp
   (use-package consult-projectile
-    :after consult general
+    :after (consult general projectile)
     :straight (:host gitlab :repo "OlMon/consult-projectile" :branch "master")
     :config
     (ha-leader
