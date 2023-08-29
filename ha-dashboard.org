@@ -101,12 +101,12 @@ I would appreciate seeing if my Emacs installation has the features that I expec
                     (feature-combo (all-the-icons-faicon "database") "Sqlite"))
                   (when (gnutls-available-p)
                     (feature-combo (all-the-icons-faicon "expeditedssl") "TLS"))
-                  ;; TODO:
-                  ;; Mailutils? How do we figure out if we are using Gnu Mailutils?
-                  ;;       (mail-icon  (all-the-icons-material "mail"))
-                  ;; XWidgets?  Need to get on my Linux box and compile this.
-                  ;;     (widget-icon  (all-the-icons-material "widgets"))
-                  (when (fboundp 'module-load)
+                  (when (or (string-search "with-mailutils" system-configuration-options)
+                            (string-search "without-pop" system-configuration-options))
+                    (feature-combo (all-the-icons-material "mail") "GNU Mail"))
+                  (when (fboundp 'make-xwidget)
+                    (feature-combo (all-the-icons-material "widgets") "XWidgets"))
+                  (when module-file-suffix  ; or (fboundp 'module-load)
                     (feature-combo (all-the-icons-faicon "th")      "Modules"))
                   (when (json-available-p)
                     (feature-combo (all-the-icons-fileicon "config-js") "JSON"))
@@ -257,7 +257,8 @@ The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]]
     ;; (shrink-window-horizontally (- (window-size nil t) 50))
     (shrink-window-horizontally 40)
     (goto-char (point-min))
-    (call-interactively 'ha-hamacs-features))
+    (add-hook 'after-init (lambda ()
+                   (call-interactively 'ha-hamacs-features))))
 #+end_src
 * Technical Artifacts                                :noexport:
 

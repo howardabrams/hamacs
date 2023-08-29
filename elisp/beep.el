@@ -23,8 +23,7 @@
   "Play a default notification sound file.
 Customize the variable, `beep-alert-sound-file' to adjust the sound."
   (if (fboundp 'play-sound-internal)
-      (ignore-errors
-        (play-sound-file beep-alert-sound-file))
+      (play-sound-file beep-alert-sound-file)
     (call-process-shell-command (format "afplay %s &" beep-alert-sound-file) nil 0)))
 
 (defvar beep-speech-executable "say %s"
@@ -36,23 +35,23 @@ Customize the variable, `beep-speech-executable'."
   (let ((command (format beep-speech-executable phrase)))
     (async-shell-command command)))
 
-(defun beep--when-finished (phrase &optional to-speak)
+(defun beep-when-finished (phrase &optional to-speak)
   "Notify us with string, PHRASE, to grab our attention.
 Useful after a long process has completed, but use sparingly,
 as this can be pretty distracting."
-  (message phrase)
   (when (functionp 'alert)
     (alert phrase :title "Completed"))
   (beep--beep)
-  (beep--speak (or to-speak phrase)))
+  (beep--speak (or to-speak phrase))
+  (message phrase))
 
 (defun compile-and-notify ()
   "Call `compile' and notify us when finished.
-See `beep--when-finished' for details."
+See `beep-when-finished' for details."
   (interactive)
   (let ((default-directory (projectile-project-root)))
     (call-interactively 'compile)
-    (beep--when-finished "The compile command has finished.")))
+    (beep-when-finished "The compile command has finished.")))
 
 (defvar beep-func-too-long-time 5
    "The number of seconds a function runs before it is considered taking too much time, and needing to be alerted when it has finished.")
@@ -68,11 +67,11 @@ See `beep--when-finished' for details."
                      decode-time
                      first))
     (when (> duration beep-func-too-long-time)
-      (beep--when-finished (format "The function, %s, has finished." func)))))
+      (beep-when-finished (format "The function, %s, has finished." func)))))
 
 (defun recompile-and-notify ()
   "Call `recompile' and notify us when finished.
-See `beep--when-finished' for details."
+See `beep-when-finished' for details."
   (interactive)
   (beep--after-function 'recompile))
 
@@ -93,7 +92,7 @@ See `beep--when-finished' for details."
                      decode-time
                      first))
     (when (> duration beep-func-too-long-time)
-      (beep--when-finished (format "The function, %s, has finished."
+      (beep-when-finished (format "The function, %s, has finished."
                                    (beep--extract-function-name orig-function))))))
 
 (defun beep--extract-function-name (expr)
