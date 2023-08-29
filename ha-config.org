@@ -681,6 +681,14 @@ And ways to stop the system:
     "q q" '("quit emacs" . save-buffers-kill-terminal)
     "q Q" '("quit without saving" . evil-quit-all-with-error-code))
 #+end_src
+And ways to load my tangled org-files:
+#+begin_src emacs-lisp
+  (ha-leader
+      "h h"   '(:ignore t :which-key "hamacs")
+      "h h f" '("features"    . ha-hamacs-features)
+      "h h h" '("reload"      . ha-hamacs-load)
+      "h h a" '("reload all"  . ha-hamacs-reload-all))
+#+end_src
 *** File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
 #+begin_src emacs-lisp

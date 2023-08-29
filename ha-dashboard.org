@@ -66,27 +66,59 @@ For this, I use the [[https://github.com/tkf/emacs-request][request]] package (a
 ** Features
 I would appreciate seeing if my Emacs installation has the features that I expect:
 #+begin_src emacs-lisp
-  (defun ha-hamacs-features (&optional iconic)
+  (defun ha-hamacs-features (&optional non-iconic)
     "Simple display of features I'm most keen about.
-    If ICONIC is non-nil, return a string of icons."
+    If NON-ICONIC is non-nil, return a string of text only."
     (interactive)
-    (let* ((png-icon  (all-the-icons-material "image"))
-           (svg-icon  (all-the-icons-alltheicon "svg"))
-           (ts-icon   (all-the-icons-faicon "tree"))
-           (tls-icon  (all-the-icons-faicon "expeditedssl"))
-           (json-icon (all-the-icons-fileicon "jsx"))
-           (mag-icon  (all-the-icons-faicon "magic"))
-           (jit-icon  (all-the-icons-faicon "cog"))
-           (results (s-join " "
-                            (list (when (and (fboundp 'native-comp-available-p)
-                                             (native-comp-available-p))
-                                                                        (if iconic jit-icon "Native-Compilation"))
-                                  (when (treesit-available-p)           (if iconic ts-icon  "TreeSit"))
-                                  (when (image-type-available-p 'svg)   (if iconic svg-icon "SVG"))
-                                  (when (image-type-available-p 'png)   (if iconic png-icon "PNG"))
-                                  (when (gnutls-available-p)            (if iconic tls-icon "TLS"))
-                                  (when (json-available-p)              (if iconic json-icon "JSON"))
-                                  (when (fboundp 'imagemagick-types)    (if iconic mag-icon "ImageMagick"))))))
+
+    (defun feature-combo (icon title)
+      (if (or non-iconic (null icon))
+          title
+        (format "%s—%s" icon title)))
+
+    (defun all-images ()
+      (s-join "·"
+              (-remove 'null
+                       (list
+                        (when (image-type-available-p 'gif)  "GIF")
+                        (when (image-type-available-p 'svg)  "SVG")
+                        (when (image-type-available-p 'jpeg) "JPG")
+                        (when (image-type-available-p 'tiff) "TIFF")
+                        (when (image-type-available-p 'webp) "WEBP")
+                        (when (image-type-available-p 'png)  "PNG")))))
+
+    (let* ((features
+            (list (when (and (fboundp 'native-comp-available-p)
+                             (native-comp-available-p))
+                    (feature-combo (all-the-icons-faicon "cog")     "Native Compilation"))
+                  (when (eq (window-system) 'ns)
+                    (feature-combo (all-the-icons-faicon "apple")   "MacOS"))
+                  (when (eq (window-system) 'pgtk)
+                    (feature-combo (all-the-icons-faicon "xing")    "Gnome"))
+                  (when (treesit-available-p)
+                    (feature-combo (all-the-icons-faicon "tree")    "Tree Sitter"))
+                  (when (sqlite-available-p)
+                    (feature-combo (all-the-icons-faicon "database") "Sqlite"))
+                  (when (gnutls-available-p)
+                    (feature-combo (all-the-icons-faicon "expeditedssl") "TLS"))
+                  ;; TODO:
+                  ;; Mailutils? How do we figure out if we are using Gnu Mailutils?
+                  ;;       (mail-icon  (all-the-icons-material "mail"))
+                  ;; XWidgets?  Need to get on my Linux box and compile this.
+                  ;;     (widget-icon  (all-the-icons-material "widgets"))
+                  (when (fboundp 'module-load)
+                    (feature-combo (all-the-icons-faicon "th")      "Modules"))
+                  (when (json-available-p)
+                    (feature-combo (all-the-icons-fileicon "config-js") "JSON"))
+                  (when (string-search "HARFBUZZ" system-configuration-features)
+                    (feature-combo (all-the-icons-faicon "font")    "HARFBUZZ"))
+                  (when (string-search "DBUS" system-configuration-features)
+                    (feature-combo (all-the-icons-faicon "bus")     "DBUS"))
+                  (feature-combo (all-the-icons-faicon "picture-o") (all-images))
+                  (when (fboundp 'imagemagick-types)
+                    (feature-combo (all-the-icons-faicon "magic")   "ImageMagick"))))
+           (results (s-join "  " (-remove 'null features))))
+
       (if (called-interactively-p)
           (message "Enabled features: %s" results)
         results)))
@@ -217,13 +249,15 @@ The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]]
     (split-window-horizontally)
     (other-window 1)
     (switch-to-buffer "*cheatsheet*")
-    (cheatsheet-mode)
-    (erase-buffer)
-    (insert (cheatsheet--format))
-    (setq buffer-read-only t)
+    (ignore-errors
+      (cheatsheet-mode)
+      (erase-buffer)
+      (insert (cheatsheet--format))
+      (setq buffer-read-only t))
     ;; (shrink-window-horizontally (- (window-size nil t) 50))
     (shrink-window-horizontally 40)
-    (goto-char (point-min)))
+    (goto-char (point-min))
+    (call-interactively 'ha-hamacs-features))
 #+end_src
 * Technical Artifacts                                :noexport:
 
