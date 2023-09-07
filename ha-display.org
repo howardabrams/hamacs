@@ -43,7 +43,7 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
   (use-package doom-themes)
 #+end_src
 * Find the Bloody Cursor
-Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F6~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
+Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
 
 #+begin_src emacs-lisp
   (use-package pulsar
@@ -95,9 +95,10 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
                               outline-next-visible-heading
                               outline-previous-visible-heading
                               outline-up-heading))
-    (pulsar-face 'pulsar-magenta)
-    (pulsar-delay 0.055)
-    :bind ("<f6>" . pulsar-pulse-line))
+    (pulsar-face 'pulsar-generic)
+    (pulsar-delay 0.05)
+    :bind ("<f8>" . pulsar-pulse-line)
+    :config (pulsar-global-mode 1))
 #+end_src
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
@@ -393,6 +394,11 @@ Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I'v
 #+end_src
 
 We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
+
+Also note that adding a /little/ extra space between lines makes text files easier to read.
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook (lambda () (setq-local line-spacing 0.1)))
+#+end_src
 * Technical Artifacts :noexport:
 
 Let's =provide= a name so we can =require= this file:
