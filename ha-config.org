@@ -1335,7 +1335,7 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 #+begin_src emacs-lisp
   (use-package embark
     :bind
-    (("s-;" . embark-act)               ; Work in minibuffer and elsewhere
+    (("s-." . embark-act)               ; Work in minibuffer and elsewhere
      ("s-/" . embark-dwim))
 
     :init
@@ -1420,7 +1420,7 @@ According to the [[https://elpa.gnu.org/packages/embark-consult.html][Embark-Con
 #+begin_quote
 Users of the popular [[https://github.com/justbur/emacs-which-key][which-key]] package may prefer to use the =embark-which-key-indicator= from the [[https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt][Embark wiki]]. Just copy its definition from the wiki into your configuration and customize the =embark-indicators= user option to exclude the mixed and verbose indicators and to include =embark-which-key-indicator=.
 #+end_quote
-In other words, typing ~s-;~ to call Embark, specifies the options in a buffer, but the following code puts them in a smaller configuration directly above the selections.
+In other words, typing ~s-.~ to call Embark, specifies the options in a buffer, but the following code puts them in a smaller configuration directly above the selections.
 
 #+begin_src emacs-lisp
   (defun embark-which-key-indicator ()
@@ -1576,22 +1576,6 @@ Not sure what is in a register? Have it show you when you hit ~”~ or ~@~ with 
     (evil-owl-mode))
 
 #+end_src
-*** Evil Snipe
-Doom introduced me to [[https://github.com/hlissner/evil-snipe][evil-snipe]], like =f= and =t=, but with two characters, and can, when configured, search more than the current line.  My issue is that [[Evil Surround]] uses the same keybindings. Since surround doesn’t work in /normal/ and /visual/ states, we’ll bind snipe only for those:
-#+begin_src emacs-lisp
-  (use-package evil-snipe
-    :after evil
-    :init
-    (setq evil-snipe-scope 'visible)
-
-    :general
-    (:states '(normal visual)
-             "s" 'evil-snipe-s
-             "S" 'evil-snipe-S)
-    :config
-    (evil-snipe-mode +1))
-#+end_src
-It highlights all potential matches, use ~;~ to skip to the next match, and ~,~ to jump back.
 *** Evil Surround
 I like both [[https://github.com/emacs-evil/evil-surround][evil-surround]] and Henrik's [[https://github.com/hlissner/evil-snipe][evil-snipe]], but they both start with ~s~, and conflict, and getting them to work together means I have to remember when does ~s~ call sniper and when it calls surround. As an original Emacs person, I am not bound by that key history, but I do need them consistent, so I’m choosing the ~s~ to be /surround/.
 
@@ -1761,7 +1745,7 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
   (use-package avy
     :init
     (setq avy-all-windows t
-          avy-single-candidate-jump t
+          avy-single-candidate-jump nil   ; May want to yank the candidate
           avy-orders-alist
           '((avy-goto-char . avy-order-closest)
             (avy-goto-word-0 . avy-order-closest)))
@@ -1769,14 +1753,27 @@ While I grew up on =Control S=, I am liking the /mental model/ associated with t
     :config (ha-leader "j" '("jump" . avy-goto-char-timer))
 
     :general
-    (:states 'normal "go" '("avy goto" . avy-goto-char-timer))
+    (:states 'normal "go" '("avy goto" . avy-goto-char-timer)
+                     "s"  '("avy word" . avy-goto-subword-1))
 
-    :bind ("<f18>" . avy-goto-char-timer))
+    :bind ("<f18>" . avy-goto-char-timer)
+          ("s-g"   . avy-goto-char-timer)
+          ("s-;"   . avy-next)
+          ("s-a"   . avy-prev))
 #+end_src
 *Note:* The links should be shorter near the point as opposed to starting from the top of the window.
 
-If you hit the following keys /before/ you select a target, you get a special action:
-  - ~n~ :: copies the matching target word
+If you hit the following keys /before/ you select a target, you get special actions (check out this [[https://karthinks.com/software/avy-can-do-anything/][great essay]] about this understated feature):
+  - ~n~ :: copies the matching target word, well, from the target to the end of the word, so match at the beginning.
+  - ~x~ :: =kill-word= … which puts it in the kill-ring to be pasted later.
+  - ~X~ :: =kill-stay= … kills the target, but leaves the cursor in the current place.
+  - ~t~ :: =teleport= … bring the word at the target to the current point … great in the shell.
+  - ~m~ :: =mark= … select the word at target
+  - ~y~ :: =yank= … puts any word on the screen on the clipbard.
+  - ~Y~ :: =yank-line= … puts the entire target line on the clipboard.
+  - ~i~ :: =ispell= … fix spelling from a distance.
+  - ~z~ :: =zap-to-char= … kill from current point to the target
+I’m not thinking of ideas of what would be useful, e.g. ~v~ to highlight from cursor to target, etc.
 *** Link Hint, the Link Jumper
 The [[info:emacs#Goto Address mode][Goto Address]] mode (see this [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Goto-Address-mode.html][online link]]) turns URLs into clickable links. Nice feature and built into Emacs, but it requires using the mouse or moving to the URL and hitting ~Return~ (if you like this idea, check out [[https://xenodium.com/actionable-urls-in-emacs-buffers/][Álvaro Ramírez's configuration]] for this).
 
