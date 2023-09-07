@@ -580,16 +580,20 @@ Given one or more filenames to the =ebb= command, concatenates each into the buf
 
 If we were not given a command to execute or a list of files to insert, we want to grab the output from the last executed command in the eshell buffer. To do this, we need to move to the start of the output, and then search for the prompt. Luckily Eshell assumes we have set up the [[elisp:(describe-variable 'eshell-prompt-regexp)][eshell-prompt-regexp]] variable:
 #+begin_src emacs-lisp
-  (defun ha-eshell-ebb-output (insert-location)
-    "Grab output from previous eshell command, inserting it into our buffer.
-  Gives the INSERT-LOCATION to `ha-eshell-ebb-switch-to-buffer'."
-    (let* ((start  (save-excursion
+  (defun ha-eshell-last-output ()
+    "Return contents of the last command execusion in an Eshell buffer."
+    (let ((start  (save-excursion
                      (goto-char eshell-last-output-start)
                      (re-search-backward eshell-prompt-regexp)
                      (next-line)
                      (line-beginning-position)))
-           (end    eshell-last-output-start)
-           (contents (buffer-substring-no-properties start end)))
+          (end    eshell-last-output-start))
+      (buffer-substring-no-properties start end)))
+
+  (defun ha-eshell-ebb-output (insert-location)
+    "Grab output from previous eshell command, inserting it into our buffer.
+  Gives the INSERT-LOCATION to `ha-eshell-ebb-switch-to-buffer'."
+    (let ((contents (ha-eshell-last-output)))
       (ha-eshell-ebb-switch-to-buffer insert-location)
       (insert contents)))
 #+end_src
@@ -608,6 +612,56 @@ Note, you can run additional commands to add to the =*eshell-edit*= buffer, call
 After altering the =*eshell-edit*= buffer, use =flow= to pull it back, as in:
 #+begin_src sh
 
+#+end_src
+** X, Copies the Spot
+The =x= command extracts a piece of information from the output of the previous command in an Eshell buffer.
+Perhaps an example is in order:
+#+begin_example
+$ make image-id
+Job ID is 16a6df20-7a9e-491a-8e87-39964c8ead4e
+Image ID is 4c4d8e93-dac5-4e39-95f7-a568689102e2
+make: 'image-id' is up to date.
+
+$ image details { x 2 4 }
+#+end_example
+In this case, it took the 4th column in the 2nd row of output, and returns the UUID, =4c4d8e93-dac5-4e39-95f7-a568689102e2=.
+
+#+begin_src emacs-lisp
+  (defun eshell/x (&rest args)
+    "Return a cell of information from the previous command in an Eshell buffer.
+  The first ARGS is the line number (one-based), and the second
+  ARGS, if given, is the column where the fields are separated by
+  whitespace.
+
+  This allows a sequence of commands like, where you don't have to
+  copy/paste the output (if it is simple), for instance:
+
+      $ ls
+      ...
+      $ ls -l { x 2 3 }
+
+  If the initial argument is a string instead of a number, then it
+  returns the first word that starts with that it."
+    (defun x-cells (table row col)
+      (let* ((newlines (rx (one-or-more (any "\n" "\r"))))
+             (fields   (rx (one-or-more (any "\t" " "))))
+             (rows     (split-string table newlines t))
+             (line     (nth row rows)))
+        (if col
+          (nth col (split-string line fields t))
+        line)))
+
+    (defun x-match (text starter)
+      (let ((words (split-string text nil t)))
+        (--first (s-starts-with? starter it) words)))
+
+    (let* ((arg1     (first args))
+           (arg2     (second args))
+           (contents (ha-eshell-last-output)))
+      (cond
+       ((numberp arg1) (x-cells contents arg1 arg2))
+       ((stringp arg1) (x-match contents arg1))
+       (t              contents))))
 #+end_src
 ** Git
 I used to have a number =g=-prefixed aliases to call git-related commands, but now, I call [[file:ha-config.org::*Magit][Magit]] instead. My =gst= command is an alias to =magit-status=, but using the =alias= doesn't pull in the current working directory, so I make it a function, instead:
