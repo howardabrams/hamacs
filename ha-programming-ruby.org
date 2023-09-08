@@ -188,7 +188,7 @@ While that approach works /fairly well/ with [[file:ha-programming.org::*direnv]
 While Emacs supplies a Ruby editing environment, we’ll still use =use-package= to grab the latest:
 #+begin_src emacs-lisp
   (use-package ruby-mode
-    :mode (rx ".rb" eos)
+    :mode (rx "." (optional "e") "rb" eos)
     :mode (rx "Rakefile" eos)
     :mode (rx "Gemfile" eos)
     :mode (rx "Berksfile" eos)

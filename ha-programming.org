@@ -200,7 +200,7 @@ But one of those functions doesn’t exist:
     (beginning-of-defun))
 #+end_src
 *** Tree Sitter
-Let’s follow along with Mickey Petersen’s [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter][Getting Started with Tree Sitter]] guide.
+I’m curious about the new [[https://emacs-tree-sitter.github.io/][Tree Sitter feature]] now [[https://lists.gnu.org/archive/html/emacs-devel/2022-11/msg01443.html][built into Emacs 29]]. After following along with Mickey Petersen’s [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter][Getting Started with Tree Sitter]] guide, I’ve concluded I /currently/ don’t need this feature. I’m leaving the code here, but adding a =:tangle no= to all the blocks until I’m ready to re-investigate.
 **** Operating System Part
 Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project]]. For instance:
 #+begin_src sh
@@ -264,8 +264,7 @@ In most cases,the =npm install= /usually/ works, but I may work on some sort of 
     git pull origin
     npm install || cargo build || make install   # Various build processes!?
 
-    # echo "Let's copy the library into ~/.emacs.d/tree-sitter/$NAME"
-    # pwd
+    echo "Do we need to copy the library into ~/.emacs.d/tree-sitter/$NAME ?"
     # if [ "$(uname -o)" = "Darwin" ]
     # then
     #   cp libtree-sitter-$NAME.dylib ~/.emacs.d/tree-sitter
@@ -274,11 +273,10 @@ In most cases,the =npm install= /usually/ works, but I may work on some sort of 
     # fi
   done
 #+end_src
-
 At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
 **** Emacs Part
 However, Emacs already has the ability to download and install grammars, so following instructions from Mickey Petersen’s essay on [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][using Tree-sitter with Combobulate]]:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (when (string-search "TREE_SITTER" system-configuration-features)
     (use-package treesit
       :straight (:type built-in)
@@ -348,16 +346,17 @@ However, Emacs already has the ability to download and install grammars, so foll
 #+end_src
 
 And enable the languages:
-#+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp :tangle no
+  (when (treesit-available-p)
     (use-package tree-sitter-langs
+      :after treesit
       :config
       (global-tree-sitter-mode)))
 #+end_src
 *** Combobulate
 I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]], but can we extend that to other languages generally? After reading Mickey Petersen’s essay, [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][Combobulate project]], I decided to try out his [[https://github.com/mickeynp/combobulate][combobulate package]]. Of course, this can only work with the underlying tooling supplied by the [[https://emacs-tree-sitter.github.io/][Tree Sitter]] →
-#+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp :tangle no
+  (when (treesit-available-p)
     (use-package combobulate
       :straight (:host github :repo "mickeynp/combobulate")
       :after treesit
@@ -369,22 +368,22 @@ I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]
 #+end_src
 
 I can create a /helper function/ to allow me to jump to various types of—well, /types/:
-#+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp :tangle no
+  (when (treesit-available-p)
     (use-package combobulate
-        :config
-        (defun ha-comb-jump (&rest tree-sitter-types)
-          "Use `avy' to jump to a particular type of element.6 "
-          (lexical-let ((types tree-sitter-types))
-            (lambda ()
-              (interactive)
-              (with-navigation-nodes (:nodes types)
-                                     (combobulate-avy-jump)))))))
+      :config
+      (defun ha-comb-jump (&rest tree-sitter-types)
+        "Use `avy' to jump to a particular type of element.6 "
+        (lexical-let ((types tree-sitter-types))
+          (lambda ()
+            (interactive)
+            (with-navigation-nodes (:nodes types)
+              (combobulate-avy-jump)))))))
 #+end_src
 
 Now, I can create an /interface/ of keystrokes to jump around like a boss:
-#+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp :tangle no
+  (when (treesit-available-p)
     (use-package combobulate
       :general
       (:states 'visual :keymaps 'combobulate-key-map
@@ -415,8 +414,8 @@ Mickey’s interface is the [[help:combobulate][combobulate]] function (or ~C-c 
 
 *** Evil Text Object from Tree Sitter
 With Emacs version 29, we get a better approach to parsing languages, and this means that our [[https://github.com/nvim-treesitter/nvim-treesitter-textobjects#built-in-textobjects][text objects]] can be better too with the [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter project]]:
-#+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp :tangle no
+  (when (treesit-available-p)
     (use-package evil-textobj-tree-sitter
       :config
       ;; We need to bind keys to the text objects found at:
@@ -436,7 +435,7 @@ With Emacs version 29, we get a better approach to parsing languages, and this m
 #+end_src
 
 Seems the macro, =evil-textobj-tree-sitter-get-textobj= has a bug, so the following—which would have been easier to write—doesn’t work:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle no :tangle no
   (dolist (combo '(("f" "function.outer" "function.inner")
                    ("b" "loop.outer" "loop.inner")
                    ;; ...
@@ -1067,7 +1066,7 @@ Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[
 ** YAML
 Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
 #+begin_src emacs-lisp :tangle no
-  (when (string-search "TREE_SITTER" system-configuration-features)
+  (when (treesit-available-p)
     (use-package yaml-ts-mode
       :mode ((rx ".y" (optional "a") "ml" string-end)
              (rx (optional ".") "yamllint"))
@@ -1091,7 +1090,7 @@ And we hook
 
 This comes with a list of nice refactoring features that we can attach to the local leader:
 #+begin_src emacs-lisp
-  (when (string-search "TREE_SITTER" system-configuration-features)
+  (when (treesit-available-p)
     (use-package yaml-pro
       :config
       (ha-local-leader :keymaps 'yaml-pro-ts-mode-map
