@@ -143,9 +143,10 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
           dashboard-center-content t
           dashboard-set-init-info t
           dashboard-projects-switch-function 'projectile-persp-switch-project
-          dashboard-items '((projects . 5)
+          dashboard-items '(;; (projects . 5)
                             ;; (agenda . 5)
-                            (bookmarks . 5))
+                            ;; (bookmarks . 5)
+                           )
           dashboard-set-heading-icons t
           dashboard-footer-messages (list (ha--dad-joke)))
 
