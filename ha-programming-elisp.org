@@ -69,7 +69,7 @@ Wilfred’s [[https://github.com/Wilfred/suggest.el][suggest]] function helps yo
     (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
       "H" '("suggestions" . suggest)))
 #+end_src
-* Navigation and Editing
+* Navigation
 ** Goto Definitions
 Wilfred’s [[https://github.com/Wilfred/elisp-def][elisp-def]] project does a better job at jumping to the definition of a symbol at the point, so:
 #+begin_src emacs-lisp
@@ -113,6 +113,7 @@ While I love packages that add functionality and I don’t have to learn anythin
 
   (add-to-list 'evil-goto-definition-functions 'ha-org-code-block-jump)
 #+end_src
+* Editing
 ** Lispy
 I like the idea of [[https://github.com/abo-abo/lispy][lispy]] for making a Lisp-specific /keybinding state/ (similar to Evil).
 
@@ -263,6 +264,35 @@ These are all good, but the primary keys I need to figure out, are the s-express
   - ~}~ :: next opening parenthesis
   - ~(~ :: previous opening paren
   - ~)~ :: next closing parenthesis
+** Refactoring
+Wilfred’s [[https://github.com/Wilfred/emacs-refactor/tree/master#elisp][emacs-refactor]] package can be helpful if you turn on =context-menu-mode= and …
+#+begin_src emacs-lisp
+  (use-package emacs-refactor
+    :general
+    (:states '(normal visual) :keymaps 'emacs-lisp-mode-map
+             ;; Often know what functions are available:
+             ", r r" '("refactor menu" . emr-show-refactor-menu)
+             ;; These are my favorites ...
+
+             ;; Extracts the current s-expression or region to function:
+             ", r F" '("to function" . emr-el-extract-function)
+             ", r V" '("to variable" . emr-el-extract-variable)
+             ;; Converts the current let to a let*
+             ", r *" '("toggle let*" . emr-el-toggle-let*)
+             ;; asks for a variable, and extracts the code in a region
+             ;; or the current s-expression, into the nearest let binding
+             ", r l" '("to let" . emr-el-extract-to-let)))
+#+end_src
+
+The idea of stealing some of Clojure Mode’s refactoring is brilliant (see [[https://isamert.net/2023/08/14/elisp-editing-development-tips.html#clojure-thread-lastfirst-all-from-https-github-com-clojure-emacs-clojure-mode-clojure-mode][the original idea]]), however, I’m already using Lispy’s =toggle-thread-last=.
+#+begin_src emacs-lisp :tangle no
+  (use-package clojure-mode
+    :general
+    (:states '(normal visual) :keymaps 'emacs-lisp-mode-map
+             ", r >" '("to thread last" . clojure-thread-last-all)
+             ", r <" '("to thread first" . clojure-first-last-all)))
+#+end_src
+* Evaluation
 ** Eval Current Expression
 The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
 #+begin_src emacs-lisp
@@ -296,33 +326,14 @@ And we just need to bind it.
   (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
     "e e" '("current" . ha-eval-current-expression))
 #+end_src
-** Refactoring
-Wilfred’s [[https://github.com/Wilfred/emacs-refactor/tree/master#elisp][emacs-refactor]] package can be helpful if you turn on =context-menu-mode= and …
+** Debugging
+The =edebug= debugger is built into Emacs, so all I need is an easier way to instrument a function:
 #+begin_src emacs-lisp
-  (use-package emacs-refactor
-    :general
-    (:states '(normal visual) :keymaps 'emacs-lisp-mode-map
-             ;; Often know what functions are available:
-             ", r r" '("refactor menu" . emr-show-refactor-menu)
-             ;; These are my favorites ...
-
-             ;; Extracts the current s-expression or region to function:
-             ", r F" '("to function" . emr-el-extract-function)
-             ", r V" '("to variable" . emr-el-extract-variable)
-             ;; Converts the current let to a let*
-             ", r *" '("toggle let*" . emr-el-toggle-let*)
-             ;; asks for a variable, and extracts the code in a region
-             ;; or the current s-expression, into the nearest let binding
-             ", r l" '("to let" . emr-el-extract-to-let)))
-#+end_src
-
-The idea of stealing some of Clojure Mode’s refactoring is brilliant (see [[https://isamert.net/2023/08/14/elisp-editing-development-tips.html#clojure-thread-lastfirst-all-from-https-github-com-clojure-emacs-clojure-mode-clojure-mode][the original idea]]), however, I’m already using Lispy’s =toggle-thread-last=.
-#+begin_src emacs-lisp :tangle no
-  (use-package clojure-mode
-    :general
-    (:states '(normal visual) :keymaps 'emacs-lisp-mode-map
-             ", r >" '("to thread last" . clojure-thread-last-all)
-             ", r <" '("to thread first" . clojure-first-last-all)))
+  (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
+    "e D" '("set edebug" . (lambda ()
+                             (interactive)
+                             (setq current-prefix-arg '(4)) ; C-u
+                             (call-interactively 'eval-defun))))
 #+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
