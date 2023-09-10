@@ -402,7 +402,8 @@ This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return
   (defun ha-eshell-ebbflow-return ()
     "Close the ebb-flow window and return to Eshell session."
     (interactive)
-    (if (boundp 'ha-eshell-ebbflow-return-buffer)
+    (if (and (boundp 'ha-eshell-ebbflow-return-buffer)
+             (bufferp 'ha-eshell-ebbflow-return-buffer))
         (pop-to-buffer ha-eshell-ebbflow-return-buffer)
       (bury-buffer)))
 
@@ -415,7 +416,7 @@ This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return
 #+end_src
 Since I use Evil, I also add ~Q~ to call this function:
 #+begin_src emacs-lisp
-  (evil-define-key 'normal ebbflow-mode-map (kbd "Q") 'ha-eshell-ebbflow-return)
+  (evil-define-key 'normal ebbflow-mode-map "Q" 'ha-eshell-ebbflow-return)
 #+end_src
 *** flow (or Buffer Cat)
 Eshell can send the output of a command sequence to a buffer:
@@ -492,6 +493,9 @@ Straight-forward to acquire the contents of a buffer :
     (defalias 'eshell/bcat 'eshell/flow)
 #+end_src
 *** ebb: Bump Data to a Buffer
+The =ebb= function puts content /into/ the /ebbflow buffer/. Any content given to it on the command line is placed into the buffer, for instance:
+  - =ebb foobar= :: replaces the contents of the buffer with the text, =foobar=
+  - =ebb -p foobar= :: adds the text at the beginning
 We have three separate use-cases:
   1. Execute a command, inserting the output into the buffer (good if we know the output will be long, complicated, or needing manipulation)
   2. Insert one or more files into the buffer (this assumes the files are data)
@@ -499,17 +503,22 @@ We have three separate use-cases:
 
 #+begin_src emacs-lisp
   (defun eshell/ebb (&rest args)
-    "Run command with output into a buffer, or output of last command.
-  Usage: ebb [OPTION] [COMMAND] [FILE ...]
-      -h, --help           show this usage screen
-      -a, --append         add command output to the *eshell-edit* buffer
-      -p, --prepend        add command output to the end of *eshell-edit* buffer
-      -i, --insert         add command output to *eshell-edit* at point"
-    (let* ((options  (eshell-getopts '((:name insert  :short "i" :long "insert")
-                                       (:name append  :short "a" :long "append")
-                                       (:name prepend :short "p" :long "prepend")
-                                       (:name mode    :short "m" :long "mode" :parameter string)
-                                       (:name help    :short "h" :long "help"
+    "Insert text content into *eshell-edit* buffer, or if not text is given, the output of last command.
+  Usage: ebb [OPTION] [text content]
+      -h, --help    show this usage screen
+      -m, --mode    specify the major-mode for the *eshell-edit* buffer, e.g. json
+      -n, --newline separate the text contents by newlines (this is default)
+      -s, --spaces  separate the text contents by spaces, instead of newlines
+      -b, --begin   add text content to the beginning of the *eshell-edit* buffer
+      -e, --end     add text content to the end of *eshell-edit* buffer
+      -i, --insert  add text content to *eshell-edit* at point"
+    (let* ((options  (eshell-getopts '((:name insert      :short "i" :long "insert")
+                                       (:name append      :short "e" :long "end")
+                                       (:name prepend     :short "b" :long "begin")
+                                       (:name newline     :short "n" :long "newline")
+                                       (:name spaces      :short "s" :long "spaces")
+                                       (:name mode-option :short "m" :long "mode" :parameter string)
+                                       (:name help        :short "h" :long "help"
                                               :help eshell/ebb))
                                      args))
            (location (cond
@@ -518,19 +527,19 @@ We have three separate use-cases:
                       ((gethash 'prepend options) :prepend)
                       (t                          :replace)))
            (params   (gethash 'parameters options)))
-      (cond
-       ((seq-empty-p params)         (ha-eshell-ebb-output  location))
-       ((file-exists-p (car params)) (ha-eshell-ebb-files   location params))
-       (t                            (ha-eshell-ebb-command location params)))
+
+      (if (seq-empty-p params)
+          ((ha-eshell-ebb-output location))
+        (ha-eshell-ebb-string location (gethash 'spaces options) params))
 
       ;; At this point, we are in the `ha-eshell-ebbflow-buffername', and
       ;; the buffer contains the inserted data. Did we specify a major-mode?
-      (let ((mode (gethash 'mode options)))
-        (if (s-starts-with? "js" mode)
+      (when-let ((mode-option (gethash 'mode-option options)))
+        (if (s-starts-with? "js" mode-option)
             (js-json-mode)  ; Or should we just go to json-ts-mode?
-          (funcall (concat mode "-mode"))))
+          (funcall (intern (concat mode-option "-mode")))))
 
-      ;; Flip on the minor mode so we can close the window later on:
+      ;; Flip on the minor mode-option so we can close the window later on:
       (ebbflow-mode +1)
       (goto-char (point-min)))
 
@@ -556,6 +565,19 @@ Each of the use-case functions described needs to switch to the =*eshell-edit*= 
         (:prepend (goto-char (point-min)))
         (:insert   nil)
         (:replace (delete-region (point-min) (point-max))))))
+#+end_src
+
+One way to call =ebb= is with a command wrapped in braces, e.g. =ebb { ls -1 }=, which calls this function, as the output from the ={ … }= /sub-shell/ is passed as arguments to the =ebb= command, and appears as =command-results=:
+
+#+begin_src emacs-lisp
+  (defun ha-eshell-ebb-string (insert-location space-separator-p command-results)
+    "Insert the COMMAND-RESULTS into the `ha-eshell-ebbflow-buffername`.
+  Contents are placed based on INSERT-LOCATION and, if given, separated
+  by SEPARATOR (which defaults to a space)."
+    (let* ((sep (if space-separator-p " " "\n"))
+           (str (string-join (-flatten command-results) sep)))
+      (ha-eshell-ebb-switch-to-buffer insert-location)
+      (insert str)))
 #+end_src
 
 Command string passed to [[help:eshell-command][eshell-command]]:
@@ -1353,7 +1375,31 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
 #+begin_src emacs-lisp
   (defun ha-eshell-banner ()
     "Return a string containing the files in the current directory."
-    (eshell/lsd))
+    (let ((fg (face-attribute 'default :background))
+          (bg (face-attribute 'default :foreground))
+          (bg "#c09644")
+          (dd (thread-last default-directory
+                            (replace-regexp-in-string (getenv "HOME") "~")))
+          (gs (thread-last "git status --short --branch --ahead-behind 2>/dev/null"
+                            (shell-command-to-list)
+                            (first)
+                            (replace-regexp-in-string
+                             (rx "## "
+                                 (group (zero-or-more not-newline))
+                                 (zero-or-more anychar))
+                             "\\1")
+                            (replace-regexp-in-string
+                             (rx "...") " → "))))
+      (ignore-errors
+        (concat
+         ;; Line 1
+         (propertize
+          (format "   %s  •  ⑆ %s   " dd gs)
+          'face `(:background ,bg :foreground ,fg))
+         "\n"
+         ;; Line 2
+         (ha-dad-joke)
+         "\n\n"))))
 #+end_src
 * Shell Windows
 Now that I often need to pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each buffer begins with =eshell=: allowing me to have more than one eshells, typically, one per project.
