@@ -83,8 +83,7 @@ And some Mac-specific settings:
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
 #+end_src
-* Support Packages
-* Configuration Changes
+* Basic Configuration
 ** Initial Settings and UI
 Let's turn off the menu and other settings:
 #+begin_src emacs-lisp
@@ -178,6 +177,40 @@ Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=
     (save-some-buffers t))
 
   (add-hook 'focus-out-hook 'save-all-buffers)
+#+end_src
+*** Download Files via URL
+Might be nice to have a =url-download= function that just grabs a file from a website without fuss (or other dependencies). Easy enough to prototype, but dealing with errors are another thing …
+#+begin_src emacs-lisp
+  (defun url-download (url dest)
+    "Download the file as URL and save in file, DEST.
+  Note that this doesn't do any error checking ATM."
+    (interactive "sURL: \nDDestination: ")
+    (let* ((url-parts (url-generic-parse-url url))
+           (url-path  (url-filename url-parts))
+           (filename  (file-name-nondirectory url-path))
+           (target    (if (file-directory-p dest)
+                          (file-name-concat dest filename)
+                        dest))
+           (callback (lambda (status destination)
+                       (unwind-protect
+                           (pcase status
+                             (`(:error . ,_)
+                              (message "Error downloading %s: %s" url (plist-get status :error)))
+                             (_ (progn
+                                  ;; (switch-to-buffer (current-buffer))
+                                  (delete-region (point-min) (1+ url-http-end-of-headers))
+                                  (write-file destination)
+                                  (kill-buffer)
+                                  (when (called-interactively-p 'any)
+                                    (kill-new destination)))))))))
+      (message "Retrieving %s into %s" url target)
+      (url-retrieve url callback (list target))))
+#+end_src
+
+This function can be called interactively with a URL and a directory (and it attempts to create the name of the destination file based on the latter-part of the URL), or called programmatically, like:
+#+begin_src emacs-lisp :tangle no
+  (url-download "https://www.emacswiki.org/emacs/download/bookmark+.el"
+                "~/Downloads/bookmark-plus.el")
 #+end_src
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
