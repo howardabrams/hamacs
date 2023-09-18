@@ -1771,6 +1771,35 @@ I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp pac
               "R" '("query replace" . vr/query-replace)))
 #+end_src
 
+For all other functions that use regular expressions, many call the function, =read-regexp=, and thought it would be helpful if I could type =rx:…= and allow me to take advantage of the =rx= macro.
+#+begin_src emacs-lisp
+  (defun read-regexp-with-rx (input)
+    "Advice for `read-regexp' to allow specifying `rx' expressions.
+  If INPUT starts with rx: then the rest of the input is given to
+  the `rx' macro, and function returns that regular expression.
+  Otherwise, return INPUT."
+    (if (string-match (rx bos "rx:" (zero-or-more space)
+                          (group (one-or-more any)))
+                      input)
+        (let* ((rx-input (match-string 1 input))
+               (rx-expr  (format "(rx %s)" rx-input)))
+          (message "%s and %s" rx-input rx-expr)
+          (eval (read rx-expr)))
+      input))
+#+end_src
+
+Let’s right a little test case to make sure it works:
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest read-regexp-with-rx-test ()
+    (should (equal (read-regexp-with-rx "foo|bar") "foo|bar"))
+    (should (equal (read-regexp-with-rx "rx:\"foobar\"") "foobar"))
+    (should (equal (read-regexp-with-rx "rx:bol (zero-or-more space) eol") "^[[:space:]]*$")))
+#+end_src
+
+Now we just need to filter the results from the built-in Emacs function:
+#+begin_src emacs-lisp
+  (advice-add 'read-regexp :filter-return 'read-regexp-with-rx)
+#+end_src
 *** Jump with Avy
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use, but ~g o~ seems obvious.
 
