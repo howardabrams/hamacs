@@ -64,7 +64,7 @@ Capturing text into the =org-default-notes-file= is something I don't do much:
   (add-to-list 'org-capture-templates
                '("w" "Website Announcement" entry
                  (file+function "~/website/index.org" ha-first-header)
-                 (file "~/.spacemacs.d/templates/website-announcement.org")
+                 (file "~/templates/website-announcement.org")
                  :empty-lines 1))
 #+end_src
 Before we go too far, we should create a publishing file for the website announcement, and something for the journal.

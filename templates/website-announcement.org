@@ -1,0 +1,10 @@
+* %?
+  :PROPERTIES:
+  :PUBDATE:  %t
+  :END:
+  #+HTML: <div class=\"date\">%<%e %b %Y></div>
+
+  %i
+
+  [[%F][Read more...]
+  ↑ Fix that reference...
