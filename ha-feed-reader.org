@@ -26,17 +26,10 @@ A literate programming file for configuring =elfeed= in Emacs.
 * Configuring Elfeed
 Let's get our feeds from a collection of org mode files. By default, Doom configures =rmh-elfeed-org-files= to [[file:~/Dropbox/org/elfeed.org][elfeed.org]] in =org-directory=, so that will be fine.
 
-By setting this variable, we configure elfeed to use elfeed:
-
-#+begin_src emacs-lisp
-(setq rmh-elfeed-org-files (list (f-join hamacs-source-dir "ha-feed-reader.org")))
-#+end_src
-
-While I would like to share the /status/ of my reads, so ...
-
 #+begin_src emacs-lisp
   (use-package elfeed
     :init
+    ;; While I would like to share the /status/ of my reads, so ...
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
 
     ;; While not an elfeed-specific variable, this make reading articles
@@ -56,10 +49,6 @@ While I would like to share the /status/ of my reads, so ...
              "R" 'elfeed-search-update--force
              "u" 'elfeed-update
              "U" 'elfeed-unjam))
-
-  (use-package elfeed-org
-    :after elfeed
-    :config (elfeed-org))
 
   (defun ha-elfeed-tag-unread ()
     (interactive)
@@ -104,6 +93,14 @@ And some global keys to display them in the =apps= menu:
   "a F" '("elfeed start"  . ha-elfeed-persp-start))
 #+end_src
 * The Feeds :elfeed:
+The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =elfeed= to read the RSS feeds from an Org file … like this one!
+#+begin_src emacs-lisp
+  (use-package elfeed-org
+    :after elfeed
+    :config
+    (setq rmh-elfeed-org-files (list (f-join hamacs-source-dir "ha-feed-reader.org")))
+    (elfeed-org))
+#+end_src
 ** Personal :personal:
 *** [[http://www.howardism.org/index.xml][Howardisms]] :mustread:
 Clearly, I know what I write, but often good to see how it displays elsewhere.
