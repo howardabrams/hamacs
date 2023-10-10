@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: ifdef
+# key: ifdef
+# --
+{% if $1 is defined %}
+    $2 = {{ $1 }}
+{% endif %}
