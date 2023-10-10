@@ -909,6 +909,7 @@ The goal here is toggle switches and other miscellaneous settings.
     "t d" '("debug"          . toggle-debug-on-error)
     "t F" '("show functions" . which-function-mode)
     "t f" '("auto-fill"      . auto-fill-mode)
+    "t o" '("overwrite"      . overwrite-mode)
     "t l" '("line numbers"   . display-line-numbers-mode)
     "t R" '("read only"      . read-only-mode)
     "t t" '("truncate"       . toggle-truncate-lines)
@@ -1914,7 +1915,7 @@ While I don't /need/ all the features that [[https://github.com/bbatsov/projecti
       "p T" '("test project" . projectile-test-project)))
 #+end_src
 ** Workspaces
-A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
+A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/said that I shouldsaid that I shouldsaid that I should   perspective-el][perspective.el]] project.
 
 I build a Hydra to dynamically list the current projects as well as select the project.
 To do this, we need a way to generate a string of the perspectives in alphabetical order:
@@ -2696,13 +2697,8 @@ Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/d
     :commands (demo-it-create demo-it-start))
 #+end_src
 ** PDF Viewing
-Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? To do this, first install the following on a Mac:
-#+begin_src sh
-  brew install poppler automake
-#+end_src
-Instead run [[help:pdf-tools-install][pdf-tools-install]], as this command will do the above for the system.
+Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? If you have standard build tools installed on your system, run [[help:pdf-tools-install][pdf-tools-install]], as this command will an =epdfinfo= program to PDF displays.
 
-Let’s install the Emacs connection to the =pdfinfo= program:
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :mode ("\\.pdf\\'" . pdf-view-mode)
