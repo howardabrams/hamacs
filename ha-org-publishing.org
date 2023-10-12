@@ -167,18 +167,18 @@ Another helper function for the content of website is to make sure to update =in
 Make it easy to publish all or just some of my website:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
-    (ha-local-leader 'org-mode-map
-      "p"  '(:ignore t :which-key "publishing")
-      "p a" '("all" . org-publish-all)
-      "p p" '("project" . org-publish-project)))
+    (ha-leader :keymaps 'org-mode-map
+      ;; "p"  '(:ignore t :which-key "publishing")
+      "o p a" '("all" . org-publish-all)
+      "o p p" '("project" . org-publish-project)))
 #+end_src
 
 And let's put a /leader key/ sequence for my favorite file on my website:
 #+begin_src emacs-lisp
   (ha-leader
-        "f h"  '(:ignore t :which-key "howards")
-        "f h i" '("website index" . (lambda ()
-                                      (find-file (expand-file-name "index.org" "~/website")))))
+    "f h"  '(:ignore t :which-key "howards")
+    "f h i" '("website index" . (lambda ()
+                                  (find-file (expand-file-name "index.org" "~/website")))))
 #+end_src
 * Technical Artifacts :noexport:
 Let's =provide= a name so we can =require= it:

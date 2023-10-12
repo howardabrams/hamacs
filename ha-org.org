@@ -535,7 +535,83 @@ Global keybindings available to all file buffers:
   (ha-leader
     "o l" '("store link"  . org-store-link)
     "o x" '("org capture" . org-capture)
-    "o c" '("clock out"   . org-clock-out))
+    "o C" '("clock out"   . org-clock-out))
+
+  (ha-leader :keymaps 'org-mode-map
+    "o e" '("exports"     . org-export-dispatch)
+    "o L" '("insert link" . org-insert-link)
+    "o P" '("set property" .  org-set-property)
+    "o g" '("set tags" .  org-set-tags-command)
+    "o t" '("todo" . org-todo)
+    "o T" '("list todos" .  org-todo-list)
+
+    "o i"  '(:ignore t :which-key "insert")
+    "o i i" '("item" .  org-insert-item)
+    "o i I" '("insert id" .  org-id-get-create)
+    "o i l" '("link" .  org-insert-link)
+    "o i d" '("drawer" .  org-insert-drawer)
+    "o i h" '("heading" .  org-insert-heading)
+    "o i s" '("subheading" .  org-insert-subheading)
+
+    "o o"  '(:ignore t :which-key "toggles")
+    "o o h" '("heading" .  org-toggle-heading)
+    "o o i" '("item" .  org-toggle-item)
+    "o o x" '("checkbox" .  org-toggle-checkbox)
+    "o o I" '("images" .  org-toggle-inline-images)
+    "o o m" '("markup" . (lambda () (interactive)
+                            (setq org-hide-emphasis-markers (not org-hide-emphasis-markers)) (font-lock-update)))
+
+    "o /" '("agenda" . consult-org-agenda)
+    "o '" '("edit" . org-edit-special)
+    "o *" '("C-c *" . org-ctrl-c-star)
+    "o +" '("C-c -" . org-ctrl-c-minus)
+
+    "o c"  '(:ignore t :which-key "clocks")
+    "o c i" '("clock in" . org-clock-in)
+    "o c l" '("clock in last" . org-clock-in-last)
+    "o c o" '("clock out" . org-clock-out)
+    "o c c" '("cancel" . org-clock-cancel)
+    "o c d" '("mark default task" . org-clock-mark-default-task)
+    "o c e" '("modify effort" . org-clock-modify-effort-estimate)
+    "o c E" '("set effort" . org-set-effort)
+    "o c g" '("goto clock" . org-clock-goto)
+    "o c r" '("resolve clocks" . org-resolve-clocks)
+    "o c R" '("clock report" . org-clock-report)
+    "o c t" '("eval range" . org-evaluate-time-range)
+    "o c =" '("timestamp up" . org-clock-timestamps-up)
+    "o c -" '("timestamp down" . org-clock-timestamps-down)
+
+    "o d"  '(:ignore t :which-key "dates")
+    "o d s" '("schedule" . org-schedule)
+    "o d d" '("deadline" . org-deadline)
+    "o d t" '("timestamp" . org-time-stamp)
+    "o d T" '("inactive time" . org-time-stamp-inactive)
+
+
+    "o b"  '(:ignore t :which-key "tables")
+    "o b -" '("insert hline" . org-table-insert-hline)
+    "o b a" '("align" . org-table-align)
+    "o b b" '("blank field" . org-table-blank-field)
+    "o b c" '("create teable" . org-table-create-or-convert-from-region)
+    "o b e" '("edit field" . org-table-edit-field)
+    "o b f" '("edit formula" . org-table-edit-formulas)
+    "o b h" '("field info" . org-table-field-info)
+    "o b s" '("sort lines" . org-table-sort-lines)
+    "o b r" '("recalculate" . org-table-recalculate)
+    "o b d"  '(:ignore t :which-key "delete")
+    "o b d c" '("delete column" . org-table-delete-column)
+    "o b d r" '("delete row" . org-table-kill-row)
+    "o b i"  '(:ignore t :which-key "insert")
+    "o b i c" '("insert column" . org-table-insert-column)
+    "o b i h" '("insert hline" . org-table-insert-hline)
+    "o b i r" '("insert row" . org-table-insert-row)
+    "o b i H" '("insert hline ↓" . org-table-hline-and-move)
+
+    "o n"  '(:ignore t :which-key "narrow")
+    "o n s" '("subtree" . org-narrow-to-subtree)
+    "o n b" '("block"   . org-narrow-to-block)
+    "o n e" '("element" . org-narrow-to-element)
+    "o n w" '("widen"   . widen))
 #+end_src
 
 Bindings specific to org files:
@@ -547,58 +623,6 @@ Bindings specific to org files:
     "gk" '("prev heading" . #'org-backward-heading-same-level)
     "gb" '("next block" . #'org-next-block)
     "gB" '("prev block" . #'org-previous-block))
-
-  (ha-local-leader :keymaps 'org-mode-map
-    "e" '("exports"     . org-export-dispatch)
-    "I" '("insert id" .  org-id-get-create)
-    "l" '("insert link" . org-insert-link)
-    "N" '("store link" .  org-store-link)
-    "P" '("set property" .  org-set-property)
-    "q" '("set tags" .  org-set-tags-command)
-    "t" '("todo"   . org-todo)
-    "T" '("list todos" .  org-todo-list)
-
-    "h" '("toggle heading" .  org-toggle-heading)
-    "i" '("toggle item" .  org-toggle-item)
-    "x" '("toggle checkbox" .  org-toggle-checkbox)
-
-    "." '("goto heading" . consult-org-heading)
-    "/" '("agenda" . consult-org-agenda)
-    "'" '("edit" . org-edit-special)
-    "*" '("C-c *" . org-ctrl-c-star)
-    "+" '("C-c -" . org-ctrl-c-minus)
-
-    "d"  '(:ignore t :which-key "dates")
-    "d s" '("schedule" . org-schedule)
-    "d d" '("deadline" . org-deadline)
-    "d t" '("timestamp" . org-time-stamp)
-    "d T" '("inactive time" . org-time-stamp-inactive)
-
-
-    "b"  '(:ignore t :which-key "tables")
-    "b -" '("insert hline" . org-table-insert-hline)
-    "b a" '("align" . org-table-align)
-    "b b" '("blank field" . org-table-blank-field)
-    "b c" '("create teable" . org-table-create-or-convert-from-region)
-    "b e" '("edit field" . org-table-edit-field)
-    "b f" '("edit formula" . org-table-edit-formulas)
-    "b h" '("field info" . org-table-field-info)
-    "b s" '("sort lines" . org-table-sort-lines)
-    "b r" '("recalculate" . org-table-recalculate)
-    "b d"  '(:ignore t :which-key "delete")
-    "b d c" '("delete column" . org-table-delete-column)
-    "b d r" '("delete row" . org-table-kill-row)
-    "b i"  '(:ignore t :which-key "insert")
-    "b i c" '("insert column" . org-table-insert-column)
-    "b i h" '("insert hline" . org-table-insert-hline)
-    "b i r" '("insert row" . org-table-insert-row)
-    "b i H" '("insert hline ↓" . org-table-hline-and-move)
-
-    "n"  '(:ignore t :which-key "narrow")
-    "n s" '("subtree" . org-narrow-to-subtree)
-    "n b" '("block"   . org-narrow-to-block)
-    "n e" '("element" . org-narrow-to-element)
-    "n w" '("widen"   . widen))
 #+end_src
 * Supporting Packages
 ** Exporters
@@ -614,8 +638,8 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
     :after org
     :straight nil   ; Located in my "elisp" directory
     :config
-    (ha-local-leader :keymaps 'org-mode-map
-      "E" '("to confluence"     . ox-export-to-confluence)))
+    (ha-leader :keymaps 'org-mode-map
+      "o E" '("to confluence"     . ox-export-to-confluence)))
 #+end_src
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
@@ -718,13 +742,13 @@ For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] 
                  "['\x2019]" nil ("-B") nil utf-8)))
 
     :config
-    (ha-local-leader :keymaps 'text-mode-map
-      "s"  '(:ignore t :which-key "spellcheck")
-      "s s" '("correct last misspell" . ha-fix-last-spelling)
-      "s b" '("check buffer" . flyspell-buffer)
-      "s c" '("correct word" . flyspell-auto-correct-word)
-      "s p" '("previous misspell" . evil-prev-flyspell-error)
-      "s n" '("next misspell" . evil-next-flyspell-error))
+    (ha-leader :keymaps 'text-mode-map
+      "S"  '(:ignore t :which-key "spellcheck")
+      "S s" '("correct last misspell" . ha-fix-last-spelling)
+      "S b" '("check buffer" . flyspell-buffer)
+      "S c" '("correct word" . flyspell-auto-correct-word)
+      "S p" '("previous misspell" . evil-prev-flyspell-error)
+      "S n" '("next misspell" . evil-next-flyspell-error))
 
     ;; Let's use M-TAB for something else ...
     (define-key flyspell-mode-map (kbd "M-TAB") nil))
@@ -760,21 +784,21 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
   (use-package powerthesaurus
     :bind ("s-t" . powerthesaurus-lookup-dwim)
     :config
-    (ha-local-leader :keymaps 'text-mode-map
-      "s t" '("thesaurus" . powerthesaurus-lookup-dwim)
-      "s s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
-      "s a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
-      "s r" '("related" . powerthesaurus-lookup-related-dwim)
-      "s S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
+    (ha-leader :keymaps 'text-mode-map
+      "S t" '("thesaurus" . powerthesaurus-lookup-dwim)
+      "S s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
+      "S a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
+      "S r" '("related" . powerthesaurus-lookup-related-dwim)
+      "S S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
 #+end_src
 
 The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
 #+begin_src emacs-lisp
   (use-package define-word
     :config
-    (ha-local-leader :keymaps 'text-mode-map
-      "s d" '("define this" . define-word-at-point)
-      "s D" '("define word" . define-word)))
+    (ha-leader :keymaps 'text-mode-map
+      "S d" '("define this" . define-word-at-point)
+      "S D" '("define word" . define-word)))
 #+end_src
 
 After my enamoring of Noah Webster’s 1913 dictionary (originally due to reading [[https://janusworx.com/blog/thank-god-for-noah/][this essay]] by Mario Jason Braganza who referred to James Somers’ original [[https://jsomers.net/blog/dictionary][2014 blog entry]]), I easily followed the instructions from [[https://github.com/ponychicken/WebsterParser][WebsterParser]], a Github project, with the dictionary:
@@ -792,8 +816,8 @@ Now that I’m mostly on version 28 and above of Emacs, we can take advantage of
 #+begin_src emacs-lisp
   (setq dictionary-server "dict.org")
 
-  (ha-local-leader :keymaps 'text-mode-map
-     "s d" '("define word" . dictionary-search))
+  (ha-leader :keymaps 'text-mode-map
+     "S d" '("define word" . dictionary-search))
 #+end_src
 Once in the dictionary buffer, acquiesce these keybindings:
     - ~q~ close the dictionary buffer

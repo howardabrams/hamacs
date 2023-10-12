@@ -665,27 +665,6 @@ Here is the script I tangle to =~/bin/en=:
 
   rm -f $FILE
 #+end_src
-* Keybindings
-Along with kicking off the org-capture, I want to be able to clock-in and out:
-#+begin_src emacs-lisp
-  (with-eval-after-load 'ha-org
-    (ha-local-leader :keymaps 'org-mode-map
-      "X" '("org capture" . org-capture)
-      "c"  '(:ignore t :which-key "clocks")
-      "c i" '("clock in" . org-clock-in)
-      "c l" '("clock in last" . org-clock-in-last)
-      "c o" '("clock out" . org-clock-out)
-      "c c" '("cancel" . org-clock-cancel)
-      "c d" '("mark default task" . org-clock-mark-default-task)
-      "c e" '("modify effort" . org-clock-modify-effort-estimate)
-      "c E" '("set effort" . org-set-effort)
-      "c g" '("goto clock" . org-clock-goto)
-      "c r" '("resolve clocks" . org-resolve-clocks)
-      "c R" '("clock report" . org-clock-report)
-      "c t" '("eval range" . org-evaluate-time-range)
-      "c =" '("timestamp up" . org-clock-timestamps-up)
-      "c -" '("timestamp down" . org-clock-timestamps-down)))
-#+end_src
 * Technical Artifacts                                :noexport:
 Let's provide a name so we can =require= this file.
 #+begin_src emacs-lisp :exports none
