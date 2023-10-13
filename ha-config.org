@@ -366,7 +366,12 @@ I’m not a long term VI user, and I generally like /easy keys/, e.g. ~w~, have 
       "w" 'evil-forward-WORD-begin
       "W" 'evil-forward-word-begin
       "e" 'evil-forward-WORD-end
-      "E" 'evil-forward-word-end)
+      "E" 'evil-forward-word-end
+
+      ;; This may be an absolute heresy to most VI users,
+      ;; but I'm Evil and really, I use M-x and SPC instead.
+      ;; Besides, I don't know any : colon commands...
+      ":" 'evil-repeat-find-char-reverse)
 
     ;; The `b' key seems to need its own configuration setting:
     (evil-define-key '(normal visual motion operator) 'global
