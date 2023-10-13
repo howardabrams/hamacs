@@ -94,8 +94,11 @@ Next, we need some basic configuration settings and some global keybindings:
                 ("U" . notmuch-retrieve-messages)
                 ("C" . notmuch-mua-new-mail)
            :map notmuch-tree-mode-map
-                ("C" . notmuch-mua-new-mail))
-
+                ("C" . notmuch-mua-new-mail)))
+#+end_src
+And some leader-based keybindings:
+#+begin_src emacs-lisp :noweb yes
+  (use-package notmuch
     :config
     (ha-leader   ; Should I put these under an "m" heading?
       "a n" '("new mail" . notmuch-retrieve-messages)
@@ -110,6 +113,7 @@ Next, we need some basic configuration settings and some global keybindings:
 
     <<hey-show-keybindings>>
     <<hey-search-keybindings>>)
+
 #+end_src
 Also, let's do some basic configuration of Emacs' mail system:
 #+begin_src emacs-lisp
@@ -191,21 +195,21 @@ The file generally can have a =Pass= entry for the encrypted passcode, but to sh
   Flatten .
 
   Channel personal-inbox
-  Master :personal-remote:
-  Slave :personal-local:
+  Far :personal-remote:
+  Near :personal-local:
   Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
   Expunge Both
   # Patterns "inbox"
   # ExpireUnread no
 
   Channel personal-sent
-  Master :personal-remote:"[Gmail]/Sent Mail"
-  Slave :personal-local:sent
+  Far :personal-remote:"[Gmail]/Sent Mail"
+  Near :personal-local:sent
   ExpireUnread yes
 
   Channel personal-trash
-  Master :personal-remote:"[Gmail]/Trash"
-  Slave :personal-local:trash
+  Far :personal-remote:"[Gmail]/Trash"
+  Near :personal-local:trash
   ExpireUnread yes
 #+end_src
 
