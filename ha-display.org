@@ -36,9 +36,13 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
     :init
     (setq doom-modeline-minor-modes nil
           doom-modeline-buffer-encoding nil
+          doom-modeline-major-mode-color-icon t
+          doom-modeline-buffer-state-icon t
+          doom-modeline-buffer-modification-icon t
+          doom-modeline-modal 'evil
+          doom-modeline-lsp-icon t
           doom-modeline-percent-position nil)
-    :config
-    (doom-modeline-mode +1))
+    (doom-modeline-mode 1))
 
   (use-package doom-themes)
 #+end_src
@@ -346,9 +350,14 @@ Display these two symbols as one:
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook (lambda ()
                               (dolist (pair '(("!?" . "‽")
-                                              ("->" . ?→)
-                                              ("<-" . ?←)
-                                              ("=>" . ?⇒)))
+                                              ("ae" . "æ")
+                                              ("AE" . "Æ")
+
+                                              ;; If we have ligatures, why these?
+                                              ;; ("->" . ?→)
+                                              ;; ("<-" . ?←)
+                                              ;; ("=>" . ?⇒)
+                                              ))
                                 (push pair prettify-symbols-alist))))
 #+end_src
 
@@ -362,10 +371,10 @@ In Emacs 28.1, we have better Unicode 14 support. Which means, we need to instal
   ;; set font for symbols
   (set-fontset-font t 'symbol
    (cond
-    ((string-equal system-type "darwin")
+    ((ha-running-on-macos?)
      (cond
       ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
-    ((string-equal system-type "gnu/linux")
+    ((ha-running-on-linux?)
      (cond
       ((member "Symbola" (font-family-list)) "Symbola")))))
 

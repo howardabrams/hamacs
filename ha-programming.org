@@ -32,9 +32,11 @@ Farm off commands into /virtual environments/:
 #+begin_src emacs-lisp
   (use-package direnv
     :init
-    (setq direnv--executable "/usr/local/bin/direnv"
-          direnv-always-show-summary t
+    (setq direnv-always-show-summary t
           direnv-show-paths-in-summary t)
+    (if (ha-running-on-macos?)
+        (setq direnv--executable "/opt/homebrew/bin/direnv")
+      (setq direnv--executable "/usr/local/bin/direnv"))
     :config
     (direnv-mode))
 #+end_src

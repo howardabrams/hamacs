@@ -75,6 +75,26 @@ And if that doesn’t work, then we need to delete all packages installed by bre
 
   echo "Good luck rebuilding Emacs."
 #+end_src
+* Afterwards
+After Emacs is /kinda/ working, make sure you install *all* the fonts, that is:
+#+begin_example
+M-x all-the-icons-install-fonts
+#+end_example
+And to get the Doom Modeline working:
+#+begin_example
+M-x nerd-icons-install-fonts
+#+end_example
+
+Everything golden?
+#+begin_example
+M-x straight-freeze-versions
+#+end_example
+
+Before we can build a Telegram server for [[file:ha-aux-apps.org::*Telega][Telega]], we need to install the /latest/ version:
+#+begin_src sh
+  brew unlink tdlib  # optional
+  brew install tdlib --HEAD
+#+end_src
 * Supporting Packages
 Now install all the extras:
 #+begin_src sh
@@ -228,7 +248,7 @@ Script that fetches mails and updates the mail index.
 * Emacsclient
 Simple /Automator/ script that's wrapped into an application and placed in the =Applications= folder. Select *New Document*, then select *Application*. Open the *Library*, and drag the *Run Shell Script* to the /workflow/. In the box, add this:
 #+begin_src sh
-  /usr/local/bin/emacsclient -nc --socket-name work $*
+  /opt/homebrew/bin/emacsclient -nc --socket-name work $*
 #+end_src
 Change the *Pass Input* to =as arguments=.
 

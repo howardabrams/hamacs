@@ -138,7 +138,7 @@ For projects from work, I have found we need to isolate the Ruby environment. On
 #+begin_src conf
   # From Apple: /usr/bin/ruby
   use ruby 2.6.10
-  # Could use 3.2.1 from /usr/local/bin/ruby
+  # Could use 3.2.1 from /opt/homebrew/bin/ruby
 #+end_src
 
 A better solution is to create a container to hold the Ruby environment. Begin with a =Dockerfile=:

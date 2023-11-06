@@ -245,12 +245,12 @@ While the space can be use to separate words (acting a bit like a =.*= regular e
 #+begin_src emacs-lisp
   (use-package orderless
     :commands (orderless-filter)
-    :config
-    (push 'orderless completion-styles)
     :custom
     (completion-ignore-case t)
     (completion-category-defaults nil)
-    (completion-category-overrides '((file (styles partial-completion)))))
+    (completion-category-overrides '((file (styles partial-completion))))
+    :init
+    (push 'orderless completion-styles))
 #+end_src
 *Note:* Open more than one file at once with =find-file= with a wildcard. We may also give the =initials= completion style a try.
 *** Fussy Filtering and Matching
@@ -260,7 +260,7 @@ How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-
 
 #+begin_src emacs-lisp
   (use-package fussy
-    :straight (:host github :repo "jojojames/fussy")
+    ;; :straight (:host github :repo "jojojames/fussy")
     :config
     (push 'fussy completion-styles)
     (setq completion-category-defaults nil
@@ -809,7 +809,7 @@ With these helper functions in place, I can create a leader collection for file-
 On Unix systems, the =locate= command is faster than =find= when searching the whole system, since it uses a pre-computed database, and =find= is faster if you need to search a specific directory instead of the whole system. On the Mac, we need to change the =locate= command:
 
 #+begin_src emacs-lisp
-  (when (equal system-type 'darwin)
+  (when (ha-running-on-macos?)
     (setq locate-command "mdfind"))
 #+end_src
 
@@ -2118,7 +2118,7 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
 #+begin_src emacs-lisp
   (use-package magit
     ;; See https://github.com/magit/magit/wiki/Emacsclient for why we need to set:
-    :custom (with-editor-emacsclient-executable "/usr/local/bin/emacsclient")
+    :custom (with-editor-emacsclient-executable "emacsclient")
 
     :config
     ;; The following code re-instates my General Leader key in Magit.
@@ -2708,7 +2708,9 @@ Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? If you 
   (use-package pdf-tools
     :mode ("\\.pdf\\'" . pdf-view-mode)
     :init
-    (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo")
+    (if (ha-running-on-macos?)
+        (setq pdf-info-epdfinfo-program "/opt/homebrew/bin/epdfinfo")
+      (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
     :general
     (:states 'normal :keymaps 'pdf-view-mode-map
              "gp" 'pdf-view-goto-page

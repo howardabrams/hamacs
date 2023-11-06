@@ -145,8 +145,8 @@ Third,  you want more /control/, you can use the help:eshell/alias function, but
   (defun ha-eshell-add-aliases ()
     "Call `eshell/alias' to define my aliases."
     ;; The 'ls' executable requires the Gnu version on the Mac
-    (let ((ls (if (file-exists-p "/usr/local/bin/gls")
-                  "/usr/local/bin/gls"
+    (let ((ls (if (file-exists-p "/opt/homebrew/bin/gls")
+                  "/opt/homebrew/bin/gls" ; mac issue only
                 "/bin/ls")))
       (eshell/alias "ll" (concat ls " -AlohG --color=always"))))
 #+end_src
@@ -1380,16 +1380,7 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
           (bg "#c09644")
           (dd (thread-last default-directory
                             (replace-regexp-in-string (getenv "HOME") "~")))
-          (gs (thread-last "git status --short --branch --ahead-behind 2>/dev/null"
-                            (shell-command-to-list)
-                            (first)
-                            (replace-regexp-in-string
-                             (rx "## "
-                                 (group (zero-or-more not-newline))
-                                 (zero-or-more anychar))
-                             "\\1")
-                            (replace-regexp-in-string
-                             (rx "...") " → "))))
+          (gs (or (ha-eshell-banner-git-branch) "")))
       (ignore-errors
         (concat
          ;; Line 1
@@ -1400,6 +1391,24 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
          ;; Line 2
          (ha-dad-joke)
          "\n\n"))))
+
+  (defun ha-eshell-banner-git-branch (&optional directory)
+    "Returns the simplified Git branch for DIRECTORY."
+    (let (default-directory)
+      (when directory
+        (setq default-directory directory))
+      (ignore-errors
+        (thread-last "git status --short --branch --ahead-behind 2>/dev/null"
+                     (shell-command-to-list)
+                     (first)
+                     (replace-regexp-in-string
+                      (rx "## "
+                          (group (zero-or-more not-newline))
+                          (zero-or-more anychar))
+                      "\\1")
+                     (replace-regexp-in-string
+                      (rx "...") " → "))))
+    )
 #+end_src
 * Shell Windows
 Now that I often need to pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each buffer begins with =eshell=: allowing me to have more than one eshells, typically, one per project.

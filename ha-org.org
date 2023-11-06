@@ -285,7 +285,7 @@ This function calls the above-mentioned operating-system-specific functions, but
   (defun ha-search-notes--files (phrase path)
     "Return an escaped string of all files matching PHRASE.
   On a Mac, the PATH limits the scope of the search."
-    (let ((command (if (equal system-type 'darwin)
+    (let ((command (if (ha-running-on-macos?)
                        (ha-search-notes--macos phrase path)
                      (ha-search-notes--linux phrase path))))
       (->> command
@@ -311,7 +311,7 @@ The =ha-search-notes= function prompts for the phrase to search, and then search
   (defun ha-search-notes (phrase &optional path)
     "Search files in PATH for PHRASE and display in a grep mode buffer."
     (interactive "sSearch notes for: ")
-    (let* ((command   (if (equal system-type 'darwin) "ggrep" "grep"))
+    (let* ((command   (if (ha-running-on-macos?) "ggrep" "grep"))
            (regexp    (string-replace " " "\\|" phrase))
            (use-paths (or path (list org-directory org-journal-dir)))
            (files     (ha-search-notes--files phrase use-paths))

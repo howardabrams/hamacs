@@ -68,6 +68,7 @@ Clear up a Mac-specific issue that sometimes arises since I'm switching to [[htt
 #+begin_src emacs-lisp
   (when (ha-running-on-macos?)
       (add-to-list 'exec-path "/usr/local/bin")
+      (add-to-list 'exec-path "/opt/homebrew/bin")
       (add-to-list 'exec-path (concat invocation-directory "bin") t))
 #+end_src
 
@@ -85,7 +86,7 @@ On Linux, GPG is pretty straight-forward, but on the Mac, I often have troubles 
 #+end_src
 Next, on every reboot, start the agent:
 #+begin_src sh
-  /usr/local/Cellar/gnupg/2.3.6/bin/gpg-agent --daemon
+  /opt/homebrew/bin/gpg-agent --daemon
 #+end_src
 
 Since =brew link gpg= doesn’t always work, this helper function may find the executable:
@@ -97,7 +98,7 @@ Since =brew link gpg= doesn’t always work, this helper function may find the e
 
   (use-package epa-file
     :straight (:type built-in)
-    :custom (epg-gpg-program (or (executable "/usr/local/Cellar/gnupg/*/bin/gpg")
+    :custom (epg-gpg-program (or (executable "/opt/homebrew/bin/gpg")
                                  (executable "/usr/local/bin/gpg")
                                  (executable "/usr/local/opt/gpg")
                                  (executable "/usr/bin/pgp")))
