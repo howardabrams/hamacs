@@ -608,7 +608,8 @@ Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the 
              "g ~" '("invert case" . evil-invert-case)
 
              ;; Use this ALL the time:
-             "g ;" '("last change" . evil-goto-last-change)
+             "g ;" '("last change →" . evil-goto-last-change)
+             "g :" '("last change ←" . evil-goto-last-change-reverse)
              "g d" '("goto def" . evil-goto-definition)
              "g i" '("resume insert" . evil-insert-resume)
              "g v" '("resume visual" . evil-visual-restore)
@@ -1647,6 +1648,18 @@ Notes:
   - ~yS$<p>~ :: surrouds the line with HTML =<p>= tag (with extra carriage returns).
   - ~ysiw'~ :: puts single quotes around the word, no matter the points position.
   - ~(~ :: puts spaces /inside/ the surrounding parens, but ~)~ doesn't. Same with ~[~ and ~]~.
+*** Evil Jump, er Better Jump
+The [[https//github.com/gilbertw1/better-jumper][better-jumper project]] replaces the [[https://github.com/bling/evil-jumper][evil-jumper project]], essentially allowing you jump back to various movements. While I already use ~g ;~ to jump to the last change, this jumps /to the jumps/ … kinda. I’m having a difficult time determining /what jumps/ are remembered.
+
+#+begin_src emacs-lisp
+  (use-package better-jumper
+    :config
+    (better-jumper-mode +1)
+
+    (with-eval-after-load 'evil-maps
+      (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+      (define-key evil-motion-state-map (kbd "C-i") 'better-jumper-jump-forward)))
+#+end_src
 ** Additional Global Packages
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
