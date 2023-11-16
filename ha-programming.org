@@ -621,12 +621,30 @@ As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html
 While that code /advices/ the publishing and compile commands, I may want to add more.
 ** iEdit
 While there are language-specific ways to rename variables and functions, [[https://github.com/victorhge/iedit][iedit]] is often sufficient.
-
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package iedit
     :config
     (ha-leader "s e" '("iedit" . iedit-mode)))
 #+end_src
+
+While =iedit= acts a little odd with Evil, the [[https://github.com/syl20bnr/evil-iedit-state][evil-iedit-state project]] attempts to makes the interface more intuitive.
+
+This creates both an =iedit= and =iedit-insert= states. Calling ~Escape~ from =iedit-insert= goes to =iedit=, and hitting it again, will go back to =normal= state.
+
+To use, highlight a region with ~v~, and continue to hit ~v~ until you’ve selected the variable/symbol, and then type ~e~. Or, highlight normally, e.g. ~v i o~, and hit ~E~:
+#+begin_src emacs-lisp
+  (use-package evil-iedit-state
+    :after iedit
+    :general
+    (:states 'visual "E" '("iedit" . evil-iedit-state/iedit-mode)))
+#+end_src
+
+ The =iedit-insert= state is pretty much /regular/ =insert= state, so the interesting keys are in =iedit= state:
+  - ~0~ / ~$~ :: jump to beginning/end of the “occurrence”
+  - ~n~ / ~N~ :: jump to next / previous occurrence
+  - ~I~ / ~A~ :: jump to beginning/end of occurrence and go into =iedit-insert= mode (obviously ~a~ and ~i~ do too)
+  - ~#~ :: highlights all the matching occurrences
+  - ~F~ :: restricts to the current function
 ** Case Conversion
 The [[https://github.com/akicho8/string-inflection][string-inflection]] project (see [[http://sodaware.sdf.org/notes/converting-to-snake-case-in-emacs/][this overview]]) converts symbol variables to /appropriate format/ for the mode. This replaces my home-brewed functions.
 #+begin_src emacs-lisp
