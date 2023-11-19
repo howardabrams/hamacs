@@ -34,7 +34,7 @@ Farm off commands into /virtual environments/:
     :init
     (setq direnv-always-show-summary t
           direnv-show-paths-in-summary t)
-    (if (ha-running-on-macos?)
+    (if (file-exists-p "/opt/homebrew")
         (setq direnv--executable "/opt/homebrew/bin/direnv")
       (setq direnv--executable "/usr/local/bin/direnv"))
     :config
