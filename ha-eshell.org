@@ -1,7 +1,7 @@
-#+TITLE:  Expanding Eshell
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-09-13
-#+FILETAGS: :emacs:
+#+title:  Expanding Eshell
+#+author: Howard X. Abrams
+#+date:   2022-09-13
+#+tags: emacs shell
 
 A literate programming file for configuring the Emacs Shell.
 #+begin_src emacs-lisp :exports none

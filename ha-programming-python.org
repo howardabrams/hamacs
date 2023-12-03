@@ -1,6 +1,7 @@
-#+TITLE:  Configuring Python in Emacs
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2021-11-16
+#+title:  Configuring Python in Emacs
+#+author: Howard X. Abrams
+#+date:   2021-11-16
+#+tags: emacs python programming
 
 A literate programming file for configuring Python.
 

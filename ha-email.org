@@ -1,6 +1,7 @@
-#+TITLE:  Configuring Emacs for Email with Notmuch
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-16
+#+title:  Configuring Emacs for Email with Notmuch
+#+author: Howard X. Abrams
+#+date:   2020-09-16
+#+tags: emacs email
 
 A literate configuration file for email using Notmuch.
 

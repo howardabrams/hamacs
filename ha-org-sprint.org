@@ -1,6 +1,7 @@
-#+TITLE:  My Sprint Calculations and Support
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-25
+#+title:  My Sprint Calculations and Support
+#+author: Howard X. Abrams
+#+date:   2020-09-25
+#+tags: emacs work
 
 A literate program for configuring org files for work-related notes.
 

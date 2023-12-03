@@ -1,7 +1,7 @@
-#+TITLE: Programming Haskell
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-08-24
-#+FILETAGS: :emacs:
+#+title: Programming Haskell
+#+author: Howard X. Abrams
+#+date:   2022-08-24
+#+tags: emacs haskell programming
 
 A literate programming file for configuring Emacs to use [[https://www.haskell.org/][Haskell]] .
 #+begin_src emacs-lisp :exports none

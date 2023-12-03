@@ -1,6 +1,7 @@
-#+TITLE:  Programming in Scheme for SICP
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-03-01
+#+title:  Programming in Scheme for SICP
+#+author: Howard X. Abrams
+#+date:   2022-03-01
+#+tags: emacs scheme programming lisp
 
 A literate programming file configuring Emacs.
 

@@ -1,6 +1,7 @@
-#+TITLE:  Pasting the Org Clipboard
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-15
+#+title:  Pasting the Org Clipboard
+#+author: Howard X. Abrams
+#+date:   2020-09-15
+#+tags: emacs org
 
 A literate programming file of functions for formatting Emacs text and code into and out to the system clipboard.
 

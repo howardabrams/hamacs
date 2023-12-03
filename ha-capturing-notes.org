@@ -1,6 +1,7 @@
-#+TITLE:  Capturing Notes with Org
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-18
+#+title:  Capturing Notes with Org
+#+author: Howard X. Abrams
+#+date:   2020-09-18
+#+tags: emacs org
 
 A literate programming file for configuring org for capturing notes.
 

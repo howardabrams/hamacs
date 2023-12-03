@@ -1,7 +1,7 @@
-#+TITLE:  Clojure Programming
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-04-05
-#+FILETAGS: :emacs:
+#+title:  Clojure Programming
+#+author: Howard X. Abrams
+#+date:   2022-04-05
+#+tags: emacs clojure programming lisp
 
 A literate programming file for programming in Clojure.
 

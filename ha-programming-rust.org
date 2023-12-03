@@ -1,7 +1,7 @@
-#+TITLE:  Rust Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-08-26
-#+FILETAGS: :emacs:
+#+title:  Rust Configuration
+#+author: Howard X. Abrams
+#+date:   2022-08-26
+#+tags: emacs rust programming
 
 A literate programming file for configuring Rust with Emacs.
 

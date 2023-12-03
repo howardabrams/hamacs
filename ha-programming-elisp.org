@@ -1,6 +1,7 @@
-#+TITLE:  Emacs Lisp Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-05-11
+#+title:  Emacs Lisp Configuration
+#+author: Howard X. Abrams
+#+date:   2022-05-11
+#+tags: emacs programming lisp
 
 A literate programming file for configuring Emacs for Lisp programming.
 

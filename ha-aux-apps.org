@@ -1,6 +1,7 @@
-#+TITLE:  Auxillary and Optional Applications
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2021-11-18
+#+title:  Auxillary and Optional Applications
+#+author: Howard X. Abrams
+#+date:   2021-11-18
+#+tags: emacs
 
 A literate programming file for helper apps in Emacs.
 

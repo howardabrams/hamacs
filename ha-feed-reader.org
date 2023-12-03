@@ -1,6 +1,7 @@
-#+TITLE:  My RSS Feeds
-#+AUTHOR: Howard Abrams
-#+DATE:   2018-08-08 August
+#+title:  My RSS Feeds
+#+author: Howard Abrams
+#+date:   2018-08-08 August
+#+tags: emacs
 
 A literate programming file for configuring =elfeed= in Emacs.
 

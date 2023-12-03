@@ -1,7 +1,7 @@
-#+TITLE:  Org As A Word Processor
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-10
-#+FILETAGS: :emacs:
+#+title:  Org As A Word Processor
+#+author: Howard X. Abrams
+#+date:   2020-09-10
+#+tags: emacs org
 
 A literate programming file for making Org file more readable.
 

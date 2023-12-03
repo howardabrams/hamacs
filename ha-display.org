@@ -1,6 +1,7 @@
-#+TITLE:  Emacs Graphical Display Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-10
+#+title:  Emacs Graphical Display Configuration
+#+author: Howard X. Abrams
+#+date:   2020-09-10
+#+tags:   emacs macos
 
 A literate programming file to configure the Emacs UI.
 

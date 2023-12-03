@@ -1,6 +1,7 @@
-#+TITLE:  My Emacs Bootstrap
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2021-10-08
+#+title:  My Emacs Bootstrap
+#+author: Howard X. Abrams
+#+date:   2021-10-08
+#+tags: emacs
 
 A literate programming file for bootstraping my Emacs Configuration.
 

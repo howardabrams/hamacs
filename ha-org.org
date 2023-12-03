@@ -1,6 +1,7 @@
-#+TITLE:  General Org-Mode Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-18
+#+title:  General Org-Mode Configuration
+#+author: Howard X. Abrams
+#+date:   2020-09-18
+#+tags: emacs org
 
 A literate programming file for configuring org-mode and those files.
 

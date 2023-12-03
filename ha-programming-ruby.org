@@ -1,7 +1,7 @@
-#+TITLE:  Programming in Ruby
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-09-01
-#+FILETAGS: :emacs:
+#+title:  Programming in Ruby
+#+author: Howard X. Abrams
+#+date:   2022-09-01
+#+tags: emacs ruby programming
 
 A literate programming file for configuring Emacs to support the Ruby programming language.
 

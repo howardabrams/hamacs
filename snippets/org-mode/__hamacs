@@ -2,15 +2,14 @@
 # name: __hamacs
 # key: __hamacs
 # --
-#+TITLE:  ${1:`(->> (buffer-file-name)
+#+title:  ${1:`(->> (buffer-file-name)
                     (file-name-base)
                     (s-split-words)
                     (--map (s-capitalize it))
                     (s-join " "))`}
-#+AUTHOR: `user-full-name`
-#+EMAIL:  `user-mail-address`
-#+DATE:   `(format-time-string "%Y-%m-%d")`
-#+FILETAGS: :emacs:
+#+author: `user-full-name`
+#+date:   `(format-time-string "%Y-%m-%d")`
+#+tags: emacs
 
 ${2:A literate programming file configuring Emacs.}
 

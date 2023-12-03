@@ -1,7 +1,7 @@
-#+TITLE:  Editing Data Files
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-10-14
-#+FILETAGS: :emacs:
+#+title:  Editing Data Files
+#+author: Howard X. Abrams
+#+date:   2022-10-14
+#+tags: emacs
 
 A literate programming file for configuring Emacs to edit files of data.
 

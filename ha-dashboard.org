@@ -1,7 +1,7 @@
-#+TITLE:  Start Screen
-#+AUTHOR: Howard Abrams
-#+DATE:   2022-11-02
-#+FILETAGS: :emacs:
+#+title:  Start Screen
+#+author: Howard Abrams
+#+date:   2022-11-02
+#+tags: emacs
 
 A literate programming file for configuring Emacs to show a startup screen.
 

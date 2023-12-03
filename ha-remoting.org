@@ -1,6 +1,7 @@
-#+TITLE:  Remote Access to Systems
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-25
+#+title:  Remote Access to Systems
+#+author: Howard X. Abrams
+#+date:   2020-09-25
+#+tags: emacs ssh shell
 
 A literate configuration for accessing remote systems.
 

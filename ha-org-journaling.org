@@ -1,7 +1,7 @@
-#+TITLE:  Org Journaling
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-24
-#+FILETAGS: :emacs:
+#+title:  Org Journaling
+#+author: Howard X. Abrams
+#+date:   2020-09-24
+#+tags: emacs org
 
 A literate programming configuration file for extending the Journaling capabilities.
 

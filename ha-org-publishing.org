@@ -1,6 +1,7 @@
-#+TITLE:  Publishing my Website with Org
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-12-22
+#+title:  Publishing my Website with Org
+#+author: Howard X. Abrams
+#+date:   2020-12-22
+#+tags: emacs org
 
 A literate programming file for publishing my website using org.
 

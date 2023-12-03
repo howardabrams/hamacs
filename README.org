@@ -1,6 +1,7 @@
-#+TITLE:  My Emacs Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2021-11-01 November
+#+title:  My Emacs Configuration
+#+author: Howard X. Abrams
+#+date:   2021-11-01 November
+#+tags: emacs readme
 
 My Emacs configuration, that I'm cheekily calling /hamacs/ is a literate programming model heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  I used both extensively, but decided that I would /roll my own/ as Emacs people tend to be /control freaks/ (at least a little bit).
 

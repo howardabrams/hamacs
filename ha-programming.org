@@ -1,6 +1,7 @@
-#+TITLE:  General Programming Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-10-26
+#+title:  General Programming Configuration
+#+author: Howard X. Abrams
+#+date:   2020-10-26
+#+tags: emacs programming yaml ansible docker json
 
 A literate programming file for helping me program.
 

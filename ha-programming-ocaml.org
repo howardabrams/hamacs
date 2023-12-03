@@ -1,7 +1,7 @@
-#+TITLE:  Emacs OCaml Integration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2022-08-24
-#+FILETAGS: :emacs:
+#+title:  Emacs OCaml Integration
+#+author: Howard X. Abrams
+#+date:   2022-08-24
+#+tags: emacs ocaml
 
 A literate programming file for integrating the [[https://ocaml.org/][OCaml programming language]].
 #+begin_src emacs-lisp :exports none

@@ -1,8 +1,7 @@
 #+title:  Installing Emacs on Ubuntu
 #+author: Howard X. Abrams
-#+email:  howard.abrams@gmail.com
 #+date:   2022-09-02 September
-#+tags:   emacs macos
+#+tags:   emacs linux readme
 
 These instructions originally came from [[https://practical.li/blog/posts/build-emacs-from-source-on-ubuntu-linux/][this essay]].
 
@@ -82,8 +81,7 @@ Now install all the extras:
 See [[file:ha-email.org][ha-email]] for better instructions.
 #+begin_src sh
   mkdir -p ~/.mail/work ~/.mail/gmail
-  mu init --maildir=~/.mail --my-address=howard.abrams@gmail.com --my-address=howard@howardabrams.com
-  mu index
+  mu init --maildir=~/.mail   mu index
   mbsync -Va
   mu index
 #+end_src

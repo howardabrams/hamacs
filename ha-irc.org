@@ -1,6 +1,7 @@
-#+TITLE:  IRC and Bitlbee Interface
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-12-10
+#+title:  IRC and Bitlbee Interface
+#+author: Howard X. Abrams
+#+date:   2020-12-10
+#+tags: emacs chat
 
 A literate programming configuration file for IRC communiction.
 

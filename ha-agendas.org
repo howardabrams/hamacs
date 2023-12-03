@@ -1,6 +1,7 @@
-#+TITLE:  Org Agenda Configuration
-#+AUTHOR: Howard X. Abrams
-#+DATE:   2020-09-18
+#+title:  Org Agenda Configuration
+#+author: Howard X. Abrams
+#+date:   2020-09-18
+#+tags: emacs org
 
 A literate programming configuration for fancy agenda and todo lists.
 
