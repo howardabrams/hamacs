@@ -31,17 +31,28 @@ Tell straight to use the built-in =eshell=:
 #+begin_src emacs-lisp
   (use-package eshell
     :straight (:type built-in)
-    :hook (eshell-mode . (lambda () (setq mode-line-format nil))))
+    :hook (eshell-mode . 'ha-eshell-setup))
 #+end_src
+
 After reading [[https://xenodium.com/my-emacs-eye-candy/][this essay]], I decided to try hiding the mode line in eshell windows … at least, until I get the mode line to display more important information. Note that hiding the mode line is fairly straight-forward, but others might want to use the [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]] package that turns that /mode-line definition/ into a minor mode that can be toggled.
+
+I like =debug-on-error=, but not in Eshell, so I set this up when entering Eshell:
+#+begin_src emacs-lisp
+  (defun ha-eshell-setup ()
+    (make-local-variable 'debug-on-error)
+    (setq mode-line-format nil
+          debug-on-error nil))
+#+end_src
 ** Navigation and Keys
 Along with the regular Emacs keybindings, Eshell comes with some interesting features:
 - ~M-RET~ gives you a prompt, even when you are running another command.  Since =eshell= passes all input to subprocesses, there is no automatic input queueing as there is with other shells.
+- ~C-c C-p~ / ~C-c C-n~ jumps between command inputs using Eat.
 - ~C-c C-t~ truncates the buffer if it grows too large.
 - ~C-c C-r~ will move point to the beginning of the output of the last command.  With a prefix argument, =eshell= narrows to view its output.
 - ~C-c C-o~ will delete the output from the last command.
-- ~C-c C-f~ will move forward a complete shell argument.
+- ~C-c C-f~ will move forward a complete shell argument, but I usually either type ~Escape~ to enter Evil mode, or just issue ~M-f~ / ~M-b~.
 - ~C-c C-b~ will move backward a complete shell argument.
+- ~M-S-r~ shows/selects a better history of commands (see below). Yes, the up/down arrows keys (as well as ~M-p~ / ~M-n~) scroll through this, but that is /slow/.
 ** Control-D Double Duty
 Used to ~C-d~ exiting from a shell? Want it to keep working, but still allow deleting a character? We can have it both (thanks to [[https://github.com/wasamasa/dotemacs/blob/master/init.org#eshell][wasamasa]]):
 #+begin_src emacs-lisp
@@ -77,9 +88,31 @@ On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][th
                                   (ring-elements eshell-history-ring)))))
   #+END_SRC
 * Predicate Filters and Modifiers
-The =T= predicate filter allows me to limit file results that have internal =org-mode= tags. For instance, =eshell= will send files that have a =#+TAGS:= header with a =mac= label to the =grep= function:
+This is a cool and under-rated feature of Eshell. Type the following commands into an Eshell buffer for the details:
+  - ~eshell-display-modifier-help~
+  - ~eshell-display-predicate-help~
+
+In short, use parens to limit the files, for instance:
 #+begin_src sh
-  $ grep brew *.org(T'mac')
+  ls *.sh(*)   # List shell scripts that are executable
+  ls *(/)      # List directories (recursively)
+#+end_src
+And parens with a colon character transform the filename, useful with =for=:
+#+begin_src sh
+  for F in *.org(:r) { mv $F.org $F.el }
+#+end_src
+
+The =T= predicate filter allows me to limit file results that have internal =org-mode= tags.
+#+begin_src sh
+  $ ls *.org(T'org')
+  ha-agendas.org          ha-org-journaling.org      ha-org.org
+  ha-capturing-notes.org  ha-org-publishing.org
+  ha-org-clipboard.org    ha-org-word-processor.org
+#+end_src
+
+For instance, =eshell= will send files that have a =#+TAGS:= header with a =macos= label to the =grep= function:
+#+begin_src sh
+  $ grep brew *.org(T'macos')
 #+end_src
 
 As described in [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][this essay]], to extend Eshell, we need a two-part function:
@@ -112,7 +145,8 @@ For the first step, we have our function /called/ as it helps parse the text. Ba
                (insert-file-contents file)
                (re-search-forward ,reg nil t 1))))
       (error "The `T' predicate takes an org-mode tag value in single quotes.")))
-#+END_src
+#+end_src
+
 Then we need add that function to the =eshell-predicate-alist= as the =T= tag:
 #+begin_src emacs-lisp
   (defun ha-eshell-add-predicates ()
@@ -125,6 +159,7 @@ Gotta have some [[http://www.emacswiki.org/emacs/EshellAlias][shell aliases]], r
 #+begin_src sh
   alias ll 'ls -AlohG --color=always'
 #+end_src
+
 Note that you need single quotes (not double quotes). Also note that more than one parameter doesn’t work with aliases (to resolve that, we need to write [[Eshell Functions][a function]]).
 
 Second, you can create/populate the alias file, [[file:~/.emacs.d/eshell/alias][~/.emacs.d/eshell/alias]] … as long as you don’t use those single quotes:
@@ -134,6 +169,7 @@ Second, you can create/populate the alias file, [[file:~/.emacs.d/eshell/alias][
   alias d dired $1
   alias find echo 'Please use fd <pattern> <paths> instead.'
 #+end_src
+
 Yeah, the variable =$*= doesn’t work as you’d expect, so use =$1= when calling Emacs functions that take one parameter).
 For instance, while I would like to have the following, the real solution is to make functions (see [[Less and More][below for details]]).
 #+begin_src sh
@@ -141,6 +177,7 @@ For instance, while I would like to have the following, the real solution is to 
 #+end_src
 
 Third,  you want more /control/, you can use the help:eshell/alias function, but it doesn’t honor =$1= and other parameters, so we could create conditionally create function that we add to the [[help:eshell-mode-hook][eshell-mode-hook]], for instance:
+
 #+begin_src emacs-lisp :tangle no
   (defun ha-eshell-add-aliases ()
     "Call `eshell/alias' to define my aliases."
@@ -158,7 +195,19 @@ I have also had a lot of trouble getting aliases to work, for instance =dired= w
 #+end_src
 To work around this, I create functions instead.
 * Eshell Functions
-Any function that begins with =eshell/= is available as a command (with the remaining letters) Once I had a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better.
+Any function that begins with =eshell/= is available as a command (with the remaining letters). For instance:
+#+begin_src emacs-lisp
+  (defun eshell/greet (&rest params)
+    (let ((greeting (seq-random-elt
+                     '(Hello Greeting Howdy "How's it going"))))
+      (if params
+          (format "%s, %s!" greeting
+                  (propertize (car params) 'face
+                              '(:weight bold :foreground "lightblue")))
+        "Hello World.")))
+#+end_src
+
+Not everything /has/ to be an Emacs function, as the normal executables are available. Once I had a function =eshell/f= as a replacement for =find=, but the [[https://github.com/sharkdp/fd][fd]] project is better.
 
 Since =eshell= is an /Emacs/ shell, I try to think how to use Emacs buffers in a shell-focused workflow. For instance, use =view-file= instead of =less=, as it will show a file with syntax coloring, and typing ~q~ returns to your shell session.
 
@@ -1196,17 +1245,17 @@ And finally, add our new functions to [[elisp(describe-variable 'eshell-virtual-
     (add-to-list 'eshell-virtual-targets '("/dev/c" ha-eshell-target-engineering-notebook nil)))
 #+end_src
 * EAT and Eshell
-The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides flicker-free, perfect display, of visual commands in Eshell, eliminating one of my primary issue with using Eshell all the time.
+The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides flicker-free, perfect display, of visual commands in Eshell, eliminating one of my primary issue with using Eshell all the time.  (Check out Akib Azmain Turja’s [[https://emacsconf.org/2023/talks/eat/][talk at EmacsConf2023]]).
+
 #+begin_src emacs-lisp
   (use-package eat
     :after eshell
     :straight (:repo "https://codeberg.org/akib/emacs-eat")
     :hook (eshell-load . #'eat-eshell-visual-command-mode))
 #+end_src
-Note: Bash integration?
-#+begin_src sh
-  [ -n "$EAT_SHELL_INTEGRATION_DIR" ] && source "$EAT_SHELL_INTEGRATION_DIR/bash"
-#+end_src
+
+Note that the =eat-eshell-visual-command-mode= also kicks off the global minor mode, =eat-eshell-mode=. The big advantage of Eat is the /three input modes/, however, in Eshell with Evil, I can just type ~Escape~ to go into Emacs Mode, and ~G A~ to return to typing Terminal commands.
+
 * Special Prompt
 Following [[http://blog.liangzan.net/blog/2012/12/12/customizing-your-emacs-eshell-prompt/][these instructions]], we build a better prompt with the Git branch in it (Of course, it matches my Bash prompt). First, we need a function that returns a string with the Git branch in it, e.g. ":master"
 #+begin_src emacs-lisp :tangle no
