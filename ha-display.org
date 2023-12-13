@@ -270,7 +270,7 @@ Define /interactive/ functions to quickly adjusting the font size based on my co
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 18))
+    (ha-set-favorite-font-size 13))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
