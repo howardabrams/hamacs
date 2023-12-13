@@ -63,11 +63,11 @@ My IRC /needs/ are basic, but I'm not sure which I want to use.
   (defun ha-erc-connect-irc ()
     "Connect to my favorite IRC server with ERC."
     (interactive)
-    (let* ((auth-results (auth-source-search :host "howardabrams.com" :port 7777 :max 1))
+    (let* ((auth-results (auth-source-search :host "irc.libera.chat" :port 6667 :max 1))
            (auth-first   (first auth-results))
            (username     (plist-get auth-first :user))
            (password     (funcall (plist-get auth-first :secret))))
-      (erc :server "howardabrams.com" :port 7777)
+      (erc :server "irc.libera.chat" :port 6667)
       (sit-for 2)
       (erc-cmd-QUOTE (format "PASS %s:%s" username password))))
 #+end_src
