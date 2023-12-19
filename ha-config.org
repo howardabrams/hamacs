@@ -1777,6 +1777,7 @@ And since I'll be associating snippets with new files all over my configuration,
 As an example of its use, any Org files loaded in /this project/ should insert my config file:
 #+begin_src emacs-lisp
   (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
+  (ha-auto-insert-file (rx ".dir-locals.el") "dir-locals.el")
 #+end_src
 *** Visual Replace with Visual Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
@@ -1920,7 +1921,7 @@ While I don't /need/ all the features that [[https://github.com/bbatsov/projecti
       "p C" '("compile in project" . projectile-compile-project)
       "p c" '("recompile" . recompile)
       "p d" '("remove known project" . projectile-remove-known-project)
-      "p e" '("edit project .dir-locals" . projectile-edit-dir-locals)
+      "p E" '("edit project .dir-locals" . projectile-edit-dir-locals)
       "p f" '("find file in project" . projectile-find-file)
       "p g" '("configure project" . projectile-configure-project)
       "p i" '("invalidate project cache" . projectile-invalidate-cache)
