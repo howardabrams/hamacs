@@ -215,12 +215,13 @@ My /current/ favorite font is actually the top list of fonts that may be install
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
                     '("CaskaydiaCove Nerd Font"  ; finally found it
-                      "Cascadia Code PL"         ; funky font with litagures and a dotted 0
-                      "Hack Nerd Font"           ; clean font, but no litagures!?
+                      ;; funky font with litagures and a dotted 0
+                      "Cascadia Code PL"
+                      ;; clean font, but no litagures!?
+                      "Hack Nerd Font"
                       "FiraCode Nerd Font"       ; has litagures
                       "Cousine Nerd Font"
                       "Iosevka Nerd Font"
-                      "Iosevka"
                       "FantasqueSansMono Nerd Font"
                       "Monoid Nerd Font"
                       "Hasklig"
@@ -237,9 +238,11 @@ I probably don't need to have such a ranking system, as chances are good I have 
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
                     '("Literata" ; Clean, readable with litagures
-                      "XCharter" ; https://fontesk.com/xcharter-typeface/
+                      ;; Next best can be downloaded here:
+                      ;; https://fontesk.com/xcharter-typeface/
+                      "XCharter"
                       "Charter"
-                      ;  Interesting idea: "Iosevka Comfy Motion Duo"
+                      ;;  Interesting idea: "Iosevka Comfy Motion Duo"
                       "Serif")))
        (warn "Cannot find a Serif Font.  Install Source Sans Pro."))))
 
@@ -248,9 +251,11 @@ I probably don't need to have such a ranking system, as chances are good I have 
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("Overpass" "Source Sans Pro"
-                     "Lucida Grande" "Verdana"
-                     "Sans Serif")))
+                    '("Overpass" "DejaVu Sans"
+                      "Verdana" "Overpass"
+                      "Source Sans Pro"
+                      "Lucida Grande"
+                      "Sans Serif")))
        (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
 #+end_src
 
