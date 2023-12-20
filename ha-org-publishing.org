@@ -41,6 +41,19 @@ Variable settings:
         org-mode-websrc-directory "~/website"
         org-mode-publishing-directory (concat (getenv "HOME") "/website-pub/"))
 #+end_src
+
+I’m not afraid of HTML, however, I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
+#+begin_src emacs-lisp
+  (use-package jack)
+#+end_src
+So the Lisp code:
+#+begin_src emacs-lisp :tangle no
+  (jack-html '(:p "Hello there"))
+#+end_src
+Returns the string:
+#+begin_example
+  <p>Hello there</p>
+#+end_example
 * The Projects
 I separate my /website/ into distinct projects separately built:
 
@@ -80,16 +93,30 @@ I separate my /website/ into distinct projects separately built:
            ;; :html-preamble  org-mode-blog-preamble
            ;; :html-postamble org-mode-blog-postamble
            ;; :html-postamble "<hr><div id='comments'></div>"
-           :html-head  "<meta http-equiv=\"X-Clacks-Overhead\" content=\"GNU Terry Pratchett\" />
-                <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-                <link href='http://fonts.googleapis.com/css?family=Source+Serif+Pro:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-                <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'>
-                <link rel=\"stylesheet\" href=\"/css/styles.css\" type=\"text/css\"/>\n"
-           :html-head-extra "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js\"></script>
-                <script src=\"/js/magic.js\"></script>
-                <link rel=\"icon\" href=\"/img/dragon.svg\">
-                <link rel=\"shortcut icon\" href=\"/img/dragon-head.png\">
-                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+           :html-head
+           ,(jack-html
+             '(:meta (@ :http-equiv "X-Clacks-Overhead"
+                        :content "GNU Terry Pratchett")
+              (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700&subset=latin,latin-ext"))
+              (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "http://fonts.googleapis.com/css?family=Source+Serif+Pro:400,700&subset=latin,latin-ext"))
+              (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700"))
+              (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "/css/styles.css"))
+              (:script (@ :src "/js/magic.js"
+                          :type "text/javascript"))
+              (:link (@ :rel "icon"
+                        :href "/img/dragon.svg"))
+              (:link (@ :rel "shortcut icon"
+                        :href "/img/dragon-head.svg"))
+              (:meta (@ :name "viewport"
+                        :content "width=device-width, initial-scale=1"))))
            :html-head-include-default-style nil)
 
           ("blog-static"
@@ -122,7 +149,19 @@ I separate my /website/ into distinct projects separately built:
            :auto-sitemap         t  ; Generate sitemap.org automagically...
            :makeindex            t
            :section-numbers      nil
-           :style                "<link rel=\"stylesheet\" href=\"../css/styles.css\" type=\"text/css\"/> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js\" type=\"text/javascript\"></script> <link href=\"http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/smoothness/jquery-ui.css\" type=\"text/css\" rel=\"stylesheet\" />    <script src=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js\" type=\"text/javascript\"></script> <script =\"text/javascript\" src=\"js/magic.js\"></script>"
+           :style                ,(jack-html
+                                   '(:link (@ :rel "stylesheet"
+                                              :type "text/css"
+                                              :href "../css/styles.css")
+                                     :script (@ :type "text/javascript"
+                                                :src "https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js")
+                                     :link (@ :ref "stylesheet"
+                                              :type "text/css"
+                                              :href "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/smoothness/jquery-ui.css")
+                                     :script (@ :type "text/javascript"
+                                                :src "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js")
+                                     :script (@ :type "text/javascript"
+                                                :src "js/magic.js")))
            :table-of-contents    nil
            :with-author          nil
            :with-creator         nil
