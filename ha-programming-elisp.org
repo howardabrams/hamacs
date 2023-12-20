@@ -315,7 +315,7 @@ A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression c
           (eval-region (region-beginning) (region-end))
 
         (unless (looking-at (rx (any ")" "]")))
-          (lispyville-next-closing))
+          (sp-end-of-sexp))
 
         (if (fboundp 'eros-eval-last-sexp)
             (call-interactively 'eros-eval-last-sexp)

@@ -474,27 +474,32 @@ Typing ~d a a~ will delete the argument leaving:
     return a + b + c
 #+end_src
 *** Better Parenthesis with Text Object
-I took the following clever idea and code from [[http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/][this essay]] from Chen Bin for creating a ~xig~ to grab code within any grouping characters, like parens, braces and brackets. For instance, ~dig~ cuts the content inside brackets, etc. First, we need a function to do the work (I changed the original from =my-= to =ha-= so that it is easier for me to distinguish functions from my configuration):
+I took the following clever idea and code from [[http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/][this essay]] from Chen Bin for creating a ~xix~ to grab code within any grouping characters, like parens, braces and brackets. For instance, ~dix~ cuts the content inside brackets, etc. First, we need a function to do the work (I changed the original from =my-= to =ha-= so that it is easier for me to distinguish functions from my configuration):
 #+begin_src emacs-lisp
   (defun ha-evil-paren-range (count beg end type inclusive)
     "Get minimum range of paren text object.
-  COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-    (let* ((parens '("()" "[]" "{}" "<>"))
-           range
+  COUNT, BEG, END, TYPE follow Evil interface, passed to
+  the `evil-select-paren' function.
+
+  If INCLUSIVE is t, the text object is inclusive."
+    (let* ((open-rx  (rx (any "(" "[" "{" "<")))
+           (close-rx (rx (any ")" "]" "}" ">")))
+           (range    (condition-case nil
+                         (evil-select-paren
+                          open-rx close-rx
+                          beg end type count inclusive)
+                       (error nil)))
            found-range)
-      (dolist (p parens)
-        (condition-case nil
-            (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
-          (error nil))
-        (when range
-          (cond
-           (found-range
-            (when (< (- (nth 1 range) (nth 0 range))
-                     (- (nth 1 found-range) (nth 0 found-range)))
-              (setf (nth 0 found-range) (nth 0 range))
-              (setf (nth 1 found-range) (nth 1 range))))
-           (t
-            (setq found-range range)))))
+
+      (when range
+        (cond
+         (found-range
+          (when (< (- (nth 1 range) (nth 0 range))
+                   (- (nth 1 found-range) (nth 0 found-range)))
+            (setf (nth 0 found-range) (nth 0 range))
+            (setf (nth 1 found-range) (nth 1 range))))
+         (t
+          (setq found-range range))))
       found-range))
 #+end_src
 

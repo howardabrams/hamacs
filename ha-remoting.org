@@ -286,7 +286,10 @@ Since every project perspective may have a shell terminal, let’s see if I can 
                             (s-join "/"))
              (file-name-base (directory-file-name directory)))))
       (format "Terminal: %s" name)))
+#+end_src
 
+Perhaps a Unit test is in order:
+#+begin_src emacs-lisp :tangle no
   (ert-deftest ha--terminal-name-from-dir-test ()
     (should
      (string= (ha-shell--name-from-dir "~/other/hamacs/") "Terminal: hamacs"))
