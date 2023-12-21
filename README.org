@@ -4,11 +4,13 @@
 #+tags: emacs readme
 
 ** Introduction
-My Emacs configuration, that I'm cheekily calling /hamacs/ is a literate programming model heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  I used both extensively, but decided that I would /roll my own/ as Emacs people tend to be /control freaks/ (at least a little bit).
+I’ve crafted my Emacs configuration, I cheekily call /hamacs/, in a literate programming model, heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  While I used both extensively, I decided I would /roll my own/ as Emacs people like myself, tend to be /control freaks/ (at least a little bit).
 
-The other advantage to rolling yer own is that you may /use/ what you add, leading to less bloat, and a more fun experience.
+The advantage to rolling yer own is I tend to  /use/ what I add, leading to less bloat. In reality, this is more fun.
 
-One advantage of using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration is an easy way to /share/ my code. So yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, but everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)… meaning that most blocks of code should work on its own.
+Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration gives me an easy way to /share/ my code. So yes, feel free to steal whatever you find interesting, as sharing makes our community great.  Notice that functions and features I have written begin with =ha-=, but everything else is either /stock Emacs/ or a /package/ I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how for details) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for those details)… meaning most blocks of code should work on its own.
+
+My configuration is broken into /chapters/ around particular subjects, applications or programming languages. This allows me to /selectively load/ individual chapters. For instance, currently, I’m not doing much with Ruby, so I just remove it from the end of my [[file:bootstrap.org][bootstrap]]. I also going load my [[file:ha-display.org][UI configuration]] if I am using the Terminal (doesn’t happen much, actually). So jump to the chapters of interest.
 
 Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@emacs.ch]].
 
@@ -20,10 +22,11 @@ And then, run:
 #+BEGIN_SRC sh
 ./initialize
 #+END_SRC
-To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the process loading the files:
+To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the process loading the files.
 ** Core Configuration
   - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
   - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
+  - [[file:ha-evil.org][Evilness]] :: configuration for using VI, er, ~vim~ keybindings in Emacs.
   - [[file:ha-display.org][GUI Display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
   - [[file:ha-dashboard.org][Dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
   - [[file:ha-data.org][Data]] :: functions for dealing with a buffer-full of data.
