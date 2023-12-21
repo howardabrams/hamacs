@@ -747,6 +747,6 @@ Let's =provide= a name so we can =require= this file:
 #+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
-#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

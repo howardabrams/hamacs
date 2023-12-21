@@ -3,40 +3,75 @@
 #+date:   2021-11-01 November
 #+tags: emacs readme
 
+** Introduction
 My Emacs configuration, that I'm cheekily calling /hamacs/ is a literate programming model heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  I used both extensively, but decided that I would /roll my own/ as Emacs people tend to be /control freaks/ (at least a little bit).
 
 The other advantage to rolling yer own is that you may /use/ what you add, leading to less bloat, and a more fun experience.
 
-Why yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, but everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)… meaning that most blocks of code should work on its own.
-Hit me up with questions, =@howardabrams=.  If you want to try this out, after installing Emacs, and cloning this repo, run:
+One advantage of using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration is an easy way to /share/ my code. So yes, feel free to steal whatever you find interesting, as sharing is what makes our community great.  Notice that functions and features that I have written begin with ~ha-~, but everything else is either /stock Emacs/ or a /package/ that I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for details)… meaning that most blocks of code should work on its own.
+
+Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@emacs.ch]].
+
+If you want to try the entire process, after installing Emacs, clone this repo with:
+#+begin_src sh
+  git clone https://github.com/howardabrams/hamacs
+#+end_src
+And then, run:
 #+BEGIN_SRC sh
 ./initialize
 #+END_SRC
-This creates [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the process loading the files:
+To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] that starts the process loading the files:
+** Core Configuration
+  - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
+  - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
+  - [[file:ha-display.org][GUI Display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
+  - [[file:ha-dashboard.org][Dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
+  - [[file:ha-data.org][Data]] :: functions for dealing with a buffer-full of data.
 
-  - [[file:bootstrap.org][bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order:
-  - [[file:ha-config.org][config]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
-  - [[file:ha-display.org][display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
-  - [[file:ha-dashboard.org][dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
-  - [[file:ha-org.org][org]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
-  - [[file:ha-org-word-processor.org][org-word-processor]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
-  - [[file:ha-org-clipboard.org][org-clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
-  - [[file:ha-org-journaling.org][org-journaling]] :: for writing journal entries and tasks.
-  - [[file:ha-org-publishing.org][org-publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
-  - [[file:ha-org-sprint.org][org-sprint]] :: functions for working with the my Org-focused sprint file.
-  - [[file:ha-data.org][data]] :: functions for dealing with a buffer-full of data.
-  - [[file:ha-eshell.org][eshell]] :: customization and enhancement to the Emacs shell.
-  - [[file:ha-remoting.org][remoting]] :: my interface to systems using SSH and Vterm.
-  - [[file:ha-email.org][email]] :: reading email using =notmuch= in a *Hey* fashion.
-  - [[file:ha-feed-reader.org][feed-reader]] :: configuration of elfeed as well as my RSS feeds.
-  - [[file:ha-aux-apps.org][aux-apps]] :: optional applications, like Twitter and Telegram.
-  - [[file:ha-capturing-notes.org][capturing-notes]] :: my engineering notebook.
-  - [[file:ha-agendas.org][agendas]] :: attempts to "supe-up" my task list.
-  - [[file:ha-irc.org][irc]] :: connection to IRC servers using rcirc and bitlbee.
-  - [[file:ha-passwords.org][passwords]] :: code for generating passwords.
-  - [[file:ha-programming.org][programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
-  - [[file:ha-programming-elisp.org][programming-elisp]] :: additions to Emacs Lisp programming.
-  - [[file:ha-programming-python.org][programming-python]] :: configuration for working with Python and LSP.
-  - [[file:ha-programming-scheme.org][programming-scheme]] :: configuration for Racket.
+** Org Mode Configuration
+  - [[file:ha-org.org][Initial Org Configuration]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
+  - [[file:ha-org-word-processor.org][Word Processing]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
+  - [[file:ha-org-clipboard.org][Clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
+  - [[file:ha-org-journaling.org][Journaling]] :: for writing journal entries and tasks.
+  - [[file:ha-org-publishing.org][Publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
+  - [[file:ha-org-sprint.org][Sprint Notes]] :: functions for working with the my Org-focused sprint file.
+  - [[file:ha-agendas.org][Agendas]] :: attempts to "supe-up" my task list.
+  - [[file:ha-capturing-notes.org][Capturing Notes]] :: my engineering notebook.
 
-*Note:* Other functions and files come from essays written on [[http://www.howardism.org][my blog]].  To help with this, see [[file:support/final-initialize.el][support/final-initialize.el]] file.
+** Terminal Configuration
+If you know me, I appreciate the light-weight nature of Eshell (see [[https://emacsconf.org/2022/talks/eshell/][this talk at EmacsConf 2022]]), but Eshell doesn’t work that well with some of my remote work.
+
+  - [[file:ha-eshell.org][Eshell]] :: customization and enhancement to the Emacs shell.
+  - [[file:ha-remoting.org][Remote Access]] :: my interface to systems using SSH and Vterm.
+
+** Programming Configuration
+While I’m a language polyglot, I usually focus on one or two languages at a time, and  my configuration may acquire a /wee bit of cruft/. That said, I’m attempting to convert over to LSP (with varying degrees of success).
+
+  - [[file:ha-programming.org][General Programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
+  - [[file:ha-programming-elisp.org][Emacs Lisp]] :: additions to Emacs Lisp programming.
+  - [[file:ha-programming-python.org][Python]] :: configuration for working with Python and LSP.
+  - [[file:ha-programming-scheme.org][Scheme]] :: configuration for Guile and Racket.
+  - [[file:ha-programming-clojure.org][Clojure]] :: configuration for Clojure.
+  - [[file:ha-programming-ruby.org][Ruby]] :: configuration for Ruby.
+** Miscellanea
+  - [[file:ha-aux-apps.org][Applications]] :: optional applications, like Twitter and Telegram.
+  - [[file:ha-email.org][Email]] :: reading email using =notmuch= in a *Hey* fashion.
+  - [[file:ha-feed-reader.org][RSS Reader]] :: configuration of =elfeed= as well as my RSS feeds.
+  - [[file:ha-irc.org][IRC]] :: connection to IRC servers using rcirc and bitlbee.
+  - [[file:ha-passwords.org][Passwords]] :: code for generating passwords.
+** Summary
+The [[file:elisp/][elisp]] directory contains non-literate code.
+
+Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this synchronization, I created a [[file:support/final-initialize.el][support/final-initialize.el]] file, but that shouldn’t be too interesting to others.
+
+You may ask yourself, Howard, why are you still using Github. The only reason is that Org files automatically get rendered as HTML with the code block correctly syntax highlighted. This may change. 🤓
+
+#+DESCRIPTION: An index.html for describing my hamacs project
+
+#+PROPERTY:    header-args:sh :tangle no
+#+PROPERTY:    header-args:emacs-lisp :tangle no
+#+PROPERTY:    header-args   :results none   :eval no-export   :comments no
+
+#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

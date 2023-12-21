@@ -2412,7 +2412,7 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
 #+end_src
 
 Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
-  - [[https://gitlab.com/-/profile/personal_access_tokens][Gitlab]]
+  - [[https://gitlab.com/-/user_settings/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
     and make sure this works:
 
@@ -2753,6 +2753,6 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args   :results none   :eval no-export   :comments no
 
-#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

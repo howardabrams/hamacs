@@ -35,13 +35,20 @@ While the following packages come with Emacs, they aren't necessarily loaded:
 #+end_src
 
 Variable settings:
-
 #+begin_src emacs-lisp
-  (setq org-export-with-broken-links t
+  (setq org-publish-project-alist nil ; filled in below
+        org-export-with-broken-links t
         org-mode-websrc-directory "~/website"
         org-mode-publishing-directory (concat (getenv "HOME") "/website-pub/"))
 #+end_src
 
+Since I have two specific websites, I create two variables for those destinations:
+#+begin_src emacs-lisp
+  (setq ha-publishing-howardabrams (concat org-mode-publishing-directory "howardabrams")
+        ha-publishing-howardism (concat org-mode-publishing-directory "howardisms"))
+#+end_src
+
+** You Don’t Know Jack
 I’m not afraid of HTML, however, I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
 #+begin_src emacs-lisp
   (use-package jack)
@@ -61,72 +68,88 @@ I separate my /website/ into distinct projects separately built:
   - =blog-static= :: All of the assets, like images are easily copied in place
   - =blog-rss= :: Regenerate the feeder files
   - =org-notes= :: Optionally render a non-web site collection of notes.
-
+** The Website
+Years of having two domain names can be confusing, but I have to keep them going now. So =howardabrams.com= is essentially a single static page (oh, and email).
 #+begin_src emacs-lisp
-  (setq org-publish-project-alist
-        `(("all"
-           :components ("blog-content" "blog-static" "org-notes" "blog-rss"))
+  (add-to-list 'org-publish-project-alist
+               `("website"
+                 :base-directory       "~/dropbox/website-howardabrams"
+                 :publishing-directory ,ha-publishing-howardabrams))
+#+end_src
+** The Blog
+My main blog made up a huge collection of org files:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+               `("blog-content"
+                 :base-directory       ,org-mode-websrc-directory
+                 :base-extension       "org"
+                 :publishing-directory ,org-mode-publishing-directory
+                 :recursive            t
+                 :publishing-function  org-html-publish-to-html
+                 :preparation-function org-mode-blog-prepare
+                 :export-with-tags     nil
+                 :headline-levels      4
+                 :auto-preamble        t
+                 :auto-postamble       nil
+                 :auto-sitemap         t
+                 :sitemap-title        "Howardisms"
+                 :section-numbers      nil
+                 :table-of-contents    nil
+                 :with-toc             nil
+                 :with-author          nil
+                 :with-creator         nil
+                 :with-tags            nil
+                 :with-smart-quotes    t
 
-          ("blog-content"
-           :base-directory       ,org-mode-websrc-directory
-           :base-extension       "org"
-           :publishing-directory ,org-mode-publishing-directory
-           :recursive            t
-           :publishing-function  org-html-publish-to-html
-           :preparation-function org-mode-blog-prepare
-           :export-with-tags     nil
-           :headline-levels      4
-           :auto-preamble        t
-           :auto-postamble       nil
-           :auto-sitemap         t
-           :sitemap-title        "Howardisms"
-           :section-numbers      nil
-           :table-of-contents    nil
-           :with-toc             nil
-           :with-author          nil
-           :with-creator         nil
-           :with-tags            nil
-           :with-smart-quotes    t
-
-           :html-doctype         "html5"
-           :html-html5-fancy     t
-           ;; :html-preamble  org-mode-blog-preamble
-           ;; :html-postamble org-mode-blog-postamble
-           ;; :html-postamble "<hr><div id='comments'></div>"
-           :html-head
-           ,(jack-html
-             '(:meta (@ :http-equiv "X-Clacks-Overhead"
-                        :content "GNU Terry Pratchett")
-              (:link (@ :rel "stylesheet"
+                 :html-doctype         "html5"
+                 :html-html5-fancy     t
+                 ;; :html-preamble  org-mode-blog-preamble
+                 ;; :html-postamble org-mode-blog-postamble
+                 ;; :html-postamble "<hr><div id='comments'></div>"
+                 :html-head
+                 ,(jack-html
+                   '((:meta (@ :http-equiv "X-Clacks-Overhead"
+                        :content "GNU Terry Pratchett"))
+                     (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700&subset=latin,latin-ext"))
-              (:link (@ :rel "stylesheet"
+                     (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "http://fonts.googleapis.com/css?family=Source+Serif+Pro:400,700&subset=latin,latin-ext"))
-              (:link (@ :rel "stylesheet"
+                     (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700"))
-              (:link (@ :rel "stylesheet"
+                     (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "/css/styles.css"))
-              (:script (@ :src "/js/magic.js"
+                     (:script (@ :type "text/javascript"
+                         :src "https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"))
+                     (:script (@ :src "/js/magic.js"
                           :type "text/javascript"))
-              (:link (@ :rel "icon"
+                     (:link (@ :rel "icon"
                         :href "/img/dragon.svg"))
-              (:link (@ :rel "shortcut icon"
+                     (:link (@ :rel "shortcut icon"
                         :href "/img/dragon-head.svg"))
-              (:meta (@ :name "viewport"
+                     (:meta (@ :name "viewport"
                         :content "width=device-width, initial-scale=1"))))
-           :html-head-include-default-style nil)
+                 :html-head-include-default-style nil))
+#+end_src
 
-          ("blog-static"
-           :base-directory       ,org-mode-websrc-directory
-           :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|svg"
-           :publishing-directory ,org-mode-publishing-directory
-           :recursive            t
-           :publishing-function  org-publish-attachment)
+Why not break out the images and other static files into a separate project:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+               `("blog-static"
+                 :base-directory       ,org-mode-websrc-directory
+                 :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|svg"
+                 :publishing-directory ,org-mode-publishing-directory
+                 :recursive            t
+                 :publishing-function  org-publish-attachment))
+#+end_src
 
-          ("blog-rss"
+The RSS generation seems to be something I do /later/ once I have my site working:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("blog-rss"
            :base-directory        ,org-mode-websrc-directory
            :base-extension        "org"
            :rss-image-url         "https://howardism.org/img/dragon-head.png"
@@ -136,12 +159,22 @@ I separate my /website/ into distinct projects separately built:
            :html-link-use-abs-url t
            :with-toc              nil
            :exclude               ".*"
-           :include               ("index.org"))
+           :include               ("index.org")))
+#+end_src
 
-          ("org-notes"
+And let’s make some blends of the individual projects:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("blog" :components ("blog-content" "blog-static" "blog-rss")))
+#+end_src
+** Technical Notes
+I take notes on a variety of technical subjects, and since I can share these notes with others, I feel like I can publish those:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("tech-notes"
            :base-directory        "~/technical/"
            :base-extension       "org"
-           :publishing-directory ,(concat org-mode-publishing-directory "/notes/")
+           :publishing-directory ,(concat org-mode-publishing-directory "notes/")
            :recursive            t
            :publishing-function  org-html-publish-to-html
            :headline-levels      4  ; Just the default for this project.
@@ -165,14 +198,41 @@ I separate my /website/ into distinct projects separately built:
            :table-of-contents    nil
            :with-author          nil
            :with-creator         nil
-           :with-tags            nil)
+           :with-tags            nil))
+#+end_src
 
-          ("org-notes-static"
+As above, we can separate the publishing of the  images and other static files:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("tech-notes-static"
            :base-directory       "~/technical/"
            :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
            :publishing-directory ,(concat org-mode-publishing-directory "/other/")
            :recursive            t
-           :publishing-function  org-publish-attachment)))
+           :publishing-function  org-publish-attachment))
+#+end_src
+** Literate Emacs Configuration
+I’ve been committing my literate-style Emacs configuration for a few years now, and I’ve assumed that Github would be sufficient for rendering it. However, I feel that I could publish this to my own web site.
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("hamacs"
+           :base-directory        "~/other/hamacs"
+           :base-extension       "org"
+           :publishing-directory ,(concat org-mode-publishing-directory "hamacs/")
+           :recursive            t
+           :publishing-function  org-html-publish-to-html
+           :headline-levels      4  ; Just the default for this project.
+           :auto-preamble        t
+           :auto-sitemap         nil
+           :makeindex            nil
+           :section-numbers      nil
+           :style                ,(jack-html
+                                  '(:link (@ :rel "stylesheet" :type "text/css"
+                                             :href "../css/styles.css")))
+           :table-of-contents    nil
+           :with-author          nil
+           :with-creator         nil
+           :with-tags            nil))
 #+end_src
 * Including Sections
 In the project definitions, I reference a =pre-= and =postamble= that allow me to inject some standard HTML file headers and footers:
@@ -203,14 +263,40 @@ Another helper function for the content of website is to make sure to update =in
       (save-buffer 0))
     (kill-buffer buffer)))
 #+end_src
+* Uploading
+Using =rsync= to keep published files in sync with my website:
+#+begin_src emacs-lisp
+  (defun ha-sync-site (project)
+    "Sync PROJECT (an org publish project) with my website."
+    (interactive (list (completing-read "Publish project: "
+                                        org-publish-project-alist)))
+    (let* ((host "gremlin.howardabrams.com")
+           (conf (thread-last org-publish-project-alist
+                              (seq-filter (lambda (lst) (string-equal (car lst) project)))
+                              (car)
+                              (cdr)))
+           (src (plist-get conf :publishing-directory))
+           (dest (cond
+                  ((equal project "blog-content") "howardism")
+                  ((equal project "blog-static") "howardism")
+                  ((equal project "blog-rss") "howardism")
+                  ((equal project "org-notes") "howardabrams/technical")
+                  ((equal project "org-notes-static") "howardabrams/technical")
+                  ((equal project "hamacs") "howardabrams/hamacs"))))
+      (message "rsync -az %s %s:%s" src host dest)))
+#+end_src
 * Keybindings
 Make it easy to publish all or just some of my website:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-leader :keymaps 'org-mode-map
-      ;; "p"  '(:ignore t :which-key "publishing")
+      "o p"  '(:ignore t :which-key "publish")
       "o p a" '("all" . org-publish-all)
-      "o p p" '("project" . org-publish-project)))
+      "o p p" '("project" . org-publish-project)
+      "o p h" '("hamacs" . (lambda () (interactive)
+                             (org-publish-project "hamacs")
+                             (sit-for 30)
+                             (ha-sync-site "hamacs")))))
 #+end_src
 
 And let's put a /leader key/ sequence for my favorite file on my website:
@@ -236,6 +322,6 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+PROPERTY:    header-args:emacs-lisp :tangle yes
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
-#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
