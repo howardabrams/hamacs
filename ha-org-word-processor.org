@@ -25,7 +25,9 @@ A literate programming file for making Org file more readable.
   ;;; Code:
 #+end_src
 * Introduction
-I like having org-mode files look more like a word processor than having it look like programming code. But that is me.
+I like having org-mode files look more like a word processor than having it look like programming code. But that is me. The end results:
+
+[[file:screenshots/org-as-word-processor.png]]
 * General Org Settings
 Since I use ellipsis in my writing… to /change/ how org renders a collapsed heading.
 
