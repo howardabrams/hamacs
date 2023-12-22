@@ -49,7 +49,7 @@ Since I have two specific websites, I create two variables for those destination
 #+end_src
 
 ** You Don’t Know Jack
-I’m not afraid of HTML, however, I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
+I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
 #+begin_src emacs-lisp
   (use-package jack)
 #+end_src
@@ -65,11 +65,11 @@ Returns the string:
 I separate my /website/ into distinct projects separately built:
 
   - =blog-content= :: The bulk of rendering my =website= org files into HTML
-  - =blog-static= :: All of the assets, like images are easily copied in place
+  - =blog-static= :: Copies all assets, like images, in place
   - =blog-rss= :: Regenerate the feeder files
   - =org-notes= :: Optionally render a non-web site collection of notes.
 ** The Website
-Years of having two domain names can be confusing, but I have to keep them going now. So =howardabrams.com= is essentially a single static page (oh, and email).
+Years of having two domain names can be confusing, but I have to keep them going now. My =howardabrams.com= is essentially a single static page (oh, and email).
 #+begin_src emacs-lisp
   (add-to-list 'org-publish-project-alist
                `("website"
@@ -77,7 +77,7 @@ Years of having two domain names can be confusing, but I have to keep them going
                  :publishing-directory ,ha-publishing-howardabrams))
 #+end_src
 ** The Blog
-My main blog made up a huge collection of org files:
+My main blog made up a collection of org files:
 #+begin_src emacs-lisp
   (add-to-list 'org-publish-project-alist
                `("blog-content"
@@ -177,7 +177,7 @@ I take notes on a variety of technical subjects, and since I can share these not
            :publishing-directory ,(concat org-mode-publishing-directory "notes/")
            :recursive            t
            :publishing-function  org-html-publish-to-html
-           :headline-levels      4  ; Just the default for this project.
+           :headline-levels      4
            :auto-preamble        t
            :auto-sitemap         t  ; Generate sitemap.org automagically...
            :makeindex            t
@@ -212,27 +212,35 @@ As above, we can separate the publishing of the  images and other static files:
            :publishing-function  org-publish-attachment))
 #+end_src
 ** Literate Emacs Configuration
-I’ve been committing my literate-style Emacs configuration for a few years now, and I’ve assumed that Github would be sufficient for rendering it. However, I feel that I could publish this to my own web site.
+I’ve been committing my literate-style Emacs configuration for years now, and Github has rendered it well, but I felt I could publish this to my own web site as a /cleaner version/.
 #+begin_src emacs-lisp
   (add-to-list 'org-publish-project-alist
-   `("hamacs"
-           :base-directory        "~/other/hamacs"
-           :base-extension       "org"
-           :publishing-directory ,(concat org-mode-publishing-directory "hamacs/")
-           :recursive            t
-           :publishing-function  org-html-publish-to-html
-           :headline-levels      4  ; Just the default for this project.
-           :auto-preamble        t
-           :auto-sitemap         nil
-           :makeindex            nil
-           :section-numbers      nil
-           :style                ,(jack-html
-                                  '(:link (@ :rel "stylesheet" :type "text/css"
-                                             :href "../css/styles.css")))
-           :table-of-contents    nil
-           :with-author          nil
-           :with-creator         nil
-           :with-tags            nil))
+     `("hamacs"
+       :base-directory        "~/other/hamacs"
+       :publishing-directory ,(concat org-mode-publishing-directory "hamacs/")
+       :publishing-function  org-html-publish-to-html
+       :recursive            t
+       :auto-preamble        nil
+       :auto-sitemap         nil
+       :makeindex            nil
+       :section-numbers      nil
+       :html-head-include-default-style nil
+       :html-head           ,(jack-html
+                                '(:link (@ :rel "stylesheet" :type "text/css"
+                                  :href "../css/styles.css")))
+       :html-head-extra      nil
+       :table-of-contents    t
+       :with-author          nil
+       :with-creator         nil
+       :with-tags            nil))
+
+  (add-to-list 'org-publish-project-alist
+     `("hamacs-static"
+       :base-directory       "~/other/hamacs"
+       :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+       :publishing-directory ,(concat org-mode-publishing-directory "hamacs")
+       :recursive            t
+       :publishing-function  org-publish-attachment))
 #+end_src
 * Including Sections
 In the project definitions, I reference a =pre-= and =postamble= that allow me to inject some standard HTML file headers and footers:
@@ -255,7 +263,7 @@ In the project definitions, I reference a =pre-= and =postamble= that allow me t
 Another helper function for the content of website is to make sure to update =index.org=, so that the RSS gets generated.
 #+begin_src emacs-lisp
 (defun org-mode-blog-prepare (&optional options)
-  "`index.org' should always be exported so touch the file before publishing."
+  "Change modification of `index.org' before publishing."
   (let* ((base-directory (plist-get options :base-directory))
          (buffer (find-file-noselect (expand-file-name "index.org" base-directory) t)))
     (with-current-buffer buffer
@@ -280,13 +288,14 @@ Using =rsync= to keep published files in sync with my website:
                   ((equal project "blog-content") "howardism")
                   ((equal project "blog-static") "howardism")
                   ((equal project "blog-rss") "howardism")
-                  ((equal project "org-notes") "howardabrams/technical")
-                  ((equal project "org-notes-static") "howardabrams/technical")
-                  ((equal project "hamacs") "howardabrams/hamacs"))))
-      (message "rsync -az %s %s:%s" src host dest)))
+                  ((equal project "tech-notes") "howardabrams/technical")
+                  ((equal project "tech-notes-static") "howardabrams/technical")
+                  ((equal project "hamacs") "howardabrams/hamacs")
+                  ((equal project "hamacs-static") "howardabrams/hamacs"))))
+      (async-shell-command (format "rsync -az %s %s:%s" src host dest))))
 #+end_src
 * Keybindings
-Make it easy to publish all or just some of my website:
+Make it easy to publish all projects or single project:
 #+begin_src emacs-lisp
   (with-eval-after-load 'ha-org
     (ha-leader :keymaps 'org-mode-map

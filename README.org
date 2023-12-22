@@ -8,9 +8,9 @@ I’ve crafted my Emacs configuration, I cheekily call /hamacs/, in a literate p
 
 The advantage to rolling yer own is I tend to  /use/ what I add, leading to less bloat. In reality, this is more fun.
 
-Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration gives me an easy way to /share/ my code. So yes, feel free to steal whatever you find interesting, as sharing makes our community great.  Notice that functions and features I have written begin with =ha-=, but everything else is either /stock Emacs/ or a /package/ I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for how for details) and configured with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for those details)… meaning most blocks of code should work on its own.
+Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration gives me an easy way to /share/ my code. Feel free to steal whatever you find interesting, as sharing makes our community great.  Notice that functions and features I have written begin with =ha-=, but everything else is either /stock Emacs/ or a /package/ I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for the details) and configure with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for those details)… meaning most blocks of code should work on its own.
 
-My configuration is broken into /chapters/ around particular subjects, applications or programming languages. This allows me to /selectively load/ individual chapters. For instance, currently, I’m not doing much with Ruby, so I just remove it from the end of my [[file:bootstrap.org][bootstrap]]. I also going load my [[file:ha-display.org][UI configuration]] if I am using the Terminal (doesn’t happen much, actually). So jump to the chapters of interest.
+I’ve separated my configuration into /chapters/ around particular subjects, applications and programming languages. This feature allows you, dear reader, to jump our to items of interest, but allows me to /selectively load/ individual chapters. For instance, if I’m not doing much with Ruby at work, I can remove that chapter from the list in my [[file:bootstrap.org::*Load the Rest][bootstrap]]. I also don’t load my [[file:ha-display.org][UI configuration]] when I am using the Terminal (doesn’t happen much, actually).
 
 Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@emacs.ch]].
 
@@ -22,7 +22,9 @@ And then, run:
 #+BEGIN_SRC sh
 ./initialize
 #+END_SRC
-To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the process loading the files.
+To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the process loading the files. Here’s how my Emacs looks when it starts:
+
+[[file:screenshots/dashboard-small.png]]
 ** Core Configuration
   - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
   - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
@@ -48,7 +50,7 @@ If you know me, I appreciate the light-weight nature of Eshell (see [[https://em
   - [[file:ha-remoting.org][Remote Access]] :: my interface to systems using SSH and Vterm.
 
 ** Programming Configuration
-While I’m a language polyglot, I usually focus on one or two languages at a time, and  my configuration may acquire a /wee bit of cruft/. That said, I’m attempting to convert over to LSP (with varying degrees of success).
+While I’m a language polyglot, I often focus on one or two languages at a time, but continue to keep my configuration for those languages around. I’m attempting to convert over to LSP (with varying degrees of success).
 
   - [[file:ha-programming.org][General Programming]] :: configuration for /all/ programming languages, or at least, the simple ones.
   - [[file:ha-programming-elisp.org][Emacs Lisp]] :: additions to Emacs Lisp programming.
@@ -67,7 +69,7 @@ The [[file:elisp/][elisp]] directory contains non-literate code.
 
 Other functions and files come from essays written on [[http://www.howardism.org][my blog]]. To help with this synchronization, I created a [[file:support/final-initialize.el][support/final-initialize.el]] file, but that shouldn’t be too interesting to others.
 
-You may ask yourself, Howard, why are you still using Github. The only reason is that Org files automatically get rendered as HTML with the code block correctly syntax highlighted. This may change. 🤓
+🤓
 
 #+DESCRIPTION: An index.html for describing my hamacs project
 
@@ -75,6 +77,6 @@ You may ask yourself, Howard, why are you still using Github. The only reason is
 #+PROPERTY:    header-args:emacs-lisp :tangle no
 #+PROPERTY:    header-args   :results none   :eval no-export   :comments no
 
-#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

@@ -134,7 +134,7 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
         (string-replace "\n" "" smaller-version)))
 
     (setq dashboard-banner-logo-title
-          (format "Emacs %s ⸺ %s"
+          (format "Emacs %s — %s"
                   (if (and (fboundp 'native-comp-available-p)
                            (native-comp-available-p))
                       "with Native Compilation" "")

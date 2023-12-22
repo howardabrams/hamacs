@@ -31,6 +31,7 @@ I'm installing everything using the [[https://github.com/raxod502/straight.el#ge
 
 See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
 
+* Initial Settings
 ** OS Path and Native Compilation
 Helper functions to allow code for specific operating systems:
 #+begin_src emacs-lisp
@@ -105,7 +106,7 @@ Since =brew link gpg= doesn’t always work, this helper function may find the e
                                  (executable "/usr/bin/pgp")))
     :config (epa-file-enable))
 #+end_src
-** Basic Libraries
+* Basic Libraries
 The following packages come with Emacs, but seems like they still need loading:
 #+begin_src emacs-lisp
   (use-package cl-lib
@@ -169,7 +170,7 @@ Much of my more complicated code comes from my website essays and other projects
 #+end_src
 
 Hopefully, this will tie me over while I transition.
-** Emacs Server Control
+* Emacs Server Control
 I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like LSP), and my personal instance has other packages running (like IRC and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
 #+begin_src emacs-lisp
   (defun ha-emacs-for-work? ()
