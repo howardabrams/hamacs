@@ -196,6 +196,7 @@ The following loads the rest of my org-mode literate files. I add  new filesas t
   (defvar ha-hamacs-files (flatten-list
                            `("ha-private.org"
                              "ha-config.org"
+                             "ha-applications.org"
                              ,(when (display-graphic-p)
                                 "ha-display.org")
                              "ha-org.org"

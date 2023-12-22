@@ -14,7 +14,7 @@ I’ve separated my configuration into /chapters/ around particular subjects, ap
 
 Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@emacs.ch]].
 
-If you want to try the entire process, after installing Emacs, clone this repo with:
+If you want to try the entire process, after installing Emacs (see my instructions for [[file:README-MacOS.org][both MacOS]] and [[file:README-Linux.org][Linux]]), clone this repo with:
 #+begin_src sh
   git clone https://github.com/howardabrams/hamacs
 #+end_src
