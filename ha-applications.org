@@ -614,6 +614,7 @@ Making demonstrations /within/ Emacs with my [[https://github.com/howardabrams/d
     ;; :straight (:host github :repo "howardabrams/demo-it")
     :commands (demo-it-create demo-it-start))
 #+end_src
+
 * PDF Viewing
 Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? If you have standard build tools installed on your system, run [[help:pdf-tools-install][pdf-tools-install]], as this command will an =epdfinfo= program to PDF displays.
 
@@ -621,17 +622,51 @@ Why not [[https://github.com/politza/pdf-tools][view PDF files]] better? If you 
   (use-package pdf-tools
     :mode ("\\.pdf\\'" . pdf-view-mode)
     :init
-    (if (ha-running-on-macos?)
-        (setq pdf-info-epdfinfo-program "/opt/homebrew/bin/epdfinfo")
-      (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo"))
+    (setq pdf-info-epdfinfo-program
+          (if (file-exists-p "/opt/homebrew")
+              "/opt/homebrew/bin/epdfinfo"
+            "/usr/local/bin/epdfinfo")
+
+          ;; Match my theme:
+          pdf-view-midnight-colors '("#c5c8c6" . "#1d1f21"))
+
     :general
     (:states 'normal :keymaps 'pdf-view-mode-map
+             ;; Since the keys don't make sense when reading:
+             "J" 'pdf-view-scroll-up-or-next-page
+             "K" 'pdf-view-scroll-down-or-previous-page
              "gp" 'pdf-view-goto-page
              ">"  'doc-view-fit-window-to-page))
 #+end_src
 
 Make sure the [[help:pdf-info-check-epdfinfo][pdf-info-check-epdfinfo]] function works.
 
+The [[Evil Collection][evil-collection]] package adds the following keybindings:
+- ~z d~ :: Dark mode … indispensable, see also ~z m~
+- ~C-j~ / ~C-k~ :: next and previous pages
+- ~j~ / ~k~ :: up and down the page
+- ~h~ / ~l~ :: scroll the page left and right
+- ~=~ / ~-~ :: enlarge and shrink the page
+- ~o~ :: Table of contents (if available)
+
+I’d like write notes in org files that link to the PDFs (and maybe visa versa), using the [[https://github.com/weirdNox/org-noter][org-noter]] package:
+#+begin_src emacs-lisp
+  (use-package org-noter
+    :config
+    (ha-leader "o N" '("pdf notes" . org-noter))
+    (ha-local-leader
+      :keymaps 'org-noter-doc-mode-map
+      "n" '("pdf notes" . org-noter)
+
+      ;; This means that I can stay in normal mode:
+      :keymaps 'org-noter-notes-mode-map
+      "i" '("insert note" . org-noter-insert-note)
+      "s" '("sync note" . org-noter-sync-current-note)
+      "n" '("next note" . org-noter-sync-next-note)
+      "p" '("previous note" . org-noter-sync-prev-note)))
+#+end_src
+
+To use, open a header in an org doc, and run =M-x org-noter= (~SPC o N~) and select the PDF. The =org-noter= function can be called in the PDF doc as well. In Emacs state, type ~i~ to insert a note /as a header/, or in Normal state, type ~, i~.
 
 * Technical Artifacts                                :noexport:
 
