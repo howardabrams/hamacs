@@ -48,12 +48,15 @@ I split the configuration of Evil mode into sections. First, global settings:
           evil-respect-visual-line-mode t
           evil-want-fine-undo t         ; Be more like Emacs
           evil-disable-insert-state-bindings t
-          evil-want-keybinding nil
+          evil-want-keybinding nil      ; work with evil-collection
           evil-want-integration t
           evil-want-C-u-scroll nil
           evil-want-C-i-jump nil
           evil-escape-key-sequence "jk"
-          evil-escape-unordered-key-sequence t))
+          evil-escape-unordered-key-sequence t)
+
+    ;; This is _essentially_ the Ctrl-g sequence for getting out of jail:
+    (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
 #+end_src
 
 The Escape key act like ~C-g~ and always go back to normal mode?
@@ -427,22 +430,27 @@ Let's try this general "space" prefix by defining some top-level operations, inc
 #+begin_src emacs-lisp
   (ha-leader
     "SPC" '("M-x" . execute-extended-command)
+    "<escape>" '(keyboard-escape-quit :which-key t)
     "."   '("repeat" . repeat)
     "!"   '("shell command" . shell-command)
     "|"   'piper
     "X"   '("org capture" . org-capture)
     "L"   '("store org link" . org-store-link)
     "RET" 'bookmark-jump
-    "a"  '(:ignore t :which-key "apps")
-    "o"  '(:ignore t :which-key "org/open")
-    "o i" 'imenu
+    "a"   '(:ignore t :which-key "apps")
+    "a <escape>" '(keyboard-escape-quit :which-key t)
     "m"   '(:ignore t :which-key "mode")
+    "m <escape>" '(keyboard-escape-quit :which-key t)
+    "o"   '(:ignore t :which-key "org/open")
+    "o <escape>" '(keyboard-escape-quit :which-key t)
+    "o i" 'imenu
     "u"   'universal-argument)
 #+end_src
 And ways to stop the system:
 #+begin_src emacs-lisp
   (ha-leader
     "q"  '(:ignore t :which-key "quit/session")
+    "q <escape>" '(keyboard-escape-quit :which-key t)
     "q b" '("bury buffer" . bury-buffer)
     "q w" '("close window" . delete-window)
     "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
@@ -452,10 +460,11 @@ And ways to stop the system:
 And ways to load my tangled org-files:
 #+begin_src emacs-lisp
   (ha-leader
-      "h h"   '(:ignore t :which-key "hamacs")
-      "h h f" '("features"    . ha-hamacs-features)
-      "h h h" '("reload"      . ha-hamacs-load)
-      "h h a" '("reload all"  . ha-hamacs-reload-all))
+    "h h"   '(:ignore t :which-key "hamacs")
+    "h h <escape>" '(keyboard-escape-quit :which-key t)
+    "h h f" '("features"    . ha-hamacs-features)
+    "h h h" '("reload"      . ha-hamacs-load)
+    "h h a" '("reload all"  . ha-hamacs-reload-all))
 #+end_src
 ** File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
@@ -511,6 +520,7 @@ With these helper functions in place, I can create a leader collection for file-
 #+begin_src emacs-lisp
   (ha-leader
     "f"  '(:ignore t :which-key "files")
+    "f <escape>" '(keyboard-escape-quit :which-key t)
     "f a" '("load any" . find-file)
     "f f" '("load" . consult-projectile-find-file)
     "f F" '("load new window" . find-file-other-window)
@@ -578,6 +588,7 @@ And the collection of useful operations:
 #+begin_src emacs-lisp
   (ha-leader
     "b"  '(:ignore t :which-key "buffers")
+    "b <escape>" '(keyboard-escape-quit :which-key t)
     "b B" '("switch" . persp-switch-to-buffer)
     "b o" '("switch" . switch-to-buffer-other-window)
     "b O" '("other" . projectile-switch-buffer-to-other-window)
@@ -640,6 +651,7 @@ The goal here is toggle switches and other miscellaneous settings.
 #+begin_src emacs-lisp
   (ha-leader
     "t"   '(:ignore t :which-key "toggles")
+    "t <escape>" '(keyboard-escape-quit :which-key t)
     "t a" '("abbrev"         . abbrev-mode)
     "t d" '("debug"          . toggle-debug-on-error)
     "t F" '("show functions" . which-function-mode)
@@ -932,6 +944,7 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
 
     (ha-leader
       "s"  '(:ignore t :which-key "search")
+      "s <escape>" '(keyboard-escape-quit :which-key t)
       "s q" '("close" . ha-rg-close-results-buffer)
       "s r" '("dwim" . rg-dwim)
       "s s" '("search" . rg)
@@ -992,6 +1005,7 @@ Stealing much of this from Spacemacs.
 #+begin_src emacs-lisp
   (ha-leader
     "x"  '(:ignore t :which-key "text")
+    "x <escape>" '(keyboard-escape-quit :which-key t)
     "x a" '("align"            . align-regexp)
     "x q" '("fill paragraph"   . fill-paragraph)
     "x p" '("unfill paragraph" . unfill-paragraph))
@@ -1011,6 +1025,7 @@ Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
+    "h <escape>" '(keyboard-escape-quit :which-key t)
     "h ." '("cursor position"  . what-cursor-position)
     "h a" '("apropos"          . apropos-command)
     "h c" '("elisp cheatsheet" . shortdoc-display-group)
