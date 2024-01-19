@@ -8,7 +8,7 @@ A literate program for configuring org files for work-related notes.
 #+begin_src emacs-lisp :exports none
   ;;; org-sprint --- Configuring org files for work-related notes. -*- lexical-binding: t; -*-
   ;;
-  ;; © 2020-2023 Howard X. Abrams
+  ;; © 2020-2024 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
@@ -43,10 +43,39 @@ I give each sprint a nickname, based on a /theme/ of some sorts, alphabetized. S
 
 At the beginning of the year, I choose a theme, and make a list for the upcoming sprints. In the org file, this is a list, that gets /tangled/ into an actual Emacs LIsp list. This is pretty cool.
 
-#+begin_src emacs-lisp :var sprint-names=sprint-names-2023
+#+begin_src emacs-lisp :var sprint-names=sprint-names-2024
   (defvar sprint-nicknames sprint-names
     "List of 26 Sprint Nicknames from A to Z.")
 #+end_src
+** 2024
+How about Tabaxi names this year … especially since my next character has to be a cat man.
+#+name: sprint-names-2024
+  - Art of Shadows
+  - Burning Desire
+  - Cloud in the Sky
+  - Daydream at Night
+  - Elegant Scarf
+  - Fine Stripe
+  - Game of Chance
+  - Half Patch
+  - Icy Beauty
+  - Joyful Sound
+  - Merry Kite
+  - Light in the Morning
+  - Mad Bell
+  - Night Dance
+  - Odorous Flower
+  - Plume of Smoke
+  - Quick Knot
+  - Rhythm of Drums
+  - Spell of Rain
+  - Tranquil Path
+  - Under Clouds
+  - Vibrant Spell
+  - Trail in the Woods
+  - Xpaiyoc
+  - Yell at Night
+  - Zip in the Wind
 ** 2023
 How about a list of Ent names?
 
@@ -226,6 +255,12 @@ My Sprint starts on Tuesday, but this sometimes changed, so let's make this a va
   (defvar sprint-starting-day 2 "The day of the week the sprint begins, where 0 is Sunday.")
 #+end_src
 
+We seem to never start our Sprints correctly, and we seem to like offsets:
+#+begin_src emacs-lisp
+  ;; CHANGEME Each year as this never matches:
+  (defvar sprint-offset-value 11 "The number of the first sprint.")
+#+end_src
+
 We label our sprint based on the week number that it starts. Note that on a Monday, I want to consider that we are still numbering from last week.
 #+begin_src emacs-lisp
   (defun sprint-week-num (&optional date)
@@ -233,7 +268,7 @@ We label our sprint based on the week number that it starts. Note that on a Mond
   the week at Tuesday to Monday."
     (let* ((d (get-date-time date))
            (dow (nth 6 (decode-time d)))    ; Day of the week 0=Sunday
-           (week (thread-last d                     ; Week number in the year
+           (week (thread-last d             ; Week number in the year
                               (format-time-string "%U")
                               string-to-number)))
       (if (>= dow sprint-starting-day)
@@ -244,36 +279,42 @@ We label our sprint based on the week number that it starts. Note that on a Mond
 Let's have these tests to make of this /weekly/ perspective:
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-week-num-test ()
-    (should (= (sprint-week-num "2023-01-01") 1))  ; Monday previous week
-    (should (= (sprint-week-num "2023-01-03") 2))  ; Tuesday ... this week
-    (should (= (sprint-week-num "2023-01-09") 2))  ; Monday, next week, part of last
-    (should (= (sprint-week-num "2023-01-10") 3))) ; Tuesday next week
+    (should (= (sprint-week-num "2024-01-01") 0))  ; Monday previous week
+    (should (= (sprint-week-num "2024-01-02") 1))  ; Tuesday ... this week
+    (should (= (sprint-week-num "2024-01-09") 2))  ; Monday, next week, part of last
+    (should (= (sprint-week-num "2024-01-10") 3))) ; Tuesday next week
 #+end_src
 
 My company has sprints two weeks long, we could be see that on even week numbers, the /sprint/ is actually the previous week's number.
 
-And it appears that my PM for this year didn’t start our first Sprint until the 17th.
+This year, my PM decided to start the sprints sequentially starting with 11, so I’ve decided to follow my own naming convention for my filenames.
+
 #+begin_src emacs-lisp
   (defun sprint-number (&optional date)
     "Return the current sprint number, with some assumptions that
   each sprint is two weeks long, starting on Tuesday."
-    (let ((num (sprint-week-num date)))
-      (if (cl-oddp num)
-          (- num 4)           ; CHANGEME each year!
-        (- num 3))))
+    (let* ((num (sprint-week-num date))
+           (bucket (if (cl-oddp num) num (1- num))))
+      (thread-first bucket
+                    ;; Make 2 week sprints sequential:
+                    (/ 2)
+                    ;; Sprint offset number:
+                    ;; (+ sprint-offset-value)
+                    1+
+                    )))
 #+end_src
 
 And some tests to verify that:
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-number-test ()
-    (should (= (sprint-number "2023-01-09") -1)) ;; Ignore
-    (should (= (sprint-number "2023-01-10") -1))
-    (should (= (sprint-number "2023-01-17") 1))
-    (should (= (sprint-number "2023-01-18") 1))
-    (should (= (sprint-number "2023-01-23") 1))
-    (should (= (sprint-number "2023-01-24") 1))
-    (should (= (sprint-number "2023-01-30") 1))
-    (should (= (sprint-number "2023-01-31") 3)))
+    (should (= (sprint-number "2024-01-02") 1))
+    (should (= (sprint-number "2024-01-10") 1))
+    (should (= (sprint-number "2024-01-15") 1))
+    (should (= (sprint-number "2024-01-16") 2))
+    (should (= (sprint-number "2024-01-23") 2))
+    (should (= (sprint-number "2024-01-29") 2))
+    (should (= (sprint-number "2024-01-30") 3))
+    (should (= (sprint-number "2024-02-13") 4)))
 #+end_src
 ** Sprint File Name
 I create my org-file notes based on the Sprint number.
@@ -290,12 +331,10 @@ I create my org-file notes based on the Sprint number.
 So given a particular date, I should expect to be able to find the correct Sprint file name:
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-current-file-test ()
-    (should (s-ends-with? "Sprint-2019-05.org" (sprint-current-file "2019-02-07")))
-    (should (s-ends-with? "Sprint-2019-05.org" (sprint-current-file "2019-02-09")))
-    (should (s-ends-with? "Sprint-2019-05.org" (sprint-current-file "2019-02-10")))
-    (should (s-ends-with? "Sprint-2019-05.org" (sprint-current-file "2019-02-13")))
-    (should (s-ends-with? "Sprint-2019-07.org" (sprint-current-file "2019-02-14")))
-    (should (s-ends-with? "Sprint-2019-07.org" (sprint-current-file "2019-02-17"))))
+    (should (s-ends-with? "Sprint-2024-11.org" (sprint-current-file "2024-01-02")))
+    (should (s-ends-with? "Sprint-2024-12.org" (sprint-current-file "2024-01-16")))
+    (should (s-ends-with? "Sprint-2024-13.org" (sprint-current-file "2024-02-01")))
+    (should (s-ends-with? "Sprint-2024-14.org" (sprint-current-file "2024-02-13"))))
 #+end_src
 
 Daily note-taking goes into my sprint file notes, so this interactive function makes an easy global short-cut key.
@@ -317,9 +356,9 @@ The /name/ and /nickname/ of the sprint will be used in the =#+TITLE= section, a
   (defun sprint-current-name (&optional date)
     "Return the default name of the current sprint (based on DATE)."
     (let* ((d (get-date-time date))
-           (sprint-order (/ (1- (sprint-number d)) 2))
-           (nickname (nth sprint-order sprint-nicknames)))
-      (format "Sprint %s-%02d %s"
+           (sprint-num (sprint-number d))
+           (nickname (nth (1- sprint-num) sprint-nicknames)))
+      (format "Sprint %s-%02d :: %s"
               (format-time-string "%Y" d)
               (sprint-number d)
               nickname)))
@@ -329,8 +368,8 @@ These test won't pass any more, as the nickname of the sprint changes from year 
 
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-current-name-test ()
-    (should (equal "Sprint 2019-05 (candid-cannes)" (sprint-current-name "2019-02-13")))
-    (should (equal "Sprint 2019-07 (darling-dadu)" (sprint-current-name "2019-02-14"))))
+    (should (equal "Sprint 2024-01 :: Art of Shadows" (sprint-current-name "2024-01-02")))
+    (should (equal "Sprint 2024-04 :: Daydream at Night" (sprint-current-name "2024-02-14"))))
 #+end_src
 
 ** Sprint Start and End
@@ -338,22 +377,23 @@ These test won't pass any more, as the nickname of the sprint changes from year 
 I want to print the beginning and ending of the sprint, where we have a sprint number or a data, and we can give the dates that bound the sprint. This odd function calculates this based on knowing the date of the /first Tuesday/ of the year, so I need to begin the year changing this value. I should fix this.
 
 #+begin_src emacs-lisp
+  ;; (setq number-or-date "2024-01-16")
   (defun sprint-range (&optional number-or-date)
     "Return a list of three entries, start of the current sprint,
   end of the current sprint, and the start of the next sprint.
   Each date value should be formatted with `format-time-string'."
+    ;;          The `num' should be 0-based:
     (let* ((num (if (or (null number-or-date) (stringp number-or-date))
-                    (sprint-number number-or-date)
-                  number-or-date))
+                    (* 2 (1- (sprint-number number-or-date)))
+                  (1- number-or-date)))
            ;; CHANGEME each year to mark the first day of the first sprint:
-           (year-start   "2023-01-17")
-           (time-start   (-> year-start     ; Converted to time
+           (time-start   (-> "2024-01-02"     ; Converted to time
                              get-date-time
                              float-time))
            (day-length   (* 3600 24))      ; Length of day in seconds
            (week-length  (* day-length 7))
-           (sprint-start (time-add time-start (* week-length (1- num))))
-           (sprint-next  (time-add time-start (* week-length (1+ num))))
+           (sprint-start (time-add time-start (* week-length  num)))
+           (sprint-next  (time-add time-start (* week-length (+ 2 num))))
            (sprint-end   (time-add sprint-next (- day-length))))
       (list sprint-start sprint-end sprint-next)))
 #+end_src
@@ -362,9 +402,9 @@ Format the start and end so that we can insert this directly in the org file:
 
 #+begin_src emacs-lisp
   (defun sprint-date-range (&optional number-or-date)
-    "Return an `org-mode' formatted date range for a given sprint
-  number or date, `NUMBER-OR-DATE' or if `nil', the date range of
-  the current sprint."
+    "Return `org-mode' formatted date range for a given sprint.
+  The NUMBER-OR-DATE is a week number, a date string, or if `nil'
+  for the current date."
     (seq-let (sprint-start sprint-end) (sprint-range number-or-date)
       (let* ((formatter    "%Y-%m-%d %a")
              (start        (format-time-string formatter sprint-start))
@@ -375,8 +415,16 @@ Format the start and end so that we can insert this directly in the org file:
 And validate with a test:
 #+begin_src emacs-lisp
   (ert-deftest sprint-date-range ()
+    (should (equal (sprint-date-range)
+                   (sprint-date-range (format-time-string "%Y-%m-%d"))))
     (should (equal (sprint-date-range 1)
-                   (sprint-date-range "2023-01-17"))))
+                   (sprint-date-range "2024-01-02")))
+    (should (equal (sprint-date-range 1)
+                   (sprint-date-range "2024-01-15")))
+    (should (equal (sprint-date-range 3)
+                   (sprint-date-range "2024-01-16")))
+    (should (equal (sprint-date-range 5)
+                   (sprint-date-range "2024-01-31"))))
 #+end_src
 
 ** Pre-scheduled Dates
