@@ -54,22 +54,10 @@ In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the cur
         #'command-completion-default-include-p)
 #+end_src
 
-As [[https://tecosaur.github.io/emacs-config/config.html][tec wrote]], I want to use =~/.authsource.gpg= as I don’t want to accidentaly purge this file cleaning =~/.emacs.d=, and let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot. Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to se the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error.
-#+begin_src emacs-lisp
-  (use-package epa-file
-    :config
-    (defvar epa-pinentry-mode)
-    (setq epa-file-select-keys nil
-          epa-pinentry-mode 'loopback
-          auth-sources '("~/.authinfo.gpg")
-          auth-source-cache-expiry nil))
-#+end_src
-
-Unicode ellispis are nicer than three dots:
+Unicode ellipsis are nicer than three dots:
 #+begin_src emacs-lisp
   (setq truncate-string-ellipsis "…")
 #+end_src
-More settings:
 
 When I get an error, I need a stack trace to figure out the problem. Yeah, when I stop fiddling with Emacs, this should go off:
 #+begin_src emacs-lisp
@@ -788,6 +776,66 @@ The =persp-switch= allows me to select or create a new project, but what if we i
      ((s-starts-with? "twit" name) (twit))))
 #+end_src
 Once we create the new perspective workspace, if it matches a particular name, I pretty much know what function I would like to call.
+* Pretty Good Encryption
+For details on using GnuPG in Emacs, see Mickey Petersen’s [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][GnuPG Essay]].
+
+Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need to use the =epa-pineentry-mode= to =loopback= to actually get a prompt for the password, instead of an error. Also let's cache as much as possible, as my home machine is pretty safe, and my laptop is shutdown a lot.
+
+#+begin_src emacs-lisp
+  (use-package epa-file
+    :config
+    (setq epg-debug t  auth-source-debug t
+          ;; Since I normally want symmetric encryption, and don't want
+          ;; to use the "key selection":
+          epa-file-select-keys 'symmetric-only
+          ;; Make sure we prompt in the minibuffer for the password:
+          epg-pinentry-mode 'loopback
+          ;; I trust my Emacs session, so I don't bother expiring my pass:
+          auth-source-cache-expiry nil)
+    ;; Make sure that for Emacs, we will handle the prompts:
+    (setenv "GPG_AGENT_INFO" nil)
+    (epa-file-enable))
+#+end_src
+
+Make sure that the following passes:
+#+begin_src emacs-lisp :tangle no
+  (let ((macos-gpg "/opt/homebrew/bin/gpg1"))
+    (when (and (file-exists-p macos-gpg)
+               (file-executable-p macos-gpg))
+      (setq epg-gpg-program macos-gpg)))
+#+end_src
+As well as:
+#+begin_src emacs-lisp :tangle no
+  (let ((macos-gpg "/opt/homebrew/bin/pinentry-tty"))
+    (when (and (file-exists-p macos-gpg)
+               (file-executable-p macos-gpg))
+      (setq pinentry-program macos-gpg)))
+
+#+end_src
+According to [[https://emacs.stackexchange.com/questions/78140/emacs-failing-to-save-encrypted-file][this discussion]], I seem to first, downgrade the version of GPG to version 2.2:
+#+begin_src sh :results replace raw :wrap example
+  gpg --version
+#+end_src
+
+#+begin_example
+gpg (GnuPG) 2.2.42
+libgcrypt 1.10.3
+Copyright (C) 2023 g10 Code GmbH
+License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Home: /Users/howard.abrams/.gnupg
+Supported algorithms:
+Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA
+Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256, TWOFISH,
+        CAMELLIA128, CAMELLIA192, CAMELLIA256
+Hash: SHA1, RIPEMD160, SHA256, SHA384, SHA512, SHA224
+Compression: Uncompressed, ZIP, ZLIB, BZIP2
+#+end_example
+
+However, for Emacs 29, and even with GPG1 or GPG2.2, it still hangs when saving encrypted files.
+
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
