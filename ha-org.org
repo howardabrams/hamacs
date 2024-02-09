@@ -370,7 +370,7 @@ Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll 
     (when (string-match (rx "<<" (group (one-or-more any)) ">>") str)
       (setq str (match-string 1 str)))
     (ignore-errors
-      (let* ((default-directory (projectile-project-root))
+      (let* ((default-directory (project-root (project-current)))
              (command (format "rg --ignore-case --json '#\\+name: +%s' *.org" str))
 
              (results (thread-last command

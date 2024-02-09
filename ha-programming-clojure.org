@@ -155,7 +155,6 @@ Need the IDE features associated with [[https://github.com/clojure-emacs/cider][
       "t p" '("run project"      . cider-test-run-project-tests)
       "t f" '("run failed"       . cider-test-rerun-failed-tests)
       "t R" '("show report"      . cider-test-show-report)
-      "t T" '("toggle test/file" . projectile-toggle-between-implementation-and-test)
 
       "d" '(:ignore t :which-key "docs")
       "d d" '("documentation"    . cider-doc)

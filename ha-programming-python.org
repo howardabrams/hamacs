@@ -30,7 +30,7 @@ The critical part of Python integration with Emacs is running LSP in Python usin
 While Emacs supplies a Python editing environment, we’ll still use =use-package= to grab the latest:
 #+begin_src emacs-lisp
   (use-package python
-    :after projectile flycheck
+    :after flycheck
     :mode ("[./]flake8\\'" . conf-mode)
     :mode ("/Pipfile\\'" . conf-mode)
     :init
@@ -40,11 +40,6 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     (when (and (executable-find "python3")
                (string= python-shell-interpreter "python"))
         (setq python-shell-interpreter "python3"))
-
-    ;; While `setup.py' and `requirements.txt' are already added, I often
-    ;; create these files for my Python projects:
-    (add-to-list 'projectile-project-root-files "requirements-dev.txt")
-    (add-to-list 'projectile-project-root-files "requirements-test.txt")
 
     (flycheck-add-next-checker 'python-pylint 'python-pycompile 'append))
 #+end_src
@@ -293,14 +288,7 @@ I work with a lot of projects with my team where I need to /configure/ the proje
         ;; (insert "python-lsp-black")
         ;; (insert "pyls-memestra")
         (insert "pylsp-rope\n"))
-      (shell-command "pip install -r requirements-dev.txt")
-
-      (unless (f-exists? ".projectile")
-        (with-temp-file ".projectile"))
-
-      (unless (f-exists? ".dir-locals.el")
-        (with-temp-file ".dir-locals.el"
-          (insert "((nil . ((projectile-enable-caching . t))))")))))
+      (shell-command "pip install -r requirements-dev.txt")))
 #+end_src
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:

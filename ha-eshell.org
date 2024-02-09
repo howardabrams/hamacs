@@ -1501,7 +1501,7 @@ And we can run a command in an opened Eshell buffer:
     See `eshell--buffer-from-dir'."
     (interactive "sCommand to Send: ")
     (unless dir
-      (setq dir (projectile-project-root)))
+      (setq dir (project-root (project-current))))
     (save-window-excursion
       (eshell-there dir)
       (goto-char (point-max))
@@ -1524,19 +1524,6 @@ And let’s bind it:
 #+begin_src emacs-lisp
   (bind-key "C-!" 'eshell-here)
 #+end_src
-** Shell for a Project
-This version starts =eshell= in the project’s root, using [[help:projectile-project-root][projectile-project-root]]:
-#+begin_src emacs-lisp
-  (defun eshell-project ()
-    "Open a new shell in the project root directory, in a smaller window."
-      (interactive)
-      (eshell-there (projectile-project-root)))
-#+end_src
-And we can attach this function to the =projectile= menu:
-#+begin_src emacs-lisp
-  (ha-leader "p e" '("eshell" . eshell-project))
-#+end_src
-
 ** Shell Over There
 Would be nice to be able to run an eshell session and use Tramp to connect to the remote host in one fell swoop:
 #+begin_src emacs-lisp

@@ -34,12 +34,12 @@ Sure, I try to keep my text editing world /inside/ the internal consistency and 
 #+begin_src emacs-lisp
   (defun current-location (start-line)
     "Show the current location and put it into the kill ring.
-  Use the filename relative to the current projectile root directory.
+  Use the filename relative to the current project root directory.
   If called non-interactively, return the location as a string."
     (interactive "P")
-    (let* ((project-name (projectile-project-name))
-           (file-name (when (and buffer-file-name (projectile-project-root))
-                        (file-relative-name buffer-file-name (projectile-project-root))))
+    (let* ((project-name (project-name (project-current)))
+           (file-name (when (and buffer-file-name (project-root (project-current)))
+                        (file-relative-name buffer-file-name (project-root (project-current)))))
            (line-number (if (and (called-interactively-p) start-line)
                             (line-number-at-pos nil t)
                           start-line))

@@ -96,7 +96,7 @@ While I love packages that add functionality and I don’t have to learn anythin
     (when (string-match (rx (optional "#") (optional "'" ) (group (one-or-more any))) str)
       (setq str (match-string 1 str)))
     (ignore-errors
-      (let* ((default-directory (projectile-project-root))
+      (let* ((default-directory (project-root (project-current)))
              (command (format "rg --json '\\(def[^ ]+ %s ' *.org" str))
              (results (thread-last command
                                    shell-command-to-list

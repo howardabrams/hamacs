@@ -178,9 +178,9 @@ What else?
   (use-package empv
     :straight (:host github :repo "isamert/empv.el")
     :general (ha-leader
-               "a P" '(projectile-command-map :wk "project")
                "a p" '(empv-map :wk "play music")))
 #+end_src
+
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 

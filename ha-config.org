@@ -273,7 +273,7 @@ The [[https://github.com/minad/marginalia][marginalia]] package gives a preview 
     :init
     (setq marginalia-annotators-heavy t)
     :config
-    (add-to-list 'marginalia-command-categories '(projectile-find-file . file))
+    (add-to-list 'marginalia-command-categories '(project-find-file . file))
     (marginalia-mode))
 #+end_src
 * Key Bindings
@@ -549,37 +549,32 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
 ** Projects
-While I don't /need/ all the features that [[https://github.com/bbatsov/projectile][projectile]] provides, it has all the features I do need, and is easy enough to install. I am referring to the fact that I /could/ use the built-in =project.el= system (see [[https://cestlaz.github.io/post/using-emacs-79-project/][this essay]] for details on what I mean as an alternative).
+Since I wasn’t using all the features that [[https://github.com/bbatsov/projectile][projectile]] provides, I have switched to the built-in =project= functions.
 
 #+begin_src emacs-lisp
-  (use-package projectile
-    :custom
-    (projectile-sort-order 'recentf)
-    (projectile-project-root-functions '(projectile-root-bottom-up))
-
+  (use-package emacs
     :config
     (ha-leader
       "p"  '(:ignore t :which-key "projects")
       "p W" '("initialize workspace" . ha-workspace-initialize)
       "p n" '("new project space" . ha-project-persp)
-      "p !" '("run cmd in project root" . projectile-run-shell-command-in-root)
-      "p &" '("async cmd in project root" . projectile-run-async-shell-command-in-root)
-      "p a" '("add new project" . projectile-add-known-project)
-      "p b" '("switch to project buffer" . projectile-switch-to-buffer)
-      "p C" '("compile in project" . projectile-compile-project)
+
+      "p !" '("run cmd in project root" . project-shell-command)
+      "p &" '("run cmd async" . project-async-shell-command)
+      "p a" '("add new project" . project-remember-projects-under)
+      "p d" '("remove known project" . project-forget-project)
+      "p k" '("kill project buffers" . project-kill-buffers)
+      "p p" '("switch project" . project-switch-project)
+
+      "p f" '("find file" . project-find-file)
+      "p F" '("find file o/win" . project-find-file-other-window)
+      "p b" '("switch to project buffer" . project-switch-to-buffer)
+
+      "p C" '("compile in project" . compile-project)
       "p c" '("recompile" . recompile)
-      "p d" '("remove known project" . projectile-remove-known-project)
-      "p E" '("edit project .dir-locals" . projectile-edit-dir-locals)
-      "p f" '("find file in project" . projectile-find-file)
-      "p g" '("configure project" . projectile-configure-project)
-      "p i" '("invalidate project cache" . projectile-invalidate-cache)
-      "p k" '("kill project buffers" . projectile-kill-buffers)
-      "p o" '("find other file" . projectile-find-other-file)
-      "p p" '("switch project" . projectile-switch-project)
-      "p r" '("find recent project files" . projectile-recentf)
-      "p R" '("run project" . projectile-run-project)
-      "p S" '("save project files" . projectile-save-project-buffers)
-      "p T" '("test project" . projectile-test-project)))
+
+      "p e" '("project shell" . project-eshell)
+      "p s" '("project shell" . project-shell)))
 #+end_src
 ** Workspaces
 A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
@@ -596,7 +591,8 @@ To do this, we need a way to generate a string of the perspectives in alphabetic
        (format "  %d: %s%s"    ; Shame that the following doesn't work:
                num             ; (propertize (number-to-string num) :foreground "#00a0")
                (car names)     ; Nor does surrounding the number with underbars.
-               (if (equal (car names) (projectile-project-name)) "*" ""))
+
+               (if (equal (car names) (persp-name (persp-curr))) "*" ""))
        (ha--persp-label (1+ num) (cdr names)))))
 
   (defun ha-persp-labels ()
@@ -713,15 +709,17 @@ Given a list of information about project-workspaces, can we create them all?
           (ha-project-persp root name files))))
     (persp-switch "main"))
 #+end_src
-Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Projectile keeps state of a "project" based on the current file loaded, so we /combine/ the two projects by first choosing from a list of /known projects/ and then creating a perspective based on the name. To pin the perspective to a project, we load a file from it, e.g. Like a README or something.
+
+Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Emacs calls these transients.
 
 #+begin_src emacs-lisp
   (defun ha-project-persp (project &optional name files)
-    "Create a new perspective, and then switch to the PROJECT using projectile.
+    "Create a new perspective, and then switch to the PROJECT.
   If NAME is not given, then figure it out based on the name of the
   PROJECT. If FILES aren't specified, then see if there is a
   README. Otherwise, pull up Dired."
-    (interactive (list (projectile-completing-read "Project: " projectile-known-projects)))
+    (interactive (list (completing-read "Project: "
+                                        (project-known-project-roots))))
     (when (f-directory-p project)
       (unless name
         (setq name (f-filename project)))
@@ -729,12 +727,9 @@ Often, but not always, I want a perspective based on an actual Git repository, e
 
       ;; Unclear if the following is actually necessary.
       (ignore-errors
-        (projectile-add-known-project root)
-        (let ((projectile-switch-project-action nil))
-          (projectile-switch-project-by-name root)))
+        (project-remember-project root)
+        (project-switch-project root))
 
-      ;; To pin a project in projectile to the perspective, we need to load a file
-      ;; from that project. The README will do, or at least, the dired of it.
       (let ((recent-files (thread-last recentf-list
                                        (--filter (s-starts-with? project it))
                                        (-take 3)))

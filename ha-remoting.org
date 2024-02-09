@@ -212,7 +212,7 @@ Simply calling =vterm= fails to load my full environment, so this allows me to s
 #+begin_src emacs-lisp
   (defun ha-shell (&optional directory name)
     "Creates and tidies up a =vterm= terminal shell in side window."
-    (interactive (list (read-directory-name "Starting Directory: " (projectile-project-root))))
+    (interactive (list (read-directory-name "Starting Directory: " (project-root (project-current)))))
     (let* ((win-name (or name (ha-shell--name-from-dir directory)))
            (buf-name (format "*%s*" win-name))
            (default-directory (or directory default-directory)))
@@ -257,7 +257,7 @@ Since every project perspective may have a shell terminal, let’s see if I can 
 
   The real work for this is done by `ha-ssh-send'.
 
-  If DIRECTORY is nil, use the project root from projectile."
+  If DIRECTORY is nil, use the project root from project."
     (let ((buf (ha-shell--buf-from-dir directory)))
       (unless buf
         (setq buf (ha-shell directory)))
@@ -274,9 +274,9 @@ Since every project perspective may have a shell terminal, let’s see if I can 
 
   (defun ha-shell--name-from-dir (&optional directory)
     "Return an appropriate title for a terminal based on DIRECTORY.
-  If DIRECTORY is nil, use the `projectile-project-name'."
+  If DIRECTORY is nil, use the `project-name'."
     (unless directory
-      (setq directory (projectile-project-name)))
+      (setq directory (project-name (project-current))))
     (let ((name
            ;; Most of the time I just want the base project name, but in
            ;; my "work" directory, the projects are too similar, and I
@@ -523,13 +523,13 @@ This file, so far, as been good-enough for a Vanilla Emacs installation, but to 
     "a s o" '("overcloud"     . ha-ssh-overcloud)
     "a s l" '("local shell"   . ha-shell)
     "a s s" '("remote shell"  . ha-ssh)
-    "a s p" '("project shell" . (lambda () (interactive) (ha-shell (projectile-project-root))))
+    "a s p" '("project shell" . (lambda () (interactive) (ha-shell (project-root (project-current)))))
     "a s q" '("quit shell"    . ha-ssh-exit)
     "a s f" '("find-file"     . ha-ssh-find-file)
     "a s r" '("find-root"     . ha-ssh-find-root)
     "a s b" '("send line"     . ha-ssh-send-line)
 
-    "p t"   '("project vterm" . (lambda () (interactive) (ha-shell (projectile-project-root)))))
+    "p t"   '("project vterm" . (lambda () (interactive) (ha-shell (project-root (project-current))))))
 #+end_src
 * Technical Artifacts                                :noexport:
 Provide a name so we can =require= the file:

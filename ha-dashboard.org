@@ -142,7 +142,7 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
           dashboard-startup-banner "~/other/hamacs/support/levitating-gnu.png"
           dashboard-center-content t
           dashboard-set-init-info t
-          dashboard-projects-switch-function 'projectile-persp-switch-project
+          dashboard-projects-switch-function 'project-switch-project
           dashboard-items '(;; (projects . 5)
                             ;; (agenda . 5)
                             ;; (bookmarks . 5)
