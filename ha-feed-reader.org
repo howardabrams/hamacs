@@ -42,7 +42,7 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
              "n" 'elfeed-show-next
              "p" 'elfeed-show-prev
              "y" 'elfeed-show-yank
-             "q" 'evil-delete-buffer
+             "q" 'kill-buffer
              "o" 'link-hint-open-link ; This is why this package depends on link-hint:
              "Q" 'delete-window)
     (:states 'normal :keymaps 'elfeed-search-mode-map

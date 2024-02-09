@@ -124,18 +124,22 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
                   (lambda () (interactive) (vterm-send-key (kbd "C-w")))))
 
     ;; Enter copy mode? Go to Evil's normal state to move around:
-    (advice-add 'vterm-copy-mode :after 'evil-normal-state)
+    (when (fboundp 'evil-normal-state)
+      (advice-add 'vterm-copy-mode :after 'evil-normal-state))
 
     :hook
     (vterm-mode . (lambda ()
-                    (setq-local evil-insert-state-cursor 'box)
+                    (when (boundp 'evil-insert-state-cursor)
+                      (setq-local evil-insert-state-cursor 'box))
                     (setq-local show-paren-mode nil)
                     (setf truncate-lines nil
                           vterm-use-vterm-prompt-detection-method nil
                           term-prompt-regexp "^.* $ ")
                     (flycheck-mode -1)
-                    (yas-minor-mode -1)
-                    (evil-insert-state))))
+                    (yas-minor-mode -1) ;; This actually code be interesting, but...
+
+                    (when (fboundp 'evil-insert-state)
+                      (evil-insert-state)))))
 #+end_src
 
 The advantage of running terminals in Emacs is the ability to copy text without a mouse. For that, hit ~C-c C-t~ to enter a special copy-mode. If I go into this mode, I might as well also go into normal mode to move the cursor. To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.

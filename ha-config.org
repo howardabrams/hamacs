@@ -301,11 +301,12 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
     (global-set-key (kbd "s-z")   'undo-fu-only-undo)
     (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
 #+end_src
-** On the Subject of Being Evil
-I’m currently using the [[https://github.com/emacs-evil/evil][Extensible VI Layer]] for Emacs, aka /evil/. This configuration happens in [[file:ha-eviljjjj.org][ha-evil.org]], but because much of my configuration requires access to =ha-leader=, =general=, and other features, we need to include it here:
+** Leader Sequences
+Pressing the ~SPACE~ can activate a /leader key sequence/ that I define with [[file:ha-leader.org][general]] package.
 #+begin_src emacs-lisp
-  (ha-hamacs-load "ha-evil.org")
+  (ha-hamacs-load "ha-general.org")
 #+end_src
+This extends the =use-package= to include a =:general= keybinding section.
 ** Additional Global Packages
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
@@ -581,7 +582,7 @@ While I don't /need/ all the features that [[https://github.com/bbatsov/projecti
       "p T" '("test project" . projectile-test-project)))
 #+end_src
 ** Workspaces
-A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/said that I shouldsaid that I shouldsaid that I should   perspective-el][perspective.el]] project.
+A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
 
 I build a Hydra to dynamically list the current projects as well as select the project.
 To do this, we need a way to generate a string of the perspectives in alphabetical order:

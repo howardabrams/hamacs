@@ -465,7 +465,8 @@ This buffer has a minor-mode that binds ~C-c C-q~ to close the window and return
 #+end_src
 Since I use Evil, I also add ~Q~ to call this function:
 #+begin_src emacs-lisp
-  (evil-define-key 'normal ebbflow-mode-map "Q" 'ha-eshell-ebbflow-return)
+  (when (fboundp 'evil-define-key)
+    (evil-define-key 'normal ebbflow-mode-map "Q" 'ha-eshell-ebbflow-return))
 #+end_src
 *** flow (or Buffer Cat)
 Eshell can send the output of a command sequence to a buffer:

@@ -191,11 +191,14 @@ And now start the server with an appropriate tag name:
   (server-start)
 #+end_src
 * Load the Rest
-The following loads the rest of my org-mode literate files. I add  new filesas they are /ready/:
+The following /defines/ the rest of my org-mode literate files, that I load later with the =ha-hamacs-load= function:
 #+begin_src emacs-lisp
   (defvar ha-hamacs-files (flatten-list
                            `("ha-private.org"
                              "ha-config.org"
+                             ;; "ha-leader.org"
+                             "ha-evil.org"
+                             ;; "ha-meow.org"
                              "ha-applications.org"
                              ,(when (display-graphic-p)
                                 "ha-display.org")

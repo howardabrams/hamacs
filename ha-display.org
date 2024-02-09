@@ -61,33 +61,11 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
                               other-window
                               delete-window
                               delete-other-windows
-                              aw-delete-window
                               forward-page
                               backward-page
                               scroll-up-command
                               scroll-down-command
-                              evil-window-right
-                              evil-window-left
-                              evil-window-up
-                              evil-window-down
-                              aw-move-window
-                              aw-swap-window
-                              aw-copy-window
-                              aw-split-window-vert
-                              aw-split-window-horz
-                              aw-split-window-fair
                               ha-new-window
-                              winum-select-window-1
-                              winum-select-window-2
-                              winum-select-window-3
-                              winum-select-window-4
-                              winum-select-window-5
-                              winum-select-window-6
-                              winum-select-window-7
-                              winum-select-window-8
-                              winum-select-window-9
-                              winner-undo
-                              winner-redo
                               tab-new
                               tab-close
                               tab-next
@@ -103,7 +81,39 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
     (pulsar-face 'pulsar-generic)
     (pulsar-delay 0.05)
     :bind ("<f8>" . pulsar-pulse-line)
-    :config (pulsar-global-mode 1))
+
+    :config
+    (when (fboundp 'winner-undo)
+      (add-to-list 'pulsar-pulse-functions 'winner-undo)
+      (add-to-list 'pulsar-pulse-functions 'winner-redo))
+
+    (when (fboundp 'winum-select-window-1)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-1)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-2)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-3)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-4)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-5)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-6)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-7)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-8)
+      (add-to-list 'pulsar-pulse-functions 'winum-select-window-9))
+
+    (when (fboundp 'aw-delete-window)
+      (add-to-list 'pulsar-pulse-functions aw-move-window)
+      (add-to-list 'pulsar-pulse-functions aw-swap-window)
+      (add-to-list 'pulsar-pulse-functions aw-copy-window)
+      (add-to-list 'pulsar-pulse-functions aw-split-window-vert)
+      (add-to-list 'pulsar-pulse-functions aw-split-window-horz)
+      (add-to-list 'pulsar-pulse-functions aw-split-window-fair)
+      (add-to-list 'pulsar-pulse-functions aw-delete-window))
+
+    (when (fboundp 'evil-window-right)
+      (add-to-list 'pulsar-pulse-functions evil-window-right)
+      (add-to-list 'pulsar-pulse-functions evil-window-left)
+      (add-to-list 'pulsar-pulse-functions evil-window-up)
+      (add-to-list 'pulsar-pulse-functions evil-window-down))
+
+    (pulsar-global-mode 1))
 #+end_src
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:

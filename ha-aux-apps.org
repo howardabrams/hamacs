@@ -137,7 +137,8 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
         ; telega-completing-read-function #'ivy-completing-read
         telega-msg-rainbow-title nil)
 
-      (add-hook 'telega-chat-mode-hook 'evil-insert-state)
+      (when (fboundp 'evil-insert-state)
+        (add-hook 'telega-chat-mode-hook 'evil-insert-state))
 
       (ha-leader "a t" 'telega))
 #+end_src

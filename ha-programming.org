@@ -189,9 +189,13 @@ We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartpa
 *** Move by Functions
 The =mark-paragraph= and =downcase-word= isn’t very useful in a programming context, and makes more sense to use them to jump around function-by-function:
 #+begin_src emacs-lisp
-  (evil-define-key '(normal insert emacs) prog-mode-map
-    (kbd "M-h")    'beginning-of-defun
-    (kbd "M-l")    'beginning-of-next-defun)
+  (global-set-key (kbd "M-h") 'beginning-of-defun)
+  (global-set-key (kbd "M-l") 'beginning-of-next-defun)
+
+  (when (fboundp 'evil-define-key)
+    (evil-define-key '(normal insert emacs) prog-mode-map
+      (kbd "M-h")    'beginning-of-defun
+      (kbd "M-l")    'beginning-of-next-defun))
 #+end_src
 But one of those functions doesn’t exist:
 #+begin_src emacs-lisp
@@ -418,7 +422,7 @@ Mickey’s interface is the [[help:combobulate][combobulate]] function (or ~C-c 
 *** Evil Text Object from Tree Sitter
 With Emacs version 29, we get a better approach to parsing languages, and this means that our [[https://github.com/nvim-treesitter/nvim-treesitter-textobjects#built-in-textobjects][text objects]] can be better too with the [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter project]]:
 #+begin_src emacs-lisp :tangle no
-  (when (treesit-available-p)
+  (when (and (treesit-available-p) (fboundp 'evil-define-text-object))
     (use-package evil-textobj-tree-sitter
       :config
       ;; We need to bind keys to the text objects found at:
@@ -634,10 +638,11 @@ This creates both an =iedit= and =iedit-insert= states. Calling ~Escape~ from =i
 
 To use, highlight a region with ~v~, and continue to hit ~v~ until you’ve selected the variable/symbol, and then type ~e~. Or, highlight normally, e.g. ~v i o~, and hit ~E~:
 #+begin_src emacs-lisp
-  (use-package evil-iedit-state
-    :after iedit
-    :general
-    (:states 'visual "E" '("iedit" . evil-iedit-state/iedit-mode)))
+  (when (fboundp 'evil-mode)
+    (use-package evil-iedit-state
+      :after iedit
+      :general
+      (:states 'visual "E" '("iedit" . evil-iedit-state/iedit-mode))))
 #+end_src
 
  The =iedit-insert= state is pretty much /regular/ =insert= state, so the interesting keys are in =iedit= state:
@@ -959,7 +964,10 @@ However, what about taking a buffer of JSON data, and whittling it down with [[h
             (re-search-forward "{")
             (goto-char (match-beginning 0)))
           (setq s (point))
-          (evil-jump-item)
+          ;; Jump forward using the evil-jump-item ... change this to one
+          ;; of the functions in thing-at-point?
+          (when (fboundp 'evil-jump-item)
+            (evil-jump-item))
           (setq e (1+ (point))))
         ;; (narrow-to-region s e)
         (shell-command-on-region s e (concat "jq " query) nil t "*jq errors*"))))

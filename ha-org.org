@@ -387,7 +387,8 @@ Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll 
         (find-file file)
         (goto-line line))))
 
-  (add-to-list 'evil-goto-definition-functions 'ha-org-noweb-block-jump)
+  (when (fboundp 'evil-goto-definition-functions)
+    (add-to-list 'evil-goto-definition-functions 'ha-org-noweb-block-jump))
 #+end_src
 
 *** REST Web Services
@@ -618,12 +619,13 @@ Global keybindings available to all file buffers:
 Bindings specific to org files:
 #+name: org-keybindings
 #+begin_src emacs-lisp :tangle no
-  (evil-define-key '(normal motion operator visual)
-    org-mode-map
-    "gj" '("next heading" . #'org-forward-heading-same-level)
-    "gk" '("prev heading" . #'org-backward-heading-same-level)
-    "gb" '("next block" . #'org-next-block)
-    "gB" '("prev block" . #'org-previous-block))
+  (when (fboundp 'evil-define-key)
+    (evil-define-key '(normal motion operator visual)
+      org-mode-map
+      "gj" '("next heading" . #'org-forward-heading-same-level)
+      "gk" '("prev heading" . #'org-backward-heading-same-level)
+      "gb" '("next block" . #'org-next-block)
+      "gB" '("prev block" . #'org-previous-block)))
 #+end_src
 * Supporting Packages
 ** Exporters
@@ -716,7 +718,9 @@ Next, I create a special /auto-correcting function/ that takes advantage of Evil
   other mistakes are automatically corrected."
     (interactive "p")
     (save-excursion
-      (evil-prev-flyspell-error count)
+      (when (fboundp 'evil-prev-flyspell-error)
+        (evil-prev-flyspell-error count))
+
       (when (looking-at (rx (one-or-more (any alnum "-" "_"))))
         (let ((start-word (match-beginning 0))
               (bad-word (match-string 0)))
@@ -747,9 +751,12 @@ For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] 
       "S"  '(:ignore t :which-key "spellcheck")
       "S s" '("correct last misspell" . ha-fix-last-spelling)
       "S b" '("check buffer" . flyspell-buffer)
-      "S c" '("correct word" . flyspell-auto-correct-word)
-      "S p" '("previous misspell" . evil-prev-flyspell-error)
-      "S n" '("next misspell" . evil-next-flyspell-error))
+      "S c" '("correct word" . flyspell-auto-correct-word))
+
+    (when (fboundp 'evil-prev-flyspell-error)
+      (ha-leader :keymaps 'text-mode-map
+        "S p" '("previous misspell" . evil-prev-flyspell-error)
+        "S n" '("next misspell" . evil-next-flyspell-error)))
 
     ;; Let's use M-TAB for something else ...
     (define-key flyspell-mode-map (kbd "M-TAB") nil))

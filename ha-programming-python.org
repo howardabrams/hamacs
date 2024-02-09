@@ -87,10 +87,9 @@ use_python() {
 ** Editing Python Code
 Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
 #+begin_src emacs-lisp
-  (use-package evil-text-object-python
-    :hook (python-mode . evil-text-object-python-add-bindings))
-
-
+  (when (fboundp 'evil-define-text-object)
+    (use-package evil-text-object-python
+      :hook (python-mode . evil-text-object-python-add-bindings)))
 #+end_src
 This allows me to delete a Python “block” using ~dal~.
 ** Docker Environment
