@@ -47,6 +47,20 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
 
   (use-package doom-themes)
 #+end_src
+* Find the Buffer Window
+To make the active window /more noticeable/, we /dim/ the in-active windows with the [[https://github.com/gonewest818/dimmer.el][dimmer project]].
+#+begin_src emacs-lisp
+  (use-package dimmer
+    :custom
+    (dimmer-adjustment-mode :foreground)
+    :config
+    (dimmer-configure-which-key)    ; Do not dim these special windows
+    (dimmer-configure-hydra)
+    (dimmer-configure-magit)
+
+    (dimmer-mode t))
+#+end_src
+As an interesting alternative, check out the [[https://www.emacs.dyerdwelling.family/emacs/20240208164549-emacs-selected-window-accent-mode-now-on-melpa/][selected-window-accent]] project.
 * Find the Bloody Cursor
 Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
 
@@ -54,35 +68,20 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
   (use-package pulsar
     :straight (:host github :repo "protesilaos/pulsar")
     :custom
-    (pulsar-pulse-functions '(recenter-top-bottom
-                              move-to-window-line-top-bottom
-                              reposition-window
-                              bookmark-jump
-                              other-window
-                              delete-window
-                              delete-other-windows
-                              forward-page
-                              backward-page
-                              scroll-up-command
-                              scroll-down-command
-                              ha-new-window
-                              tab-new
-                              tab-close
-                              tab-next
-                              org-next-visible-heading
-                              org-previous-visible-heading
-                              org-forward-heading-same-level
-                              org-backward-heading-same-level
-                              outline-backward-same-level
-                              outline-forward-same-level
-                              outline-next-visible-heading
-                              outline-previous-visible-heading
-                              outline-up-heading))
     (pulsar-face 'pulsar-generic)
     (pulsar-delay 0.05)
-    :bind ("<f8>" . pulsar-pulse-line)
 
     :config
+    (dolist (built-in-function '(recenter-top-bottom move-to-window-line-top-bottom reposition-window
+                                 bookmark-jump other-window delete-window delete-other-windows
+                                 forward-page backward-page scroll-up-command scroll-down-command
+                                 ha-new-window tab-new tab-close tab-next org-next-visible-heading
+                                 org-previous-visible-heading org-forward-heading-same-level
+                                 org-backward-heading-same-level outline-backward-same-level
+                                 outline-forward-same-level outline-next-visible-heading
+                                 outline-previous-visible-heading outline-up-heading))
+      (add-to-list 'pulsar-pulse-functions built-in-function))
+
     (when (fboundp 'winner-undo)
       (add-to-list 'pulsar-pulse-functions 'winner-undo)
       (add-to-list 'pulsar-pulse-functions 'winner-redo))
@@ -99,21 +98,27 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
       (add-to-list 'pulsar-pulse-functions 'winum-select-window-9))
 
     (when (fboundp 'aw-delete-window)
-      (add-to-list 'pulsar-pulse-functions aw-move-window)
-      (add-to-list 'pulsar-pulse-functions aw-swap-window)
-      (add-to-list 'pulsar-pulse-functions aw-copy-window)
-      (add-to-list 'pulsar-pulse-functions aw-split-window-vert)
-      (add-to-list 'pulsar-pulse-functions aw-split-window-horz)
-      (add-to-list 'pulsar-pulse-functions aw-split-window-fair)
-      (add-to-list 'pulsar-pulse-functions aw-delete-window))
+      (add-to-list 'pulsar-pulse-functions 'aw-move-window)
+      (add-to-list 'pulsar-pulse-functions 'aw-swap-window)
+      (add-to-list 'pulsar-pulse-functions 'aw-copy-window)
+      (add-to-list 'pulsar-pulse-functions 'aw-split-window-vert)
+      (add-to-list 'pulsar-pulse-functions 'aw-split-window-horz)
+      (add-to-list 'pulsar-pulse-functions 'aw-split-window-fair)
+      (add-to-list 'pulsar-pulse-functions 'aw-delete-window))
 
     (when (fboundp 'evil-window-right)
-      (add-to-list 'pulsar-pulse-functions evil-window-right)
-      (add-to-list 'pulsar-pulse-functions evil-window-left)
-      (add-to-list 'pulsar-pulse-functions evil-window-up)
-      (add-to-list 'pulsar-pulse-functions evil-window-down))
+      (add-to-list 'pulsar-pulse-functions 'evil-window-right)
+      (add-to-list 'pulsar-pulse-functions 'evil-window-left)
+      (add-to-list 'pulsar-pulse-functions 'evil-window-up)
+      (add-to-list 'pulsar-pulse-functions 'evil-window-down))
 
     (pulsar-global-mode 1))
+#+end_src
+
+And if I can’t find the cursor, and don’t want to move it to see it, I can hit a key:
+#+begin_src emacs-lisp
+  (use-package pulsar
+    :bind ("<f8>" . pulsar-pulse-line))
 #+end_src
 * Themes
 One does get used to a particular collection of colors. Mine is Tomorrow:
