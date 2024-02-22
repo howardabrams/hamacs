@@ -5,12 +5,32 @@
 
 These instructions originally came from [[https://jherrlin.github.io/posts/emacs-on-macos-monterey/][this essay]], as it runs Emacs as dæmon with LaunchAgent. Also fetch mails periodically with =mbsync= via LaunchAgent.
 * Install
+Since I’ve been having difficulties installing Emacs from source on a Mac, I’m now taking advantage of[[https://github.com/jimeh/emacs-builds][Jim Myhrberg's Emacs Build project]], and it is must nicer to simply, download a pre-built binary with all the bells and whistles.
+
+First, install the Homebrew cask:
+#+begin_src sh
+  brew tap jimeh/emacs-builds
+#+end_src
+And then, install Emacs:
+#+begin_src sh
+  brew install --cask emacs-app
+#+end_src
+* Install from Source
+If we can’t install a binary, we build from source.
+** Emacs Plus
 No longer need to install [[https://apps.apple.com/us/app/xcode/id497799835?mt=12][Apple XCode]], as these instructions require [[https://brew.sh][Homebrew]].
+
+If I want to build from source (and not build from Homebrew), install all the dependencies first, by running:
+#+begin_src sh
+brew install pkg-config automake texinfo jpeg giflib\
+  libtiff jansson libpng librsvg gnutls cmake
+#+end_src
 
 To get the native compilation for Emacs working, install:
 #+begin_src sh
   brew install libgccjit
 #+end_src
+
 Oh, and if we are still building with [[https://imagemagick.org/][ImageMagick]], install that first:
 #+begin_src sh
   brew install imagemagick
@@ -28,6 +48,39 @@ I find that I need to … at least, on my work computer, install two different v
 And if it fails, choose =shell= and type:
 #+begin_src sh
   make bootstrap
+#+end_src
+** Build from Scratch
+The failures that I often get from installing the Emacs Plus with Libgccjit, means that we might want to build from soure:
+#+begin_src sh
+mkdir -p ~/src
+git clone https://git.savannah.gnu.org/git/emacs.git ~/src/emacs
+cd ~/src/emacs
+./autogen.sh
+#+end_src
+And we can issue the same sort of configure we used for
+#+begin_src sh
+./configure --disable-dependency-tracking --disable-silent-rules  \
+            --enable-locallisppath=/opt/homebrew/share/emacs/site-lisp  \
+            --infodir=/opt/homebrew/Cellar/emacs-plus@29/29.2/share/info/emacs \
+            --prefix=/opt/homebrew/Cellar/emacs-plus@29/29.2 \
+            --with-xml2 --with-gnutls --with-native-compilation --without-compress-install \
+            --without-dbus --without-imagemagick --with-modules --with-rsvg --without-pop \
+            --with-ns --disable-ns-self-contained
+#+end_src
+Or to install/build into =/usr/local=:
+#+begin_src sh
+  LDFLAGS=-L/opt/homebrew/opt/libgccjit/lib -L/opt/homebrew/opt/xz/lib
+  CPPFLAGS=-I/opt/homebrew/opt/libgccjit/include -I/opt/homebrew/opt/xz/include
+  export LDFLAGS CPPFLAGS
+  ./configure --disable-dependency-tracking --disable-silent-rules  \
+              --prefix=/usr/local \
+              --with-xml2 --with-gnutls --with-native-compilation --without-compress-install \
+              --without-dbus --without-imagemagick --with-modules --with-rsvg --without-pop \
+              --with-ns --disable-ns-self-contained
+#+end_src
+Assuming that either works, then build it with:
+#+begin_src sh
+  make -j4
 #+end_src
 ** Ouchie
 Sometimes get the following error:

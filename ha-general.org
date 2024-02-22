@@ -189,6 +189,7 @@ And ways to load my tangled org-files:
     "h h"   '(:ignore t :which-key "hamacs")
     "h h <escape>" '(keyboard-escape-quit :which-key t)
     "h h f" '("features"    . ha-hamacs-features)
+    "h h e" '("edit"        . ha-hamacs-find-file)
     "h h h" '("reload"      . ha-hamacs-load)
     "h h a" '("reload all"  . ha-hamacs-reload-all))
 #+end_src

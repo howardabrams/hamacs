@@ -46,7 +46,7 @@ Helper functions to allow code for specific operating systems:
 
 With the way I start Emacs, I may not have the =PATH= I /actually/ use (from the shell) available, so we'll force it (code taken [[https://www.emacswiki.org/emacs/ExecPath][from here]]):
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun set-exec-path-from-shell ()
     "Set up Emacs' `exec-path' and PATH environment variable to match
   that used by the user's shell.
@@ -238,7 +238,7 @@ The list of /hamacs/ org-formatted files stored in =ha-hamacs-files= is selectiv
         ha-hamacs-files
 
       (thread-last (rx ".org" string-end)
-                   (directory-files "~/other/hamacs" nil)
+                   (directory-files hamacs-source-dir nil)
                    (append ha-hamacs-files)
                    (--filter (not (string-match (rx "README") it)))
                    (-uniq))))
@@ -253,6 +253,15 @@ With this function, we can test/debug/reload any individual file, via:
       (when (f-exists? full-file)
         (ignore-errors
             (org-babel-load-file full-file)))))
+#+end_src
+
+And the ability to edit the file:
+#+begin_src emacs-lisp
+  (defun ha-hamacs-find-file (file)
+    "Call `find-file' on relative org-mode FILE containing literate Emacs configuration code."
+    (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
+    (let ((full-file (f-join hamacs-source-dir file)))
+      (find-file full-file)))
 #+end_src
 
 And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
