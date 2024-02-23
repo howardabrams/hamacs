@@ -36,6 +36,7 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
     ;; While not an elfeed-specific variable, this make reading articles
     ;; with images easier:
     (setq pixel-scroll-precision-mode t)
+
     :general
     (:states 'normal :keymaps 'elfeed-show-mode-map
              "b" 'elfeed-show-visit
@@ -55,6 +56,12 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
     (interactive)
     (elfeed-search-untag-all 'unread)
     (elfeed-search-update))
+#+end_src
+
+Let’s turn on non-fixed-width fonts to make everything easier to read:
+#+begin_src emacs-lisp :tangle no
+  (use-package elfeed
+     :hook (elfeed-show-mode . variable-pitch-mode))
 #+end_src
 
 According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-eww/][this Pragmatic Emacs essay]], we could easily browse an article in the GUI browser instead of EWW with capital B:

@@ -252,7 +252,8 @@ I probably don't need to have such a ranking system, as chances are good I have 
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("Literata" ; Clean, readable with litagures
+                    '("SN Pro"   ; https://supernotes.app/open-source/sn-pro
+                      "Literata" ; Clean, readable with litagures
                       ;; Next best can be downloaded here:
                       ;; https://fontesk.com/xcharter-typeface/
                       "XCharter"
@@ -266,7 +267,7 @@ I probably don't need to have such a ranking system, as chances are good I have 
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("Overpass" "DejaVu Sans"
+                    '("SN Pro" "Overpass" "DejaVu Sans"
                       "Verdana" "Overpass"
                       "Source Sans Pro"
                       "Lucida Grande"
