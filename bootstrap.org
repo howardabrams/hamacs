@@ -46,7 +46,7 @@ Helper functions to allow code for specific operating systems:
 
 With the way I start Emacs, I may not have the =PATH= I /actually/ use (from the shell) available, so we'll force it (code taken [[https://www.emacswiki.org/emacs/ExecPath][from here]]):
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun set-exec-path-from-shell ()
     "Set up Emacs' `exec-path' and PATH environment variable to match
   that used by the user's shell.
@@ -81,31 +81,6 @@ Getting tired off all the packages that I load spewing a bunch of warnings that 
     (setq native-comp-async-report-warnings-errors nil
           native-comp-deferred-compilation t))
 #+end_src
-** GNU Pretty Good Privacy
-On Linux, GPG is pretty straight-forward, but on the Mac, I often have troubles doing:
-#+begin_src sh
-  brew install gpg
-#+end_src
-Next, on every reboot, start the agent:
-#+begin_src sh
-  /opt/homebrew/bin/gpg-agent --daemon
-#+end_src
-
-Since =brew link gpg= doesn’t always work, this helper function may find the executable:
-#+begin_src emacs-lisp
-  (defun executable (path)
-    "Return PATH if executable, see `file-executable-p'."
-    (let ((epath (first (file-expand-wildcards path))))
-      (when (and epath (file-executable-p epath)) epath)))
-
-  (use-package epa-file
-    :straight (:type built-in)
-    :custom (epg-gpg-program (or (executable "/opt/homebrew/bin/gpg")
-                                 (executable "/usr/local/bin/gpg")
-                                 (executable "/usr/local/opt/gpg")
-                                 (executable "/usr/bin/pgp")))
-    :config (epa-file-enable))
-#+end_src
 * Basic Libraries
 The following packages come with Emacs, but seems like they still need loading:
 #+begin_src emacs-lisp
@@ -120,13 +95,13 @@ Ugh. Why am I getting a missing =first= function error? I define a simple implem
 
 While most libraries will take care of their dependencies, I want to install /my dependent libraries/, e.g, [[https://github.com/magnars/.emacs.d/][Magnar Sveen]]'s Clojure-inspired [[https://github.com/magnars/dash.el][dash.el]] project:
 #+begin_src emacs-lisp
-(use-package dash)
+  (use-package dash)
 #+end_src
 Sure this package is essentially syntactic sugar, and to help /share/ my configuration, I attempt to use =thread-last= instead of =->>=, but, I still like it.
 
 The [[https://github.com/magnars/s.el][s.el]] project is a simpler string manipulation library that I (and other projects) use:
 #+begin_src emacs-lisp
-(use-package s)
+  (use-package s)
 #+end_src
 
 Manipulate file paths with the [[https://github.com/rejeep/f.el][f.el]] project:
