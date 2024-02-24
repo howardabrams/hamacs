@@ -313,19 +313,15 @@ Using =rsync= to keep published files in sync with my website:
                               (cdr)))
            (parent (plist-get conf :publishing-directory))
            (combos (cond
-                  ((equal project "blog-content")
+                  ((s-starts-with? "blog" project)
                    '("Technical" "howardism"
                      "Personal" "howardism"
                      "index.html" "howardism"
                      "about-me.html" "howardabrams"))
-                  ((equal project "blog-static") "howardism")
-                  ((equal project "blog-rss") "howardism")
-                  ((equal project "tech-notes") "howardabrams/technical")
-                  ((equal project "tech-notes-static") "howardabrams/technical")
-                  ((equal project "hamacs") "howardabrams/hamacs")
-                  ((equal project "hamacs-static") "howardabrams/hamacs")
-                  ((equal project "airbnb") "howardabrams/airbnb")
-                  ((equal project "airbnb-static") "howardabrams/airbnb"))))
+                  ((s-starts-with? "tech" project)
+                   '("" "howardabrams"))
+                  ((s-starts-with? "hamacs" project) '("" "howardabrams"))
+                  ((s-starts-with? "airbnb" project) '("" "howardabrams")))))
       ;; (dolist (tuple (seq-partition combos 2))
       ;;   (seq-let (src dest) tuple
       ;;     (format "rsync -az %s/%s %s:%s" parent src host dest)))
@@ -333,6 +329,7 @@ Using =rsync= to keep published files in sync with my website:
                    (seq-map (lambda (tuple) (seq-let (src dest) tuple
                                          (format "rsync -avz %s%s %s:%s" parent src host dest))))
                    (s-join "; ")
+                   (message)
                    (async-shell-command))))
 #+end_src
 * Keybindings

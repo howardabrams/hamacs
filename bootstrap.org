@@ -149,8 +149,8 @@ Hopefully, this will tie me over while I transition.
 I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like LSP), and my personal instance has other packages running (like IRC and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
 #+begin_src emacs-lisp
   (defun ha-emacs-for-work? ()
-    "Return non-nil when the Emacs application's location matches as one for work.
-  Based on initially running the app with a `FOR_WORK' environment variable."
+    "Return non-nil when the Emacs instance is for work.
+  Matches based on a `FOR_WORK' environment variable."
     (and (f-dir? "~/work")
          (getenv "FOR_WORK")))
 #+end_src
@@ -222,8 +222,10 @@ The list of /hamacs/ org-formatted files stored in =ha-hamacs-files= is selectiv
 With this function, we can test/debug/reload any individual file, via:
 #+begin_src emacs-lisp
   (defun ha-hamacs-load (file)
-    "Load or reload an org-mode FILE containing literate Emacs configuration code."
-    (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
+    "Load or reload an org-mode FILE containing literate
+  Emacs configuration code."
+    (interactive (list (completing-read "Org file: "
+                             (ha-hamacs-files :all))))
     (let ((full-file (f-join hamacs-source-dir file)))
       (when (f-exists? full-file)
         (ignore-errors
@@ -233,8 +235,10 @@ With this function, we can test/debug/reload any individual file, via:
 And the ability to edit the file:
 #+begin_src emacs-lisp
   (defun ha-hamacs-find-file (file)
-    "Call `find-file' on relative org-mode FILE containing literate Emacs configuration code."
-    (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
+    "Call `find-file' on relative org-mode FILE containing
+  literate Emacs configuration code."
+    (interactive (list (completing-read "Org file: "
+                                (ha-hamacs-files :all))))
     (let ((full-file (f-join hamacs-source-dir file)))
       (find-file full-file)))
 #+end_src
@@ -242,18 +246,21 @@ And the ability to edit the file:
 And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
 
 #+begin_src emacs-lisp
-(defun ha-hamacs-tangle (file)
-  "Tangle an org-mode FILE containing literate Emacs configuration code."
-  (interactive (list (completing-read "Org file: " (ha-hamacs-files :all))))
-  (let ((full-file (f-join hamacs-source-dir file))
-        (target (file-name-concat "~/emacs.d/elisp"
-                    (concat (file-name-sans-extension file) ".el"))))
-    (when (f-exists? full-file)
-      (ignore-errors
-        (with-temp-buffer
-          (insert-file-contents full-file)
-          (with-current-buffer (concat temporary-file-directory file)
-            (org-babel-tangle nil target (rx "emacs-lisp"))))))))
+  (defun ha-hamacs-tangle (file)
+    "Tangle an org-mode FILE containing literate Emacs
+  configuration code."
+    (interactive (list (completing-read "Org file: "
+                               (ha-hamacs-files :all))))
+    (let ((full-file (f-join hamacs-source-dir file))
+          (target (file-name-concat "~/emacs.d/elisp"
+                        (concat (file-name-sans-extension file)
+                                ".el"))))
+      (when (f-exists? full-file)
+        (ignore-errors
+          (with-temp-buffer
+            (insert-file-contents full-file)
+            (with-current-buffer (concat temporary-file-directory file)
+              (org-babel-tangle nil target (rx "emacs-lisp"))))))))
 #+end_src
 
 And we can now reload /all/ startup files:
