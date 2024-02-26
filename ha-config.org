@@ -224,7 +224,11 @@ While the space can be use to separate words (acting a bit like a =.*= regular e
     (completion-ignore-case t)
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion))))
+
     :init
+    (defvar orderless-skip-highlighting nil
+       "Not sure why this is being accessed.")
+
     (push 'orderless completion-styles))
 #+end_src
 *Note:* Open more than one file at once with =find-file= with a wildcard. We may also give the =initials= completion style a try.

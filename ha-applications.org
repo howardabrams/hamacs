@@ -108,6 +108,12 @@ The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses
     :ensure t
     :hook (magit-mode . magit-delta-mode))
 #+end_src
+
+This requires [[https://dandavison.github.io/delta/installation.html][installing an executable]]. For instance, on my Mac:
+#+begin_src sh
+  brew install git-delta
+#+end_src
+
 I also need to append the following to my [[file:~/.gitconfig][~/.gitconfig]] file:
 #+begin_src conf
   [delta]
