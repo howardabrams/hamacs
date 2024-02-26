@@ -66,7 +66,7 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
 Let’s turn on non-fixed-width fonts to make everything easier to read:
 #+begin_src emacs-lisp
   (use-package mastodon
-     :hook (mastodon-mode . variable-pitch-mode))
+     :hook (mastodon-mode . mixed-pitch-mode))
 #+end_src
 Starting the =mastodon= perspective, I set some initial windows:
 #+begin_src emacs-lisp
@@ -152,7 +152,7 @@ For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainb
 In the Telega chat’s, let’s turn on non-fixed-width fonts:
 #+begin_src emacs-lisp
   (use-package telega
-     :hook (telega-chat-mode . variable-pitch-mode))
+     :hook (telega-chat-mode . mixed-pitch-mode))
 #+end_src
 * RPG DM
 Been working on my [[https://gitlab.com/howardabrams/emacs-rpgdm][RPG DM project]] for getting Emacs helping as a /Dungeon Master's Assistant/. The idea is to be able to roll dice and whatnot. What I find most useful is the [[https://gitlab.com/howardabrams/emacs-rpgdm/-/blob/main/rpgdm-tables.el][random tables]].

@@ -346,6 +346,14 @@ Which font to choose?
 
   (font-monitor-size-default)
 #+end_src
+** Mixed Pitch
+[[https://github.com/emacsmirror/mixed-pitch][Mixed pitch]] is a minor mode that enables mixing fixed-pitch (also known as fixed-width or monospace) and variable-pitch (AKA “proportional”) fonts. It tries to be smart about which fonts get which face.
+
+#+begin_src emacs-lisp
+(use-package mixed-pitch
+  :hook
+  (text-mode . mixed-pitch-mode))
+#+end_src
 ** Zooming or Increasing Font Size
 Do we want to increase the size of font in a single window (using =text-scale-increase=), or globally (using my new =font-size-increase=)?
 

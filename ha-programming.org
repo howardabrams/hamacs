@@ -1039,7 +1039,6 @@ Also, I like Markdown is look like a word processor, similarly to my org files:
     :mode ((rx ".md" string-end) . gfm-mode)
     :init (setq markdown-command "multimarkdown"
                 markdown-header-scaling t)
-    :hook (markdown-mode . variable-pitch-mode)
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
              ", l" '("insert link" . markdown-insert-link) ; Also C-c C-l
@@ -1090,7 +1089,6 @@ Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to 
 Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[https://www.emacswiki.org/emacs/reStructuredText][well supported]] in Emacs.
 #+begin_src emacs-lisp
   (use-package rst
-    :hook (rst-mode . variable-pitch-mode)
     :config
     (set-face-attribute 'rst-literal nil :font ha-fixed-font))
 #+end_src

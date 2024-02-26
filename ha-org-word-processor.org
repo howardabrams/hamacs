@@ -268,13 +268,6 @@ And decrease the prominence of the property drawers:
   (set-face-attribute 'org-property-value nil :height 0.85)
   (set-face-attribute 'org-special-keyword nil :height 0.85)
 #+end_src
-This process allows us to use =variable-pitch= mode for all org documents.
-#+begin_src emacs-lisp
-  (use-package org
-    ;; TODO: Using the latest org-mode
-    ;; :straight (:type built-in)
-    :hook (org-mode . variable-pitch-mode))
-#+end_src
 * Org Modern
 The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a lot of what I was doing in this file.
 #+begin_src emacs-lisp
