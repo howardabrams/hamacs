@@ -25,23 +25,25 @@ A literate programming file for configuring Emacs.
   ;;; Code:
 #+end_src
 * Basic Configuration
-I begin with configuration of Emacs that isn’t /package-specific/. For instance, I hate a fat-finger that stop Emacs:
+I begin configuration of Emacs that isn’t /package-specific/. For instance, I hate to fat-finger a single letter that could stop Emacs:
 #+begin_src emacs-lisp
   (setq confirm-kill-emacs 'yes-or-no-p)
 #+end_src
 
-New way to display line-numbers. I set mine to =relative= so that I can jump up and down by that value. Set this to =nil= to turn off, or =t= to be absolute.
+Emacs has some new code to display line-numbers:
 #+begin_src emacs-lisp
   (setq display-line-numbers t
-        display-line-numbers-type 'relative)
+        display-line-numbers-type 'visual)
 #+end_src
 
-I like the rendering to curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
+I like the rendering of curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
 #+begin_src emacs-lisp
-  (setq text-quoting-style 'curve)
+  (setq text-quoting-style 'curve
+        truncate-string-ellipsis "…")
 #+end_src
+When typing prose in Org documents, I need to [[file:ha-org-word-processor.org::*Typographic Quotes][do something else]] for rounded quotes and ellipsis.
 
-Changes and settings I like introduced in Emacs 28:
+Changes and settings I like introduced that were introduced in Emacs 28:
 #+begin_src emacs-lisp
   (setq use-short-answers t
         describe-bindings-outline t
@@ -53,15 +55,16 @@ In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the cur
   (setq read-extended-command-predicate
         #'command-completion-default-include-p)
 #+end_src
-
-Unicode ellipsis are nicer than three dots:
-#+begin_src emacs-lisp
-  (setq truncate-string-ellipsis "…")
-#+end_src
+Before that, we used ~M-X~ (capital ~X~).
 
 When I get an error, I need a stack trace to figure out the problem. Yeah, when I stop fiddling with Emacs, this should go off:
 #+begin_src emacs-lisp
   (setq debug-on-error t)
+#+end_src
+
+I like being able to enable local variables in =.dir-local.el= files:
+#+begin_src emacs-lisp
+  (setq enable-local-variables t)
 #+end_src
 
 And some Mac-specific settings:
@@ -71,23 +74,6 @@ And some Mac-specific settings:
           mac-command-modifier 'super)
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
-#+end_src
-* Basic Configuration
-** Initial Settings and UI
-Let's turn off the menu and other settings:
-#+begin_src emacs-lisp
-  (when (display-graphic-p)
-    (context-menu-mode 1)
-    (tool-bar-mode -1)
-    (scroll-bar-mode -1)
-    (horizontal-scroll-bar-mode -1)
-    (setq visible-bell 1
-          frame-inhibit-implied-resize t))
-#+end_src
-
-I like being able to enable local variables in =.dir-local.el= files:
-#+begin_src emacs-lisp
-  (setq enable-local-variables t)
 #+end_src
 ** File Access
 *** Remote Files
@@ -277,20 +263,19 @@ The [[https://github.com/minad/marginalia][marginalia]] package gives a preview 
     (marginalia-mode))
 #+end_src
 * Key Bindings
-To begin my binding changes, let's turn on [[https://github.com/justbur/emacs-which-key][which-key]]:
+The [[https://github.com/justbur/emacs-which-key][which-key]] project shows a menu of available key-bindings based on what you have already typed. For instance, if you remember that Org Goto function (like most Org-related functions) began with ~C-c~, after typing that sequence, all possible keybindings and their functions are shown. Useful for discovering new features.
 #+begin_src emacs-lisp
   (use-package which-key
     :init   (setq which-key-popup-type 'minibuffer)
     :config (which-key-mode))
 #+end_src
-Why would I ever quit Emacs with a simple keybinding? Let’s override it:
+
+Why would I ever quit Emacs with a simple keybinding on a Mac? Let’s override it:
 #+begin_src emacs-lisp
   (global-set-key (kbd "s-q") 'bury-buffer)
 #+end_src
 ** Undo
-I mean, I /always/ use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), but when I’m on the Mac, I need to cover my bases.
-
-Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the built-in undo functionality? Well, there isn’t much to the project (that’s a good thing), but It basically doesn’t /cycle/ around the redo, which annoying.
+The [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] isn’t much to the project (that’s a good thing), but It doesn’t /cycle/ around the redo ring, which can be annoying.
 
 #+begin_src emacs-lisp
   (use-package undo-fu
@@ -301,19 +286,22 @@ Why use [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] instead of the 
     (global-set-key (kbd "s-z")   'undo-fu-only-undo)
     (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
 #+end_src
+
+While I usually use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), when I’m on the Mac, I need to cover my bases.
+
 ** Leader Sequences
-Pressing the ~SPACE~ can activate a /leader key sequence/ that I define with [[file:ha-leader.org][general]] package.
+Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:ha-leader.org][ha-leader]] file.
 #+begin_src emacs-lisp
   (ha-hamacs-load "ha-general.org")
 #+end_src
-This extends the =use-package= to include a =:general= keybinding section.
-** Additional Global Packages
+*Note:* This code extends the =use-package= to include a =:general= keybinding section, that I use elsewhere, so I need to pull it in now.
+** Text Completion Packages
+*** Auto Completion
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
   - Spelling in org files (abbrev or hippie expander) and code completion are separate, but I’m not sure if I can split them
   - IDEs overuse the ~TAB~ binding, and I should re-think the bindings.
 
-*** Auto Completion
 I don’t find the Emacs completion system obvious, with different interfaces, some distinct, some connected. Here’s the summary as I understand:
 #+begin_verse
    =indent-for-tab-command=, which /we can/ call:
@@ -370,8 +358,8 @@ After using  [[http://company-mode.github.io/][company]] for my completion back-
     :init
     (global-corfu-mode))
 #+end_src
-* Yet Another Snippet System (YASnippets)
-Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to convert templates into text:
+*** Snippets
+Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to expand templates into text:
 
 #+begin_src emacs-lisp
   (use-package yasnippet
@@ -427,7 +415,8 @@ As an example of its use, any Org files loaded in /this project/ should insert m
   (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
   (ha-auto-insert-file (rx ".dir-locals.el") "dir-locals.el")
 #+end_src
-*** Visual Replace with Visual Regular Expressions
+** Additional Global Packages
+*** Visual Replacing Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
 #+begin_src emacs-lisp
   (use-package visual-regexp

@@ -25,7 +25,7 @@ A literate configuration file for email using Notmuch.
   ;;; Code:
 #+end_src
 * Introduction
-To use this system, begin with ~SPC a m~ (after a ~SPC a n~ to asychronously download new mail … which probably should be running beforehand).
+To use this system, begin with ~SPC a M~ (after a ~SPC a n~ to asychronously download new mail … which probably should be running beforehand).
 
 When the Notmuch interface up, hit ~J~ to jump to one of the Search boxes (described below). Typically, this is ~i~ for the Imbox, check out the focused message from people I care). Hit ~q~ to return.
 

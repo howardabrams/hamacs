@@ -25,6 +25,17 @@ A literate programming file to configure the Emacs UI.
   ;;; Code:
 #+end_src
 
+Let's turn off the menu and other settings:
+#+begin_src emacs-lisp
+  (when (display-graphic-p)
+    (context-menu-mode 1)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (horizontal-scroll-bar-mode -1)
+    (setq visible-bell 1
+          frame-inhibit-implied-resize t))
+#+end_src
+
 And let’s make this Emacs look more like a fancy IDE with [[https://github.com/domtronn/all-the-icons.el][all-the-icons]]:
 #+begin_src emacs-lisp
   (use-package all-the-icons
