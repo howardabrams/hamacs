@@ -31,7 +31,7 @@ Using the [[https://github.com/bastibe/org-journal][org-journal]] project to eas
 (use-package org-journal
   :init
   (setq org-journal-dir "~/journal"
-        org-journal-date-format "TODO "
+        org-journal-date-format " "
         org-journal-time-format ""
         org-journal-file-type 'daily
         org-journal-file-format "%Y%m%d")

@@ -2,6 +2,6 @@
 # name: __journal
 # key: __journal
 # --
-#+TITLE: Journal Entry- `(ha/journal-file-datestamp)`
+#+TITLE: Journal Entry- `(ha-journal-file-datestamp)`
 
 $0

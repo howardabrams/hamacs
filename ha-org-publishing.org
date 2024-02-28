@@ -318,8 +318,7 @@ Using =rsync= to keep published files in sync with my website:
                      "Personal" "howardism"
                      "index.html" "howardism"
                      "about-me.html" "howardabrams"))
-                  ((s-starts-with? "tech" project)
-                   '("" "howardabrams"))
+                  ((s-starts-with? "tech" project)   '("" "howardabrams"))
                   ((s-starts-with? "hamacs" project) '("" "howardabrams"))
                   ((s-starts-with? "airbnb" project) '("" "howardabrams")))))
       ;; (dolist (tuple (seq-partition combos 2))
