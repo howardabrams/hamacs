@@ -29,28 +29,46 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
 
 #+begin_src emacs-lisp
   (use-package elfeed
-    :init
+    :config
     ;; While I would like to share the /status/ of my reads, so ...
     (setq elfeed-db-directory "~/dropbox/.elfeed/")
+
+    ;; Let's limit what is initially displayed, and then expand it:
+    (setq elfeed-search-filter "@6-months-ago +unread -science -funny")
 
     ;; While not an elfeed-specific variable, this make reading articles
     ;; with images easier:
     (setq pixel-scroll-precision-mode t)
 
-    :general
-    (:states 'normal :keymaps 'elfeed-show-mode-map
-             "b" 'elfeed-show-visit
-             "n" 'elfeed-show-next
-             "p" 'elfeed-show-prev
-             "y" 'elfeed-show-yank
-             "q" 'kill-buffer
-             "o" 'link-hint-open-link ; This is why this package depends on link-hint:
-             "Q" 'delete-window)
-    (:states 'normal :keymaps 'elfeed-search-mode-map
-             "r" 'ha-elfeed-tag-unread
-             "R" 'elfeed-search-update--force
-             "u" 'elfeed-update
-             "U" 'elfeed-unjam))
+    (defvar ha-elfeeds-title
+      (concat (all-the-icons-faicon "rss") " Feed Reader"))
+
+    (major-mode-hydra-define elfeed-search-mode
+      (:title ha-elfeeds-title)
+      ("Feeds"
+       (("U" (elfeed-search-fetch 4) "Refresh Feeds")
+        ("u" elfeed-update "Update Screen")
+        ("f" elfeed-search-live-filter "Filter")
+        ("F" elfeed-search-clear-filter "Clear Filter")
+        ("X" elfeed-unjam "Unjam"))
+       "Entry"
+       (("r" elfeed-search-untag-all-unread "Mark read" :color pink)
+        ("R" ha-elfeed-tag-unread "Mark read/refresh")
+        ("y" elfeed-search-yank "Copy URL"))))
+
+    (major-mode-hydra-define elfeed-show-mode
+      (:title ha-elfeeds-title)
+      ("Entry"
+       (("n" elfeed-show-next "Next Entry" :color pink)
+        ("p" elfeed-show-prev "Previous Entry" :color pink))
+       "Read"
+       (("b" elfeed-show-visit "Show in EWW")
+        ("B" elfeed-show-visit-gui "Show in Browser")
+        ("y" elfeed-show-yank "Copy URL"))
+       "Navigation"
+       (("o" link-hint-open-link "Open Link")
+        ("q" bury-buffer "Close")
+        ("Q" delete-window "Close Window")))))
 
   (defun ha-elfeed-tag-unread ()
     (interactive)
@@ -61,38 +79,28 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
 According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-eww/][this Pragmatic Emacs essay]], we could easily browse an article in the GUI browser instead of EWW with capital B:
 
 #+begin_src emacs-lisp
-  (use-package elfeed
-    :config
-    (defun elfeed-show-visit-gui ()
-      "Wrapper for elfeed-show-visit to use gui browser instead of eww"
-      (interactive)
-      (let ((browse-url-generic-program "/usr/bin/open"))
-        (elfeed-show-visit t)))
-
-    :bind (:map elfeed-show-mode-map
-                ("B" . elfeed-show-visit-gui)))
+  (defun elfeed-show-visit-gui ()
+    "Wrapper for elfeed-show-visit to use gui browser instead of eww"
+    (interactive)
+    (let ((browse-url-generic-program "/usr/bin/open"))
+      (elfeed-show-visit t)))
 #+end_src
 
 Quick way to start and jump to my world of feeds.
 #+begin_src emacs-lisp
-  (defun ha-elfeed-persp-start ()
+  (defun ha-elfeed-persp ()
     "Create an ELFEED workspace and start my ELFEED client."
     (interactive)
-    (persp-switch "feeds")
-    (elfeed))
-
-  (defun ha-elfeed-persp-switch ()
-    "Switch to the ELFEED workspace and load the next buffer."
-    (interactive)
-    (persp-switch "feeds"))
+    (let ((already-reading? (seq-contains-p
+                              (persp-names) "feeds" 'equal)))
+        (persp-switch "feeds")
+        (unless already-reading?
+          (elfeed))))
 #+end_src
 
 And some global keys to display them in the =apps= menu:
-
 #+begin_src emacs-lisp
-(ha-leader
-  "a f" '("elfeed switch" . ha-elfeed-persp-switch)
-  "a F" '("elfeed start"  . ha-elfeed-persp-start))
+  (ha-leader "a f" '("elfeed switch" . ha-elfeed-persp))
 #+end_src
 * The Feeds :elfeed:
 The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =elfeed= to read the RSS feeds from an Org file … like this one!

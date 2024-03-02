@@ -298,9 +298,15 @@ Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:
 #+begin_src emacs-lisp
   (ha-hamacs-load "ha-general.org")
 #+end_src
-*Note:* This code extends the =use-package= to include a =:general= keybinding section, that I use elsewhere, so I need to pull it in now.
-** Text Completion Packages
-*** Auto Completion
+This extends the =use-package= to include a =:general= keybinding section.
+
+Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using the [[https://github.com/jerrypnz/major-mode-hydra.el][Major Mode Hydra]] project:
+#+begin_src emacs-lisp
+  (use-package major-mode-hydra
+    :config
+    (global-set-key (kbd "s-,") #'major-mode-hydra))
+#+end_src
+** Additional Global Packages
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
   - Spelling in org files (abbrev or hippie expander) and code completion are separate, but I’m not sure if I can split them

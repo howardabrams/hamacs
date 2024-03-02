@@ -121,11 +121,13 @@ And some global keys to display them:
 
 And a quick shortcuts to call it:
 #+begin_src emacs-lisp
-  (ha-local-leader :keymaps '(erc-mode-map)
-   "o" '("next channel" . erc-track-switch-buffer)
-   "w" '("resize text" . ha-erc-resize-text)
-   "r" '("reconnect" . ha-erc-connect-irc)
-   "p" '("send password" . ha-erc-reconnect-password))
+  (major-mode-hydra-define erc-mode nil
+    ("Server"
+     (("r" ha-erc-connect-irc "reconnect")
+      ("p" ha-erc-reconnect-password) "send password")
+     "Channel"
+     (("o" erc-track-switch-buffer "next channel")
+      ("w" ha-erc-resize-text "resize text"))))
 #+end_src
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:

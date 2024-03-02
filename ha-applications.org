@@ -385,15 +385,43 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
     :config
     (ha-leader "a b" '("eww browser" . eww))
 
+    (defun ha-eww-save-off-window (name)
+      (interactive (list (read-string "Name: " (plist-get eww-data :title))))
+      (rename-buffer (format "*eww: %s*" name) t))
+
+    (major-mode-hydra-define eww-mode nil
+      ("Browser"
+       (("G" eww-browse "Browse")
+        ("B" eww-list-bookmarks "Bookmarks")
+        ("q" bury-buffer "Quit"))
+       "History"
+       (("l" eww-back-url     "Back" :color pink)
+        ("r" eww-forward-url  "Forward" :color pink)
+        ("H" eww-list-histories "History"))
+       "Current Page"
+       (("b" eww-add-bookmark "Bookmark")
+        ("g" link-hint-open-link "Jump Link")
+        ("d" eww-download "Download"))
+       "Render Page"
+       (("e" eww-browse-with-external-browser "Open in Firefox")
+        ("R" eww-readable "Reader Mode")
+        ("y" eww-copy-page-url "Copy URL"))
+       "Navigation"
+       (("u" eww-top-url "Site Top")
+        ("n" eww-next-url "Next Page")
+        ("p" eww-previous-url "Previous"))
+       "Toggles"
+       (("c" eww-toggle-colors "Colors")
+        ("i" eww-toggle-images "Images")
+        ("f" eww-toggle-fonts "Fonts"))
+       "Misc"
+       (("s" ha-eww-save-off-window "Rename")
+        ("S" eww-switch-to-buffer "Switch to")
+        ("-" eww-write-bookmarks "Save Bookmarks")
+        ("M" eww-read-bookmarks "Load Bookmarks"))))
+
     :general
     (:states 'normal :keymaps 'eww-mode-map
-             "B" 'eww-list-bookmarks
-             "Y" 'eww-copy-page-url
-             "H" 'eww-back-url
-             "L" 'eww-forward-url
-             "u" 'eww-top-url
-             "p" 'eww-previous-url
-             "n" 'eww-next-url
              "q" 'bury-buffer)
     (:states 'normal :keymaps 'eww-buffers-mode-map
              "q" 'bury-buffer))
@@ -662,17 +690,12 @@ I’d like write notes in org files that link to the PDFs (and maybe visa versa)
 #+begin_src emacs-lisp
   (use-package org-noter
     :config
-    (ha-leader "o N" '("pdf notes" . org-noter))
-    (ha-local-leader
-      :keymaps 'org-noter-doc-mode-map
-      "n" '("pdf notes" . org-noter)
-
-      ;; This means that I can stay in normal mode:
-      :keymaps 'org-noter-notes-mode-map
-      "i" '("insert note" . org-noter-insert-note)
-      "s" '("sync note" . org-noter-sync-current-note)
-      "n" '("next note" . org-noter-sync-next-note)
-      "p" '("previous note" . org-noter-sync-prev-note)))
+    (major-mode-hydra-define org-noter-doc-mode-map nil
+      ("Notes"
+       (("i" org-noter-insert-note "insert note")
+        ("s" org-noter-sync-current-note "sync note")
+        ("n" org-noter-sync-next-note "next note" :color pink)
+        ("p" org-noter-sync-prev-note "previous note" :color pink)))))
 #+end_src
 
 To use, open a header in an org doc, and run =M-x org-noter= (~SPC o N~) and select the PDF. The =org-noter= function can be called in the PDF doc as well. In Emacs state, type ~i~ to insert a note /as a header/, or in Normal state, type ~, i~.

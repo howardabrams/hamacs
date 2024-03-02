@@ -102,15 +102,17 @@ And some leader-based keybindings:
   (use-package notmuch
     :config
     (ha-leader   ; Should I put these under an "m" heading?
-      "a n" '("new mail" . notmuch-retrieve-messages)
+      "a e" '("new mail" . notmuch-retrieve-messages)
       "a m" '("read mail" . notmuch)
       "a c" '("compose mail" . compose-mail))
 
-    (ha-local-leader :keymaps 'notmuch-hello-mode-map
-     "u" '("new mail" . notmuch-retrieve-messages)
-     "m" '("read mail" . notmuch)
-     "c" '("compose"     . notmuch-mua-new-mail)
-     "C" '("reply-later" . hey-notmuch-reply-later))
+    (major-mode-hydra-define notmuch-hello-mode nil
+      ("Mail"
+       (("u" notmuch-retrieve-messages "new mail")
+        ("m" notmuch "read mail"))
+       "Messages"
+       (("c" notmuch-mua-new-mail "compose")
+        ("C" hey-notmuch-reply-later "reply-later"))))
 
     <<hey-show-keybindings>>
     <<hey-search-keybindings>>)
@@ -643,9 +645,10 @@ This means:
 A series of keybindings to quickly send messages to one of the pre-defined buckets.
 #+NAME: hey-show-keybindings
 #+begin_src emacs-lisp :tangle no
-  (ha-local-leader :keymaps 'notmuch-show-mode-map
-      "c" '("compose"     . notmuch-mua-new-mail)
-      "C" '("reply-later" . hey-notmuch-reply-later))
+  (major-mode-hydra-define notmuch-show-mode nil
+    ("Messages"
+     (("c" notmuch-mua-new-mail "compose")
+      ("C" hey-notmuch-reply-later "reply-later"))))
 
   (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
 #+end_src
@@ -654,23 +657,26 @@ The bindings in =notmuch-search-mode= are available when looking at a list of me
 
 #+NAME: hey-search-keybindings
 #+begin_src emacs-lisp :tangle no
-  (ha-local-leader :keymaps 'notmuch-search-mode-map
-      "r" '("reply"              . notmuch-search-reply-to-thread)
-      "R" '("reply-all"          . notmuch-search-reply-to-thread-sender)
-      "/" '("search"             . notmuch-search-filter)
-      "A" '("archive all"        . hey-notmuch-archive-all)
-      "D" '("delete all"         . hey-notmuch-delete-all)
-      "L" '("filter by from"     . hey-notmuch-filter-by-from)
-      ";" '("search by from"     . hey-notmuch-search-by-from)
-      "d" '("delete thread"      . hey-notmuch-search-delete-and-archive-thread)
+  (major-mode-hydra-define notmuch-search-mode nil
+    ("Mail"
+     (("r" notmuch-search-reply-to-thread "reply")
+      ("R" notmuch-search-reply-to-thread-sender "reply-all")
+      ("A" hey-notmuch-archive-all "archive all")
+      ("D" hey-notmuch-delete-all "delete all")
+      ("d" hey-notmuch-search-delete-and-archive-thread "delete thread"))
+     "Search"
+     (("/" notmuch-search-filter "search")
+      ("L" hey-notmuch-filter-by-from "filter by from")
+      (";" hey-notmuch-search-by-from "search by from"))
+     "Messages"
+     (("s" hey-notmuch-move-sender-to-spam "send to spam")
+      ("i" hey-notmuch-move-sender-to-screened "send to screened")
+      ("p" hey-notmuch-move-sender-to-papertrail "send to papertrail")
+      ("f" hey-notmuch-move-sender-to-thefeed "send to feed")
+      ("C" hey-notmuch-reply-later "reply")
+      ("c" notmuch-mua-new-mail) "compose")))
 
-      "s" '("send to spam"       . hey-notmuch-move-sender-to-spam)
-      "i" '("send to screened"   . hey-notmuch-move-sender-to-screened)
-      "p" '("send to papertrail" . hey-notmuch-move-sender-to-papertrail)
-      "f" '("send to feed"       . hey-notmuch-move-sender-to-thefeed)
-      "C" '("reply"              . hey-notmuch-reply-later)
-      "c" '("compose"            . notmuch-mua-new-mail))
-
+  ;; And if I can remember the keybindings...
   (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
   (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
   (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
@@ -691,9 +697,10 @@ The gods ordained that Mail and Org should dance together, so step one is compos
 #+begin_src emacs-lisp
   (use-package org-mime
     :config
-    (ha-local-leader :keymaps 'notmuch-message-mode-map
-      "s" '("send" . notmuch-mua-send-and-exit)
-      "m" '("mime it" . org-mime-htmlize)))
+    (major-mode-hydra-define notmuch-message-mode nil
+      ("Messages"
+       (("s" notmuch-mua-send-and-exit "send")
+        ("m" org-mime-htmlize "mime it")))))
 #+end_src
 A new option is to use [[https://github.com/jeremy-compostella/org-msg][org-msg]], so let's try it:
 #+begin_src emacs-lisp :noweb yes

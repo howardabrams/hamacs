@@ -47,20 +47,42 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
                               (persp-names) "mastodon" 'equal)))
         (persp-switch "mastodon")
         (unless already-tooted?
-          (ha-local-leader :keymaps 'mastodon-mode-map
-            ;; "," '("thread" . mastodon-tl--thread)
-            "t" '("toot" . mastodon-toot)
-            "u" '("update" . mastodon-tl--update)
-            "f" '("favorite" . mastodon-toot--toggle-favourite)
-            "b" '("boost" . mastodon-toot--toggle-boost)
-            "r" '("reply" . mastodon-toot--reply)
-            "s" '("share" . mastodon-toot--copy-toot-url)
-            "y" '("copy text" . mastodon-toot--copy-toot-text)
-            "d" '("discover" . mastodon-discover))
-          (my-mastodon-start))))
+          (mastodon))))
 
     (ha-leader
-      "a m" '("mastodon" . mastodon-perspective)))
+      "a m" '("mastodon" . mastodon-perspective))
+
+    (use-package major-mode-hydra
+      :config
+      (major-mode-hydra-define mastodon-mode nil
+        ("Timelines"
+         (("u" mastodon-tl--update "update")
+          ("F" mastodon-tl--get-federated-timeline "Federated")
+          ("H" mastodon-tl--get-home-timeline "Home")
+          ("L" mastodon-tl--get-local-timeline "Local")
+          ("T" mastodon-tl--get-tag-timeline "Hashtag"))
+         "Specials"
+         (("M" mastodon-notifications--get-mentions "Mentions")
+          ("N" mastodon-notifications-get "Notifications")
+          ("A" mastodon-tl--followed-tags-timeline "All Tags")
+          ("S" mastodon-profile--view-bookmarks "Saved bookmarks")
+          ("O" mastodon-profile--my-profile "My Profile"))
+         "Post"
+         (("c" mastodon-toot "Compose toot")
+          ("e" mastodon-toot--edit-toot-at-point "Edit toot")
+          ("t" mastodon-tl--thread "Read thread")
+          ("r" mastodon-toot--reply "Reply")
+          ("m" mastodon-tl--dm-user "Direct Msg")
+          ("d" mastodon-toot--delete-toot "Delete"))
+         "Toot"
+         (("f" mastodon-toot--toggle-favourite "Favorite")
+          ("b" mastodon-toot--toggle-boost "Boost")
+          ("s" mastodon-toot--toggle-bookmark "Save")
+          ("y" mastodon-toot--copy-toot-url "Copy URL")
+          ("Y" mastodon-toot--copy-toot-text "Copy text"))
+         "Navigation"
+         (("n" mastodon-tl--next-tab-item "next" :color pink)
+          ("p" mastodon-tl--previous-tab-item "previous" :color pink))))))
 #+end_src
 
 Let’s turn on non-fixed-width fonts to make everything easier to read:
@@ -68,16 +90,6 @@ Let’s turn on non-fixed-width fonts to make everything easier to read:
   (use-package mastodon
      :hook (mastodon-mode . mixed-pitch-mode))
 #+end_src
-Starting the =mastodon= perspective, I set some initial windows:
-#+begin_src emacs-lisp
-  (defun my-mastodon-start ()
-    "Configure the window placement for a Mastodon Instance."
-    (let ((default-directory (getenv "HOME")))
-      (mastodon)
-      (switch-to-buffer "*mastodon-home*")
-      (split-window-right)
-      (mastodon-tl--get-local-timeline)
-      (switch-to-buffer "*mastodon-local*")))
 #+end_src
 ** Matrix/Element
 Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [[matrix.org][Matrix]] is act ually open source. In other words, a project for nerds. We’ll be using Alphapapa’s latest [[https://github.c om/alphapapa/ement.el][ement]] project.
