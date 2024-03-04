@@ -34,6 +34,12 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
     :custom (with-editor-emacsclient-executable "emacsclient")
 
     :config
+    ;; See https://takeonrules.com/2024/03/01/quality-of-life-improvement-for-entering-and-exiting-magit/
+    (setq magit-display-buffer-function
+        #'magit-display-buffer-fullframe-status-v1)
+    (setq magit-bury-buffer-function
+        #'magit-restore-window-configuration)
+
     ;; The following code re-instates my General Leader key in Magit.
     (general-unbind magit-mode-map "SPC")
 
@@ -337,6 +343,19 @@ Pushing directly to the upstream branch is /bad form/, as one should create a pu
                                    (or (magit-get-upstream-branch branch)
                                        (magit-get "branch" branch "remote"))))
         (user-error "Push to upstream aborted by user"))))
+#+end_src
+** Github Search?
+Wanna see an example of how other’s use a particular function?
+#+begin_src emacs-lisp
+  (defun my-github-search(&optional search)
+    (interactive (list (read-string "Search: " (thing-at-point 'symbol))))
+    (let* ((language (cond ((eq major-mode 'python-mode) "Python")
+                           ((eq major-mode 'emacs-lisp-mode) "Emacs Lisp")
+                           ((eq major-mode 'yaml-mode) "Ansible")
+                           (t "Text")))
+           (url (format "https://github.com/search/?q=\"%s\"+language:\"%s\"&type=Code" (url-hexify-string search)
+                        language)))
+      (browse-url url)))
 #+end_src
 * ediff
 Love me ediff, but with monitors that are wider than they are tall, let’s put the diffs side-by-side:
