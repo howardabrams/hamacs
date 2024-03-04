@@ -161,6 +161,9 @@ An Emacs-learning blog by Junji Zhi.
 Abhinav Tushar's blog is heavily Emacs and org-focused.
 **** [[https://olddeuteronomy.github.io/index.xml][Emacs Cat]]
 A new blog about Emacs.
+
+**** [[https://tdodge.consulting/blog/rss.xml][Tyler Dodge]]
+Intrigued with Emacs =org-assistant= project, but a good Emacs blog.
 *** Programming :programming:
 **** [[http://swannodette.github.com/atom.xml][David Nolen]] :clojure:clojurescript:
 While he hasn't updated the blog in a while, keep an eye on his [[http://swannodette.github.com][Github projects]].
