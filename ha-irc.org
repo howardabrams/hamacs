@@ -27,50 +27,39 @@ A literate programming configuration file for IRC communiction.
 * Introduction
 My IRC /needs/ are basic, but I'm not sure which I want to use.
 ** ERC
+Initial variable configuration for ERC.
 #+begin_src emacs-lisp
-  (use-package erc-hl-nicks
-    :after erc)
-
-  (use-package erc-image
-    :after erc)
-
   (use-package erc
-    :commands erc
     :config
-    (setq
-     erc-nick "howard-abrams"
-     erc-user-full-name "Howard Abrams"
-     erc-prompt ">>"
-     erc-prompt-for-nickserv-password nil
-     erc-auto-query 'bury
-     erc-join-buffer 'bury
-     erc-interpret-mirc-color t
-     erc-rename-buffers t
-     erc-hide-list '("JOIN" "PART" "QUIT")
-     erc-track-enable-keybindings nil
-     erc-track-visibility nil ; Only use the selected frame for visibility
-     erc-fill-column 120
-     erc-fill-function 'erc-fill-static
-     erc-fill-static-center 20
-     erc-timestamp-only-if-changed-flag nil
-     ;; erc-timestamp-format "%H:%M"
-     erc-autojoin-channels-alist '(("howardabrams.com" "#emacs" "#org-mode"))
-     erc-quit-reason (lambda (s) (or s "Fading out..."))
-     erc-modules
-     '(autoaway autojoin button completion fill irccontrols keep-place
-                list match menu move-to-prompt netsplit networks noncommands
-                readonly ring stamp track hl-nicks)))
+    (setq erc-nick "howard-abrams"
+          erc-user-full-name "Howard Abrams"
+          erc-server "irc.libera.chat")
 
-  (defun ha-erc-connect-irc ()
-    "Connect to my favorite IRC server with ERC."
-    (interactive)
-    (let* ((auth-results (auth-source-search :host "irc.libera.chat" :port 6667 :max 1))
-           (auth-first   (first auth-results))
-           (username     (plist-get auth-first :user))
-           (password     (funcall (plist-get auth-first :secret))))
-      (erc :server "irc.libera.chat" :port 6667)
-      (sit-for 2)
-      (erc-cmd-QUOTE (format "PASS %s:%s" username password))))
+    (seq-let (username password) (auth-source-user-and-password "irc.libera.chat")
+      (setq erc-session-username username
+            erc-session-password password
+            erc-password password))
+
+    (setq erc-prompt ">>"
+          erc-prompt-for-nickserv-password nil
+          erc-auto-query 'bury
+          erc-join-buffer 'bury
+          erc-interpret-mirc-color t
+          erc-rename-buffers t
+          erc-hide-list '("JOIN" "PART" "QUIT")
+          erc-track-enable-keybindings nil
+          erc-track-visibility nil ; Only use the selected frame for visibility
+          erc-fill-column 120
+          erc-fill-function 'erc-fill-static
+          erc-fill-static-center 20
+          erc-timestamp-only-if-changed-flag nil
+          ;; erc-timestamp-format "%H:%M"
+          erc-autojoin-channels-alist '((".*" "#emacs" "#org-mode"))
+          erc-quit-reason (lambda (s) (or s "Fading out..."))
+          erc-modules
+          '(autoaway autojoin button completion fill irccontrols keep-place
+                     list match menu move-to-prompt netsplit networks noncommands
+                     readonly ring stamp track hl-nicks)))
 #+end_src
 
 I like to make sure the text formats to the size of the window:
@@ -79,6 +68,12 @@ I like to make sure the text formats to the size of the window:
     "Resize the ERC text to fill the current window."
     (interactive)
     (setq erc-fill-column (1- (window-width))))
+#+end_src
+
+Interesting plugins:
+#+begin_src emacs-lisp
+    (use-package erc-hl-nicks :after erc)
+    (use-package erc-image :after erc)
 #+end_src
 
 * ZNC Server
@@ -98,36 +93,31 @@ I'm using my own ZNC server, and I need to log in with a password stored in my G
 
 * Key Bindings
 Quick way to start and jump to my IRC world.
-#+begin_src emacs-lisp
-  (defun ha-irc-persp-start ()
-    "Create an IRC workspace and start my IRC client."
+#+begin_src emacs-lisp :tangle no
+  (defun ha-irc ()
     (interactive)
-    (persp-switch "irc")
-    (ha-erc-connect-irc))
-
-  (defun ha-irc-persp-switch ()
-    "Switch to the IRC workspace and load the next buffer."
-    (interactive)
-    (persp-switch "irc")
-    (call-interactively 'erc-track-switch-buffer))
+    (erc :server "irc.libera.chat" :port 6667 :full-name erc-user-full-name
+           :nick erc-nick :user erc-session-username :password erc-session-password))
 #+end_src
 
 And some global keys to display them:
 #+begin_src emacs-lisp
-(ha-leader
-  "a i" '("irc switch" . ha-irc-persp-switch)
-  "a I" '("irc start"  . ha-irc-persp-start))
+  (ha-leader "a i" `("irc" . ,(ha-app-perspective "irc" #'ha-erc)))
 #+end_src
 
 And a quick shortcuts to call it:
 #+begin_src emacs-lisp
-  (major-mode-hydra-define erc-mode nil
-    ("Server"
-     (("r" ha-erc-connect-irc "reconnect")
-      ("p" ha-erc-reconnect-password) "send password")
-     "Channel"
-     (("o" erc-track-switch-buffer "next channel")
-      ("w" ha-erc-resize-text "resize text"))))
+  (use-package major-mode-hydra
+    :after erc
+    :config
+    (major-mode-hydra-define erc-mode nil
+      ("Server"
+       (("r" erc-server-reconnect "reconnect")
+        ("p" ha-erc-reconnect-password "send password"))
+       "Channel"
+       (("o" erc-track-switch-buffer "next channel")
+        ("j" erc-join-channel "join channel")
+        ("w" ha-erc-resize-text "resize text")))))
 #+end_src
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:

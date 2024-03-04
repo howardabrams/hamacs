@@ -102,8 +102,7 @@ And some leader-based keybindings:
   (use-package notmuch
     :config
     (ha-leader   ; Should I put these under an "m" heading?
-      "a e" '("new mail" . notmuch-retrieve-messages)
-      "a m" '("read mail" . notmuch)
+      "a n" '("new mail" . notmuch-retrieve-messages)
       "a c" '("compose mail" . compose-mail))
 
     (major-mode-hydra-define notmuch-hello-mode nil
@@ -129,13 +128,7 @@ Also, let's do some basic configuration of Emacs' mail system:
 
 Create a special mail perspective:
 #+begin_src emacs-lisp
-  (defun ha-email-persp-start ()
-    "Create an IRC workspace and start my IRC client."
-    (interactive)
-    (persp-switch "mail")
-    (notmuch))
-
-  (ha-leader "a M" '("mail persp" . ha-email-persp-start))
+  (ha-leader "a M" `("mail" . ,(ha-app-perspective "mail" #'notmuch)))
 #+end_src
 * Configuration
 Do I want to sign messages by default? Nope.

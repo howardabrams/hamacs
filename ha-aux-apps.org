@@ -41,16 +41,7 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
 #+begin_src emacs-lisp
   (use-package mastodon
     :config
-    (defun mastodon-perspective ()
-      (interactive)
-      (let ((already-tooted? (seq-contains-p
-                              (persp-names) "mastodon" 'equal)))
-        (persp-switch "mastodon")
-        (unless already-tooted?
-          (mastodon))))
-
-    (ha-leader
-      "a m" '("mastodon" . mastodon-perspective))
+    (ha-leader "a m" `("mastodon" . ,(ha-app-perspective "mastodon" #'mastodon)))
 
     (use-package major-mode-hydra
       :config
@@ -111,8 +102,7 @@ Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [
           "a x S" '("send" . ement-send-direct-message)
           "a x s" '("send" . ement-room-send-message)
           "a x c" '("compose" . ement-room-compose-message)
-          "a x r" '("room" . ement-view-room)
-          "a x d" '("discover" . mastodon-discover)))
+          "a x r" '("room" . ement-view-room)))
 
     (ha-leader
       "a x"   '(:ignore t :which-key "matrix")
@@ -145,19 +135,18 @@ And we are no longer using this package.
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
 #+begin_src emacs-lisp
   (use-package telega
-      :commands (telega)
-      :config
-      (setq telega-user-use-avatars nil
-        telega-use-tracking-for nil ; '(any pin unread)
-        telega-chat-use-markdown-formatting t
-        telega-emoji-use-images t
-        ; telega-completing-read-function #'ivy-completing-read
-        telega-msg-rainbow-title nil)
+    :config
+    (setq telega-user-use-avatars nil
+          telega-use-tracking-for nil ; '(any pin unread)
+          telega-chat-use-markdown-formatting t
+          telega-emoji-use-images t
+                                          ; telega-completing-read-function #'ivy-completing-read
+          telega-msg-rainbow-title nil)
 
-      (when (fboundp 'evil-insert-state)
-        (add-hook 'telega-chat-mode-hook 'evil-insert-state))
+    (when (fboundp 'evil-insert-state)
+      (add-hook 'telega-chat-mode-hook 'evil-insert-state))
 
-      (ha-leader "a t" 'telega))
+    (ha-leader "a t" `("telega" . ,(ha-app-perspective "telega" #'telega))))
 #+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 

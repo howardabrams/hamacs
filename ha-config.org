@@ -667,6 +667,22 @@ The /special/ perspective is a nice shortcut to the one I use the most:
     (interactive)
     (persp-switch "projects"))
 #+end_src
+
+I often want a workspace dedicated to an /application/, so this function:
+#+begin_src emacs-lisp
+  (defun ha-app-perspective (name func)
+    (lambda ()
+      (interactive)
+      (let ((already-started? (seq-contains-p (persp-names) name 'equal)))
+        (persp-switch name)
+        (unless already-started?
+          (call-interactively func)))))
+#+end_src
+
+And I can then use it like:
+#+begin_src emacs-lisp :tangle no
+  (ha-leader "a x" `("to foobar" . ,(ha-app-perspective "foobar" #'foobar)))
+#+end_src
 *** Predefined Workspaces
 Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
 Granted, this list is essentially a list of projects that I'm currently developing, so I expect this to change often.

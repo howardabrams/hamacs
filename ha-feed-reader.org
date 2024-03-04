@@ -86,21 +86,9 @@ According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-
       (elfeed-show-visit t)))
 #+end_src
 
-Quick way to start and jump to my world of feeds.
-#+begin_src emacs-lisp
-  (defun ha-elfeed-persp ()
-    "Create an ELFEED workspace and start my ELFEED client."
-    (interactive)
-    (let ((already-reading? (seq-contains-p
-                              (persp-names) "feeds" 'equal)))
-        (persp-switch "feeds")
-        (unless already-reading?
-          (elfeed))))
-#+end_src
-
 And some global keys to display them in the =apps= menu:
 #+begin_src emacs-lisp
-  (ha-leader "a f" '("elfeed switch" . ha-elfeed-persp))
+  (ha-leader "a f" `("feed reader" . ,(ha-app-perspective "elfeed" #'elfeed)))
 #+end_src
 * The Feeds :elfeed:
 The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =elfeed= to read the RSS feeds from an Org file … like this one!
