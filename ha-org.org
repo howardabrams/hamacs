@@ -2,6 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2020-09-18
 #+tags: emacs org
+#+STARTUP: inlineimages
 
 A literate programming file for configuring org-mode and those files.
 
@@ -512,6 +513,45 @@ Here is a sequence diagram example to show how is looks/works:
 
 #+attr_org: :width 800px
 [[file:ha-org-plantuml-example.png]]
+*** Pikchr
+No, not Pikachu, but close. The [[https://pikchr.org/home/doc/trunk/homepage.md][Pikchr project]] is similar to Graphviz and Plantuml, but makes the boxes more positional and really allows one to place things more precisely. Yet another steep learning curve.
+
+Not sure if anyone has made a /package/, so we need to download and build locally:
+#+begin_src sh :dir ~/bin
+  curl -o ~/bin/pikchr.c https://pikchr.org/home/raw/9aac00a46506e993db45b740f7a7957f8f381b37001e196199dfc25642c44f06?at=pikchr.c
+  # gcc -c pikchr.c # to build the Pikchr library
+  gcc -DPIKCHR_SHELL -o ~/bin/pikchr ~/bin/pikchr.c -lm # to build the pikchr command-line tool
+#+end_src
+
+Of course, since we are dealing with Emacs, any good idea will be assimilated. Johann Klähn created [[https://github.com/kljohann/pikchr-mode][pikchr-mode]]:
+#+begin_src emacs-lisp
+  (use-package pikchr-mode
+    :custom
+    (pikchr-executable "~/bin/pikchr"))
+#+end_src
+
+Let’s see this in action:
+#+begin_src pikchr :file ha-org-pikchr-01.svg :results file :exports both
+  bgcolor = 0x1d2021
+  fgcolor = 0xeeeeee
+  line; box "Hello," "World!"; arrow
+#+end_src
+
+Results in:
+#+ATTR_HTML: :width 300 :style font-family:Sans,Arial
+[[file:ha-org-pikchr-01.svg]]
+
+And this example shows off the syntax colorization:
+#+begin_src pikchr :file ha-org-pikchr-02.svg :results file :exports both
+  A: box "head" fit
+  B: box "tail" fit
+  C: box "something" with .sw at A.nw fit wid dist(A.w, B.e)
+#+end_src
+
+For the results:
+#+ATTR_HTML: :width 300 :background white
+[[file:ha-org-pikchr-02.svg]]
+
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
