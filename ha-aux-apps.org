@@ -114,6 +114,9 @@ Perhaps we can make it more attractive:
 #+begin_src emacs-lisp
   (use-package ement
     :hook (ement-room-mode . ha-textual-litagures)
+    :custom-face
+    (ement-room-self-message ((t (:inherit variable-pitch :height 1.0))))
+    (ement-room-message-text ((t (:inherit variable-pitch :height 1.1 :foreground "#f08c60"))))
     :init
     (setq ement-save-sessions t
           ement-room-send-message-filter 'ement-room-send-org-filter))
