@@ -1,11 +1,12 @@
-#+TITLE:  ${1:`(->> (buffer-file-name)
+#+title:  ${1:`(->> (buffer-file-name)
                     (file-name-base)
                     (s-split-words)
                     (--map (s-capitalize it))
                     (s-join " "))`}
-#+AUTHOR: `user-full-name`
-#+DATE:   `(format-time-string "%Y-%m-%d")`
-#+FILETAGS: :emacs:
+#+author: `user-full-name`
+#+date:   `(format-time-string "%Y-%m-%d")`
+#+filetags: emacs hamacs
+#+lastmod: `(format-time-string "[%Y-%m-%d %b]")`
 
 A literate programming file for ${2:configuring Emacs.}
 
@@ -13,7 +14,7 @@ A literate programming file for ${2:configuring Emacs.}
   ;;; `(file-name-base (buffer-file-name)))` --- $2 -*- lexical-binding: t; -*-
   ;;
   ;; © `(format-time-string "%Y")` `user-full-name`
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: `user-full-name` <http://gitlab.com/howardabrams>

@@ -39,17 +39,17 @@ Next type ~s~ to view and organize mail I've never seen before. We need to focus
 ** Email Addresses
 The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /not/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
 
-#+NAME: email-address-1
+#+name: email-address-1
 #+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq@ubjneqnoenzf.pbz")
 #+end_src
 
-#+NAME: email-address-2
+#+name: email-address-2
 #+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq.noenzf@tznvy.pbz")
 #+end_src
 
-#+NAME: email-address-3
+#+name: email-address-3
 #+begin_src emacs-lisp :exports none :tangle no :results silent
   (rot13-string "ubjneq@shmmlgbnfg.pbz")
 #+end_src
@@ -636,7 +636,7 @@ This means:
 #+end_src
 ** Bucket Keybindings
 A series of keybindings to quickly send messages to one of the pre-defined buckets.
-#+NAME: hey-show-keybindings
+#+name: hey-show-keybindings
 #+begin_src emacs-lisp :tangle no
   (major-mode-hydra-define notmuch-show-mode nil
     ("Messages"
@@ -648,7 +648,7 @@ A series of keybindings to quickly send messages to one of the pre-defined bucke
 
 The bindings in =notmuch-search-mode= are available when looking at a list of messages:
 
-#+NAME: hey-search-keybindings
+#+name: hey-search-keybindings
 #+begin_src emacs-lisp :tangle no
   (major-mode-hydra-define notmuch-search-mode nil
     ("Mail"
@@ -741,12 +741,12 @@ Let's =provide= a name so we can =require= this file:
   ;;; ha-email.el ends here
 #+end_src
 
-#+DESCRIPTION: A literate configuration file for email using Notmuch.
+#+description: A literate configuration file for email using Notmuch.
 
-#+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle yes
-#+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
+#+property:    header-args:sh :tangle no
+#+property:    header-args:emacs-lisp :tangle yes
+#+property:    header-args    :results none :eval no-export :comments no mkdirp yes
 
-#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
-#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
+#+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

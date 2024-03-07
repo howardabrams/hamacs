@@ -71,12 +71,12 @@ Other functions and files come from essays written on [[http://www.howardism.org
 
 🤓
 
-#+DESCRIPTION: An index.html for describing my hamacs project
+#+description: An index.html for describing my hamacs project
 
-#+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle no
-#+PROPERTY:    header-args   :results none   :eval no-export   :comments no
+#+property:    header-args:sh :tangle no
+#+property:    header-args:emacs-lisp :tangle no
+#+property:    header-args   :results none   :eval no-export   :comments no
 
-#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
-#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+options:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

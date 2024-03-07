@@ -248,12 +248,12 @@ Let's /provide/ a name so we can =require= the file:
 ;;; ha-feed-reader.el ends here
 #+end_src
 
-#+DESCRIPTION: A literate programming file for configuring elfeed.
+#+description: A literate programming file for configuring elfeed.
 
-#+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp :tangle yes
-#+PROPERTY:    header-args   :results none   :eval no-export   :comments no
+#+property:    header-args:sh :tangle no
+#+property:    header-args:emacs-lisp :tangle yes
+#+property:    header-args   :results none   :eval no-export   :comments no
 
-#+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
-#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
-#+INFOJS_OPT:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
+#+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
