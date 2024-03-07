@@ -54,6 +54,23 @@ The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really w
     ;; :straight (:type built-in)
     :custom-face (org-indent ((t (:inherit fixed-pitch)))))
 #+end_src
+** Markup View
+The variable, =org-hide-emphasis-markers=, is key to pretending that Emacs can be a word processor, however, since the org markup controls aren’t viewable, I find it challenging at times, to change that. The [[https://github.com/awth13/org-appear][org-appear project]] seeks to fix this by showing the markup when the point is nearby:
+
+#+begin_src emacs-lisp
+   (use-package org-appear
+     :straight (:type git :host github :repo "awth13/org-appear")
+     :init (setq org-appear-trigger 'manual)
+     :hook
+     ((org-mode . (lambda ()
+                     (add-hook 'evil-insert-state-entry-hook
+                               #'org-appear-manual-start nil t)
+                     (add-hook 'evil-insert-state-exit-hook
+                               #'org-appear-manual-stop nil t)))
+       (org-mode . org-appear-mode)))
+#+end_src
+
+This makes the emphasis markers appear only in Evil’s insert mode.
 ** Typographic Quotes
 According to [[http://endlessparentheses.com/prettify-your-quotation-marks.html][Artur Malabarba]] of [[http://endlessparentheses.com/prettify-you-apostrophes.html][Endless Parenthesis]] blog, I type either a /straight single or double quote/, ", Emacs actually inserts Unicode rounded quotes, like “this”. This idea isn’t how a file is /displayed/, but actually how the file is /made/. Time will tell if this idea works with my auxiliary functions on my phone, like [[https://play.google.com/store/apps/details?id=com.orgzly&hl=en_US&gl=US][Orgzly]] and [[https://github.com/amake/orgro][Orgro]].
 
@@ -274,8 +291,10 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
   (use-package org-modern
     :straight (:host github :repo "minad/org-modern")
     :hook
-    ((org-mode . org-modern-mode)
-     (org-agenda-finalize . org-modern-agenda)))
+    ((org-mode . global-org-modern-mode)
+     (org-agenda-finalize . org-modern-agenda))
+    :custom
+    (org-modern-table nil))
 #+end_src
 I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.
 * Checkboxes

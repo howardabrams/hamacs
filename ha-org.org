@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-03-05 Tue]
+#+lastmod: [2024-03-06 Wed]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -63,14 +63,24 @@ Begin by initializing these org variables:
         org-startup-indented t      ; Visually show paragraphs indented
         org-list-indent-offset 2
         org-edit-src-content-indentation 2 ; Doom Emacs sets this to 0,
-                                           ; but uses a trick to make it
-                                           ; appear indented.
+                                          ; but uses a trick to make it
+                                          ; appear indented.
 
         org-imenu-depth 4
         sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.
 
         org-html-validation-link nil
         org-export-with-sub-superscripts nil
+        org-export-with-drawers nil
+        org-export-with-author nil
+        org-export-with-email nil
+        org-export-with-date nil
+        org-export-with-todo-keywords nil
+        org-export-with-broken-links t
+        org-export-with-toc nil  ; Only for my hamacs publishing
+        org-export-with-smart-quotes t
+        org-export-date-timestamp-format "%e %B %Y"
+
         org-html-validation-link nil
         org-directory "~/personal"
         org-default-notes-file "~/personal/general-notes.txt"
@@ -85,14 +95,21 @@ Begin by initializing these org variables:
         org-agenda-span 'day ; Default is 'week
         org-confirm-babel-evaluate nil
         org-src-fontify-natively t
-        org-src-tab-acts-natively t)
+        org-src-tab-acts-natively t
+
+        ;; Updates the lastmod: when set in the file:
+        time-stamp-active t
+        time-stamp-start "#\\+lastmod:[ \t]*"
+        time-stamp-end "$"
+        time-stamp-format "[%04Y-%02m-%02d %a]")
 #+end_src
 
 * Configuration Section
 I pretend that my org files are word processing files that wrap automatically:
 #+name: visual-hook
 #+begin_src emacs-lisp :tangle no
-(add-hook 'org-mode-hook #'visual-line-mode)
+  (add-hook 'org-mode-hook #'visual-line-mode)
+  (add-hook 'before-save-hook 'time-stamp nil)
 #+end_src
 
 Files that end in =.txt= are still org files to me:
