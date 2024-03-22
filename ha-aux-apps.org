@@ -83,7 +83,7 @@ Let’s turn on non-fixed-width fonts to make everything easier to read:
 #+end_src
 #+end_src
 ** Matrix/Element
-Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [[matrix.org][Matrix]] is act ually open source. In other words, a project for nerds. We’ll be using Alphapapa’s latest [[https://github.c om/alphapapa/ement.el][ement]] project.
+Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [[matrix.org][Matrix]] is act ually open source. In other words, a project for nerds. We’ll be using Alphapapa’s latest [[https://github.com/alphapapa/ement.el][ement]] project.
 #+begin_src emacs-lisp
   (use-package ement
     :straight (:host github :repo "alphapapa/ement.el")
@@ -119,6 +119,8 @@ Perhaps we can make it more attractive:
     (ement-room-message-text ((t (:inherit variable-pitch :height 1.1 :foreground "#f08c60"))))
     :init
     (setq ement-save-sessions t
+          ement-room-avatars nil
+          ement-room-timestamp-format ""
           ement-room-send-message-filter 'ement-room-send-org-filter))
 #+end_src
 * Other

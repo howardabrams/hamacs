@@ -196,7 +196,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                                     "ha-work.org")
                                 ;; Personal Editor
                                 '("ha-org-journaling.org"
-                                  "ha-irc.org"
+                                  ;; "ha-irc.org"
                                   "ha-org-publishing.org"
                                   "ha-email.org"
                                   "ha-aux-apps.org"
