@@ -42,11 +42,11 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :keymaps 'override
       :prefix "SPC"
       :non-normal-prefix "M-SPC"
-      :prefix "<f13>")
+      :global-prefix "<f13>")
 
     (general-create-definer ha-local-leader
       :states '(normal visual motion)
-      :global-prefix "<f17>")
+      :prefix "<f17>")
 
     (general-nmap "SPC m" (general-simulate-key "," :which-key "major mode")))
 #+end_src

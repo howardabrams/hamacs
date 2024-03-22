@@ -103,18 +103,18 @@ I’m interested in using [[https://devdocs.io/][devdocs]] instead, which is sim
 #+begin_src emacs-lisp
   (use-package devdocs
     :general (:states 'normal
-      "gD" '("devdocs" . devdocs-lookup))
+                      "gD" '("devdocs" . devdocs-lookup))
 
     :config
-    (ha-local-leader :keymaps 'prog-mode-map
-      "d"  '(:ignore t :which-key "docs")
-      "d e" '("eldoc" . eldoc)
-      "d d" '("open" . devdocs-lookup)
-      "d p" '("peruse" . devdocs-peruse)
-      "d i" '("install" . devdocs-install)
-      "d u" '("update" . devdocs-update-all)
-      "d x" '("uninstall" . devdocs-delete)
-      "d s" '("search" . devdocs-search)))
+    (major-mode-hydra-define emacs-lisp-mode nil
+      ("Dev Docs"
+       (("e" eldoc "eldoc")
+        ("d" devdocs-lookup "open")
+        ("p" devdocs-peruse "peruse")
+        ("i" devdocs-install "install")
+        ("u" devdocs-update-all "update")
+        ("x" devdocs-delete "uninstall")
+        ("s" devdocs-search "search")))))
 #+end_src
 
 The [[https://github.com/blahgeek/emacs-devdocs-browser][devdocs-browser]] project acts similar, but with slightly different command names. Its advantage is that it allows for downloading docs and having it available offline, in fact, you can’t search for a function, until you download its pack. This is slightly faster because of this.
@@ -689,7 +689,7 @@ I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd perso
       (widen)))
 #+end_src
 And a keybinding:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (ha-local-leader :keymaps 'prog-mode-map
     "c"  '(:ignore t :which-key "comment")
     "c l" '("comment line" . ha-comment-line))
