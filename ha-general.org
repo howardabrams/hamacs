@@ -370,10 +370,13 @@ The goal here is toggle switches and other miscellaneous settings.
     "t o" '("overwrite"      . overwrite-mode)
     "t l" '("line numbers"   . display-line-numbers-mode)
     "t R" '("read only"      . read-only-mode)
+    "t r" '("recentf mode"   . recentf-mode)
     "t t" '("truncate"       . toggle-truncate-lines)
+    "t T" '("tramp mode"     . tramp-mode)
     "t v" '("visual"         . visual-line-mode)
     "t w" '("whitespace"     . whitespace-mode))
 #+end_src
+
 *** Line Numbers
 Since we can't automatically toggle between relative and absolute line numbers, we create this function:
 #+begin_src emacs-lisp
