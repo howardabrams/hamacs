@@ -427,8 +427,8 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
         ("y" eww-copy-page-url "Copy URL"))
        "Navigation"
        (("u" eww-top-url "Site Top")
-        ("n" eww-next-url "Next Page")
-        ("p" eww-previous-url "Previous"))
+        ("n" eww-next-url "Next Page" :color pink)
+        ("p" eww-previous-url "Previous" :color pink))
        "Toggles"
        (("c" eww-toggle-colors "Colors")
         ("i" eww-toggle-images "Images")
@@ -470,6 +470,32 @@ This function allows Imenu to offer HTML headings in EWW buffers, helpful for na
     :hook (eww-mode .
                     (lambda ()
                       (setq-local imenu-create-index-function #'unpackaged/imenu-eww-headings))))
+#+end_src
+** SHRFace
+Make my EWW browsers /look/ like an Org file with the [[https://github.com/chenyanming/shrface][shrface project]].
+
+#+begin_src emacs-lisp
+  (use-package shrface
+    :straight (:host github :repo "chenyanming/shrface")
+    :config
+    (shrface-basic)
+    (shrface-trial)
+    ;; (shrface-default-keybindings) ; setup default keybindings
+    (setq shrface-href-versatile t)
+
+    (major-mode-hydra-define+ eww-mode nil
+      ("Headlines"
+       (("j" shrface-next-headline "Next Heading" :color pink)
+        ("k" shrface-previous-headline "Previous" :color pink)
+        ("J" shrface-headline-consult "Goto Heading")))))
+#+end_src
+
+And connect it to EWW:
+
+#+begin_src emacs-lisp
+  (use-package eww
+    :after shrface
+    :hook (eww-after-render #'shrface-mode))
 #+end_src
 ** Get Pocket
 The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project connects to the [[https://getpocket.com/en/][Get Pocket]] service.
