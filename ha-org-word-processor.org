@@ -159,6 +159,7 @@ What would be nice, is that if I end quotes using the functions above, that if I
 #+end_src
 
 Can we do the same with ellipses?
+
 #+begin_src emacs-lisp
   (defun ha-insert-dot-or-ellipsis ()
     "Insert a `.' unless two have already be inserted.
@@ -175,8 +176,6 @@ Can we do the same with ellipses?
        (t                         (insert ".")))))
 
   (define-key org-mode-map "." #'ha-insert-dot-or-ellipsis)
-
-
 #+end_src
 
 After reading [[https://www.punctuationmatters.com/en-dash-em-dash-hyphen][this essay]], I’ve gotten obsessive with elongating dashes. In this case, typing a dash surrounded with spaces, e.g. something – like this, we convert them to [[https://www.compart.com/en/unicode/U+2013][en dash]]. But if I type two dashes in a row—which identifies an emphasized clause—I can convert it directly to [[https://www.compart.com/en/unicode/U+2014][em dash]]. Continually typing a dash replaces that character with longer and longer dashes⸺
@@ -219,9 +218,11 @@ After reading [[https://www.punctuationmatters.com/en-dash-em-dash-hyphen][this 
 
   (define-key org-mode-map "-" #'ha-insert-long-dash)
 #+end_src
+
 The /issue/ is how do we deal with org’s dashed bullets? In this case, we want to insert an actual dash, but elsewhere, we /visually/ display the dash as a more emphasized glyph.
 ** Ligatures
 Well, using the =composition-function-table=, we can finally get some ligatures to improve readability without Harfbuzz.
+
 #+begin_src emacs-lisp
   (defun ha-textual-litagures ()
     "Non-programming litagures for readable and text-derived modes."
@@ -230,7 +231,8 @@ Well, using the =composition-function-table=, we can finally get some ligatures 
     (set-char-table-range composition-function-table
                           ?T '(["\\(?:Th\\)" 0 font-shape-gstring])))
 
-  (add-hook 'text-mode-hook #'ha-textual-litagures)
+  (when (ha-running-on-macos?)
+    (add-hook 'text-mode-hook #'ha-textual-litagures))
 #+end_src
 This is now fine and ffantastic!
 * Org Beautify
@@ -287,6 +289,7 @@ And decrease the prominence of the property drawers:
 #+end_src
 * Org Modern
 The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a lot of what I was doing in this file.
+
 #+begin_src emacs-lisp
   (use-package org-modern
     :straight (:host github :repo "minad/org-modern")
@@ -296,9 +299,11 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
     :custom
     (org-modern-table nil))
 #+end_src
+
 I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.
 * Checkboxes
 According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to-display-org-mode-checkboxes/][Huy Trần]], (and expanded by the [[https://github.com/minad/org-modern][org-modern]] project), we can prettify the list checkboxes. To make completed tasks more distinguishable, he changed the colors:
+
 #+begin_src emacs-lisp
 (defface org-checkbox-done-text
   '((t (:foreground "#71696A" :strike-through t)))
@@ -324,7 +329,9 @@ The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks pla
           org-padding-heading-padding-alist
           '((4.0 . 1.5) (3.0 . 0.5) (3.0 . 0.5) (3.0 . 0.5) (2.5 . 0.5) (2.0 . 0.5) (1.5 . 0.5) (0.5 . 0.5))))
 #+end_src
+
 However, I'm just going to have to write a function to clean this.
+
 #+begin_src emacs-lisp :tangle no
   (defun ha-remove-superfluous-org-padding ()
     (interactive)
@@ -397,41 +404,15 @@ Used to use [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for sho
     (org-present-mode . ha-org-present-start)
     (org-present-mode-quit . ha-org-present-end))
 #+end_src
-* Technical Artifacts                                :noexport:
+* Technical Artifacts                               :noexport:
 Note, according to [[https://www.reddit.com/r/emacs/comments/vahsao/orgmode_use_capitalized_property_keywords_or/][this discussion]] (and especially [[https://scripter.co/org-keywords-lower-case/][this essay]]), I’m switching over to lower-case version of org properties. Using this helper function:
-#+begin_src emacs-lisp
-  (defun modi/lower-case-org-keywords ()
-    "Lower case Org keywords and block identifiers.
 
-  Example: \"#+TITLE\" -> \"#+title\"
-           \"#+BEGIN_EXAMPLE\" -> \"#+begin_example\"
-
-  Inspiration:
-  https://code.orgmode.org/bzg/org-mode/commit/13424336a6f30c50952d291e7a82906c1210daf0."
-    (interactive)
-    (save-excursion
-      (goto-char (point-min))
-      (let ((case-fold-search nil)
-            (count 0)
-            ;; All keywords can be found with this expression:
-            ;; (org-keyword-re "\\(?1:#\\+[A-Z_]+\\(?:_[[:alpha:]]+\\)*\\)\\(?:[ :=~’”]\\|$\\)")
-            ;; Match examples: "#+foo bar", "#+foo:", "=#+foo=", "~#+foo~",
-            ;;                 "‘#+foo’", "“#+foo”", ",#+foo bar",
-            ;;                 "#+FOO_bar<eol>", "#+FOO<eol>".
-            ;;
-            ;; Perhap I want the #+begin_src and whatnot:
-            (org-keyword-re (rx line-start (optional (zero-or-more space))
-                                "#+" (group (or "BEGIN" "END") "_" (one-or-more alpha)))))
-        (while (re-search-forward org-keyword-re nil :noerror)
-          (setq count (1+ count))
-          (replace-match (downcase (match-string-no-properties 1)) :fixedcase nil nil 1))
-        (message "Lower-cased %d matches" count))))
-#+end_src
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
   (provide 'ha-org-word-processor)
   ;;; ha-org-word-processor.el ends here
 #+end_src
+
 Before you can build this on a new system, make sure that you put the cursor over any of these properties, and hit: ~C-c C-c~
 
 #+description: A literate programming file for making Org file more readable.
