@@ -315,9 +315,7 @@ And the collection of useful operations:
   (ha-leader
     "b"  '(:ignore t :which-key "buffers")
     "b <escape>" '(keyboard-escape-quit :which-key t)
-    "b B" '("switch" . project-switch-to-buffer)
-    "b o" '("other" . project-switch-buffer-to-other-window)
-    "b O" '("switch" . switch-to-buffer-other-window)
+    "b O" '("other" . project-switch-buffer-to-other-window)
     "b i" '("ibuffer" . ibuffer)
     "b I" '("ibuffer" . ibuffer-other-window)
     "b k" '("persp remove" . persp-remove-buffer)
@@ -653,9 +651,6 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
     ;; Make an interesting Magit-like menu of options, which I don't use much:
     (rg-enable-default-bindings (kbd "M-R"))
 
-    ;; Old habits die hard ...
-    (define-key global-map [remap xref-find-references] 'rg-dwim)
-
     (ha-leader
       "s"  '(:ignore t :which-key "search")
       "s <escape>" '(keyboard-escape-quit :which-key t)
@@ -755,7 +750,6 @@ Since I tweaked the help menu, I craft my own menu:
     "h s" '("info symbol"      . info-lookup-symbol)
     "h v" '("variable"         . helpful-variable)
     "h i" '("info"             . info)
-    "h I" '("info manual"      . info-display-manual)
     "h j" '("info jump"        . info-apropos)
 
     "h E" '("emacs info"       . (lambda () (interactive) (info "emacs")))
@@ -789,6 +783,7 @@ Let's make Info behave a little more VI-like:
 #+end_src
 ** Consult
 The [[https://github.com/minad/consult][consult project]] aims to use libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I appreciate this project that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
+
 #+begin_src emacs-lisp
   (use-package consult
     :after general
@@ -796,14 +791,24 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult-preview-at-point-mode)
 
-    :init
+    :config
     ;; Use Consult to select xref locations with preview
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
 
     (ha-leader
       "RET" '("bookmark" . consult-bookmark)
-      "o i" '("imenu" . consult-imenu)
+      "k"   '("marks"    . consult-mark)
+      "K"   '("marks"    . consult-global-mark)
+      "b b" '("switch"   . consult-buffer)
+      "b B" '("switch"   . consult-project-buffer)
+      "b o" '("switch other" . consult-buffer-other-window)
+      "f g" '("find grep" . consult-ripgrep)
+      "h I" '("info manual" . consult-info)
+      "h O" '("org info" . (lambda () (interactive) (consult-info "org")))
+      "x i" '("choose from imenu"    . consult-imenu)
+      "x I" '("choose from outline"    . consult-outline)
+      "x r" '("registers" . consult-register)
       "x y" '("preview yank" . consult-yank-pop))
 
     :bind ("s-v" . consult-yank-pop)
@@ -813,6 +818,19 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
              "gp" '("preview paste" . 'consult-yank-pop)
              "gs" '("go to line" . 'consult-line)))
 #+end_src
+
+If found the =consult-mark= as part of [[https://arialdomartini.github.io/emacs-mark-ring][this essay]] about the =mark=.
+
+An under-appreciated version of Consult is the /changing your mind/ aspect. Type ~SPC b b~ to switch to a different buffer, and change your mind, “oh, I really need a file!” Type ~f SPC~ and it switches to a file browser. Nope, I did need the buffer, type ~b SPC~ and your back to buffer switching. Other /narrowing/ keys:
+
+    - ~b~ :: Buffers
+    - ~SPC~ :: Hidden buffers
+    - ~*~ :: Modified buffers
+    - ~f~ :: Files (Requires recentf-mode)
+    - ~r~ :: File registers
+    - ~m~ :: Bookmarks
+    - ~p~ :: Project
+
 ** Embark
 The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/. I'm primarily thinking of acting on selected items in the minibuffer, but these commands act anywhere.  I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
 #+begin_src emacs-lisp
