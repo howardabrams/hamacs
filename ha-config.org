@@ -545,6 +545,16 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
              "V" 'er/contract-region
              "-" 'er/contract-region))
 #+end_src
+*** iSearch
+The built-in =isearch= is fantastically simple and useful, but the [[https://github.com/kickingvegas/cc-isearch-menu][cc-isearch-menu]] helps expose some /buried/ features.
+
+#+begin_src emacs-lisp
+  (use-package cc-isearch-menu
+    :straight (:host github :repo "kickingvegas/cc-isearch-menu")
+    :bind (:map isearch-mode-map ("s-g" . cc-isearch-menu-transient)))
+#+end_src
+
+The idea, is that you can start a search with ~C-s~ (or even ~s-f~ … er, ~Command-f~ on the Mac), and type some letters. Hitting ~C-s~ goes to the next occurrence of what you’ve typed, but if you hit ~Command-g~, a menu appears allowing you to pull in the rest of the word or symbol you are looking at, or edit it completely.
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
 ** Projects
