@@ -797,21 +797,24 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
           xref-show-definitions-function #'consult-xref)
 
     (ha-leader
-      "RET" '("bookmark" . consult-bookmark)
-      "k"   '("marks"    . consult-mark)
-      "K"   '("marks"    . consult-global-mark)
-      "b b" '("switch"   . consult-buffer)
-      "b B" '("switch"   . consult-project-buffer)
-      "b o" '("switch other" . consult-buffer-other-window)
-      "f g" '("find grep" . consult-ripgrep)
-      "h I" '("info manual" . consult-info)
-      "h O" '("org info" . (lambda () (interactive) (consult-info "org")))
-      "x i" '("choose from imenu"    . consult-imenu)
-      "x I" '("choose from outline"    . consult-outline)
-      "x r" '("registers" . consult-register)
-      "x y" '("preview yank" . consult-yank-pop))
+      "RET" '("bookmark"            . consult-bookmark)
+      "k"   '("marks"               . consult-mark)
+      "K"   '("global marks"        . consult-global-mark)
+      "b b" '("switch"              . consult-buffer)
+      "b B" '("proj switch"         . consult-project-buffer)
+      "b o" '("switch win"          . consult-buffer-other-window)
+      "f g" '("find grep"           . consult-ripgrep)
+      "h I" '("info manual"         . consult-info)
+      "h O" '("org info"            . (lambda () (interactive) (consult-info "org")))
+      "h M" '("man pages"           . consult-man)
+      "t m" '("minor mods"          . consult-minor-mode-menu)
+      "x i" '("choose from imenu"   . consult-imenu)
+      "x I" '("choose from outline" . consult-outline)
+      "x r" '("registers"           . consult-register)
+      "x y" '("preview yank"        . consult-yank-pop))
 
-    :bind ("s-v" . consult-yank-pop)
+    :bind (("s-v" . consult-yank-pop)
+           ("M-X" . consult-mode-command)) ; Hrm...
 
     :general
     (:states 'normal
