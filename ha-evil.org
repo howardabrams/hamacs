@@ -303,17 +303,6 @@ And the keybindings:
   (define-key evil-outer-text-objects-map "d" #'ha-evil-a-defun)
 #+end_src
 Why not use ~f~? I’m reserving the ~f~ for a tree-sitter version that is not always available for all modes… yet.
-** Key Chord
-Using the key-chord project allows me to make Escape be on two key combo presses on both sides of my keyboard:
-#+begin_src emacs-lisp
-  (use-package key-chord
-    :config
-    (key-chord-mode t)
-    (key-chord-define-global "fd" 'evil-normal-state)
-    (key-chord-define-global "jk" 'evil-normal-state)
-    (key-chord-define-global "JK" 'evil-normal-state))
-#+end_src
-This has been a frustrating feature that doesn’t always work, and usually just when I get really used to it.
 * Evil Extensions
 ** Evil Exchange
 I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way, and the /objects/ do not need to be adjacent.
