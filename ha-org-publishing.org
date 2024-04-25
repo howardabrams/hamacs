@@ -48,19 +48,6 @@ Since I have two specific websites, I create two variables for those destination
         ha-publishing-howardism (concat org-mode-publishing-directory "howardisms"))
 #+end_src
 
-** You Don’t Know Jack
-I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
-#+begin_src emacs-lisp
-  (use-package jack)
-#+end_src
-So the Lisp code:
-#+begin_src emacs-lisp :tangle no
-  (jack-html '(:p "Hello there"))
-#+end_src
-Returns the string:
-#+begin_example
-  <p>Hello there</p>
-#+end_example
 * The Projects
 I separate my /website/ into distinct projects separately built:
 

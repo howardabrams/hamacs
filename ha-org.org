@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-03-06 Wed]
+#+lastmod: [2024-04-25 Thu]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -76,12 +76,17 @@ Begin by initializing these org variables:
         org-export-with-email nil
         org-export-with-date nil
         org-export-with-todo-keywords nil
-        org-export-with-broken-links t
+        org-export-with-broken-links nil
         org-export-with-toc nil  ; Only for my hamacs publishing
+        org-export-with-date nil
+        org-export-with-title nil
+        org-export-with-section-numbers nil
+        org-export-with-creator nil
         org-export-with-smart-quotes t
+        org-export-with-timestamps nil
+        org-export-time-stamp-file nil
         org-export-date-timestamp-format "%e %B %Y"
 
-        org-html-validation-link nil
         org-directory "~/personal"
         org-default-notes-file "~/personal/general-notes.txt"
 
@@ -715,13 +720,34 @@ And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode]
           graphviz-dot-auto-indent-on-semi t))
 #+end_src
 *** HTML Style
+
+I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
+#+begin_src emacs-lisp
+  (use-package jack)
+#+end_src
+
+So the Lisp code:
+#+begin_src emacs-lisp :tangle no
+  (jack-html '(:p "Hello there"))
+#+end_src
+
+Returns the string:
+#+begin_example
+  <p>Hello there</p>
+#+end_example
+
 Splitting out HTML snippets is often a way that I can transfer org-formatted content to other applications.
+
 #+name: html-exporting
 #+begin_src emacs-lisp
   (setq org-html-head-extra
-        (string-join '( "<style>"
-                        "@import url('https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
-                        "@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap');"
+        (jack-html `((:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,300;0,600;1,300;1,600&display=swap"))
+                     (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap"))
+                     (:style ,(string-join '(
                         "body { font-family: 'Literata', sans-serif; color: #333; }"
                         "h1,h2,h3,h4,h5 { font-family: 'Overpass', sans-serif; color: #333; }"
                         "code { color: steelblue }"
@@ -734,9 +760,8 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
                         "  pre { background-color: black; border-color: #777; }"
                         "  a:link { color: lightblue }"
                         "  a:visited { color: violet }"
-                        "}"
-                        "</style>")
-                     hard-newline))
+                        "}")
+                     hard-newline)))))
 #+end_src
 ** Focused Work
 :LOGBOOK:
