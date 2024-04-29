@@ -75,6 +75,22 @@ And some Mac-specific settings:
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
     (add-to-list 'default-frame-alist '(ns-appearance . dark)))
 #+end_src
+** Emacs Everywhere
+After reading [[https://irreal.org/blog/?p=12139][Jon Sander’s essay]] as well as [[https://mbork.pl/2024-04-27_Emacs_everywhere][Marcin Borkowski's essay]], I decided to try out Tecosaur’s [[https://github.com/tecosaur/emacs-everywhere][Emacs Everywhere]] approach:
+
+#+begin_src emacs-lisp
+  (use-package emacs-everywhere
+    :straight (:host github :repo "tecosaur/emacs-everywhere"))
+#+end_src
+
+This package is /called outside of Emacs/, so I bound a keybinding to iCanHazShortcut:
+
+#+begin_src sh
+  emacsclient --socket-name personal --eval "(emacs-everywhere)"
+#+end_src
+
+When you type ~C-c C-c~ to close a window, it /doesn’t always/ paste back into the original window, but the text is saved to the clipboard, a quick paste works. And now, I don’t scream when I need to use those Electron apps, like Slack and Discord.
+
 ** File Access
 *** Remote Files
 To speed up TRAMP access, let’s disabled lock files, you know, the ones that have the =#= surrounding characters:
