@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-04-25 Thu]
+#+lastmod: [2024-04-29 Mon]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -723,7 +723,9 @@ And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode]
 
 I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
 #+begin_src emacs-lisp
-  (use-package jack)
+  (use-package jack
+    :straight (:host github :repo "tonyaldon/jack")
+    :commands (jack-html))
 #+end_src
 
 So the Lisp code:
@@ -740,14 +742,17 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
 
 #+name: html-exporting
 #+begin_src emacs-lisp
-  (setq org-html-head-extra
-        (jack-html `((:link (@ :rel "stylesheet"
+  (use-package jack
+    :after org
+    :config
+    (setq org-html-head-extra
+          (jack-html `((:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,300;0,600;1,300;1,600&display=swap"))
-                     (:link (@ :rel "stylesheet"
+                       (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap"))
-                     (:style ,(string-join '(
+                       (:style ,(string-join '(
                         "body { font-family: 'Literata', sans-serif; color: #333; }"
                         "h1,h2,h3,h4,h5 { font-family: 'Overpass', sans-serif; color: #333; }"
                         "code { color: steelblue }"
@@ -761,7 +766,7 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
                         "  a:link { color: lightblue }"
                         "  a:visited { color: violet }"
                         "}")
-                     hard-newline)))))
+                     hard-newline))))))
 #+end_src
 ** Focused Work
 :LOGBOOK:
