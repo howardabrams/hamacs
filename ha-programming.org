@@ -28,9 +28,67 @@ A literate programming file for helping me program.
 Configuration for programming interfaces and workflows that behave similarly.
 * General
 The following work for all programming languages.
+** Mise
+Combining my use of programming virtual environments with =direnv= and =Makefile=, the [[http://mise.jdx.dev][Mise-en-Place]] project has [[https://github.com/liuyinz/mise.el][an Emacs mode]]:
+
+#+begin_src emacs-lisp
+  (use-package mise
+    :straight (:host github :repo "liuyinz/mise.el")
+    :config (global-mise-mode))
+#+end_src
+
+This requires an underlying program to be installed. On my Linux system, I issued:
+#+begin_src sh
+  apt update -y && apt install -y gpg sudo wget curl
+  sudo install -dm 755 /etc/apt/keyrings
+  wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1> /dev/null
+  echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=amd64] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
+  sudo apt update
+  sudo apt install -y mise
+#+end_src
+
+And on the MacOS:
+#+begin_src sh :results silent
+  brew install mise
+#+end_src
+
+I have the following configured in my home directory, [[file:~/.config/mise.toml][~/.config/mise.toml]] :
+
+#+begin_src toml :tangle ~/.config/mise/config.toml
+  [env]
+  # supports arbitrary env vars so mise can be used like direnv/dotenv
+  # NODE_ENV = 'production'
+
+  [tools]
+  # specify single or multiple versions
+  ruby = '2.6.6'
+  # erlang = ['23.3', '24.0']
+
+  # send arbitrary options to the plugin, passed as:
+  # MISE_TOOL_OPTS__VENV=.venv
+  python = {version='3.10', virtualenv='.venv'}
+#+end_src
+
+And then, in the terminal, grab the version of a tool you need, like:
+#+begin_src sh
+  mise install python
+#+end_src
+
+Next, each project defines their own =.mise.toml= like:
+#+begin_src toml :tangle ~/other/python-xp/.mise.toml
+  [tools]
+  python = '3.10'
+#+end_src
+
+And it seemlessly works:
+#+begin_example
+$ cd ~/other/python-xp/
+$ python --version
+Python 3.10.14
+#+end_example
 ** direnv
 Farm off commands into /virtual environments/:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package direnv
     :init
     (setq direnv-always-show-summary t
