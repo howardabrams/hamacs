@@ -50,7 +50,7 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
 
     (general-nmap "SPC m" (general-simulate-key "," :which-key "major mode")))
 #+end_src
-** Relabel the G Keys
+* Relabel the G Keys
 Can’t remember all the shortcuts on the ~g~ key, and =which-key= displays the entire function, so let’s /re-add/ those keybindings, but with labels. The ~g~ is extemely convenient, yet I realize that I will never use some of the default keybindings (like ~g m~ to go to the middle of the line? Too imprecise). So I am also going to delete some of them.
 
 #+begin_src emacs-lisp
@@ -149,7 +149,7 @@ While we are at it, let’s readd, and relabel the ~z~ command functions:
              (kbd "z RET") nil ; evil-scroll-line-to-top
              (kbd "z <return>") nil)) ; evil-scroll-line-to-top
 #+end_src
-** Top-Level Operations
+* Top-Level Operations
 Let's try this general "space" prefix by defining some top-level operations, including hitting ~space~ twice to bring up the =M-x= collection of functions:
 #+begin_src emacs-lisp
   (ha-leader
@@ -191,7 +191,7 @@ And ways to load my tangled org-files:
     "h h h" '("reload"      . ha-hamacs-load)
     "h h a" '("reload all"  . ha-hamacs-reload-all))
 #+end_src
-** File Operations
+* File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
 #+begin_src emacs-lisp
   (defun ha-relative-filepath (filepath)
@@ -287,7 +287,7 @@ Trying the [[https://github.com/benmaughan/spotlight.el][spotlight]] project, as
   (use-package spotlight
     :config (ha-leader "f /" '("search files" . spotlight)))
 #+end_src
-** Buffer Operations
+* Buffer Operations
 This section groups buffer-related operations under the "SPC b" sequence.
 
 Putting the entire visible contents of the buffer on the clipboard is often useful:
@@ -340,7 +340,7 @@ And the collection of useful operations:
     "b 8" '("load win-8" . (lambda () (interactive) (switch-buffer-in-window 8)))
     "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9))))
 #+end_src
-** Bookmarks
+* Bookmarks
 I like the idea of dropping returnable bookmarks, however, the built-in behavior doesn’t honor either /projects/ or /perspectives/, but I use [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package to make a =project=-specific bookmarks and use that to jump to only bookmarks in the current project.
 
 #+begin_src emacs-lisp
@@ -355,7 +355,7 @@ I like the idea of dropping returnable bookmarks, however, the built-in behavior
       "b <down>" '("next mark" . bookmark-in-project-jump-next)
       "b <up>" '("next mark" . bookmark-in-project-jump-previous)))
 #+end_src
-** Toggle Switches
+* Toggle Switches
 The goal here is toggle switches and other miscellaneous settings.
 #+begin_src emacs-lisp
   (ha-leader
@@ -375,7 +375,7 @@ The goal here is toggle switches and other miscellaneous settings.
     "t w" '("whitespace"     . whitespace-mode))
 #+end_src
 
-*** Line Numbers
+* Line Numbers
 Since we can't automatically toggle between relative and absolute line numbers, we create this function:
 #+begin_src emacs-lisp
   (defun ha-toggle-relative-line-numbers ()
@@ -389,7 +389,7 @@ Add it to the toggle menu:
   (ha-leader
     "t r" '("relative lines" . ha-toggle-relative-line-numbers))
 #+end_src
-*** Narrowing
+* Narrowing
 I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but what a /dwim/ aspect:
 #+begin_src emacs-lisp
   (defun ha-narrow-dwim ()
@@ -408,7 +408,7 @@ And put it on the toggle menu:
 #+begin_src emacs-lisp
   (ha-leader "t n" '("narrow" . ha-narrow-dwim))
 #+end_src
-** Window Operations
+* Window Operations
 While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]] to undo window-related changes:
 #+begin_src emacs-lisp
   (use-package winner
@@ -417,7 +417,7 @@ While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][w
     :config
     (winner-mode +1))
 #+end_src
-*** Ace Window
+** Ace Window
 Use the [[https://github.com/abo-abo/ace-window][ace-window]] project to jump to any window you see.
 
 Often transient buffers show in other windows, obscuring my carefully crafted display. Instead of jumping into a window, typing ~q~ (to either call [[help:quit-buffer][quit-buffer]]) if available, or [[help:bury-buffer][bury-buffer]] otherwise. This function hooks to =ace-window=
@@ -457,12 +457,12 @@ Since I use numbers for the window, I can make the commands more mnemonic, and a
     :bind ("s-w" . ace-window))
 #+end_src
 Keep in mind, these shortcuts work with more than two windows open. For instance, ~SPC w w d 3~ closes the "3" window.
-*** Transpose Windows
+** Transpose Windows
 My office at work has a monitor oriented vertically, and to move an Emacs with “three columned format” to a “stacked format” I use the [[https://www.emacswiki.org/emacs/TransposeFrame][transpose-frame]] package:
 #+begin_src emacs-lisp
   (use-package transpose-frame)
 #+end_src
-*** Winum
+** Winum
 To jump to a window even quicker, use the [[https://github.com/deb0ch/emacs-winum][winum package]]:
 #+begin_src emacs-lisp
   (use-package winum
@@ -554,7 +554,7 @@ Let's try this out with a Hydra since some I can /repeat/ some commands (e.g. en
 
   (ha-leader "w" '("windows" . hydra-window-resize/body))
 #+end_src
-*** Window Splitting
+** Window Splitting
 When I split a window, I have a following intentions:
   - Split and open a file from the prespective/project in the new window
   - Split and change to a buffer from the prespective in the new window
@@ -618,9 +618,9 @@ This means that, without thinking, the following just works:
   - ~SPC w s s s~ :: creates a window directly below this.
   - ~SPC w n n n~ :: creates a window directly to the right.
 But, more importantly, the prefix ~w s~ gives me more precision to view what I need.
-** Search Operations
+* Search Operations
 Ways to search for information goes under the ~s~ key. The venerable sage has always been =grep=, but we now have new-comers, like [[https://github.com/BurntSushi/ripgrep][ripgrep]], which are really fast.
-*** ripgrep
+** ripgrep
 Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the internal =grep= system, and creates a =*rg*= window with =compilation= mode, so ~C-j~ and ~C-k~ will move and show the results by loading those files.
 
 #+begin_src emacs-lisp
@@ -674,7 +674,7 @@ I don’t understand the bug associated with the =:general= extension to =use-pa
   (use-package rg
     :general (:states 'normal "gS" 'rg-dwim))
 #+end_src
-*** wgrep
+** wgrep
 The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
 #+begin_src emacs-lisp
   (use-package wgrep
@@ -687,7 +687,7 @@ The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates wi
       "s w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)
       "t w" '("wgrep-mode" . wgrep-change-to-wgrep-mode)))
 #+end_src
-** Text Operations
+* Text Operations
 Stealing much of this from Spacemacs.
 #+begin_src emacs-lisp
   (ha-leader
@@ -706,7 +706,7 @@ Unfilling a paragraph joins all the lines in a paragraph into a single line. Tak
     (let ((fill-column (point-max)))
       (fill-paragraph nil)))
 #+end_src
-** Help Operations
+* Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
 Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
@@ -759,7 +759,7 @@ Let's make Info behave a little more VI-like:
              "p" 'Info-backward-node
              "n" 'Info-forward-node))    ; Old habit die hard
 #+end_src
-** Consult
+* Consult
 The [[https://github.com/minad/consult][consult project]] aims to use libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I appreciate this project that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
 
 #+begin_src emacs-lisp
@@ -812,7 +812,7 @@ An under-appreciated version of Consult is the /changing your mind/ aspect. Type
     - ~m~ :: Bookmarks
     - ~p~ :: Project
 
-** Embark
+* Embark
 The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/. I'm primarily thinking of acting on selected items in the minibuffer, but these commands act anywhere.  I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
 #+begin_src emacs-lisp
   (use-package embark
