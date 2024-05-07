@@ -587,9 +587,10 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
       "p !" '("run cmd in project root" . project-shell-command)
       "p &" '("run cmd async" . project-async-shell-command)
       "p a" '("add new project" . project-remember-projects-under)
-      "p d" '("remove known project" . project-forget-project)
+      "p d" '("dired" . project-dired)
       "p k" '("kill project buffers" . project-kill-buffers)
       "p p" '("switch project" . project-switch-project)
+      "p x" '("remove known project" . project-forget-project)
 
       "p f" '("find file" . project-find-file)
       "p F" '("find file o/win" . project-find-file-other-window)

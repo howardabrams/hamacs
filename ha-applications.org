@@ -574,7 +574,7 @@ Browsing on a work laptop is a bit different. According to [[http://ergoemacs.or
       (osx-browse-url url new-window browser focus)))
 #+end_src
 * Dirvish
-The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to be a better =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. For people starting to use =dired=, most commands are pretty straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind:
+The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a prettier =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. For people starting to use =dired=, most commands are pretty straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind:
 
   - ~%~ :: will /mark/ a bunch of files based on a regular expression
   - ~m~ :: marks a single file
@@ -596,12 +596,12 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
 #+begin_src emacs-lisp
   (use-package dirvish
     :straight (:host github :repo "alexluigit/dirvish")
-    :init
-    (dirvish-override-dired-mode)
+    :init (dirvish-override-dired-mode)
 
     :custom
     (dirvish-quick-access-entries
      '(("h" "~/"           "Home")
+       ("e" "~/.emacs.d/" "Emacs user directory")
        ("p" "~/personal"   "Personal")
        ("p" "~/projects"   "Projects")
        ("t" "~/technical"  "Technical")
@@ -624,7 +624,6 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
     ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
     ;;       (setq insert-directory-program "gls")
     ;; And instead use Emacs' built-in directory lister:
-    (setq insert-directory-program nil)
     (setq ls-lisp-use-insert-directory-program nil)
     (require 'ls-lisp)
     (setq dired-listing-switches
@@ -632,6 +631,7 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
 
     (set-face-attribute 'dirvish-hl-line nil :background "darkmagenta"))
 #+end_src
+
 While in =dirvish-mode=, we can rebind some keys:
 #+begin_src emacs-lisp
   (use-package dirvish
@@ -646,6 +646,7 @@ While in =dirvish-mode=, we can rebind some keys:
      ("q"   . dirvish-quit)
      ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
      ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
+     (","   . dirvish-dispatch)
      ("TAB" . dirvish-subtree-toggle)
      ("M-f" . dirvish-history-go-forward)
      ("M-b" . dirvish-history-go-backward)
