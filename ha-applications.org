@@ -573,21 +573,42 @@ Browsing on a work laptop is a bit different. According to [[http://ergoemacs.or
       (cl-callf or browser "org.mozilla.Firefox")
       (osx-browse-url url new-window browser focus)))
 #+end_src
-* Dirvish
-The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a prettier =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. For people starting to use =dired=, most commands are pretty straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind:
+* Dired
+Allow me a confession. When renaming a file or flipping an executable bit, I don’t pull up =dired= as a first thought. But I feel like I should, as can do a lot of things quicker than pulling up a shell.
+Most commands are /somewhat/ straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind it has /two actions/ … mark one or more files to do something, or /flag/ one or more files to delete them. Why two? Dunno. Especially since they act the same. For instance:
 
-  - ~%~ :: will /mark/ a bunch of files based on a regular expression
-  - ~m~ :: marks a single file
-  - ~d~ :: marks a file to delete, type ~x~ to follow-through on all files marked for deletion.
-  - ~u~ :: un-mark a file, or type ~!~ to un-mark all
-  - ~t~ :: to toggle the marked files. Keep files with =xyz= extension? Mark those with ~%~, and then ~t~ toggle.
-  - ~C~ :: copy the current file or all marked files
-  - ~R~ :: rename/move the current file or all marked files
-  - ~M~ :: change the mode (=chmod=) of current or marked files, accepts symbols, like =a+x=
+  1. Mark a few files with ~m~, and then type ~D~ to delete them, or …
+  2. Flag a few files with ~d~, and then type ~x~ to delete them.
 
-Note that =dired= has /two marks/ … one is a general mark, and the other is specifically a mark of files to delete.
+Seems the same to me. Especially since you can type ~u~ to unmark or unflag.
 
-Dirvish does require the following supporting programs, but I’ve already got those puppies installed:
+Few other commands to note:
+
+  + ~m~ :: marks a single file
+  + ~%~ :: will /mark/ a bunch of files based on a regular expression
+  + ~u~ :: un-mark a file, or type ~U~ to un-mark all
+  + ~t~ :: to toggle the marked files. Keep files with =xyz= extension? Mark those with ~%~, and then ~t~ toggle.
+  + ~C~ :: copy the current file or all marked files
+  + ~D~ :: delete the current file or all marked files
+  + ~R~ :: rename/move the current file or all marked files
+  + ~M~ :: change the mode (=chmod=) of current or marked files, accepts symbols, like =a+x=
+
+Couple useful settings:
+
+#+begin_src emacs-lisp
+  (setq delete-by-moving-to-trash t
+        dired-auto-revert-buffer t)
+
+  ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
+  ;;       (setq insert-directory-program "gls")
+  ;; And instead use Emacs' built-in directory lister:
+  (setq ls-lisp-use-insert-directory-program nil)
+  (require 'ls-lisp)
+  (setq dired-listing-switches
+        "-l --almost-all --human-readable --group-directories-first --no-group")
+#+end_src
+** Dirvish
+The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a prettier =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. Dirvish does require the following supporting programs, but I’ve already got those puppies installed:
 #+begin_src sh
   brew install coreutils fd poppler ffmpegthumbnailer mediainfo imagemagick
 #+end_src
@@ -618,22 +639,11 @@ I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/
     (setq dirvish-attributes
           '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
 
-    (setq delete-by-moving-to-trash t
-          dired-auto-revert-buffer t)
-
-    ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
-    ;;       (setq insert-directory-program "gls")
-    ;; And instead use Emacs' built-in directory lister:
-    (setq ls-lisp-use-insert-directory-program nil)
-    (require 'ls-lisp)
-    (setq dired-listing-switches
-          "-l --almost-all --human-readable --group-directories-first --no-group")
-
     (set-face-attribute 'dirvish-hl-line nil :background "darkmagenta"))
 #+end_src
 
 While in =dirvish-mode=, we can rebind some keys:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package dirvish
     :bind
     (:map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
@@ -656,6 +666,90 @@ While in =dirvish-mode=, we can rebind some keys:
      ("M-s" . dirvish-setup-menu)
      ("M-e" . dirvish-emerge-menu)
      ("M-j" . dirvish-fd-jump)))
+#+end_src
+** My Dired Interface
+Because I can’t remember all the cool things =dired= can do, I put together a helper/cheatsheet. Typing ~,~ brings up a menu of possibilities.
+
+#+begin_src emacs-lisp
+  (use-package major-mode-hydra
+    :config
+    (major-mode-hydra-define dired-mode (:quit-key "q")
+      ("File"
+       (("C" dired-do-copy "Copy")
+        ("D" dired-do-delete "Delete")
+        ("S" dired-do-symlink "Symlink")
+        ("w" dired-copy-filename-as-kill "Copy name")
+        ("!" dired-do-shell-command "Shell")
+        ("&" dired-do-async-shell-command "Shell &"))   ; Really?
+       "Change"
+       (("R" dired-do-rename "Rename")
+        ("M" dired-do-chmod "Mode")
+        ("O" dired-do-chown "Owner")
+        ("G" dired-do-chgrp "Group")
+        ("T" dired-do-touch "Mod time"))
+       "Directory"
+       (("+" dired-create-directory "New")
+        ("i" dired-insert-subdir "Insert subdir" :color pink)
+        ("I" dired-hide-subdir "Hide subdir" :color pink)
+        ("g" revert-buffer  "Refresh" :color pink)
+        ("E" wdired-change-to-wdired-mode "Edit (wdired)"))
+       "Mark"
+       (("m" dired-mark "Mark" :color pink)
+        ("u" dired-unmark "Unmark" :color pink)
+        ("U" dired-unmark-all-marks "Unmark all" :color pink)
+        ("t" dired-toggle-marks "Toggle marks" :color pink)
+        ("~" dired-flag-backup-files "Mark backups" :color pink)
+        ("r" hydra-dired-regexp-mark/body "Regexp »"))
+       "Navigation"
+       (("^" dired-up-directory "Up Directory")
+        ("j" dired-next-line "Next File" :color pink)
+        ("k" dired-previous-line "Previous File" :color pink)
+        ("J" dired-next-subdir "Next subdir" :color pink)
+        ("K" dired-previous-subdir "Previous subdir" :color pink))
+       "Misc"
+       (("x" hydra-dired-utils/body "Utils »")
+        ("o" hydra-dired-toggles/body "Toggles »")
+        ("a" dirvish-quick-access "Quick Access"))))
+
+    ;; And some more hydras for the sub-menus:
+    (pretty-hydra-define hydra-dired-regexp-mark (:color blue :hint nil)
+      ("Mark files with regexp..."
+       (("m" dired-mark-files-regexp "matching filenames")
+        ("g" dired-mark-files-containing-regexp "containing text")
+        ("d" dired-flag-files-regexp "to delete")
+        ("c" dired-do-copy-regexp "to copy")
+        ("r" dired-do-rename-regexp "to rename"))))
+
+    (pretty-hydra-define hydra-dired-toggles (:color blue)
+      ("Dired Toggles"
+       (("d" dired-hide-details-mode "File details")
+        ("h" dired-do-kill-lines "Hide marked")
+        ("o" dired-omit-mode "Hide (omit) some?")
+        ("T" image-dired "Image thumbnails"))))
+
+    (pretty-hydra-define hydra-dired-utils (:color blue :hint nil)
+      ("Files"
+       (("f" dired-do-find-marked-files "open marked")
+        ("z" dired-do-compress "(un)compress marked"))
+       "Rename"
+       (("u" dired-upcase "upcase")
+        ("d" dired-downcase "downcase"))
+       "Search"
+       (("g" dired-do-find-regexp "grep marked")
+        ("s" dired-do-isearch "isearch marked")) ; Maybe C-s ... even on top?
+       "Replace"
+       (("r" dired-do-find-regexp-and-replace "find/replace marked")
+        ("R" dired-do-query-replace-regexp "query find/replace")))))
+#+end_src
+
+I do want to change a couple of bindings, as ~j~ to pull up a =completing-read= interface for files, and then move the cursor to the on selected (why not just search) and ~k~ for /hiding/ marked files, aren’t very useful, compared to the finger memory I now have for using those two keys to move up and down lines.
+
+#+begin_src emacs-lisp
+  (define-key dired-mode-map (kbd "j") 'evil-next-line)
+  (define-key dired-mode-map (kbd "k") 'evil-previous-line)
+  (define-key dired-mode-map (kbd "/") 'isearch-forward)
+  (define-key dired-mode-map (kbd "n") 'evil-search-next)
+  (define-key dired-mode-map (kbd ",") 'major-mode-hydras/dired-mode/body)
 #+end_src
 * Annotations
 Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).

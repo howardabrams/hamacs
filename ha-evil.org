@@ -87,6 +87,7 @@ Even with the [[Evil Collection]], some modes should be Emacs:
   (use-package evil
     :config
     (dolist (mode '(custom-mode
+                    dired-mode
                     eshell-mode
                     git-rebase-mode
                     erc-mode
