@@ -1095,7 +1095,8 @@ Also, I like Markdown is look like a word processor, similarly to my org files:
   (use-package markdown-mode
     :straight (:host github :repo "jrblevin/markdown-mode")
     :mode ((rx ".md" string-end) . gfm-mode)
-    :init (setq markdown-command "multimarkdown"
+    :init (setq markdown-command (expand-file-name "markdown" "~/bin")
+                markdown-open-command (expand-file-name "markdown-open" "~/bin")
                 markdown-header-scaling t)
     :general
     (:states 'normal :no-autoload t :keymaps 'markdown-mode-map
@@ -1123,6 +1124,25 @@ With the =markdown-header-scaling= set, we no longer need to color the headers i
         (set-face-attribute 'markdown-header-face nil
                             :font ha-variable-header-font
                             :foreground default-color))))
+#+end_src
+
+Both the =markdown-command= and the =markdown-open-command= variables are called to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):
+
+#+begin_src sh :tangle ~/bin/markdown :shebang "#!/usr/bin/env bash" :tangle-mode u+x
+  pandoc --to=html --from=gfm $*
+#+end_src
+
+#+begin_src sh :tangle ~/bin/markdown-open :shebang "#!/usr/bin/env bash" :tangle-mode u+x
+  OUTPUT_FILE=$(mktemp 'emacs-view-XXXXXXX.html')
+  pandoc --to=html --from=gfm --output=$OUTPUT_FILE $*
+
+  # Are we on a MacOS Laptop:
+  if [ -d "/Library" ]
+  then
+    open $OUTPUT_FILE
+  else
+    firefox -new-tab $OUTPUT_FILE
+  fi
 #+end_src
 
 Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to Markdown code blocks similar to what we do with Org:
