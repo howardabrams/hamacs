@@ -30,8 +30,15 @@ While the Emacs community have a plethora of options for generating a static web
 While the following packages come with Emacs, they aren't necessarily loaded:
 
 #+begin_src emacs-lisp :results silent
+  (require 'ox-html)
   (require 'ox-rss)
   (require 'ox-publish)
+#+end_src
+
+Render my code with my font colors:
+
+#+begin_src emacs-lisp :results silent
+  (use-package htmlize)
 #+end_src
 
 Variable settings:
@@ -189,7 +196,7 @@ As above, we can separate the publishing of the  images and other static files:
   (add-to-list 'org-publish-project-alist
    `("tech-notes-static"
            :base-directory       "~/technical/"
-           :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+           :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|svg"
            :publishing-directory ,(concat org-mode-publishing-directory "/other/")
            :recursive            t
            :publishing-function  org-publish-attachment))
@@ -220,7 +227,7 @@ I’ve been committing my literate-style Emacs configuration for years now, and 
   (add-to-list 'org-publish-project-alist
      `("hamacs-static"
        :base-directory       "~/other/hamacs"
-       :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+       :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|svg"
        :publishing-directory ,(concat org-mode-publishing-directory "hamacs")
        :recursive            t
        :publishing-function  org-publish-attachment))
@@ -252,7 +259,7 @@ I have an ADU on my property that I rent out through Airbnb. The place is full o
   (add-to-list 'org-publish-project-alist
      `("airbnb-static"
        :base-directory       "~/website/airbnb"
-       :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+       :base-extension       "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|svg"
        :publishing-directory ,(concat org-mode-publishing-directory "airbnb/")
        :recursive            t
        :publishing-function  org-publish-attachment))
@@ -303,6 +310,7 @@ Using =rsync= to keep published files in sync with my website:
                   ((s-starts-with? "blog" project)
                    '("Technical" "howardism"
                      "Personal" "howardism"
+                     "RPG" "howardism"
                      "index.html" "howardism"
                      "about-me.html" "howardabrams"))
                   ((s-starts-with? "tech" project)   '("" "howardabrams"))
