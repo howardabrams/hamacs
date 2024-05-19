@@ -408,6 +408,13 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
       (interactive (list (read-string "Name: " (plist-get eww-data :title))))
       (rename-buffer (format "*eww: %s*" name) t))
 
+    (defun ha-eww-better-scroll (prefix)
+      (interactive "^p")
+      (forward-paragraph prefix)
+      ;; (recenter) ... if you want the cursor in the center,
+      ;; otherwise, this puts the paragraph at the top of window:
+      (recenter-top-bottom 0))
+
     (major-mode-hydra-define eww-mode nil
       ("Browser"
        (("G" eww-browse "Browse")
@@ -441,7 +448,8 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
 
     :general
     (:states 'normal :keymaps 'eww-mode-map
-             "q" 'bury-buffer)
+             "q" 'bury-buffer
+             "J" 'ha-eww-better-scroll)
     (:states 'normal :keymaps 'eww-buffers-mode-map
              "q" 'bury-buffer))
 #+end_src
