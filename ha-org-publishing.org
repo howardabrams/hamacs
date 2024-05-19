@@ -90,6 +90,7 @@ My main blog made up a collection of org files:
                  :section-numbers      nil
                  :table-of-contents    nil
                  :with-toc             nil
+                 :with-title           t
                  :with-author          nil
                  :with-creator         nil
                  :with-tags            nil
@@ -186,6 +187,7 @@ I take notes on a variety of technical subjects, and since I can share these not
                                      :script (@ :type "text/javascript"
                                                 :src "js/magic.js")))
            :table-of-contents    nil
+           :with-title           t
            :with-author          nil
            :with-creator         nil
            :with-tags            nil))
@@ -220,6 +222,7 @@ I’ve been committing my literate-style Emacs configuration for years now, and 
                                   :href "../css/styles.css")))
        :html-head-extra      nil
        :table-of-contents    t
+       :with-title           t
        :with-author          nil
        :with-creator         nil
        :with-tags            nil))
@@ -252,6 +255,7 @@ I have an ADU on my property that I rent out through Airbnb. The place is full o
                                   :href "airbnb.css")))
        :html-head-extra      nil
        :table-of-contents    nil
+       :with-title           t
        :with-author          nil
        :with-creator         nil
        :with-tags            nil))
