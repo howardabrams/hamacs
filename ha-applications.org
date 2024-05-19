@@ -574,7 +574,7 @@ Browsing on a work laptop is a bit different. According to [[http://ergoemacs.or
       (osx-browse-url url new-window browser focus)))
 #+end_src
 * Dired
-Allow me a confession. When renaming a file or flipping an executable bit, I don’t pull up =dired= as a first thought. But I feel like I should, as can do a lot of things quicker than pulling up a shell.
+Allow me a confession. When renaming a file or flipping an executable bit, I don’t pull up =dired= as a first thought. But I feel like I should, as can do a lot of things quicker than pulling up a shell. Especially when working [[https://www.masteringemacs.org/article/working-multiple-files-dired][with multiple files]].
 Most commands are /somewhat/ straight-forward (and Prot did a pretty good [[https://www.youtube.com/watch?v=5dlydii7tAU][introduction]] to it), but to remind myself, keep in mind it has /two actions/ … mark one or more files to do something, or /flag/ one or more files to delete them. Why two? Dunno. Especially since they act the same. For instance:
 
   1. Mark a few files with ~m~, and then type ~D~ to delete them, or …
@@ -597,16 +597,35 @@ Couple useful settings:
 
 #+begin_src emacs-lisp
   (setq delete-by-moving-to-trash t
-        dired-auto-revert-buffer t)
-
-  ;; With `ls' as an alias, and `gls' available on _some_ of my systems, I dont:
-  ;;       (setq insert-directory-program "gls")
-  ;; And instead use Emacs' built-in directory lister:
-  (setq ls-lisp-use-insert-directory-program nil)
-  (require 'ls-lisp)
-  (setq dired-listing-switches
-        "-l --almost-all --human-readable --group-directories-first --no-group")
+        dired-auto-revert-buffer t
+        dired-vc-rename-file t)  ; Why not mention to git when renaming?
 #+end_src
+
+My =ls= is an often alias and GNU’s =ls=, labeled  =gls= on my Mac, isn’t consistent between Mac and Linux, so I *don’t* do:
+#+begin_src emacs-lisp :tangle no
+  (setq insert-directory-program "gls")
+#+end_src
+
+Instead I use Emacs' built-in directory lister (which accepts the standard, =dired-listing-switches= to customize the output):
+
+#+begin_src emacs-lisp
+  (use-package ls-lisp
+    :straight (:type built-in)
+    :config
+    (setq ls-lisp-use-insert-directory-program nil
+          dired-listing-switches
+          "-l --almost-all --human-readable --group-directories-first --no-group"))
+#+end_src
+
+And [[https://www.masteringemacs.org/article/dired-shell-commands-find-xargs-replacement][this article by Mickey Petersen]] convinced me to turn on the built-in =dired-x= (just have to tell [[file:bootstrap.org::*Introduction][straight]] that knowledge):
+
+#+begin_src emacs-lisp
+  (use-package dired-x
+    :straight (:type built-in))
+#+end_src
+
+The advantage of =dired-x= is the ability to have [[https://www.emacswiki.org/emacs/DiredExtra#Dired_X][shell command guessing]] when selecting one or more files, and running a shell command on them with ~!~ or ~&~.
+
 ** Dirvish
 The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a prettier =dired=. And since the =major-mode= is still =dired-mode=, the decades of finger memory isn’t lost. Dirvish does require the following supporting programs, but I’ve already got those puppies installed:
 #+begin_src sh
@@ -668,7 +687,7 @@ While in =dirvish-mode=, we can rebind some keys:
      ("M-j" . dirvish-fd-jump)))
 #+end_src
 ** My Dired Interface
-Because I can’t remember all the cool things =dired= can do, I put together a helper/cheatsheet. Typing ~,~ brings up a menu of possibilities.
+Because I can’t remember all the cool things =dired= can do, I put together a helper/cheatsheet. Typing ~,~ brings up a menu of possibilities (for others, I recommend [[https://github.com/kickingvegas/casual-dired][Casual Dired]]):
 
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
@@ -741,6 +760,8 @@ Because I can’t remember all the cool things =dired= can do, I put together a 
        (("r" dired-do-find-regexp-and-replace "find/replace marked")
         ("R" dired-do-query-replace-regexp "query find/replace")))))
 #+end_src
+
+Notice ~E~ to turn on =wdired=, which brings =dired= to a whole new level.
 
 I do want to change a couple of bindings, as ~j~ to pull up a =completing-read= interface for files, and then move the cursor to the on selected (why not just search) and ~k~ for /hiding/ marked files, aren’t very useful, compared to the finger memory I now have for using those two keys to move up and down lines.
 

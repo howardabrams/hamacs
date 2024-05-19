@@ -243,6 +243,7 @@ This simple function allows me to load a project-specific file in a numbered win
 #+end_src
 
 With these helper functions in place, I can create a leader collection for file-related functions:
+
 #+begin_src emacs-lisp
   (ha-leader
     "f"  '(:ignore t :which-key "files")
@@ -256,10 +257,11 @@ With these helper functions in place, I can create a leader collection for file-
     "f r" '("recent" . recentf-open-files)
     "f c" '("copy" . copy-file)
     "f R" '("rename" . rename-file)
-    "f D" '("delete" . delete-file)
+    "f x" '("delete" . delete-file)
     "f y" '("yank path" . ha-yank-buffer-path)
     "f Y" '("yank path from project" . ha-yank-project-buffer-path)
     "f d" '("dired" . dired)
+    "f D" '("find dired" . find-dired)
 
     "f 1" '("load win-1" . ha-find-file-window-1)
     "f 2" '("load win-2" . ha-find-file-window-2)
@@ -271,6 +273,8 @@ With these helper functions in place, I can create a leader collection for file-
     "f 8" '("load win-8" . ha-find-file-window-8)
     "f 9" '("load win-9" . ha-find-file-window-9))
 #+end_src
+
+The ~d~ brings up [[file:ha-applications.org::*Dired][Dired]], and ~D~ pulls up a =dired=, not on a single directory, but based on a pattern given to =find= (see [[https://www.masteringemacs.org/article/working-multiple-files-dired][this discussion on Mastering Emacs]]).
 
 On Unix systems, the =locate= command is faster than =find= when searching the whole system, since it uses a pre-computed database, and =find= is faster if you need to search a specific directory instead of the whole system. On the Mac, we need to change the =locate= command:
 
