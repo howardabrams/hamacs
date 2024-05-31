@@ -352,8 +352,8 @@ In most cases,the =npm install= /usually/ works, but I may work on some sort of 
 At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
 **** Emacs Part
 However, Emacs already has the ability to download and install grammars, so following instructions from Mickey Petersen’s essay on [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][using Tree-sitter with Combobulate]]:
-#+begin_src emacs-lisp :tangle no
-  (when (string-search "TREE_SITTER" system-configuration-features)
+#+begin_src emacs-lisp
+  (when (treesit-available-p)
     (use-package treesit
       :straight (:type built-in)
       :preface
@@ -431,34 +431,21 @@ And enable the languages:
 #+end_src
 *** Combobulate
 I like [[file:ha-programming-elisp.org::*Clever Parenthesis][Clever Parenthesis]], but can we extend that to other languages generally? After reading Mickey Petersen’s essay, [[https://www.masteringemacs.org/article/combobulate-structured-movement-editing-treesitter][Combobulate project]], I decided to try out his [[https://github.com/mickeynp/combobulate][combobulate package]]. Of course, this can only work with the underlying tooling supplied by the [[https://emacs-tree-sitter.github.io/][Tree Sitter]] →
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (when (treesit-available-p)
     (use-package combobulate
       :straight (:host github :repo "mickeynp/combobulate")
       :after treesit
-      ;; :hook ((css-ts-mode    . combobulate-mode)
-      ;;        (json-ts-mode   . combobulate-mode)
-      ;;        (python-ts-mode . combobulate-mode)
-      ;;        (yaml-ts-mode   . combobulate-mode))
+      :hook ((yaml-ts-mode   . combobulate-mode)
+      ;;     (css-ts-mode    . combobulate-mode)
+      ;;     (json-ts-mode   . combobulate-mode)
+      ;;     (python-ts-mode . combobulate-mode)
+            )
      ))
 #+end_src
 
-I can create a /helper function/ to allow me to jump to various types of—well, /types/:
-#+begin_src emacs-lisp :tangle no
-  (when (treesit-available-p)
-    (use-package combobulate
-      :config
-      (defun ha-comb-jump (&rest tree-sitter-types)
-        "Use `avy' to jump to a particular type of element.6 "
-        (lexical-let ((types tree-sitter-types))
-          (lambda ()
-            (interactive)
-            (with-navigation-nodes (:nodes types)
-              (combobulate-avy-jump)))))))
-#+end_src
-
 Now, I can create an /interface/ of keystrokes to jump around like a boss:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (when (treesit-available-p)
     (use-package combobulate
       :general
@@ -477,16 +464,69 @@ Now, I can create an /interface/ of keystrokes to jump around like a boss:
 
                "g j" '(:ignore t :which-key "combobulate jump")
                "g j j" '("all" . combobulate-avy-jump)
-               "g j s" `("strings" . ,(ha-comb-jump "string"))
-               "g j c" `("comments" . ,(ha-comb-jump "comment"))
-               "g j i" `("conditionals" . ,(ha-comb-jump "conditional_expression" "if_statement"
-                                                         "if_clause" "else_clause" "elif_clause" ))
-               "g j l" `("loops" . ,(ha-comb-jump "for_statement" "for_in_clause" "while_statement"
-                                                  "list_comprehension" "dictionary_comprehension" "set_comprehension"))
-               "g j f" '("functions" . combobulate-avy-jump-defun))))
+               "g j s" '("strings" . ha-combobulate-string)
+               "g j c" '("comments" . ha-combobulate-comment)
+               "g j i" '("conditionals" . ha-combobulate-conditional)
+               "g j l" '("loops" . ha-combobulate-loop)
+               "g j f" '("functions" . combobulate-avy-jump-defun))
+
+      :pretty-hydra
+      ((:color pink :quit-key "q")
+       ("Navigation"
+        (("j" combobulate-navigate-logical-next "Next")
+         ("k" combobulate-navigate-logical-previous "Previous")
+         ("h" combobulate-navigate-beginning-of-defun "Defun <")
+         ("l" combobulate-navigate-end-of-defun "Defun >")
+         ("g" combobulate-avy-jump "Avy Jump"))
+        "Push"
+        (("U" combobulate-drag-up "Drag back")
+         ("D" combobulate-drag-down "Drag forward")
+         ("R" combobulate-vanish-node "Drag back"))
+        "Jump"
+        (("s" ha-combobulate-string "to string" :color blue)
+         ("c" ha-combobulate-comment "comments" :color blue)
+         ("i" ha-combobulate-conditional "conditionals" :color blue)
+         ("l" ha-combobulate-loop "loops" :color blue)
+         ("f" combobulate-avy-jump-defun "to defuns" :color blue))))))
 #+end_src
 
 Mickey’s interface is the [[help:combobulate][combobulate]] function (or ~C-c o o~), but mine is more /evil/.
+
+I can create a /helper function/ to allow me to jump to various types of—well, /types/:
+#+begin_src emacs-lisp
+  (when (treesit-available-p)
+    (use-package combobulate
+      :config
+      (defun ha-combobulate-string ()
+        "Call `combobulate-avy-jump' searching for strings."
+        (interactive)
+        (with-navigation-nodes (:nodes '("string"))
+          (combobulate-avy-jump))))
+
+    (defun ha-combobulate-comment ()
+      "Call `combobulate-avy-jump' searching for comments."
+      (interactive)
+      (with-navigation-nodes (:nodes '("comment"))
+        (combobulate-avy-jump)))
+
+    (defun ha-combobulate-conditional ()
+      "Call `combobulate-avy-jump' searching for conditionals."
+      (interactive)
+      (with-navigation-nodes (:nodes '("conditional_expression"
+                                       "if_statement"
+                                       "if_clause" "else_clause"
+                                       "elif_clause"))
+        (combobulate-avy-jump)))
+
+    (defun ha-combobulate-loop ()
+      "Call `combobulate-avy-jump' searching for loops."
+      (interactive)
+      (with-navigation-nodes (:nodes '("for_statement" "for_in_clause"
+                                       "while_statement" "list_comprehension"
+                                       "dictionary_comprehension"
+                                       "set_comprehension"))
+        (combobulate-avy-jump))))
+#+end_src
 
 *** Evil Text Object from Tree Sitter
 With Emacs version 29, we get a better approach to parsing languages, and this means that our [[https://github.com/nvim-treesitter/nvim-treesitter-textobjects#built-in-textobjects][text objects]] can be better too with the [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter project]]:
@@ -1195,7 +1235,7 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+begin_src emacs-lisp
   (use-package polymode
     :config
-    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
+    (define-hostmode poly-yaml-hostmode :mode #'yaml-ts-mode)
     (defcustom pm-inner/jinja2
       (pm-inner-chunkmode :mode #'jinja2-mode
                           :head-matcher "{[%{#][+-]?"
@@ -1214,13 +1254,19 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
     :mode ((rx ".y" (optional "a") "ml" string-end) . poly-yaml-jinja2-mode))
 #+end_src
 ** YAML
-Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
+Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =yaml-mode= project needs a new maintainer, so I might as well switch over to the T version.
+, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
 
 #+begin_src emacs-lisp
   (when (treesit-available-p)
     (use-package yaml-ts-mode
-      :mode ((rx ".y" (optional "a") "ml" string-end)
-             (rx (optional ".") "yamllint"))))
+      ;; :mode ((rx ".y" (optional "a") "ml" string-end)
+      ;;        (rx (optional ".") "yamllint"))
+      :mode-hydra
+      ((:foreign-keys run)
+       ("Simple"
+        (("l" ha-yaml-next-section "Next section")
+         ("h" ha-yaml-prev-section "Previous"))))))
 #+end_src
 
 And we hook
@@ -1228,26 +1274,29 @@ And we hook
   (when (treesit-available-p)
     (use-package yaml-pro
       :straight (:host github :repo "zkry/yaml-pro")
-      :after yaml-mode
-      :config
-      (major-mode-hydra-define yaml-ts-mode (:foreign-keys run)
-        ("Navigation"
-         (("u" yaml-pro-ts-up-level "Up level" :color pink)         ; C-c C-u
-          ("J" yaml-pro-ts-next-subtree "Next subtree" :color pink) ; C-c C-n
-          ("K" yaml-pro-ts-prev-subtree "Previous" :color pink))    ; C-c C-p
-         "Editing"
-         (("m" yaml-pro-ts-mark-subtree "Mark subtree")             ; C-c C-@
-          ("x" yaml-pro-ts-kill-subtree "Kill subtree")             ; C-c C-x C-w
-          ("p" yaml-pro-ts-paste-subtree "Paste subtree"))          ; C-c C-x C-y
-         "Insert"
-         (("e" yaml-pro-edit-ts-scalar "Edit item")                 ; C-c '
-          ("o" yaml-pro-ts-meta-return "New list item"))
-         "Refactor"
-         (("C-j" yaml-pro-ts-move-subtree-down "Lower subtree")
-          ("C-k" yaml-pro-ts-move-subtree-up "Raise subtree"))
-         "Documentation"
-         (("d" hydra-devdocs/body "Devdocs"))))
-      :hook (yaml-ts-mode . yaml-pro-mode)))
+      :after yaml-ts-mode
+      :mode-hydra
+      (yaml-ts-mode
+       (:foreign-keys run)
+       ("Navigation"
+        (("u" yaml-pro-ts-up-level "Up level" :color pink) ; C-c C-u
+         ("J" yaml-pro-ts-next-subtree "Next subtree" :color pink) ; C-c C-n
+         ("K" yaml-pro-ts-prev-subtree "Previous" :color pink)) ; C-c C-p
+        "Editing"
+        (("m" yaml-pro-ts-mark-subtree "Mark subtree")   ; C-c C-@
+         ("x" yaml-pro-ts-kill-subtree "Kill subtree")   ; C-c C-x C-w
+         ("p" yaml-pro-ts-paste-subtree "Paste subtree")) ; C-c C-x C-y
+        "Insert"
+        (("e" yaml-pro-edit-ts-scalar "Edit item") ; C-c '
+         ("o" yaml-pro-ts-meta-return "New list item"))
+        "Refactor"
+        (("C-j" yaml-pro-ts-move-subtree-down "Lower subtree")
+         ("C-k" yaml-pro-ts-move-subtree-up "Raise subtree"))
+        "Documentation"
+        (("d" hydra-devdocs/body "Devdocs")
+         ("," combobulate-hydra/body ">>>"))))
+      :hook ((yaml-ts-mode . yaml-pro-mode)
+             (poly-yaml-jinja2-mode . yaml-pro-mode))))
 #+end_src
 
 Note that these packages need the following to run properly:
