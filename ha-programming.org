@@ -99,6 +99,19 @@ Farm off commands into /virtual environments/:
     :config
     (direnv-mode))
 #+end_src
+** Line Numbers
+For all programming languages, I would like to now default to absolute line numbers, and turn off the [[file:ha-display.org::*Mixed Pitch][Mixed Pitch]] feature that seems to /come along/ for the ride:
+
+#+begin_src emacs-lisp
+  (use-package emacs
+    :config
+    (defun ha-prog-mode-config ()
+      "Configure the `prog-mode'"
+      (setq display-line-numbers t)
+      (mixed-pitch-mode 0))
+    :hook
+    (prog-mode . ha-prog-mode-config))
+#+end_src
 ** Spell Checking Comments
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
@@ -1168,62 +1181,6 @@ Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[
     :config
     (set-face-attribute 'rst-literal nil :font ha-fixed-font))
 #+end_src
-** YAML
-Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
-#+begin_src emacs-lisp :tangle no
-  (when (treesit-available-p)
-    (use-package yaml-ts-mode
-      :mode ((rx ".y" (optional "a") "ml" string-end)
-             (rx (optional ".") "yamllint"))
-      :hook (yaml-ts-mode . display-line-numbers-mode)))
-#+end_src
-Get the latest version of =yaml-mode=:
-#+begin_src emacs-lisp
-  (use-package yaml-mode
-        :mode (rx ".y" (optional "a") "ml" string-end)
-              (rx (optional ".") "yamllint")
-        :hook (yaml-mode . display-line-numbers-mode))
-#+end_src
-
-And we hook
-#+begin_src emacs-lisp
-  (use-package yaml-pro
-    :straight (:host github :repo "zkry/yaml-pro")
-    :after yaml-mode
-    :hook (yaml-mode . yaml-pro-mode))
-#+end_src
-
-This comes with a list of nice refactoring features that we can attach to the local leader:
-#+begin_src emacs-lisp
-  (when (treesit-available-p)
-    (use-package yaml-pro
-      :config
-      (ha-local-leader :keymaps 'yaml-pro-ts-mode-map
-        "u" '("up" . yaml-pro-ts-up-level)                   ; C-c C-u
-        "j" '("next" . yaml-pro-ts-next-subtree)             ; C-c C-n
-        "k" '("previous" . yaml-pro-ts-prev-subtree)         ; C-c C-p
-
-        "m" '("mark tree" . yaml-pro-ts-mark-subtree)        ; C-c C-@
-        "d" '("kill subtree" . yaml-pro-kill-subtree)     ; C-c C-x C-w
-        "y" '("paste tree" . yaml-pro-ts-paste-subtree)      ; C-c C-x C-y
-
-        "'" '("edit" . yaml-pro-edit-ts-scalar)              ; C-c '
-
-        "r"  '(:ignore t :which-key "refactor")
-        "r k" '("move up" . yaml-pro-ts-move-subtree-up)     ; s-↑
-        "r j" '("move down" . yaml-pro-ts-move-subtree-down) ; s-↓
-
-        ;; "r " '("" . yaml-pro-ts-meta-return)              ; M-<return>
-        "r c" '("convolute" . yaml-pro-ts-convolute-tree)    ; M-?
-        "r i" '("indent" . yaml-pro-ts-indent-subtree)       ; C-c >
-        "r o" '("outdent" . yaml-pro-ts-unindent-subtree)))) ; C-c <
-#+end_src
-Seems like I need a predicate to check for the existence of Tree Sitter support?
-
-Note that these packages need the following to run properly:
-#+begin_src sh
-  pip install yamllint
-#+end_src
 ** Jinja2
 A lot of projects (like Ansible and Zuul) uses [[https://jinja.palletsprojects.com][Jinja2]] with YAML, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
 #+begin_src emacs-lisp
@@ -1238,7 +1195,7 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+begin_src emacs-lisp
   (use-package polymode
     :config
-    (define-hostmode poly-yaml-hostmode :mode 'yaml-mode)
+    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
     (defcustom pm-inner/jinja2
       (pm-inner-chunkmode :mode #'jinja2-mode
                           :head-matcher "{[%{#][+-]?"
@@ -1255,6 +1212,47 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
       :innermodes '(pm-inner/jinja2))
 
     :mode ((rx ".y" (optional "a") "ml" string-end) . poly-yaml-jinja2-mode))
+#+end_src
+** YAML
+Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  this =yaml-mode= project needs a new maintainer, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
+
+#+begin_src emacs-lisp
+  (when (treesit-available-p)
+    (use-package yaml-ts-mode
+      :mode ((rx ".y" (optional "a") "ml" string-end)
+             (rx (optional ".") "yamllint"))))
+#+end_src
+
+And we hook
+#+begin_src emacs-lisp
+  (when (treesit-available-p)
+    (use-package yaml-pro
+      :straight (:host github :repo "zkry/yaml-pro")
+      :after yaml-mode
+      :config
+      (major-mode-hydra-define yaml-ts-mode (:foreign-keys run)
+        ("Navigation"
+         (("u" yaml-pro-ts-up-level "Up level" :color pink)         ; C-c C-u
+          ("J" yaml-pro-ts-next-subtree "Next subtree" :color pink) ; C-c C-n
+          ("K" yaml-pro-ts-prev-subtree "Previous" :color pink))    ; C-c C-p
+         "Editing"
+         (("m" yaml-pro-ts-mark-subtree "Mark subtree")             ; C-c C-@
+          ("x" yaml-pro-ts-kill-subtree "Kill subtree")             ; C-c C-x C-w
+          ("p" yaml-pro-ts-paste-subtree "Paste subtree"))          ; C-c C-x C-y
+         "Insert"
+         (("e" yaml-pro-edit-ts-scalar "Edit item")                 ; C-c '
+          ("o" yaml-pro-ts-meta-return "New list item"))
+         "Refactor"
+         (("C-j" yaml-pro-ts-move-subtree-down "Lower subtree")
+          ("C-k" yaml-pro-ts-move-subtree-up "Raise subtree"))
+         "Documentation"
+         (("d" hydra-devdocs/body "Devdocs"))))
+      :hook (yaml-ts-mode . yaml-pro-mode)))
+#+end_src
+
+Note that these packages need the following to run properly:
+#+begin_src sh
+  pip install yamllint
 #+end_src
 ** Ansible
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]? Maybe we just have a toggle for when we want the Ansible feature.
