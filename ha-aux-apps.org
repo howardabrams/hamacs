@@ -43,6 +43,14 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
     :config
     (ha-leader "a m" `("mastodon" . ,(ha-app-perspective "mastodon" #'mastodon)))
 
+    (defun ha-mastodon-scroll-or-more ()
+      "Scroll a window, and at the end, get more entries in timeline."
+      (interactive)
+      (condition-case nil
+          (scroll-up-command)
+        (end-of-buffer
+         (mastodon-tl--more))))
+
     (use-package major-mode-hydra
       :config
       (major-mode-hydra-define mastodon-mode nil
@@ -73,7 +81,8 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
           ("Y" mastodon-toot--copy-toot-text "Copy text"))
          "Navigation"
          (("n" mastodon-tl--next-tab-item "next" :color pink)
-          ("p" mastodon-tl--previous-tab-item "previous" :color pink))))))
+          ("p" mastodon-tl--previous-tab-item "previous" :color pink)
+          ("," ha-mastodon-scroll-or-more "...more" :color pink))))))
 #+end_src
 
 Let’s turn on non-fixed-width fonts to make everything easier to read:
