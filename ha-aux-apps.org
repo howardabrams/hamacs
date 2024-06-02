@@ -188,7 +188,7 @@ Working on my new replacement of my DM code:
       :after hydra
       ;; :commands (rpgtk-mode rpgtk-tables-load rpgtk-dice rpgtk-message)
       :custom
-      (rpgtk-tables-directory "~/other/emacs-rpgtk/tables")
+      (rpgtk-tables-directory (expand-file-name "~/other/emacs-rpgtk/tables"))
 
       :config
       (ha-leader
