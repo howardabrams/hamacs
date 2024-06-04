@@ -3,20 +3,24 @@
 #  INITIALIZE the HAMACS SYSTEM
 # ----------------------------------------------------------------------
 
+# shellcheck disable=SC2164
 HAMACS_DIR=$(cd "$(dirname "$0")"; pwd)
 HAMACS_DEST=$HOME/.emacs.d
 
-cd $HAMACS_DIR
-mkdir -p $HAMACS_DEST
+cd "$HAMACS_DIR"
+mkdir -p "$HAMACS_DEST"
 
 for LINK in snippets templates elisp
 do
-    echo Symlinking $HAMACS_DEST/$LINK to $HAMACS_DIR/$LINK ...
-    rm -rf $HAMACS_DEST/$LINK
-    ln -s $HAMACS_DIR/$LINK $HAMACS_DEST
+    echo "Symlinking $HAMACS_DEST/$LINK to $HAMACS_DIR/$LINK ..."
+    rm -rf "${HAMACS_DEST:-~}/$LINK"
+    ln -s "$HAMACS_DIR/$LINK" "$HAMACS_DEST"
 done
 
-cat > $HAMACS_DEST/early-init.el <<EOF
+echo Download the public keys:
+gpg --homedir ~/.emacs.d/elpa/gnupg --receive-keys 066DAFCB81E42C40
+
+cat > "$HAMACS_DEST/early-init.el" <<EOF
 ;;; early-init.el --- Hamacs Early Init -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
@@ -43,10 +47,10 @@ EOF
 IFS=":" read -r -a PATH_ARRAY <<< "${PATH}"
 for P in "${PATH_ARRAY[@]}"
 do
-  echo "(add-to-list 'exec-path \"${P}\")" >> $HAMACS_DEST/early-init.el
+  echo "(add-to-list 'exec-path \"${P}\")" >> "$HAMACS_DEST/early-init.el"
 done
 
-cat >> $HAMACS_DEST/early-init.el <<EOF
+cat >> "$HAMACS_DEST/early-init.el" <<EOF
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; no-native-compile: t
@@ -56,10 +60,10 @@ cat >> $HAMACS_DEST/early-init.el <<EOF
 ;;; early-init.el ends here
 EOF
 
-echo Created $HAMACS_DEST/early-init.el
+echo "Created $HAMACS_DEST/early-init.el"
 
 
-cat > $HAMACS_DEST/init.el <<EOF
+cat > "$HAMACS_DEST/init.el" <<EOF
 ;;; init.el --- Hamacs Init -*- lexical-binding: t; -*-
 ;;
 ;;; Commentary:
@@ -74,6 +78,9 @@ cat > $HAMACS_DEST/init.el <<EOF
 
 ;; Bug fixes for ORG (there always seems to be something):
 (defvar native-comp-deferred-compilation-deny-list nil)
+
+;; Allow the installation of unsigned packages, but verify the signature if possible:
+(setq package-check-signature 'allow-unsigned)
 
 ;; Configure straight https://github.com/raxod502/straight.el#getting-started
 
@@ -111,4 +118,4 @@ cat > $HAMACS_DEST/init.el <<EOF
 ;;; init.el ends here
 EOF
 
-echo Created $HAMACS_DEST/init.el
+echo "Created $HAMACS_DEST/init.el"

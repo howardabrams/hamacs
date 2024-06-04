@@ -346,18 +346,20 @@ One does get used to a particular collection of colors. After happily using Stev
       (if (eq flexoki-themes-set-theme 'dark)
           (progn
             (set-face-attribute 'default nil   :background "#161514")
-            (set-face-attribute 'region nil :background "#bc5215")
+            (set-face-attribute 'cursor nil :background "#ce5d97")    ; dark-version of magenta
+            (set-face-attribute 'region nil :background "#bc5215")    ; light-version of orange
             (set-face-attribute 'org-block nil :background "#1b1a19")
             (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b")
             (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b"))
 
-        (set-face-attribute 'region nil :background "#da702c")
+        (set-face-attribute 'cursor nil :background "#a02f6f")  ; dark-version of orange
+        (set-face-attribute 'region nil :background "#da702c")  ; dark-version of orange
         (set-face-attribute 'org-block-begin-line nil :foreground "#fffcf0")))
 
     :custom
     (flexoki-themes-set-theme 'dark)
-    (flexoki-themes-use-bold-keywords t)
-    (flexoki-themes-use-bold-builtins t)
+    (flexoki-themes-use-bold-keywords nil)
+    (flexoki-themes-use-bold-builtins nil)
     (flexoki-themes-use-italic-comments t)
 
     :hook (flexoki-themes-after-load-themes . ha-flexoki-themes-update))
@@ -401,6 +403,37 @@ And of course, the default is /inside/ where it is dark and safe:
 
 #+begin_src emacs-lisp
   (laptop-inside)
+#+end_src
+*** Highlight TODOs
+In code, if you drop a specific /text/ labels, we can highlight them with [[https://github.com/tarsius/hl-todo][hl-todo package]]:
+
+#+begin_src emacs-lisp
+  (use-package hl-todo
+    :straight (:host github :repo "tarsius/hl-todo")
+    :init
+    (setq hl-todo-keyword-faces
+      '(("TODO"   . (face-foreground 'flexoki-themes-orange))
+        ("FIXME"  . (face-foreground 'flexoki-themes-red))
+        ("DEBUG"  . (face-foreground 'flexoki-themes-green))
+        ("NOTE"   . (face-foreground 'flexoki-themes-blue))))
+    (global-hl-todo-mode 1))
+#+end_src
+
+This means that comments like the following visually standout:
+TODO: Attempt to validate that this shows something I need to do.
+
+Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, but the [[https://github.com/liuyinz/consult-todo][consult-todo]] implements that in a more visual way:
+
+#+begin_src emacs-lisp
+  (use-package consult-todo
+    :init
+    (defconst consult-todo--narrow
+      '((?t . "TODO")
+        (?f . "FIXME")
+        (?d . "DEBUG")
+        (?n . "NOTE"))
+      "Mapping of narrow and keywords.")
+    :general (:states 'normal "g t" '("jump todos" . consult-todo)))
 #+end_src
 * Full Size Frame
 Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][this essay]], I figured I would start the initial frame automatically in fullscreen, but not any subsequent frames (as this could be part of the capturing system).

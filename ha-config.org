@@ -359,7 +359,7 @@ For this feature, I may want to pull it out into its own file, so as to keep all
 #+end_src
 
 
-** Additional Global Packages
+** Text Expanders and Completion
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
   - Spelling in org files (abbrev or hippie expander) and code completion are separate, but I’m not sure if I can split them
