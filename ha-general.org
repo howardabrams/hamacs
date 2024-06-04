@@ -761,7 +761,37 @@ Let's make Info behave a little more VI-like:
              "U" 'Info-directory
              "T" 'Info-top-node
              "p" 'Info-backward-node
-             "n" 'Info-forward-node))    ; Old habit die hard
+             "n" 'Info-forward-node)
+     :config
+     (major-mode-hydra-define Info-mode (:quit-key "q")
+       ("Overview"
+         (("d" Info-directory "Directory")
+          ("t" Info-top-node "Top")
+          ("T" Info-toc "Contents"))
+         "Goto"
+         (("m" link-hint-open-link "Menu...")
+          ("n" Info-goto-node "Node...")
+          ("i" Info-index "Index..."))
+         "History"
+         (("M-h" Info-history "List")
+          ("H" Info-history-back "Back" :color pink)
+          ("L" Info-history-forward "Forward" :color pink))
+         "Navigation"
+         (("u" Info-up "Up" :color pink)
+          ("p" Info-backward-node "Backward" :color pink)
+          ("n" Info-forward-node "Forward" :color pink))
+         "References"
+         (("l" Info-follow-reference "Choose")
+          ("j" Info-next-reference "Next" :color pink)
+          ("k" Info-prev-reference "Previous" :color pink))
+         "Scroll"
+         (("SPC" Info-scroll-up "Up" :color pink)
+          ("DEL" Info-scroll-down "Down" :color pink)
+          ("RET" Info-follow-nearest-node "Open"))
+         "Misc"
+         (("o" org-store-link "Store link")
+          ("b" Info-bookmark-jump "Bookmark")
+          ("w" Info-goto-node-web "View on Web")))))
 #+end_src
 * Consult
 The [[https://github.com/minad/consult][consult project]] aims to use libraries like [[*Vertico][Vertico]] to enhance specific, built-in, Emacs functions. I appreciate this project that when selecting an element in the minibuffer, it displays what you are looking at… for instance, it previews a buffer before choosing it. Unlike /Vertico/ and /Orderless/, you need to bind keys to its special functions (or rebind existing keys that do something similar).
