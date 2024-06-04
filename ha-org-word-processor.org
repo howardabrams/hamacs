@@ -238,54 +238,46 @@ This is now fine and ffantastic!
 * Org Beautify
 I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
 
-First step is to make all Org header levels to use the variable font, and be the same color as the default text:
 
 #+begin_src emacs-lisp
-  (when window-system
-    (let ((default-color (face-attribute 'default :foreground)))
-      (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4 org-level-5 org-level-6 org-level-7 org-level-8))
-        (set-face-attribute face nil :height 1.1
-                            :foreground default-color :weight 'bold
-                            :font ha-variable-header-font))))
-#+end_src
+  (defun ha-word-processor-fonts ()
+    "Configure `org-mode' fonts and faces."
+    (interactive)
 
-Next, we just need to change the header sizes:
+    ;; First step is to make all Org header levels to use the variable
+    ;; font, and be the same color as the default text:
 
-#+begin_src emacs-lisp
-  (when window-system
+    (when window-system
+      (let ((default-color (face-attribute 'default :foreground)))
+        (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4
+                        org-level-5 org-level-6 org-level-7 org-level-8))
+          (set-face-attribute face nil :height 1.1
+                              :foreground default-color :weight 'bold
+                              :font ha-variable-header-font))))
+
+    ;; Change the header sizes to show their level visually:
     (set-face-attribute 'org-level-1 nil :height 2.2)
     (set-face-attribute 'org-level-2 nil :height 1.8)
     (set-face-attribute 'org-level-3 nil :height 1.4)
-    (set-face-attribute 'org-level-4 nil :height 1.2))
-#+end_src
+    (set-face-attribute 'org-level-4 nil :height 1.2)
 
-While we are at it, let’s make sure the code blocks are using my fixed with font:
-#+begin_src emacs-lisp
-  (when window-system
     (dolist (face '(org-block org-code org-verbatim org-table org-drawer
-                    org-table org-formula org-special-keyword org-block
-                    org-property-value org-document-info-keyword))
-      (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9)))
+                              org-table org-formula org-special-keyword org-block
+                              org-property-value org-document-info-keyword))
+      (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9))
 
-  (set-face-attribute 'org-table nil :height 1.0)
-  (set-face-attribute 'org-formula nil :height 1.0)
+    ;; While we are at it, let’s make sure the code blocks are using my fixed with font:
+    (set-face-attribute 'org-table nil :height 1.0)
+    (set-face-attribute 'org-formula nil :height 1.0)
 
+    (set-face-attribute 'org-drawer nil :height 0.8)
+    (set-face-attribute 'org-property-value nil :height 0.85)
+    (set-face-attribute 'org-special-keyword nil :height 0.85))
 #+end_src
-Not sure why the above code removes the color of =org-verbatim=, so let’s make it stand out slightly:
+
+We call this function when we start:
 #+begin_src emacs-lisp
-  (set-face-attribute 'org-verbatim nil :foreground "#aaaacc")
-#+end_src
-And some slight adjustments to the way blocks are displayed:
-#+begin_src emacs-lisp
-  (set-face-attribute 'org-block-begin-line nil :background "#282828")
-  (set-face-attribute 'org-block nil :height 0.95)
-  (set-face-attribute 'org-block-end-line nil :background "#262626")
-#+end_src
-And decrease the prominence of the property drawers:
-#+begin_src emacs-lisp
-  (set-face-attribute 'org-drawer nil :height 0.8)
-  (set-face-attribute 'org-property-value nil :height 0.85)
-  (set-face-attribute 'org-special-keyword nil :height 0.85)
+  (ha-word-processor-fonts)
 #+end_src
 * Org Modern
 The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a lot of what I was doing in this file.
@@ -317,12 +309,10 @@ According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to
 #+end_src
 * Padding
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
-
 #+begin_src emacs-lisp
   (use-package org-padding
     :straight (:host github :repo "TonCherAmi/org-padding")
-    :hook
-    (org-mode . org-padding-mode)
+    :hook (org-mode . org-padding-mode)
     :config
     (setq org-padding-block-begin-line-padding '(0.5 . 0.3)
           org-padding-block-end-line-padding '(0.1 . 0.5)

@@ -55,11 +55,10 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
           doom-modeline-lsp-icon t
           doom-modeline-percent-position nil)
     (doom-modeline-mode 1))
-
-  (use-package doom-themes)
 #+end_src
-* Find the Buffer Window
+* Window Dimmer
 To make the active window /more noticeable/, we /dim/ the in-active windows with the [[https://github.com/gonewest818/dimmer.el][dimmer project]].
+
 #+begin_src emacs-lisp
   (use-package dimmer
     :custom
@@ -80,7 +79,7 @@ Large screen, lots of windows, so where is the cursor? While I used to use =hl-l
     :straight (:host github :repo "protesilaos/pulsar")
     :custom
     (pulsar-face 'pulsar-generic)
-    (pulsar-delay 0.05)
+    (pulsar-delay 0.15)
 
     :config
     (dolist (built-in-function '(recenter-top-bottom move-to-window-line-top-bottom reposition-window
@@ -132,42 +131,74 @@ And if I can’t find the cursor, and don’t want to move it to see it, I can h
     :bind ("<f8>" . pulsar-pulse-line))
 #+end_src
 * Themes
-One does get used to a particular collection of colors. Mine is Tomorrow:
+One does get used to a particular collection of colors. After happily using Steve Purcell’s Tomorrow theme for many years, I decided to push it a little /warmer/.
+
 #+begin_src emacs-lisp
-(use-package color-theme-sanityinc-tomorrow)
+  (use-package flexoki-themes
+    :config
+    (load-theme 'flexoki-themes-dark t)
+
+    (defun ha-flexoki-themes-update ()
+      "Slight tweaks to the flexoki-themes.
+  I found the background a tad too stark."
+      (if (eq flexoki-themes-set-theme 'dark)
+          (progn
+            (set-face-attribute 'default nil   :background "#161514")
+            (set-face-attribute 'region nil :background "#bc5215")
+            (set-face-attribute 'org-block nil :background "#1b1a19")
+            (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b")
+            (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b"))
+
+        (set-face-attribute 'region nil :background "#da702c")
+        (set-face-attribute 'org-block-begin-line nil :foreground "#fffcf0")))
+
+    :custom
+    (flexoki-themes-set-theme 'dark)
+    (flexoki-themes-use-bold-keywords t)
+    (flexoki-themes-use-bold-builtins t)
+    (flexoki-themes-use-italic-comments t)
+
+    :hook (flexoki-themes-after-load-themes . ha-flexoki-themes-update))
 #+end_src
+
 Most of the time, Emacs is on my desk is a darkened room, so I choose the dark theme:
 
 #+begin_src emacs-lisp
-(defun laptop-inside ()
-  (interactive)
-  (load-theme 'sanityinc-tomorrow-night t)
-  (set-face-attribute 'region nil :background "#000096")
-  (set-face-attribute 'mode-line nil :background "black")
-  (set-face-attribute 'mode-line-inactive nil :background "#444444"))
+  (defun laptop-inside ()
+    "Customize the theme for inside programming."
+    (interactive)
+    (load-theme 'flexoki-themes-dark t)
+    (ha-word-processor-fonts))
 #+end_src
 
 But, when feeling adventurous, I /sometimes/ take my laptop outside:
 
 #+begin_src emacs-lisp
-(defun laptop-in-the-sun ()
-  (interactive)
-  (load-theme 'sanityinc-tomorrow-day t)
-  (set-face-attribute 'region nil :background "orange1")
+  (defun laptop-in-the-sun ()
+    "Customize the theme for outside programming."
+    (interactive)
+    (load-theme 'flexoki-themes-light t)
+    (ha-word-processor-fonts))
+#+end_src
+
+I’ve been playing around with making the current window more pronounced.
+This isn’t needed as much with the [[*Window Dimmer][Window Dimmer]] feature, but if I do, this would be the settings:
+
+#+begin_src emacs-lisp :tangle no
   (set-face-attribute 'mode-line nil :background "#cccccc")
-  (set-face-attribute 'mode-line-inactive nil :background "#888888"))
+  (set-face-attribute 'mode-line-inactive nil :background "#888888")
 #+end_src
 
 Oh, and turn off the line highlighting:
 
 #+begin_src emacs-lisp
-(global-hl-line-mode -1)
+  (global-hl-line-mode -1)
 #+end_src
 
 And of course, the default is /inside/ where it is dark and safe:
 
 #+begin_src emacs-lisp
-(laptop-inside)
+  (laptop-inside)
 #+end_src
 * Full Size Frame
 Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][this essay]], I figured I would start the initial frame automatically in fullscreen, but not any subsequent frames (as this could be part of the capturing system).
