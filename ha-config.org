@@ -316,12 +316,49 @@ Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:
 #+end_src
 This extends the =use-package= to include a =:general= keybinding section.
 
-Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using the [[https://github.com/jerrypnz/major-mode-hydra.el][Major Mode Hydra]] project:
+Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using the [[https://github.com/jerrypnz/major-mode-hydrajjj0.el][Major Mode Hydra]] project:
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config
     (global-set-key (kbd "s-,") #'major-mode-hydra))
 #+end_src
+
+For this feature, I may want to pull it out into its own file, so as to keep all of its features together... however, those feature often /depend/ of the functions they are calling. If so, we would have a series like this:
+#+begin_src emacs-lisp
+  (use-package major-mode-hydra
+    :config
+    (major-mode-hydra-define Info-mode (:quit-key "q")
+       ("Overview"
+         (("d" Info-directory "Directory")
+          ("t" Info-top-node "Top")
+          ("T" Info-toc "Contents"))
+         "Goto"
+         (("m" link-hint-open-link "Menu...")
+          ("n" Info-goto-node "Node...")
+          ("i" Info-index "Index..."))
+         "History"
+         (("M-h" Info-history "List")
+          ("H" Info-history-back "Back" :color pink)
+          ("L" Info-history-forward "Forward" :color pink))
+         "Navigation"
+         (("u" Info-up "Up" :color pink)
+          ("p" Info-backward-node "Backward" :color pink)
+          ("n" Info-forward-node "Forward" :color pink))
+         "References"
+         (("l" Info-follow-reference "Choose")
+          ("j" Info-next-reference "Next" :color pink)
+          ("k" Info-prev-reference "Previous" :color pink))
+         "Scroll"
+         (("SPC" Info-scroll-up "Up" :color pink)
+          ("DEL" Info-scroll-down "Down" :color pink)
+          ("RET" Info-follow-nearest-node "Open"))
+         "Misc"
+         (("o" org-store-link "Store link")
+          ("b" Info-bookmark-jump "Bookmark")
+          ("w" Info-goto-node-web "View on Web")))))
+#+end_src
+
+
 ** Additional Global Packages
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.

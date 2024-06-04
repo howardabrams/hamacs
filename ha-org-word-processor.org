@@ -2,6 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2020-09-10
 #+tags: emacs org
+#+startup: inlineimages
 
 A literate programming file for making Org file more readable.
 

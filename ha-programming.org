@@ -1235,7 +1235,7 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+begin_src emacs-lisp
   (use-package polymode
     :config
-    (define-hostmode poly-yaml-hostmode :mode #'yaml-ts-mode)
+    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
     (defcustom pm-inner/jinja2
       (pm-inner-chunkmode :mode #'jinja2-mode
                           :head-matcher "{[%{#][+-]?"
@@ -1260,6 +1260,7 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =ya
 #+begin_src emacs-lisp
   (when (treesit-available-p)
     (use-package yaml-ts-mode
+      :straight (:type built-in)
       ;; :mode ((rx ".y" (optional "a") "ml" string-end)
       ;;        (rx (optional ".") "yamllint"))
       :mode-hydra
