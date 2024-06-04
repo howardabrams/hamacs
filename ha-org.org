@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-05-22 Wed]
+#+lastmod: [2024-06-02 Sun]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -788,100 +788,68 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
 ** Spell Checking
 Let's hook some spell-checking into org files, and actually all text files. I’m making this particularly delicious.
 
+*** abbrev
 First, we turn on =abbrev-mode=. While this package comes with Emacs, check out [[https://masteringemacs.org/article/correcting-typos-misspellings-abbrev][Mickey Petersen's overview]] of using this package for auto-correcting typos.
+
 #+begin_src emacs-lisp
   (setq-default abbrev-mode t)
 #+end_src
+
 In general, /fill/ the list, by moving the point to the /end/ of some word, and type ~C-x a g~ (or, in /normal state/, type ~SPC x d~):
+
 #+begin_src emacs-lisp
   (ha-leader "x d" '("add abbrev" . kadd-global-abbrev))
 #+end_src
+
 The idea is that you can correct a typo /and remember/ it. Perhaps calling [[help:edit-abbrevs][edit-abbrevs]] to making any fixes to that list.
 
-Next, I create a special /auto-correcting function/ that takes advantage of Evil’s [[help:evil-prev-flyspell-error][evil-prev-flyspell-error]] to jump back to the last spelling mistake (as I often notice the mistake after entering a few words), and call the interactive [[help:ispell-word][ispell-word]]. What makes this delicious is that I then call [[help:define-global-abbrev][define-global-abbrev]] to store both the mistake and the correction so that automatically typing that mistake again, is corrected.
+*** jinx
+Once upon a time, I used [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting. To be able to correct spelling mistakes /from a distance/, without navigation, I wrote a function that took advantage of Evil’s [[help:evil-prev-flyspell-error][evil-prev-flyspell-error]] to jump back to the last spelling mistake.
 
-#+begin_src emacs-lisp
-  (defun ha-fix-last-spelling (count)
-    "Jump to the last misspelled word, and correct it.
-  This adds the correction to the global abbrev table so that any
-  other mistakes are automatically corrected."
-    (interactive "p")
-    (save-excursion
-      (when (fboundp 'evil-prev-flyspell-error)
-        (evil-prev-flyspell-error count))
+Now, I’m using [[https://github.com/minad/jinx][jinx]], as it is the /complete basket/. It spellchecks based on the fontlock face and uses an external [[https://github.com/AbiWord/enchant][enchant program]] (to make spell-checking fast and asynchronous). Like =flymake=, Jinx does on-the-fly spellchecking of code comments and strings.
 
-      (when (looking-at (rx (one-or-more (any alnum "-" "_"))))
-        (let ((start-word (match-beginning 0))
-              (bad-word (match-string 0)))
-          (ispell-word)
-          (define-global-abbrev bad-word (buffer-substring-no-properties start-word (point)))))))
+I keep =jinx-correct= bound to ~C-;~ à la flyspell because it is so darn helpful. Supports checking documents with mixed languages.
+
+Requires the =libenchant= from the [[https://abiword.github.io/enchant/][Enchant project]], so on MacOS, I install it via:
+
+#+begin_src sh
+  brew install enchant
 #+end_src
 
-Since this auto-correction needs to happen in /insert/ mode, I have bound a few keys, including ~CMD-s~ and  ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am. If the spelling mistake is /obvious/, I use ~C-;~ to call [[help:flyspell-auto-correct-word][flyspell-auto-correct-word]]. However, I currently do not know how to use this cool feature with my =ha-fix-last-spelling= function (because I don’t know when that function is done).
+And on Linux:
 
-For this to work, we use [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting.
+#+begin_src sh
+  sudo apt install libenchant-2-dev
+#+end_src
+
+And the Emacs interface to that:
+
 #+begin_src emacs-lisp
-  (use-package flyspell
-    :hook (text-mode . flyspell-mode)
-    :bind (("M-S" . ha-fix-last-spelling)     ; This is j-k-s on the Moonlander. Hrm.
-           ("s-s" . ha-fix-last-spelling))    ; This is Command-s or ;-s on Moonlander
-
+  (use-package jinx
+    :hook (emacs-startup . global-jinx-mode)
+    :bind (("M-$" . jinx-correct-nearest)
+           ("s-s" . jinx-correct-nearest))
     :general
-    (:states 'insert :keymaps 'text-mode-map
-             "M-s M-s" 'ha-fix-last-spelling)
-    :init
-    ;; Tell ispell.el that ’ can be part of a word.
-    (setq ispell-local-dictionary-alist
-          `((nil "[[:alpha:]]" "[^[:alpha:]]"
-                 "['\x2019]" nil ("-B") nil utf-8)))
-
+    (:states '(normal insert) :keymaps 'text-mode-map
+             "M-s M-s" 'jinx-correct)
     :config
-    (ha-leader :keymaps 'text-mode-map
-      "S"  '(:ignore t :which-key "spellcheck")
-      "S s" '("correct last misspell" . ha-fix-last-spelling)
-      "S b" '("check buffer" . flyspell-buffer)
-      "S c" '("correct word" . flyspell-auto-correct-word))
-
-    (when (fboundp 'evil-prev-flyspell-error)
-      (ha-leader :keymaps 'text-mode-map
-        "S p" '("previous misspell" . evil-prev-flyspell-error)
-        "S n" '("next misspell" . evil-next-flyspell-error)))
-
-    ;; Let's use M-TAB for something else ...
-    (define-key flyspell-mode-map (kbd "M-TAB") nil))
-#+end_src
-Sure, the keys, ~[ s~ and ~] s~ can jump to misspelled words, and use ~M-$~ to correct them, but I'm getting used to these leaders.
-
-According to [[http://endlessparentheses.com/ispell-and-apostrophes.html][Artur Malabarba]], we can turn on rounded apostrophe's, like =‘= (left single quotation mark). The idea is to not send the quote to the sub-process:
-
-#+begin_src emacs-lisp
-  (defun endless/replace-apostrophe (args)
-    "Don't send ’ to the subprocess."
-    (cons (replace-regexp-in-string
-           "’" "'" (car args))
-          (cdr args)))
-
-  (advice-add #'ispell-send-string :filter-args #'endless/replace-apostrophe)
-
-  (defun endless/replace-quote (args)
-    "Convert ' back to ’ from the subprocess."
-    (if (not (derived-mode-p 'org-mode))
-        args
-      (cons (replace-regexp-in-string
-             "'" "’" (car args))
-            (cdr args))))
-
-  (advice-add #'ispell-parse-output :filter-args #'endless/replace-quote)
+    (ha-leader
+      "s i" '("spellcheck buffer" . jinx-correct-all)
+      "S b" '("spellcheck buffer" . jinx-correct-all)))
 #+end_src
 
-The end result? No misspellings. Isn‘t this nice?
+Jinx works really good, as the mini-buffer allows you to use letters to filter the choice, and numbers (or Return) to select the choice. Selecting ~@~ adds the word to your personal dictionary, and ~*~ adds it to the /local words/ for the file (search for =jinx-local-words=). Also, it appears that calling =jinx-correct= goes back to the first incorrect spelling, letting you correct it, and then pops the point back. That is pretty slick.
 
+It also, supposedly, fixes =camelCase= words. This doesn’t work in a text document. I appreciate that in org-mode files, text surrounded with = characters are no longer marked for misspellings.
+
+Since this auto-correction needs to happen in /insert/ mode, I have bound a few keys, including ~CMD-s~ and  ~M-s~ (twice) to fixing this spelling mistake, and jumping back to where I am.
+*** Thesaurus
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
 #+begin_src emacs-lisp
   (use-package powerthesaurus
-    :bind ("s-t" . powerthesaurus-lookup-dwim)
+    ;; :bind ("s-t" . powerthesaurus-lookup-dwim)
     :config
-    (ha-leader :keymaps 'text-mode-map
+    (ha-leader
       "S t" '("thesaurus" . powerthesaurus-lookup-dwim)
       "S s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
       "S a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
@@ -889,12 +857,16 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "S S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
 #+end_src
 
-The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader. Since the /definitions/ do not work, so let's use abo-abo's [[https://github.com/abo-abo/define-word][define-word]] project:
+The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader.
+
+*** Definitions
+Since the /definitions/ do not work, so let's use the [[https://github.com/abo-abo/define-word][define-word]] project:
+
 #+begin_src emacs-lisp
   (use-package define-word
+    ;; :bind ("s-d" . define-word-at-point)
     :config
     (ha-leader :keymaps 'text-mode-map
-      "S d" '("define this" . define-word-at-point)
       "S D" '("define word" . define-word)))
 #+end_src
 
@@ -913,8 +885,7 @@ Now that I’m mostly on version 28 and above of Emacs, we can take advantage of
 #+begin_src emacs-lisp
   (setq dictionary-server "dict.org")
 
-  (ha-leader :keymaps 'text-mode-map
-     "S d" '("define word" . dictionary-search))
+  (ha-leader "S d" '("define this" . dictionary-search))
 #+end_src
 Once in the dictionary buffer, acquiesce these keybindings:
     - ~q~ close the dictionary buffer
@@ -1149,7 +1120,7 @@ And something else while in Evil mode:
   (ha-leader "x b" '("edit sentence" . ha-sentence-break))
 #+end_src
 Perhaps he might get around to turning [[https://git.chrismaiorana.com/?p=sentinel.git;a=blob;f=sentin.el;h=2738eff6ac2b0877576bafe88878683a7eff3125;hb=refs/heads/master][his code]] into a package. Features needed include:
-  - Adding an overlay to the original text, ala help:org-src--make-source-overlay
+  - Adding an overlay to the original text,  help:org-src--make-source-overlay
 
 ** Distraction-Free Writing
 [[https://christopherfin.com/writing/emacs-writing.html][Christopher Fin's essay]] inspired me to clean my writing room.
@@ -1227,3 +1198,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# jinx-local-words: "Braganza Graphviz Malorana’s Proselint Somers Textlint Writegood flycheck flyspell fontlock"
+# End:

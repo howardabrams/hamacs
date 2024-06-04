@@ -115,7 +115,7 @@ For all programming languages, I would like to now default to absolute line numb
 ** Spell Checking Comments
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package flyspell
     :hook (prog-mode . flyspell-prog-mode))
 #+end_src
