@@ -186,10 +186,11 @@ And ways to load my tangled org-files:
   (ha-leader
     "h h"   '(:ignore t :which-key "hamacs")
     "h h <escape>" '(keyboard-escape-quit :which-key t)
-    "h h f" '("features"    . ha-hamacs-features)
-    "h h e" '("edit"        . ha-hamacs-find-file)
-    "h h h" '("reload"      . ha-hamacs-load)
-    "h h a" '("reload all"  . ha-hamacs-reload-all))
+    "h h f" '("features"     . ha-hamacs-features)
+    "h h e" '("edit"         . ha-hamacs-find-file)
+    "h h j" '("heading jump" . ha-hamacs-edit-file-heading)
+    "h h h" '("reload"       . ha-hamacs-load)
+    "h h a" '("reload all"   . ha-hamacs-reload-all))
 #+end_src
 * File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
@@ -821,7 +822,7 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 #+begin_src emacs-lisp
   (use-package embark
     :bind
-    (("s-." . embark-act)               ; Work in minibuffer and elsewhere
+    (("s-'" . embark-act)               ; Work in minibuffer and elsewhere
      ("s-/" . embark-dwim))
 
     :init

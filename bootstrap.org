@@ -243,6 +243,56 @@ And the ability to edit the file:
       (find-file full-file)))
 #+end_src
 
+Why not edit a file, but select the file based on the header.
+#+begin_src emacs-lisp
+  (defun ha-hamacs-process-heading (rg-input)
+    "Return list of heading, file and line number.
+  Parses the line entry, RG-INPUT, from a call to `rg'.
+  Returns something like:
+
+     (\"Some Heading\" \"some-file.org\" 42)"
+    (let* ((parts (string-split rg-input ":"))
+           (file  (first parts))
+           (lnum  (string-to-number (second parts)))
+           (head  (thread-first parts
+                                (third)
+                                (substring 1)))
+           (disp  (string-replace "*" "   " head)))
+      (list disp file lnum)))
+
+  (defun ha-hamacs-filter-heading (rg-input)
+    "Return non-nil if we should remove RG-INPUT.
+  These are headings with typical, non-unique entries,
+  like Introduction and Summary."
+    (string-match (rx (or " Introduction"
+                          " Install"
+                          " Summary"
+                          " Technical Artifacts"))
+                  rg-input))
+
+  (defun ha-hamacs-edit-file-heading ()
+    "Edit a file based on a particular heading.
+  After presenting list of headings from all Org files,
+  it loads the file, and jumps to the line number where
+  the heading is located."
+    (interactive)
+    (let* ((default-directory hamacs-source-dir)
+           (file-head-list
+            (thread-last (concat "rg"
+                                 " --no-heading"
+                                 " --line-number"
+                                 " --max-depth 1"
+                                 " --type org"
+                                 " -e '^\\*+ '")
+                         (shell-command-to-list)
+                         (seq-remove 'ha-hamacs-filter-heading)
+                         (seq-map 'ha-hamacs-process-heading)))
+           (file-choice (completing-read "Edit Heading: " file-head-list))
+           (file-tuple (alist-get file-choice file-head-list
+                                  nil nil 'string-equal)))
+      (find-file (first file-tuple))
+      (goto-line (second file-tuple))))
+#+end_src
 And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
 
 #+begin_src emacs-lisp
