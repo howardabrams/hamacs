@@ -252,7 +252,7 @@ The =eshell-command= is supposed to be an interactive command for prompting for 
       (eshell-command command t)
       (buffer-string)))
 #+end_src
-*** Getopts
+** Getopts
 I need a function to analyze command line options. I’ve tried to use [[help:eshell-eval-using-options][eshell-eval-using-options]], but it lacks the ability to have both dashed parameter arguments /and/ non-parameter arguments. For instance, I want to type:
 #+begin_src sh
   flow --lines some-buffer another-buffer

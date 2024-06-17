@@ -232,67 +232,7 @@ With this function, we can test/debug/reload any individual file, via:
             (org-babel-load-file full-file)))))
 #+end_src
 
-And the ability to edit the file:
-#+begin_src emacs-lisp
-  (defun ha-hamacs-find-file (file)
-    "Call `find-file' on relative org-mode FILE containing
-  literate Emacs configuration code."
-    (interactive (list (completing-read "Org file: "
-                                (ha-hamacs-files :all))))
-    (let ((full-file (f-join hamacs-source-dir file)))
-      (find-file full-file)))
-#+end_src
-
-Why not edit a file, but select the file based on the header.
-#+begin_src emacs-lisp
-  (defun ha-hamacs-process-heading (rg-input)
-    "Return list of heading, file and line number.
-  Parses the line entry, RG-INPUT, from a call to `rg'.
-  Returns something like:
-
-     (\"Some Heading\" \"some-file.org\" 42)"
-    (let* ((parts (string-split rg-input ":"))
-           (file  (first parts))
-           (lnum  (string-to-number (second parts)))
-           (head  (thread-first parts
-                                (third)
-                                (substring 1)))
-           (disp  (string-replace "*" "   " head)))
-      (list disp file lnum)))
-
-  (defun ha-hamacs-filter-heading (rg-input)
-    "Return non-nil if we should remove RG-INPUT.
-  These are headings with typical, non-unique entries,
-  like Introduction and Summary."
-    (string-match (rx (or " Introduction"
-                          " Install"
-                          " Summary"
-                          " Technical Artifacts"))
-                  rg-input))
-
-  (defun ha-hamacs-edit-file-heading ()
-    "Edit a file based on a particular heading.
-  After presenting list of headings from all Org files,
-  it loads the file, and jumps to the line number where
-  the heading is located."
-    (interactive)
-    (let* ((default-directory hamacs-source-dir)
-           (file-head-list
-            (thread-last (concat "rg"
-                                 " --no-heading"
-                                 " --line-number"
-                                 " --max-depth 1"
-                                 " --type org"
-                                 " -e '^\\*+ '")
-                         (shell-command-to-list)
-                         (seq-remove 'ha-hamacs-filter-heading)
-                         (seq-map 'ha-hamacs-process-heading)))
-           (file-choice (completing-read "Edit Heading: " file-head-list))
-           (file-tuple (alist-get file-choice file-head-list
-                                  nil nil 'string-equal)))
-      (find-file (first file-tuple))
-      (goto-line (second file-tuple))))
-#+end_src
+** Tangling the Hamacs
 And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
 
 #+begin_src emacs-lisp
@@ -337,7 +277,277 @@ And do it:
 #+begin_src emacs-lisp
   (ha-hamacs-reload-all)
 #+end_src
+** Edit my Files
+Changing my Emacs configuration is as simple as editing an Org file containing the code, and evaluating that block or expression.  Or even /re-loading/ the entire file as described above. Calling =find-file= (or more often [[file:ha-config.org::*Projects][project-find-file]]) is sufficient but quicker if I supply a /focused list/ of just the files in my project:
 
+#+begin_src emacs-lisp
+  (defun ha-hamacs-find-file (file)
+    "Call `find-file' FILE.
+  When called interactively, present org files containing
+  my literate Emacs configuration code."
+    (interactive (list (completing-read "Org file: "
+                                        (ha-hamacs-files :all))))
+    (let ((full-file (f-join hamacs-source-dir file)))
+      (find-file full-file)))
+#+end_src
+
+As I refine my project and re-organize the content, I don’t always remember where I put the configuration for something like /eww/, and some files, like [[file:ha-config.org][my default config]] has grown cumbersome.  Currently, after loading the file, I  issue a call to [[file:ha-general.org::*Consult][consult-imenu]] to get to the right location.
+
+The following section shows some code I wrote one evening, to use the fuzzy matching features of [[file:ha-config.org::*Orderless][Orderless]], to choose a headline in any of my Org configuration files, and then load that file to jump to that headline. The interface is =ha-hamacs-edit-file-heading=, and the supporting functions begin with =ha-hamacs-edit-=:
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit-file-heading ()
+    "Edit a file based on a particular heading.
+  After presenting list of headings from all Org files,
+  it loads the file, and jumps to the line number where
+  the heading is located."
+    (interactive)
+    (let* ((file-headings (ha-hamacs-edit--file-heading-list))
+           (file-choice   (completing-read "Edit Heading: " file-headings))
+           (file-tuple    (alist-get file-choice file-headings
+                                     nil nil 'string-equal)))
+      (find-file (first file-tuple))
+      (goto-line (second file-tuple))))
+#+end_src
+
+This function  collects all possible headers by issuing a call to =ripgrep=, which returns something like:
+
+#+begin_example
+ha-applications.org:29:* Git and Magit
+ha-applications.org:85:** Git Gutter
+ha-applications.org:110:** Git Delta
+ha-applications.org:136:** Git with Difftastic
+...
+"ha-applications.org:385:* Web Browsing
+ha-applications.org:386:** EWW
+...
+#+end_example
+
+We then filtering out non-useful headers (with =ha-hamcs-edit—filter-heading=), and convert the headlines with =ha-hamcs-edit—process-entry= to be more presentable:
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit--file-heading-list ()
+    "Return list of lists of headlines and file locations.
+  Using the output from the shell command, `ha-hamacs-edit-ripgrep-headers',
+  it parses and returns something like:
+
+  '((\"Applications∷ Git and Magit\" \"ha-applications.org\" 29)
+    (\"Applications∷ Git and Magit ﹥ Git Gutter\" \"ha-applications.org\" 85)
+    (\"Applications∷ Git and Magit ﹥ Git Delta\" \"ha-applications.org\" 110)
+    (\"Applications∷ Git and Magit ﹥ Time Machine\" \"ha-applications.org\" 265)
+    ...)"
+    (let ((default-directory hamacs-source-dir))
+      (thread-last ha-hamacs-edit-ripgrep-headers
+                   (shell-command-to-list)
+                   (seq-remove 'ha-hamacs-edit--filter-heading)
+                   (seq-map 'ha-hamacs-edit--process-entry))))
+#+end_src
+
+As the function’s documentation string claims, I create =file-head-list= that contains the data structure necessary for =completing-read= as well as the information I need to load/jump to a position in the file. This is a three-element list of the /headline/, /filename/ and /line number/ for each entry:
+
+#+begin_src emacs-lisp :tangle no
+  '(("Applications∷ Git and Magit" "ha-applications.org" 29)
+    ("Applications∷ Git and Magit ﹥ Git Gutter" "ha-applications.org" 85)
+    ("Applications∷ Git and Magit ﹥ Git Delta" "ha-applications.org" 110)
+    ("Applications∷ Git and Magit ﹥ Time Machine" "ha-applications.org" 265)
+    ("Applications∷ Git and Magit ﹥ Gist" "ha-applications.org" 272)
+    ("Applications∷ Git and Magit ﹥ Forge" "ha-applications.org" 296)
+    ("Applications∷ Git and Magit ﹥ Pushing is Bad" "ha-applications.org" 334)
+    ("Applications∷ Git and Magit ﹥ Github Search?" "ha-applications.org" 347)
+    ("Applications∷ ediff" "ha-applications.org" 360)
+    ("Applications∷ Web Browsing" "ha-applications.org" 385)
+    ("Applications∷ Web Browsing ﹥ EWW" "ha-applications.org" 386)
+    ;; ...
+    )
+#+end_src
+
+We’ll use a shell command to call  =ripgrep= to search my collection of org files:
+
+#+begin_src emacs-lisp
+  (defvar ha-hamacs-edit-ripgrep-headers
+    (concat "rg"
+            " --no-heading"
+            " --line-number"
+            " --max-depth 1"
+            " --type org"
+            " -e '^\\*+ '")
+    "A ripgrep shell call to search my headers.")
+#+end_src
+
+Not every header should be a destination, as many of my org files have duplicate headlines, like *Introduction* and *Technical Artifacts*, so I can create a regular expression to remove or flush entries:
+
+#+begin_src emacs-lisp
+  (defvar ha-hamacs-edit-flush-headers
+    (rx "*" (one-or-more space)
+        (or "Introduction"
+            "Install"
+            "Overview"
+            "Summary"
+            "Technical Artifacts"))
+    "Regular expression matching headers to purge.")
+#+end_src
+
+And this function, callable by the filter function, uses the regular expression and returns true (well, non-nil) if the line entry given, =rg-input=, should be removed:
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit--filter-heading (rg-input)
+    "Return non-nil if we should remove RG-INPUT.
+  These are headings with typical, non-unique entries,
+  like Introduction and Summary."
+    (string-match ha-hamacs-edit-flush-headers rg-input))
+#+end_src
+
+The =seq-map= needs to take each line from the =ripgrep= call and convert it to a list that I can use for the =completing-read= prompt. I love the combination of =seq-let= and =s-match= from Magnar’s [[https://github.com/magnars/s.el][String library]]. The built-in function, =string-match= returns the index in the string where the match occurs, and this is useful for positioning a prompt, in this case, I want the /contents/ of the matches, and =s-match= returns each /grouping/.
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit--process-entry (rg-input)
+    "Return list of heading, file and line number.
+  Parses the line entry, RG-INPUT, from a call to `rg',
+  using the regular expression, `ha-hamacs-edit-rx-ripgrep'.
+  Returns something like:
+
+    (\"Some Heading\" \"some-file.org\" 42)"
+    (seq-let (_ file line level head)
+        (s-match ha-hamacs-edit-rx-ripgrep rg-input)
+      (list (ha-hamacs-edit--new-heading file head (length level))
+            file
+            (string-to-number line))))
+#+end_src
+
+Before we dive into the implementation of this function, let’s write a test to validate (and explain) what we expect to return:
+
+#+begin_src emacs-lisp
+  (ert-deftest ha-hamacs-edit--process-entry-test ()
+    (setq ha-hamacs-edit-prev-head-list '())
+    (should (equal
+             (ha-hamacs-edit--process-entry
+              "ha-somefile.org:42:* A Nice Headline  :ignored:")
+             '("Somefile∷ A Nice Headline  " "ha-somefile.org" 42)))
+
+    ;; For second-level headlines, we need to keep track of its parent,
+    ;; and for this, we use a global variable, which we can set for the
+    ;; purposes of this test:
+    (setq ha-hamacs-edit-prev-head-list '("Parent"))
+    (should (equal
+             (ha-hamacs-edit--process-entry
+              "ha-somefile.org:73:** Another Headline")
+             '("Somefile∷ Parent ﹥ Another Headline"
+               "ha-somefile.org" 73)))
+
+    (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent"))
+    (should (equal
+             (ha-hamacs-edit--process-entry
+              "ha-somefile.org:73:*** Deep Heading")
+             '("Somefile∷ Parent ﹥ Subparent ﹥ Deep Heading"
+               "ha-somefile.org" 73)))
+
+    (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent"
+                                          "Subby" "Deepsubby"))
+    (should (equal
+             (ha-hamacs-edit--process-entry
+              "ha-somefile.org:73:***** Deepest Heading")
+             '("Somefile∷ ... Deepest Heading"
+               "ha-somefile.org" 73))))
+#+end_src
+
+We next need a regular expression to pass to =s-match= to parse the output:
+#+begin_src emacs-lisp
+  (defvar ha-hamacs-edit-rx-ripgrep
+    (rx (group (one-or-more (not ":"))) ":"   ; filename
+        (group (one-or-more digit)) ":"       ; line number
+        (group (one-or-more "*"))             ; header asterisks
+        (one-or-more space)
+        (group (one-or-more (not ":"))))      ; headline without tags
+    "Regular expression of ripgrep default output with groups.")
+#+end_src
+
+The =—new-heading= function will /prepend/ the name of the file and its parent headlines (if any) to the headline to be more useful in both understanding the relative context of the headline, as well as better to search using fuzzy matching.
+
+This /context/ is especially important as =completing-read= will place the most recent choices at the top.
+
+I found the use of =setf= to be quite helpful in manipulating the list of parents. Remember a =list= in a Lisp, is a /linked list/, and we can easily replace one or more parts, by pointing to an new list. This is my first iteration of this function, and I might come back and simplify it.
+
+Essentially, if we get to a top-level headline, we set the list of parents to a list containing that new headline. If we get a second-level headine, =B=, and our parent list is =A=, we create a list =’(A B)= by setting the =cdr= of =’(A)= to the list =’(B)=. The advantage of this approach is that if the parent list is =’(A C D)=, the =setf= works the same, and the dangled /sublist/, =’(C D)= gets garbage collected.
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit--new-heading (file head level)
+    "Return readable entry from FILE and org headline, HEAD.
+  The HEAD headline is, when LEVEL is greater than 1,
+  to include parent headlines. This is done by storing
+  the list of parents in `ha-hamacs-edit-prev-head-list'."
+    ;; Reset the parent list to include the new HEAD:
+    (cond
+      ((= level 1)
+       (setq ha-hamacs-edit-prev-head-list (list head)))
+      ((= level 2)
+       (setf (cdr ha-hamacs-edit-prev-head-list) (list head)))
+      ((= level 3)
+       (setf (cddr ha-hamacs-edit-prev-head-list) (list head)))
+      ((= level 4)
+       (setf (cdddr ha-hamacs-edit-prev-head-list) (list head)))
+      ((= level 5)
+       (setf (cddddr ha-hamacs-edit-prev-head-list) (list head))))
+      ;; Let's never go any deeper than this...
+
+    (format "%s∷ %s"
+     (ha-hamacs-edit--file-title file)
+     (s-join "﹥ " ha-hamacs-edit-prev-head-list)))
+#+end_src
+
+The following test should pass some mustard and explain how this function works:
+#+begin_src emacs-lisp
+  (ert-deftest ha-hamacs-edit--new-heading-test ()
+    (should (equal
+             (ha-hamacs-edit-new-heading "ha-foobar.org" "Apples" 1)
+             "Foobar∷ Apples"))
+    (setq ha-hamacs-edit-prev-head-list '("Apples"))
+    (should (equal
+             (ha-hamacs-edit-new-heading "ha-foobar.org" "Oranges" 2)
+             "Foobar∷ Apples﹥ Oranges"))
+    (setq ha-hamacs-edit-prev-head-list '("Apples" "Oranges"))
+    (should (equal
+             (ha-hamacs-edit-new-heading "ha-foobar.org" "Bananas" 3)
+             "Foobar∷ Apples﹥ Oranges﹥ Bananas"))
+    (setq ha-hamacs-edit-prev-head-list '("Apples" "Oranges" "Bananas"))
+    (should (equal
+             (ha-hamacs-edit-new-heading "ha-foobar.org" "Cantaloupe" 4)
+             "Foobar∷ Apples﹥ Oranges﹥ Bananas﹥ Cantaloupe")))
+#+end_src
+
+I store the current list of parents, in the following /global variable/, gasp:
+
+#+begin_src emacs-lisp
+  (defvar ha-hamacs-edit-prev-head-list '("" "")
+    "The current parents of headlines as a list.")
+#+end_src
+
+I would like to make the /filename/ more readable, I use the =s-match= again, to get the groups of a regular expression, remove all the dashes, and use =s-titleize= to capitalize each word:
+
+#+begin_src emacs-lisp
+  (defun ha-hamacs-edit--file-title (file)
+    "Return a more readable string from FILE."
+    (s-with file
+      (s-match ha-hamacs-edit-file-to-title)
+      (second)
+      (s-replace "-" " ")
+      (s-titleize)))
+
+  (defvar ha-hamacs-edit-file-to-title
+    (rx (optional (or "README-" "ha-"))
+        (group (one-or-more any)) ".org")
+    "Regular expression for extracting the interesting part of a
+  file to use as a title.")
+#+end_src
+
+So the following tests should pass:
+
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest ha-hamacs-edit-file-title-test ()
+    (should (equal (ha-hamacs-edit-file-title "ha-apples.org") "Apples"))
+    (should (equal (ha-hamacs-edit-file-title "apples.org") "Apples"))
+    (should (equal (ha-hamacs-edit-file-title "README-apples.org") "Apples"))
+    (should (equal (ha-hamacs-edit-file-title "README.org") "Readme")))
+#+end_src
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
