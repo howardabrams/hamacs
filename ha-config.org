@@ -30,12 +30,6 @@ I begin configuration of Emacs that isn’t /package-specific/. For instance, I 
   (setq confirm-kill-emacs 'yes-or-no-p)
 #+end_src
 
-Emacs has some new code to display line-numbers:
-#+begin_src emacs-lisp
-  (setq display-line-numbers t
-        display-line-numbers-type 'visual)
-#+end_src
-
 I like the rendering of curved quotes using [[help:text-quoting-style][text-quoting-style]], because it improves the readability of documentation strings in the =∗Help∗= buffer and whatnot.
 #+begin_src emacs-lisp
   (setq text-quoting-style 'curve
@@ -48,6 +42,23 @@ Changes and settings I like introduced that were introduced in Emacs 28:
   (setq use-short-answers t
         describe-bindings-outline t
         completions-detailed t)
+#+end_src
+
+Emacs has some new code to display line-numbers, and the =visual= value works well with my Org files, allowing a jump to a line via ~6 j~:
+#+begin_src emacs-lisp
+  (setq display-line-numbers-type 'visual)
+#+end_src
+
+But sometimes we want to jump to /absolute/ line numbers, so I have a toggling function:
+#+begin_src emacs-lisp
+  (defun ha-toggle-relative-line-numbers ()
+    (interactive)
+    (cond
+     ((null display-line-numbers)  (display-line-numbers-mode))
+     ((or (eq display-line-numbers 'relative)
+          (eq display-line-numbers 'visual))
+      (setq display-line-numbers t))
+     (t   (display-line-numbers-mode -1))))
 #+end_src
 
 In Emacs version 28, we can hide commands in ~M-x~ which do not apply to the current mode.

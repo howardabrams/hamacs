@@ -370,8 +370,9 @@ The goal here is toggle switches and other miscellaneous settings.
     "t d" '("debug"          . toggle-debug-on-error)
     "t F" '("show functions" . which-function-mode)
     "t f" '("auto-fill"      . auto-fill-mode)
+    "t l" '("line numbers"   . ha-toggle-relative-line-numbers)
     "t o" '("overwrite"      . overwrite-mode)
-    "t l" '("line numbers"   . display-line-numbers-mode)
+    "t m" '("menu bar"       . menu-bar-mode)
     "t R" '("read only"      . read-only-mode)
     "t r" '("recentf mode"   . recentf-mode)
     "t t" '("truncate"       . toggle-truncate-lines)
@@ -380,21 +381,7 @@ The goal here is toggle switches and other miscellaneous settings.
     "t w" '("whitespace"     . whitespace-mode))
 #+end_src
 
-* Line Numbers
-Since we can't automatically toggle between relative and absolute line numbers, we create this function:
-#+begin_src emacs-lisp
-  (defun ha-toggle-relative-line-numbers ()
-    (interactive)
-    (if (eq display-line-numbers 'relative)
-        (setq display-line-numbers t)
-      (setq display-line-numbers 'relative)))
-#+end_src
-Add it to the toggle menu:
-#+begin_src emacs-lisp
-  (ha-leader
-    "t r" '("relative lines" . ha-toggle-relative-line-numbers))
-#+end_src
-* Narrowing
+** Narrowing
 I like the focus the [[info:emacs#Narrowing][Narrowing features]] offer, but what a /dwim/ aspect:
 #+begin_src emacs-lisp
   (defun ha-narrow-dwim ()
