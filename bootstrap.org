@@ -365,8 +365,8 @@ We’ll use a shell command to call  =ripgrep= to search my collection of org fi
             " --no-heading"
             " --line-number"
             " --max-depth 1"
-            " --type org"
-            " -e '^\\*+ '")
+            " -e '^\\*+ '"
+            " *.org")
     "A ripgrep shell call to search my headers.")
 #+end_src
 
