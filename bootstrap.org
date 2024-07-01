@@ -192,6 +192,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                              "ha-programming-python.org"
                              ,(if (ha-emacs-for-work?)
                                   '("ha-org-sprint.org"
+                                    "ha-programming-ansible.org"
                                     ;; "ha-programming-ruby.org"
                                     "ha-work.org")
                                 ;; Personal Editor

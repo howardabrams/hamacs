@@ -31,7 +31,7 @@ The following work for all programming languages.
 ** Mise
 Combining my use of programming virtual environments with =direnv= and =Makefile=, the [[http://mise.jdx.dev][Mise-en-Place]] project has [[https://github.com/liuyinz/mise.el][an Emacs mode]]:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package mise
     :straight (:host github :repo "liuyinz/mise.el")
     :config (global-mise-mode))
@@ -88,7 +88,7 @@ Python 3.10.14
 #+end_example
 ** direnv
 Farm off commands into /virtual environments/:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package direnv
     :init
     (setq direnv-always-show-summary t
@@ -1221,124 +1221,6 @@ Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[
     :config
     (set-face-attribute 'rst-literal nil :font ha-fixed-font))
 #+end_src
-** Jinja2
-A lot of projects (like Ansible and Zuul) uses [[https://jinja.palletsprojects.com][Jinja2]] with YAML, so we install the [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]]:
-#+begin_src emacs-lisp
-  (use-package jinja2-mode
-    :mode (rx ".j2" string-end))
-#+end_src
-
-Jinja is a /templating/ system that integrates /inside/ formats like JSON, HTML or YAML.
-The [[https://polymode.github.io/][polymode]] project /glues/ modes like [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] to [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
-
-I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project:
-#+begin_src emacs-lisp
-  (use-package polymode
-    :config
-    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
-    (defcustom pm-inner/jinja2
-      (pm-inner-chunkmode :mode #'jinja2-mode
-                          :head-matcher "{[%{#][+-]?"
-                          :tail-matcher "[+-]?[%}#]}"
-                          :head-mode 'body
-                          :tail-mode 'body
-                          :head-adjust-face t)
-      "Jinja2 chunk."
-      :group 'innermodes
-      :type 'object)
-
-    (define-polymode poly-yaml-jinja2-mode
-      :hostmode 'poly-yaml-hostmode
-      :innermodes '(pm-inner/jinja2))
-
-    :mode ((rx ".y" (optional "a") "ml" string-end) . poly-yaml-jinja2-mode))
-#+end_src
-** YAML
-Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =yaml-mode= project needs a new maintainer, so I might as well switch over to the T version.
-, so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
-
-#+begin_src emacs-lisp
-  (when (treesit-available-p)
-    (use-package yaml-ts-mode
-      :straight (:type built-in)
-      ;; :mode ((rx ".y" (optional "a") "ml" string-end)
-      ;;        (rx (optional ".") "yamllint"))
-      :mode-hydra
-      ((:foreign-keys run)
-       ("Simple"
-        (("l" ha-yaml-next-section "Next section")
-         ("h" ha-yaml-prev-section "Previous"))))))
-#+end_src
-
-And we hook
-#+begin_src emacs-lisp
-  (when (treesit-available-p)
-    (use-package yaml-pro
-      :straight (:host github :repo "zkry/yaml-pro")
-      :after yaml-ts-mode
-      :mode-hydra
-      (yaml-ts-mode
-       (:foreign-keys run)
-       ("Navigation"
-        (("u" yaml-pro-ts-up-level "Up level" :color pink) ; C-c C-u
-         ("J" yaml-pro-ts-next-subtree "Next subtree" :color pink) ; C-c C-n
-         ("K" yaml-pro-ts-prev-subtree "Previous" :color pink)) ; C-c C-p
-        "Editing"
-        (("m" yaml-pro-ts-mark-subtree "Mark subtree")   ; C-c C-@
-         ("x" yaml-pro-ts-kill-subtree "Kill subtree")   ; C-c C-x C-w
-         ("p" yaml-pro-ts-paste-subtree "Paste subtree")) ; C-c C-x C-y
-        "Insert"
-        (("e" yaml-pro-edit-ts-scalar "Edit item") ; C-c '
-         ("o" yaml-pro-ts-meta-return "New list item"))
-        "Refactor"
-        (("C-j" yaml-pro-ts-move-subtree-down "Lower subtree")
-         ("C-k" yaml-pro-ts-move-subtree-up "Raise subtree"))
-        "Documentation"
-        (("d" hydra-devdocs/body "Devdocs")
-         ("," combobulate-hydra/body ">>>"))))
-      :hook ((yaml-ts-mode . yaml-pro-mode)
-             (poly-yaml-jinja2-mode . yaml-pro-mode))))
-#+end_src
-
-Note that these packages need the following to run properly:
-#+begin_src sh
-  pip install yamllint
-#+end_src
-** Ansible
-Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]? Maybe we just have a toggle for when we want the Ansible feature.
-#+begin_src emacs-lisp :tangle no
-  (use-package ansible
-    :straight (:host github :repo "k1LoW/emacs-ansible")
-    :defer t
-    :mode ((rx (or "playbooks" "roles") (one-or-more any) ".y" (optional "a") "ml") . ansible-mode)
-    :config
-    (setq ansible-vault-password-file "~/.ansible-vault-passfile")
-    (ha-leader "t y" 'ansible))
-#+end_src
-
-The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable needs to change /per project/, so let’s use the =.dir-locals.el= file, for instance:
-#+begin_src emacs-lisp :tangle no
-  ((nil . ((ansible-vault-password-file . "playbooks/.vault-password"))))
-#+end_src
-
-The YAML files get access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project:
-#+begin_src emacs-lisp :tangle no
-  (use-package ansible-doc
-    :hook (ansible-mode . ansible-doc-mode)
-    :after ansible
-    :config
-    (ha-local-leader :keymaps 'ansible-key-map
-      "d"  '(:ignore t :which-key "docs")
-      "d d" 'ansible-doc))
-#+end_src
-
-Can we integrate Ansible with LSP using [[https://github.com/ansible/ansible-language-server][ansible-language-server]] project (see [[https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/][this documentation]])?
-
-Using =npm= to install the program:
-#+begin_src sh
-  npm install -g @ansible/ansible-language-server
-#+end_src
-But … will I get some use out of this? I’ll come back to it later.
 ** Docker
 Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][dockerfile-mode]] project:
 #+BEGIN_SRC emacs-lisp
