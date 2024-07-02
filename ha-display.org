@@ -332,37 +332,15 @@ And some keybindings to call them:
   (global-set-key (kbd "s--") 'font-size-decrease)
 #+end_src
 * Themes
-One does get used to a particular collection of colors. After happily using Steve Purcell’s Tomorrow theme for many years, I decided to push it a little /warmer/.
+One does get used to a particular collection of colors. After happily using Steve Purcell’s port of the Tomorrow theme for many years, I decided I needed a change. First, I want Emacs to be less garish:
 
 #+begin_src emacs-lisp
-  (use-package flexoki-themes
-    :straight (:host github :repo "crmsnbleyd/flexoki-emacs-theme")
+  (use-package doom-themes
     :config
-    (load-theme 'flexoki-themes-dark t)
-
-    (defun ha-flexoki-themes-update ()
-      "Slight tweaks to the flexoki-themes.
-  I found the background a tad too stark."
-      (if (eq flexoki-themes-set-theme 'dark)
-          (progn
-            (set-face-attribute 'default nil   :background "#161514")
-            (set-face-attribute 'cursor nil :background "#ce5d97")    ; dark-version of magenta
-            (set-face-attribute 'region nil :background "#bc5215")    ; light-version of orange
-            (set-face-attribute 'org-block nil :background "#1b1a19")
-            (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b")
-            (set-face-attribute 'org-block-begin-line nil :background "#1d1c1b"))
-
-        (set-face-attribute 'cursor nil :background "#a02f6f")  ; dark-version of orange
-        (set-face-attribute 'region nil :background "#da702c")  ; dark-version of orange
-        (set-face-attribute 'org-block-begin-line nil :foreground "#fffcf0")))
-
-    :custom
-    (flexoki-themes-set-theme 'dark)
-    (flexoki-themes-use-bold-keywords nil)
-    (flexoki-themes-use-bold-builtins nil)
-    (flexoki-themes-use-italic-comments t)
-
-    :hook (flexoki-themes-after-load-themes . ha-flexoki-themes-update))
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-wilmersdorf t))
 #+end_src
 
 Most of the time, Emacs is on my desk is a darkened room, so I choose the dark theme:
@@ -371,7 +349,9 @@ Most of the time, Emacs is on my desk is a darkened room, so I choose the dark t
   (defun laptop-inside ()
     "Customize the theme for inside programming."
     (interactive)
-    (load-theme 'flexoki-themes-dark t)
+    (load-theme 'doom-wilmersdorf t)
+    (ignore-errors
+      (load-file "ha-theme-dark.el"))     ;; TODO: File in progress!
     (ha-word-processor-fonts))
 #+end_src
 
@@ -381,7 +361,11 @@ But, when feeling adventurous, I /sometimes/ take my laptop outside:
   (defun laptop-in-the-sun ()
     "Customize the theme for outside programming."
     (interactive)
-    (load-theme 'flexoki-themes-light t)
+    (load-theme 'doom-ayu-light t)
+    (set-face-attribute 'default nil :foreground "#0c0906")
+    (set-face-attribute 'region nil :background "orange")
+    (set-face-attribute 'org-block nil :background "#f2f1ef")
+    (set-face-attribute 'org-block-begin-line nil :foreground "#999491" :background "#e5e4e3")
     (ha-word-processor-fonts))
 #+end_src
 
@@ -404,7 +388,7 @@ And of course, the default is /inside/ where it is dark and safe:
 #+begin_src emacs-lisp
   (laptop-inside)
 #+end_src
-*** Highlight TODOs
+** Highlight Task Labels
 In code, if you drop a specific /text/ labels, we can highlight them with [[https://github.com/tarsius/hl-todo][hl-todo package]]:
 
 #+begin_src emacs-lisp
@@ -412,15 +396,14 @@ In code, if you drop a specific /text/ labels, we can highlight them with [[http
     :straight (:host github :repo "tarsius/hl-todo")
     :init
     (setq hl-todo-keyword-faces
-      '(("TODO"   . (face-foreground 'flexoki-themes-orange))
-        ("FIXME"  . (face-foreground 'flexoki-themes-red))
-        ("DEBUG"  . (face-foreground 'flexoki-themes-green))
-        ("NOTE"   . (face-foreground 'flexoki-themes-blue))))
+      `(("TODO"   . ,(face-foreground 'warning))
+        ("FIXME"  . ,(face-foreground 'error))
+        ("NOTE"   . ,(face-foreground 'success))))
     (global-hl-todo-mode 1))
 #+end_src
 
 This means that comments like the following visually standout:
-TODO: Attempt to validate that this shows something I need to do.
+TODO Attempt to validate that this shows something I need to do.
 
 Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, but the [[https://github.com/liuyinz/consult-todo][consult-todo]] implements that in a more visual way:
 
@@ -430,7 +413,6 @@ Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, b
     (defconst consult-todo--narrow
       '((?t . "TODO")
         (?f . "FIXME")
-        (?d . "DEBUG")
         (?n . "NOTE"))
       "Mapping of narrow and keywords.")
     :general (:states 'normal "g t" '("jump todos" . consult-todo)))

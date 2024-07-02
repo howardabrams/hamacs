@@ -271,6 +271,9 @@ I really want to use the Org Beautify package, but it overrides my darker themes
     (set-face-attribute 'org-table nil :height 1.0)
     (set-face-attribute 'org-formula nil :height 1.0)
 
+    (set-face-attribute 'org-block-begin-line nil :height 0.9)
+    (set-face-attribute 'org-block-end-line nil :height 0.8)
+
     (set-face-attribute 'org-drawer nil :height 0.8)
     (set-face-attribute 'org-property-value nil :height 0.85)
     (set-face-attribute 'org-special-keyword nil :height 0.85))
