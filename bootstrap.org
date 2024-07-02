@@ -273,11 +273,6 @@ And we can tangle /all/ the files:
       (unless (equal file "bootstrap.org")
         (ha-hamacs-tangle file))))
 #+end_src
-
-And do it:
-#+begin_src emacs-lisp
-  (ha-hamacs-reload-all)
-#+end_src
 ** Edit my Files
 Changing my Emacs configuration is as simple as editing an Org file containing the code, and evaluating that block or expression.  Or even /re-loading/ the entire file as described above. Calling =find-file= (or more often [[file:ha-config.org::*Projects][project-find-file]]) is sufficient but quicker if I supply a /focused list/ of just the files in my project:
 
@@ -417,7 +412,7 @@ The =seq-map= needs to take each line from the =ripgrep= call and convert it to 
 
 Before we dive into the implementation of this function, let’s write a test to validate (and explain) what we expect to return:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (ert-deftest ha-hamacs-edit--process-entry-test ()
     (setq ha-hamacs-edit-prev-head-list '())
     (should (equal
@@ -432,14 +427,14 @@ Before we dive into the implementation of this function, let’s write a test to
     (should (equal
              (ha-hamacs-edit--process-entry
               "ha-somefile.org:73:** Another Headline")
-             '("Somefile∷ Parent ﹥ Another Headline"
+             '("Somefile∷ Parent﹥ Another Headline"
                "ha-somefile.org" 73)))
 
     (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent"))
     (should (equal
              (ha-hamacs-edit--process-entry
               "ha-somefile.org:73:*** Deep Heading")
-             '("Somefile∷ Parent ﹥ Subparent ﹥ Deep Heading"
+             '("Somefile∷ Parent﹥ Subparent﹥ Deep Heading"
                "ha-somefile.org" 73)))
 
     (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent"
@@ -496,22 +491,22 @@ Essentially, if we get to a top-level headline, we set the list of parents to a 
 #+end_src
 
 The following test should pass some mustard and explain how this function works:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (ert-deftest ha-hamacs-edit--new-heading-test ()
     (should (equal
-             (ha-hamacs-edit-new-heading "ha-foobar.org" "Apples" 1)
+             (ha-hamacs-edit--new-heading "ha-foobar.org" "Apples" 1)
              "Foobar∷ Apples"))
     (setq ha-hamacs-edit-prev-head-list '("Apples"))
     (should (equal
-             (ha-hamacs-edit-new-heading "ha-foobar.org" "Oranges" 2)
+             (ha-hamacs-edit--new-heading "ha-foobar.org" "Oranges" 2)
              "Foobar∷ Apples﹥ Oranges"))
     (setq ha-hamacs-edit-prev-head-list '("Apples" "Oranges"))
     (should (equal
-             (ha-hamacs-edit-new-heading "ha-foobar.org" "Bananas" 3)
+             (ha-hamacs-edit--new-heading "ha-foobar.org" "Bananas" 3)
              "Foobar∷ Apples﹥ Oranges﹥ Bananas"))
     (setq ha-hamacs-edit-prev-head-list '("Apples" "Oranges" "Bananas"))
     (should (equal
-             (ha-hamacs-edit-new-heading "ha-foobar.org" "Cantaloupe" 4)
+             (ha-hamacs-edit--new-heading "ha-foobar.org" "Cantaloupe" 4)
              "Foobar∷ Apples﹥ Oranges﹥ Bananas﹥ Cantaloupe")))
 #+end_src
 
@@ -548,6 +543,11 @@ So the following tests should pass:
     (should (equal (ha-hamacs-edit-file-title "apples.org") "Apples"))
     (should (equal (ha-hamacs-edit-file-title "README-apples.org") "Apples"))
     (should (equal (ha-hamacs-edit-file-title "README.org") "Readme")))
+#+end_src
+
+Whew … and do it all:
+#+begin_src emacs-lisp
+  (ha-hamacs-reload-all)
 #+end_src
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
