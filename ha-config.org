@@ -44,6 +44,13 @@ Changes and settings I like introduced that were introduced in Emacs 28:
         completions-detailed t)
 #+end_src
 
+I’ve got preferences for how I like scrolling, and with my org files, I need a little more of the of the context, so this increases from =2= to =3=, but I really like to keep the cursor in place when I can:
+#+begin_src emacs-lisp
+(setq next-screen-context-lines 3
+          scroll-error-top-bottom t
+          scroll-preserve-screen-position t)
+#+end_src
+
 Emacs has some new code to display line-numbers, and the =visual= value works well with my Org files, allowing a jump to a line via ~6 j~:
 #+begin_src emacs-lisp
   (setq display-line-numbers-type 'visual)
