@@ -376,7 +376,6 @@ For this feature, I may want to pull it out into its own file, so as to keep all
           ("w" Info-goto-node-web "View on Web")))))
 #+end_src
 
-
 ** Text Expanders and Completion
 The following defines my use of the Emacs completion system. I’ve decided my /rules/ will be:
   - Nothing should automatically appear; that is annoying and distracting.
@@ -626,6 +625,20 @@ The built-in =isearch= is fantastically simple and useful, but the [[https://git
 #+end_src
 
 The idea, is that you can start a search with ~C-s~ (or even ~s-f~ … er, ~Command-f~ on the Mac), and type some letters. Hitting ~C-s~ goes to the next occurrence of what you’ve typed, but if you hit ~Command-g~, a menu appears allowing you to pull in the rest of the word or symbol you are looking at, or edit it completely.
+** Minor Keybinding Annoys
+I like ~C-a~ to go to the beginning of the line, but what about getting to the beginning of text on that line? In Evil, you have ~^~ for beginning of line, and ~0~ for first text. Why not have ~C-a~ toggle between them both:
+
+#+begin_src emacs-lisp
+  (defun ha-beginning-of-line (&optional n)
+    "Toggles between the beginning of line and first of text."
+    (interactive "^p")
+    (if (= (point) (line-beginning-position))
+        (beginning-of-line-text n)
+        (beginning-of-line n)))
+
+  (global-set-key (kbd "C-a") 'ha-beginning-of-line)
+#+end_src
+
 * Working Layout
 While editing any file on disk is easy enough, I like the mental context switch associated with a full-screen window frame showing all the buffers of a /project task/ (often a direct link to a repository project, but not always).
 ** Projects

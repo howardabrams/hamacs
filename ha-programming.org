@@ -258,13 +258,13 @@ We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartpa
 *** Move by Functions
 The =mark-paragraph= and =downcase-word= isn’t very useful in a programming context, and makes more sense to use them to jump around function-by-function:
 #+begin_src emacs-lisp
-  (global-set-key (kbd "M-h") 'beginning-of-defun)
-  (global-set-key (kbd "M-l") 'beginning-of-next-defun)
+  ; (global-set-key (kbd "M-k") 'beginning-of-defun)
+  ; (global-set-key (kbd "M-j") 'beginning-of-next-defun)
 
   (when (fboundp 'evil-define-key)
     (evil-define-key '(normal insert emacs) prog-mode-map
-      (kbd "M-h")    'beginning-of-defun
-      (kbd "M-l")    'beginning-of-next-defun))
+      (kbd "M-k")    'beginning-of-defun
+      (kbd "M-j")    'beginning-of-next-defun))
 #+end_src
 But one of those functions doesn’t exist:
 #+begin_src emacs-lisp
