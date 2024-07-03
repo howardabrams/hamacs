@@ -255,6 +255,22 @@ We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartpa
     (prog-mode . smartparens-strict-mode))
 #+end_src
 ** Navigation
+*** imenu
+I’ve often called =imenu= to easily jump to a function definition in a file (or header in an org file), but after reading [[http://yummymelon.com/devnull/til-imenu.html][this essay]] by Charles Choi, I decided to increase =imenu='s utility.
+#+begin_src emacs-lisp
+  (defun ha-imenu-setup ()
+    "Sets up the imenu customization. Use in hooks."
+    (imenu-add-menubar-index)
+    (setq-local imenu-auto-rescan t)
+    (when (derived-mode-p 'prog-mode)
+      (setq-local imenu-sort-function #'imenu--sort-by-name)))
+
+  ;; Add the imenu-setup to _some_ mode's hooks:
+  (dolist (mode '(prog makefile org markdown))
+    (let ((hook (make-symbol (format "%s-mode-hook" mode))))
+      (message "Add 'ha-imenu-setup to %s" hook)
+      (add-hook hook 'ha-imenu-setup)))
+#+end_src
 *** Move by Functions
 The =mark-paragraph= and =downcase-word= isn’t very useful in a programming context, and makes more sense to use them to jump around function-by-function:
 #+begin_src emacs-lisp
@@ -689,7 +705,7 @@ To options that might be interesting:
   - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
   - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
 
-*** iMenu
+*** LSP iMenu
 The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] project offers a =lsp-ui-imenu= function for jumping to functions:
 
 #+begin_src emacs-lisp :tangle no
