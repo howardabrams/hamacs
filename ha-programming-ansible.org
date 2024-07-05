@@ -28,29 +28,34 @@ Configuring Ansible and YAML
 My day job now involves a lot of Ansible, and I’ve been struggling to get the right balance here.
 
 Much of the conflict stems from whether to use [[file:ha-programming.org::*Tree Sitter][Tree Sitter]] for the YAML mode or not.
-
 * Visual Indentation
 Moving by lines is our default navigation mode, but for Yaml and Python, that doesn’t have s-expressions, we need something to move around by blocks. The [[https://codeberg.org/ideasman42/emacs-spatial-navigate][spatial navigation]] project attempts to address this. The problem is how to bind the functions.
 
 The obvious keybindings are ~M-h/j/k/l~ … but that is used … well, somewhat. In org files, this is a way to move the outline of subtrees around. Useful, and =spatial-navigate= wouldn’t be helpful in org files anyway.
 
 #+begin_src emacs-lisp
-  (use-package spatial-navigate
-    :straight (:repo "https://codeberg.org/ideasman42/emacs-spatial-navigate")
-    :config
-    ;; Normal State movement has a number of conflict in other mode maps, for instance:
-    ;; Overrides: `kill-sentence'
-    (define-key evil-normal-state-map (kbd "M-k") 'spatial-navigate-backward-vertical-box)
-    ;; Overrides: `default-indent-new-line'
-    (define-key evil-normal-state-map (kbd "M-j") 'spatial-navigate-forward-vertical-box)
-    ;; Overrides: `beginning-of-defun'
-    (define-key evil-normal-state-map (kbd "M-h") 'spatial-navigate-backward-horizontal-box)
-    ;; Overrides my: `beginning-of-next-defun'
-    (define-key evil-normal-state-map (kbd "M-l") 'spatial-navigate-forward-horizontal-box)
+    (use-package spatial-navigate
+      :straight (:repo "https://codeberg.org/ideasman42/emacs-spatial-navigate")
+      :config
+      (pretty-hydra-define spatial-navigate (:color amaranth :quit-key "q")
+        ("Box"
+         (("k" spatial-navigate-backward-vertical-box "up")
+          ("j" spatial-navigate-forward-vertical-box "Down")
+          ("h" spatial-navigate-backward-horizontal-box "Down")
+          ("l" spatial-navigate-forward-horizontal-box "Down"))
+         "Bar"
+         (("K" spatial-navigate-backward-vertical-bar "up")
+          ("J" spatial-navigate-forward-vertical-bar "Down")
+          ("H" spatial-navigate-backward-horizontal-bar "Down")
+          ("L" spatial-navigate-forward-horizontal-bar "Down")))))
+#+end_src
 
-    ;; Overrides: `indent-for-tab-command' (not good for normal state)
-    (define-key evil-normal-state-map (kbd "<backtab>") 'spatial-navigate-backward-horizontal-bar)
-    (define-key evil-normal-state-map (kbd "<tab>") 'spatial-navigate-forward-horizontal-bar))
+And we can attach this menu to the “g” section:
+#+begin_src emacs-lisp
+  (use-package spatial-navigate
+    :general
+    (:states '(normal visual motion operator)
+         "g t" '("spatial nav" . spatial-navigate/body)))
 #+end_src
 
 The [[https://github.com/antonj/Highlight-Indentation-for-Emacs][Highlight-Indentation]] project highlights each of the indent levels, which could be helpful for these modes:
