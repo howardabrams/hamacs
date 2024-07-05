@@ -360,6 +360,133 @@ I like the idea of dropping returnable bookmarks, however, the built-in behavior
       "b <down>" '("next mark" . bookmark-in-project-jump-next)
       "b <up>" '("next mark" . bookmark-in-project-jump-previous)))
 #+end_src
+* Centering
+After reading [[https://mbork.pl/2024-04-15_Improving_recenter-top-bottom_and_reposition-window][this essay]], I got to thinking that it would be nice to position the text in a buffer /near the top/, but show context based on some specific, textual /things/. My thought is to have a function that prompts for the thing (like the current paragraph, function, etc), but also create thing-specific functions.
+
+#+begin_src emacs-lisp
+  (defun ha-center-to-top (thing &optional count)
+    "Place THING nearest the point at the top of window.
+  COUNT is the number of things from point that should be
+  display at the top of the window.
+
+  THING can be any of the following:
+    - 'heading (an org-mode headline)
+    - 'block (an org-mode block)
+    - 'paragraph
+    - 'sentence
+    - 'line (similar to `recenter-top-bottom')
+    - 'comment
+    - 'defun"
+    (interactive
+     (list
+      (completing-read "Recenter to: " '("heading" "block"
+                                         "paragraph" "sentence" "line"
+                                         "comment" "defun")
+                       nil t)))
+    (unless count (setq count 1))
+    ;; Move to the start of the `thing', and then call `recenter-top-bottom':
+    (save-excursion
+      (cond
+       ((equal~ thing 'heading) (org-previous-visible-heading count))
+       ((equal~ thing 'block) (org-previous-block count))
+       ((equal~ thing 'paragraph) (backward-paragraph count))
+       ((equal~ thing 'sentence) (backward-sentence count))
+       ((equal~ thing 'comment) (beginning-of-defun-comments count))
+       ((equal~ thing 'defun) (beginning-of-defun count)))
+      (recenter-top-bottom 0)))
+#+end_src
+
+One thing I have always wished is a simple string-or-symbol-or-keyword comparison function. This is helpful since =completing-read= works best with strings, but calling a Lisp function should take symbols or keywords. It would be easy enough to write after converting everything to a string:
+
+#+begin_src emacs-lisp
+  (defun equal~ (obj1 obj2)
+    "Tries to coerce OBJ1 and OBJ2 to strings for comparison."
+    (let ((str1 (cond
+                 ((keywordp obj1) (substring (symbol-name obj1) 1))
+                 ((symbolp obj1) (symbol-name obj1))
+                 (t obj1)))
+          (str2 (cond
+                 ((keywordp obj2) (substring (symbol-name obj2) 1))
+                 ((symbolp obj2) (symbol-name obj2))
+                 (t obj2))))
+      (equal str1 str2)))
+#+end_src
+
+Let’s write a quick test to make sure this works:
+
+#+begin_src emacs-lisp
+  (ert-deftest equal~-test ()
+    (should (equal~ "foobar" "foobar"))
+    (should (equal~ 'foobar "foobar"))
+    (should (equal~ :foobar "foobar"))
+    (should (equal~ "foobar"'foobar))
+    (should (equal~ 'foobar 'foobar))
+    (should (equal~ :foobar 'foobar))
+    (should (equal~ "foobar":foobar))
+    (should (equal~ 'foobar :foobar))
+    (should (equal~ :foobar :foobar)))
+#+end_src
+
+Create a number of interactive functions for each /thing/ to recenter to the top:
+
+#+begin_src emacs-lisp
+  (defun ha-center-to-top-heading (prefix)
+    "Recenter the current org-mode headline to top of window.
+  PREFIX is a numeric value to specify how many previous headings
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'heading prefix))
+
+  (defun ha-center-to-top-block (prefix)
+    "Recenter the current org-mode block to top of window.
+  PREFIX is a numeric value to specify how many previous blocks
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'block prefix))
+
+  (defun ha-center-to-top-paragraph (prefix)
+    "Recenter the current paragraph to the top of window.
+  PREFIX is a numeric value to specify how many previous paragraphs
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'paragraph prefix))
+
+  (defun ha-center-to-top-sentence (prefix)
+    "Recenter the current org-mode headline to top of window.
+  PREFIX is a numeric value to specify how many previous sentences
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'sentence prefix))
+
+  (defun ha-center-to-top-comment (prefix)
+    "Recenter the current org-mode headline to top of window.
+  PREFIX is a numeric value to specify how many previous comments
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'comment prefix))
+
+  (defun ha-center-to-top-defun (prefix)
+    "Recenter the current org-mode headline to top of window.
+  PREFIX is a numeric value to specify how many previous defuns
+  should be shown."
+    (interactive "P")
+    (ha-center-to-top 'defun prefix))
+#+end_src
+
+Let’s bind them all to a leader prefix:
+
+#+begin_src emacs-lisp
+  (ha-leader
+    "c"  '(:ignore t :which-key "center display")
+    "c p" '("paragraph" . ha-center-to-top-paragraph)
+    "c s" '("sentence" . ha-center-to-top-sentence)
+    "c c" '("comment" . ha-center-to-top-comment)
+    "c f" '("defun" . ha-center-to-top-defun)
+    "c h" '("org-headline" . ha-center-to-top-heading)
+    "c o" '("only headline" . org-narrow-to-subtree)
+    "c b" '("org-block" . ha-center-to-top-block)
+    "c a" '("only block" . org-edit-special))
+#+end_src
 * Toggle Switches
 The goal here is toggle switches and other miscellaneous settings.
 #+begin_src emacs-lisp
@@ -761,11 +888,31 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
     ;; relevant when you use the default completion UI.
     :hook (completion-list-mode . consult-preview-at-point-mode)
 
+    :bind (("s-v" . consult-yank-pop)
+           ("M-X" . consult-mode-command)) ; Hrm...
+
+    :general
+    (:states 'normal
+             "gp" '("preview paste" . 'consult-yank-pop)
+             "gs" '("go to line" . 'consult-line)))
+#+end_src
+
+I found the =consult-mark= as part of [[https://arialdomartini.github.io/emacs-mark-ring][this essay]] about the =mark=.
+
+Let’s show =consult-xref= for two functions:
+#+begin_src emacs-lisp
+  (use-package consult
     :config
     ;; Use Consult to select xref locations with preview
     (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
+          xref-show-definitions-function #'consult-xref))
+#+end_src
 
+We sprinkle Consult features throughout the leader menu system:
+
+#+begin_src emacs-lisp
+  (use-package consult
+    :config
     (ha-leader
       "RET" '("bookmark"            . consult-bookmark)
       "k"   '("marks"               . consult-mark)
@@ -781,18 +928,8 @@ The [[https://github.com/minad/consult][consult project]] aims to use libraries 
       "x i" '("choose from imenu"   . consult-imenu)
       "x I" '("choose from outline" . consult-outline)
       "x r" '("registers"           . consult-register)
-      "x y" '("preview yank"        . consult-yank-pop))
-
-    :bind (("s-v" . consult-yank-pop)
-           ("M-X" . consult-mode-command)) ; Hrm...
-
-    :general
-    (:states 'normal
-             "gp" '("preview paste" . 'consult-yank-pop)
-             "gs" '("go to line" . 'consult-line)))
+      "x y" '("preview yank"        . consult-yank-pop)))
 #+end_src
-
-If found the =consult-mark= as part of [[https://arialdomartini.github.io/emacs-mark-ring][this essay]] about the =mark=.
 
 An under-appreciated version of Consult is the /changing your mind/ aspect. Type ~SPC b b~ to switch to a different buffer, and change your mind, “oh, I really need a file!” Type ~f SPC~ and it switches to a file browser. Nope, I did need the buffer, type ~b SPC~ and your back to buffer switching. Other /narrowing/ keys:
 
@@ -806,6 +943,7 @@ An under-appreciated version of Consult is the /changing your mind/ aspect. Type
 
 * Embark
 The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on /targets/. I'm primarily thinking of acting on selected items in the minibuffer, but these commands act anywhere.  I need an easy-to-use keybinding that doesn't conflict. Hey, that is what the Super key is for, right?
+
 #+begin_src emacs-lisp
   (use-package embark
     :bind
@@ -821,6 +959,7 @@ The [[https://github.com/oantolin/embark/][embark]] project offers /actions/ on 
 #+end_src
 
 In [[https://karthinks.com/software/fifteen-ways-to-use-embark/][15 Ways to Use Embark]], Karthik Chikmagalur suggests a nifty macro for integrating Embark with [[Ace Window][Ace Window]]:
+
 #+begin_src emacs-lisp
   (use-package embark
     :after ace-window
@@ -880,6 +1019,7 @@ We can rebind the various =embark-xyz-map= with calls to our macroized functions
 #+end_src
 
 According to [[https://elpa.gnu.org/packages/embark-consult.html#orgc76b5de][this essay]], Embark cooperates well with the [[https://github.com/minad/marginalia][Marginalia]] and [[https://github.com/minad/consult][Consult]] packages. Neither of those packages is a dependency of Embark, but Embark supplies a hook for Consult where Consult previews can be done from Embark Collect buffers:
+
 #+begin_src emacs-lisp
   (use-package embark-consult
     :after (embark consult)
