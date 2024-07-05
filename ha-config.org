@@ -109,6 +109,25 @@ This package is /called outside of Emacs/, so I bound a keybinding to iCanHazSho
 
 When you type ~C-c C-c~ to close a window, it /doesn’t always/ paste back into the original window, but the text is saved to the clipboard, a quick paste works. And now, I don’t scream when I need to use those Electron apps, like Slack and Discord.
 
+** Indexed Menu Navigation
+
+I’ve often called =imenu= to easily jump to a function definition in a file (or header in an org file), but after reading [[http://yummymelon.com/devnull/til-imenu.html][this essay]] by Charles Choi, I decided to increase =imenu='s utility.
+
+#+begin_src emacs-lisp
+  (defun ha-imenu-setup ()
+    "Sets up the imenu customization. Use in hooks."
+    (imenu-add-menubar-index)
+    (setq-local imenu-auto-rescan t)
+    (when (derived-mode-p 'prog-mode)
+      (setq-local imenu-sort-function #'imenu--sort-by-name)))
+
+  ;; Add the imenu-setup to _some_ mode's hooks:
+  (dolist (mode '(prog makefile org markdown))
+    (let ((hook (make-symbol (format "%s-mode-hook" mode))))
+      (message "Add 'ha-imenu-setup to %s" hook)
+      (add-hook hook 'ha-imenu-setup)))
+#+end_src
+
 ** File Access
 *** Remote Files
 To speed up TRAMP access, let’s disabled lock files, you know, the ones that have the =#= surrounding characters:
