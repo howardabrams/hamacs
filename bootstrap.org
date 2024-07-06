@@ -141,7 +141,7 @@ And let’s see the results:
 ** My Code Location
 Much of my more complicated code comes from my website essays and other projects. The destination shows up here:
 #+begin_src emacs-lisp
-(add-to-list 'load-path (f-expand "~/.emacs.d/elisp"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp"))
 #+end_src
 
 Hopefully, this will tie me over while I transition.
@@ -151,7 +151,7 @@ I actually run two instances of Emacs on some systems, where one instance has al
   (defun ha-emacs-for-work? ()
     "Return non-nil when the Emacs instance is for work.
   Matches based on a `FOR_WORK' environment variable."
-    (and (f-dir? "~/work")
+    (and (file-directory-p "~/work")
          (getenv "FOR_WORK")))
 #+end_src
 
@@ -226,11 +226,12 @@ With this function, we can test/debug/reload any individual file, via:
     "Load or reload an org-mode FILE containing literate
   Emacs configuration code."
     (interactive (list (completing-read "Org file: "
-                             (ha-hamacs-files :all))))
-    (let ((full-file (f-join hamacs-source-dir file)))
-      (when (f-exists? full-file)
-        (ignore-errors
-            (org-babel-load-file full-file)))))
+			     (ha-hamacs-files :all))))
+    ;; TODO: Replace concat here:
+    (let ((full-file (file-name-concat hamacs-source-dir file)))
+      (when (file-exists-p full-file)
+	(ignore-errors
+	    (org-babel-load-file full-file)))))
 #+end_src
 
 ** Tangling the Hamacs
@@ -242,11 +243,11 @@ And this similar function, will /tangle/ one of my files. Notice that in order t
   configuration code."
     (interactive (list (completing-read "Org file: "
                                (ha-hamacs-files :all))))
-    (let ((full-file (f-join hamacs-source-dir file))
+    (let ((full-file (file-name-concat hamacs-source-dir file))
           (target (file-name-concat "~/emacs.d/elisp"
                         (concat (file-name-sans-extension file)
                                 ".el"))))
-      (when (f-exists? full-file)
+      (when (file-exists-p full-file)
         (ignore-errors
           (with-temp-buffer
             (insert-file-contents full-file)
@@ -283,7 +284,7 @@ Changing my Emacs configuration is as simple as editing an Org file containing t
   my literate Emacs configuration code."
     (interactive (list (completing-read "Org file: "
                                         (ha-hamacs-files :all))))
-    (let ((full-file (f-join hamacs-source-dir file)))
+    (let ((full-file (file-name-concat hamacs-source-dir file)))
       (find-file full-file)))
 #+end_src
 
