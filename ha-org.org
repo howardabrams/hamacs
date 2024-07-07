@@ -828,7 +828,7 @@ And the Emacs interface to that:
   (use-package jinx
     :hook (emacs-startup . global-jinx-mode)
     :bind (("M-$" . jinx-correct-nearest)
-           ("s-s" . jinx-correct-nearest))
+           ("s-;" . jinx-correct-nearest))
     :general
     (:states '(normal insert) :keymaps 'text-mode-map
              "M-s M-s" 'jinx-correct)
