@@ -108,28 +108,6 @@ At times I would like to jump to a particular block, evaluate the code, and jump
               'org-babel-execute-src-block-at-point))
 #+end_src
 
-This looks like:
-#+begin_src org
-  Here's a horribly contrived example ...
-  Which of the following values is most appropriate? We should accept a list:
-
-  ,#+begin_src python
-   a = [1, 2, 3]
-#+end_src
-
-Or a dictionary (hashmap):
-
-#+begin_src python
- a = {"a":1, "b":2, "c":3}
-#+end_src
-
-Note that the /length/ of both can be calculated:
-#+begin_src python
-  len(a)
-#+end_src
-
-#+PROPERTY:    header-args    :results none :eval no-export :comments no
-#+end_src
 ** Evaluating a Section
 A trick to =org-babel-tangle=, is that it tangles /what is available/, that is, it will only tangle code blocks that are visible after narrowing to the current org section.
 
