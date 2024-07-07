@@ -1184,16 +1184,16 @@ With the =markdown-header-scaling= set, we no longer need to color the headers i
                           :foreground (face-attribute 'font-lock-comment-face :foreground))
       (set-face-attribute 'markdown-header-face nil
                           :font ha-variable-header-font
-                          :foreground default-color))
-    (when window-system
-      (dolist (level '(1 2 3 4))
-        (let ((md-level (make-face (make-symbol (format "markdown-header-face-%d" level))))
-              (org-level (nth (1- level) org-level-faces)))
-          (message "Setting %s size %.1f to %s" org-level (face-attribute org-level :height) md-level)
-          (print `(set-face-attribute ,md-level nil
-                                      :height ,(face-attribute org-level :height)))
-          (set-face-attribute md-level nil
-                              :height (face-attribute org-level :height))))))
+                          :foreground default-color)
+      (when window-system
+        (dolist (level '(1 2 3 4))
+          (let ((md-level (make-face (make-symbol (format "markdown-header-face-%d" level))))
+                (org-level (nth (1- level) org-level-faces)))
+            (message "Setting %s size %.1f to %s" org-level (face-attribute org-level :height) md-level)
+            (print `(set-face-attribute ,md-level nil
+                                        :height ,(face-attribute org-level :height)))
+            (set-face-attribute md-level nil :foreground default-color
+                                :height (face-attribute org-level :height)))))))
 
 
 #+end_src
