@@ -29,6 +29,7 @@ To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the proce
   - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
   - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
   - [[file:ha-evil.org][Evilness]] :: configuration for using VI, er, ~vim~ keybindings in Emacs.
+  - [[file:ha-general.org][Leader]] :: using the ~SPC~ to kick off a hierarchal order of functions.
   - [[file:ha-display.org][GUI Display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
   - [[file:ha-dashboard.org][Dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
   - [[file:ha-data.org][Data]] :: functions for dealing with a buffer-full of data.
@@ -36,6 +37,7 @@ To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the proce
 ** Org Mode Configuration
   - [[file:ha-org.org][Initial Org Configuration]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
   - [[file:ha-org-word-processor.org][Word Processing]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
+  - [[file:ha-org-literate.org][Literate Programming]] :: functions to support literate programming techniques. I use this most prevalently with this Emacs configuration.
   - [[file:ha-org-clipboard.org][Clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
   - [[file:ha-org-journaling.org][Journaling]] :: for writing journal entries and tasks.
   - [[file:ha-org-publishing.org][Publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].

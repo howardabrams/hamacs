@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-07-07 Sun]
+#+lastmod: [2024-07-16 Tue]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -31,7 +31,6 @@ A literate programming file for literate programming in Emacs Org Files.
   ;;
   ;;; Code:
 #+end_src
-
 * Introduction
 I do a lot of /literate programming/ using capabilities found in the Org project. Over the years, I’ve smoothed some of the rough edges by writing supporting functions, collected below.
 
@@ -63,30 +62,6 @@ For instance, the following function can be used to quickly select a source code
 I need to take advantage of this feature more.
 * Evaluating Code
 Hitting ~C-c C-c~ in a source code block /evaluates/ the code. Simple, sure, but the following enhancements make this more accessible.
-** Syncing Tangled Code Automatically
-Any file can set [[https://emacsdocs.org/docs/emacs/File-Variables][file-local Emacs variables]] when a file is loaded, but we can also run Emacs functions with the =eval:= sequence. If you place the following code at the bottom of your Org file, saving the buffer automatically tangles it:
-
-#+begin_src org
-  # Local Variables:
-  # eval: (add-hook 'after-save-hook #'org-babel-tangle t t)
-  # End:
-#+end_src
-
-If you set the =comments= header argument to =link=, you can actually make direct changes to your tangled code to have them update your original literate org file. For instance, add:
-
-#+begin_src org
-#+PROPERTY:    header-args: :tangle yes :comments link
-#+end_src
-
-See also the [[https://gitlab.com/mtekman/org-tanglesync.el][org-tanglesync]] project for putting a bit of controls around this feature.
-
-Another idea is to call =org-babel-execute-buffer= when a file is loaded to automatically evaluate all blocks:
-
-#+begin_src org
-# eval:       (org-babel-execute-buffer)
-#+end_src
-
-Personally, I find that I would like to call this function manually instead of automatically.
 ** Evaluating a Block
 At times I would like to jump to a particular block, evaluate the code, and jump back. This seems like a great job for the [[https://github.com/abo-abo/avy][avy project]]. The =avy-jump= function takes a regular expression of text /in the frame/ (which means you can specify text in other windows), and highlights each match. Normally, selecting a match moves the cursor to that match, the =avy-jump= accepts a function to execute instead:
 
@@ -104,12 +79,14 @@ At times I would like to jump to a particular block, evaluate the code, and jump
   the point."
     (interactive)
     (avy-jump (rx "#+begin_src ")
-              :action
-              'org-babel-execute-src-block-at-point))
+              :action 'org-babel-execute-src-block-at-point))
 #+end_src
 
+In this case, =avy-org-babel-execute-src-block= highlights all /visible blocks/ on the frame, with a letter on each. Selecting the letter, evaluates that block without moving the cursor.
+
+TODO Screenshot of multiple highlighted blocks.
 ** Evaluating a Section
-A trick to =org-babel-tangle=, is that it tangles /what is available/, that is, it will only tangle code blocks that are visible after narrowing to the current org section.
+A trick to =org-babel-tangle=, is that it tangles /what is shown/, that is, it will only tangle code blocks that are visible after narrowing to the current org section. This means, we can call =org-narrow-to-subtree= to temporary hide everything in the org file except the current heading, evaluate all blocks in the “now visible” buffer, and then widen:
 
 #+begin_src emacs-lisp :results silent
   (defun org-babel-execute-subtree ()
@@ -121,6 +98,8 @@ A trick to =org-babel-tangle=, is that it tangles /what is available/, that is, 
       (widen)))
 #+end_src
 ** Editing a Block
+Why navigate to a block, just to focus on that block in a dedicated buffer, when we can take advantage of the =avy-jump= and edit any visible block?
+
 #+begin_src emacs-lisp
   (defun org-babel-edit-src-block-at-point (&optional point)
     "Call `org-babel-execute-src-block' at POINT."
@@ -140,16 +119,19 @@ A trick to =org-babel-tangle=, is that it tangles /what is available/, that is, 
 #+end_src
 
 * Finding Code
-One of the issues with literate programming is using the same interface for moving around code when the source code is in org files.
+One of the issues with literate programming is not being able to use the same interface for moving around code when the source code is in org files.
 
 ** Searching by Function Name
 I wrote a function, =ha-org-code-block-jump= to use the standard =xref= interface to jump to a function definition /in the literate org file/. Since the code is specific to /Emacs Lisp/ (the bulk of my literate programming code is in Lisp), I’m leaving it in my [[file:ha-programming-elisp.org::*Goto Definitions][programming-elisp]] configuration.
 
 TODO: Do all the =xref-= functions for search an collection of org files, not just definition.
 ** Searching by Header
+:PROPERTIES:
+:ID:       de536693-f0b0-48d0-9b13-c29d7a8caa62
+:END:
 As large literate programming projects grow, I refine, re-organize and refactor content. I don’t always remember where I put particular code. For instance, in my Emacs configuration, did I configure /eww/, in [[file:ha-config.org][my default config]] file, or did I move it somewhere?  Originally, after loading the file, I  could issue a call to [[file:ha-general.org::*Consult][consult-imenu]] to get to the right location, but that assumes I have the correct file loaded.
 
-The following section shows some code I wrote one evening, to use the fuzzy matching features of [[file:ha-config.org::*Orderless][Orderless]], to choose a headline in any of my Org files in a project, and then load that file and jump to that headline. The interface is =ha-hamacs-edit-file-heading=, and the supporting functions begin with =ha-hamacs-edit-=:
+The following section shows some code to use the fuzzy matching features of [[file:ha-config.org::*Orderless][Orderless]], to choose a headline in any of my Org files in a project, and then load that file and jump to that headline. The interface is =ha-hamacs-edit-file-heading=, and the supporting functions begin with =ha-hamacs-edit-=:
 
 #+begin_src emacs-lisp
   (defun ha-hamacs-edit-file-heading (&optional project-root)
@@ -246,6 +228,13 @@ Not every header should be a destination, as many of my org files have duplicate
             "Summary"
             "Technical Artifacts"))
     "Regular expression matching headers to purge.")
+#+end_src
+
+Note: This variable should be set in the =.dir-locals.el= for a particular project, as in:
+
+#+begin_src emacs-lisp :tangle no
+((org-mode . ((ha-hamacs-edit-flush-headers .
+               "\\*[[:space:]]+\\(?:Background\\|Summary\\)"))))
 #+end_src
 
 And this next function is callable by the filter function, it uses the regular expression and returns true (well, non-nil) if the line entry given, =rg-input=, should be removed:
