@@ -45,7 +45,6 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
 
     (ha-leader
       "g" '(:ignore t :which-key "git")
-      "g <escape>" '(keyboard-escape-quit :which-key t)
       "g /" '("Magit dispatch"             . magit-dispatch)
       "g ." '("Magit file dispatch"        . magit-file-dispatch)
       "g b" '("Magit switch branch"        . magit-branch-checkout)
@@ -78,7 +77,10 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
       "g c C" '("Clone repo"               . magit-clone)
       "g c c" '("Commit"                   . magit-commit-create)
       "g c f" '("Fixup"                    . magit-commit-fixup)
-      "g c b" '("Branch"                   . magit-branch-and-checkout))
+      "g c b" '("Branch"                   . magit-branch-and-checkout)
+
+      "g <escape>" '(keyboard-escape-quit :which-key t)
+      "g C-g" '(keyboard-escape-quit :which-key t))
 
     (general-nmap "<escape>" #'transient-quit-one))
 #+end_src

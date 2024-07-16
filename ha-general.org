@@ -154,7 +154,6 @@ Let's try this general "space" prefix by defining some top-level operations, inc
 #+begin_src emacs-lisp
   (ha-leader
     "SPC" '("M-x" . execute-extended-command)
-    "<escape>" '(keyboard-escape-quit :which-key t)
     "."   '("repeat" . repeat)
     "!"   '("shell command" . shell-command)
     "|"   'piper
@@ -162,35 +161,47 @@ Let's try this general "space" prefix by defining some top-level operations, inc
     "L"   '("store org link" . org-store-link)
     "RET" 'bookmark-jump
     "a"   '(:ignore t :which-key "apps")
-    "a <escape>" '(keyboard-escape-quit :which-key t)
     "m"   '(:ignore t :which-key "mode")
-    "m <escape>" '(keyboard-escape-quit :which-key t)
     "o"   '(:ignore t :which-key "org/open")
-    "o <escape>" '(keyboard-escape-quit :which-key t)
     "o i" 'imenu
+
+    "<escape>" '(keyboard-escape-quit :which-key t)
+    "a <escape>" '(keyboard-escape-quit :which-key t)
+    "m <escape>" '(keyboard-escape-quit :which-key t)
+    "o <escape>" '(keyboard-escape-quit :which-key t)
+    "C-g" '(keyboard-escape-quit :which-key t)
+    "a C-g" '(keyboard-escape-quit :which-key t)
+    "m C-g" '(keyboard-escape-quit :which-key t)
+    "o C-g" '(keyboard-escape-quit :which-key t)
+
     "u"   'universal-argument)
 #+end_src
 And ways to stop the system:
 #+begin_src emacs-lisp
   (ha-leader
     "q"  '(:ignore t :which-key "quit/session")
-    "q <escape>" '(keyboard-escape-quit :which-key t)
     "q b" '("bury buffer" . bury-buffer)
     "q w" '("close window" . delete-window)
     "q K" '("kill emacs (and dæmon)" . save-buffers-kill-emacs)
     "q q" '("quit emacs" . save-buffers-kill-terminal)
-    "q Q" '("quit without saving" . evil-quit-all-with-error-code))
+    "q Q" '("quit without saving" . evil-quit-all-with-error-code)
+
+    "q <escape>" '(keyboard-escape-quit :which-key t)
+    "q C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 And ways to load my tangled org-files:
 #+begin_src emacs-lisp
   (ha-leader
-    "h h"   '(:ignore t :which-key "hamacs")
-    "h h <escape>" '(keyboard-escape-quit :which-key t)
-    "h h f" '("features"     . ha-hamacs-features)
-    "h h e" '("edit"         . ha-hamacs-find-file)
-    "h h j" `("heading jump" . ,(lambda () (interactive) (ha-hamacs-edit-file-heading "~/other/hamacs")))
-    "h h h" '("reload"       . ha-hamacs-load)
-    "h h a" '("reload all"   . ha-hamacs-reload-all))
+      "h h"   '(:ignore t :which-key "hamacs")
+      "h h f" '("features"     . ha-hamacs-features)
+      "h h e" '("edit"         . ha-hamacs-find-file)
+      "h h j" `("heading jump" . ,(lambda () (interactive) (ha-hamacs-edit-file-heading "~/other/hamacs")))
+      "h h h" '("reload"       . ha-hamacs-load)
+      "h h a" '("reload all"   . ha-hamacs-reload-all)
+
+      "h h <escape>" '(keyboard-escape-quit :which-key t)
+      "h h C-g" '(keyboard-escape-quit :which-key t)
+  )
 #+end_src
 * File Operations
 While =find-file= is still my bread and butter,  I like getting information about the file associated with the buffer. For instance, the file path:
@@ -248,7 +259,6 @@ With these helper functions in place, I can create a leader collection for file-
 #+begin_src emacs-lisp
   (ha-leader
     "f"  '(:ignore t :which-key "files")
-    "f <escape>" '(keyboard-escape-quit :which-key t)
     "f a" '("load any" . find-file)
     "f f" '("load" . project-find-file)
     "f F" '("load new window" . find-file-other-window)
@@ -272,7 +282,10 @@ With these helper functions in place, I can create a leader collection for file-
     "f 6" '("load win-6" . ha-find-file-window-6)
     "f 7" '("load win-7" . ha-find-file-window-7)
     "f 8" '("load win-8" . ha-find-file-window-8)
-    "f 9" '("load win-9" . ha-find-file-window-9))
+    "f 9" '("load win-9" . ha-find-file-window-9)
+
+    "f <escape>" '(keyboard-escape-quit :which-key t)
+    "f C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 
 The ~d~ brings up [[file:ha-applications.org::*Dired][Dired]], and ~D~ pulls up a =dired=, not on a single directory, but based on a pattern given to =find= (see [[https://www.masteringemacs.org/article/working-multiple-files-dired][this discussion on Mastering Emacs]]).
@@ -319,7 +332,6 @@ And the collection of useful operations:
 #+begin_src emacs-lisp
   (ha-leader
     "b"  '(:ignore t :which-key "buffers")
-    "b <escape>" '(keyboard-escape-quit :which-key t)
     "b O" '("other" . project-switch-buffer-to-other-window)
     "b i" '("ibuffer" . ibuffer)
     "b I" '("ibuffer" . ibuffer-other-window)
@@ -343,7 +355,10 @@ And the collection of useful operations:
     "b 6" '("load win-6" . (lambda () (interactive) (switch-buffer-in-window 6)))
     "b 7" '("load win-7" . (lambda () (interactive) (switch-buffer-in-window 7)))
     "b 8" '("load win-8" . (lambda () (interactive) (switch-buffer-in-window 8)))
-    "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9))))
+    "b 9" '("load win-9" . (lambda () (interactive) (switch-buffer-in-window 9)))
+
+    "b <escape>" '(keyboard-escape-quit :which-key t)
+    "b C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 * Bookmarks
 I like the idea of dropping returnable bookmarks, however, the built-in behavior doesn’t honor either /projects/ or /perspectives/, but I use [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package to make a =project=-specific bookmarks and use that to jump to only bookmarks in the current project.
@@ -492,7 +507,6 @@ The goal here is toggle switches and other miscellaneous settings.
 #+begin_src emacs-lisp
   (ha-leader
     "t"   '(:ignore t :which-key "toggles")
-    "t <escape>" '(keyboard-escape-quit :which-key t)
     "t a" '("abbrev"         . abbrev-mode)
     "t d" '("debug"          . toggle-debug-on-error)
     "t F" '("show functions" . which-function-mode)
@@ -505,7 +519,10 @@ The goal here is toggle switches and other miscellaneous settings.
     "t t" '("truncate"       . toggle-truncate-lines)
     "t T" '("tramp mode"     . tramp-mode)
     "t v" '("visual"         . visual-line-mode)
-    "t w" '("whitespace"     . whitespace-mode))
+    "t w" '("whitespace"     . whitespace-mode)
+
+    "t <escape>" '(keyboard-escape-quit :which-key t)
+    "t C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 
 ** Narrowing
@@ -750,7 +767,6 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
 
     (ha-leader
       "s"  '(:ignore t :which-key "search")
-      "s <escape>" '(keyboard-escape-quit :which-key t)
       "s q" '("close" . ha-rg-close-results-buffer)
       "s r" '("dwim" . rg-dwim)
       "s s" '("search" . rg)
@@ -760,7 +776,10 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
       "s f" '("file only" . rg-dwim-current-file)
       "s j" '("next results" . ha-rg-go-next-results)
       "s k" '("prev results" . ha-rg-go-previous-results)
-      "s b" '("results buffer" . ha-rg-go-results-buffer))
+      "s b" '("results buffer" . ha-rg-go-results-buffer)
+
+      "s <escape>" '(keyboard-escape-quit :which-key t)
+      "s C-g" '(keyboard-escape-quit :which-key t))
 
     (defun ha-rg-close-results-buffer ()
       "Close to the `*rg*' buffer that `rg' creates."
@@ -811,10 +830,12 @@ Stealing much of this from Spacemacs.
 #+begin_src emacs-lisp
   (ha-leader
     "x"  '(:ignore t :which-key "text")
-    "x <escape>" '(keyboard-escape-quit :which-key t)
     "x a" '("align"            . align-regexp)
     "x q" '("fill paragraph"   . fill-paragraph)
-    "x p" '("unfill paragraph" . unfill-paragraph))
+    "x p" '("unfill paragraph" . unfill-paragraph)
+
+    "x <escape>" '(keyboard-escape-quit :which-key t)
+    "x C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 
 Unfilling a paragraph joins all the lines in a paragraph into a single line. Taken [[http://www.emacswiki.org/UnfillParagraph][from here]] … I use this all the time:
@@ -831,7 +852,6 @@ Since I tweaked the help menu, I craft my own menu:
 #+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
-    "h <escape>" '(keyboard-escape-quit :which-key t)
     "h ." '("cursor position"  . what-cursor-position)
     "h a" '("apropos"          . apropos-command)
     "h c" '("elisp cheatsheet" . shortdoc-display-group)
@@ -855,7 +875,10 @@ Since I tweaked the help menu, I craft my own menu:
     ;; Since I do a lot of literate programming, I appreciate a quick
     ;; jump directly into the Info manual...
     "h B" '("org babel"        . (lambda () (interactive)
-                                   (org-info-open "org#Working with Source Code" nil))))
+                                   (org-info-open "org#Working with Source Code" nil)))
+
+    "h <escape>" '(keyboard-escape-quit :which-key t)
+    "h C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 
 Remember these keys in the *Help* buffer:

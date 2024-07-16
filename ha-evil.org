@@ -53,17 +53,14 @@ I split the configuration of Evil mode into sections. First, global settings:
           evil-want-C-u-scroll nil
           evil-want-C-i-jump nil
           evil-escape-key-sequence "jk"
-          evil-escape-unordered-key-sequence t)
-
-    ;; This is _essentially_ the Ctrl-g sequence for getting out of jail:
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit))
+          evil-escape-unordered-key-sequence t))
 #+end_src
 
 The Escape key act like ~C-g~ and always go back to normal mode?
 #+begin_src emacs-lisp
   (use-package evil
     :config
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+    ;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
     ;; Let's connect my major-mode-hydra to a global keybinding:
     (evil-define-key 'normal 'global "," 'major-mode-hydra)
@@ -71,7 +68,7 @@ The Escape key act like ~C-g~ and always go back to normal mode?
     (evil-mode))
 #+end_src
 
-Even with the [[Evil Collection]], some modes should be Emacs:
+Even with the [[Evil Collection]], some modes should start in the Emacs state:
 #+begin_src emacs-lisp
   (use-package evil
     :config
@@ -88,6 +85,7 @@ Even with the [[Evil Collection]], some modes should be Emacs:
 #+end_src
 
 I’m not a long term VI user, and I generally like /easy keys/, e.g. ~w~, have larger jumps, and /harder keys/, e.g. ~W~ (shifted), have smaller, fine-grained jumps. So I am switching these around:
+
 #+begin_src emacs-lisp
   (use-package evil
     :config
