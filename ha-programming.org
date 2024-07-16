@@ -544,14 +544,14 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
 #+end_src
 
 I have two different /jumping/ systems, the [[info:emacs#Xref][Xref interface]] and Evil’s. While comparable goals, they are behave different. Let’s compare evil keybindings:
-  | ~M-.~   | ~g .~ | [[help:xref-find-definitions][xref-find-definitions]] (also ~g d~ for [[help:evil-goto-definition][evil-goto-definition]])†           |
-  |         | ~g >~ | =xref-find-definitions-other-window=                                  |
+  | ~M-.~   | ~g .~ | [[help:xref-find-definitions][xref-find-definitions]] (also ~g d~ for [[help:evil-goto-definition][evil-goto-definition]])†          |
+  |       | ~g >~ | =xref-find-definitions-other-window=                                  |
   | ~M-,~   | ~g ,~ | [[help:xref-go-back][xref-go-back]] (see [[help:xref-pop-marker-stack][xref-pop-marker-stack]])                            |
   | ~C-M-,~ | ~g <~ | [[help:xref-go-forward][xref-go-forward]] (kinda like =xref-find-definitions=)                  |
-  | ~M-?~   | ~g /~ | [[help:xref-find-references][xref-find-references]] to go from definition to code calls‡            |
-  |         | ~g ?~ | [[help:xref-find-references-and-replace][xref-find-references-and-replace]] could be more accurate than [[*iEdit][iEdit]]. |
+  | ~M-?~   | ~g /~ | [[help:xref-find-references][xref-find-references]] to go from definition to code calls‡           |
+  |       | ~g ?~ | [[help:xref-find-references-and-replace][xref-find-references-and-replace]] could be more accurate than [[*iEdit][iEdit]]. |
   | ~C-M-.~ | ~g h~ | [[help:xref-find-apropos][xref-find-apropos]]  … doesn’t work well without LSP                  |
-  | ~C-TAB~ |       | perform completion around point (also ~M-TAB~), see [[file:ha-config.org::*Auto Completion][Auto Completion]].  |
+  | ~C-TAB~ |     | perform completion around point (also ~M-TAB~), see [[file:ha-config.org::*Auto Completion][Auto Completion]].  |
 
 † Prefix to prompt for the term \
 ‡ If it finds more than one definition, Emacs displays the [[info:emacs#Xref Commands][*xref* buffer]], allowing you to select the definition.

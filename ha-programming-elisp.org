@@ -302,7 +302,7 @@ The idea of stealing some of Clojure Mode’s refactoring is brilliant (see [[ht
              ", r <" '("to thread first" . clojure-first-last-all)))
 #+end_src
 * Evaluation
-** Eval Current Expression
+** Eval Current Expression with eros
 The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Result OverlayS for Emacs Lisp, and basically shows what each s-expression is near the cursor position instead of in the mini-buffer at the bottom of the window.
 #+begin_src emacs-lisp
   (use-package eros

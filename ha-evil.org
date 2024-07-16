@@ -27,9 +27,10 @@ A literate programming file for configuring Evil mode in Emacs.
 
 * Introduction
 As a grizzled veteran of the Emacs-VI Wars, I’ve decided to take advantage of both by using VI keybindings on top of Emacs. However, after thirty years of Emacs, my interface follows different goals:
+
   - Most buffers begin in Evil’s /normal state/, e.g. normal mode for VIers.
-  - Pressing ~i~ or ~a~ jumps into a state of total Emacs, with the exception of ~Escape~ going back to Evil. This means, that while typing ~C-p~ goes up a line, and doesn’t auto-complete.
-  - I don’t use ~:~ and instead use ~M-x~ or better yet, ~SPC SPC~ (typing the space key twice).
+  - Pressing ~i~ or ~a~ jumps into a state of total Emacs, with the exception of ~Escape~ going back to Evil. This means, that typing ~C-p~ goes up a line, and doesn’t auto-complete.
+  - I don’t use ~:~ and instead use ~M-x~ or better yet, ~SPC SPC~ (typing the space key twice) from [[file:ha-general.org][General project]].
   - The ~Space~ doesn’t advance a letter, but instead displays a tree of highly-customized functions, displayable at the bottom of my screen, e.g.
 
 [[file:screenshots/ha-leader.png]]
@@ -38,6 +39,8 @@ Some advice that I followed:
    - [[https://github.com/noctuid/evil-guide][Evil Guide]]
    - [[https://nathantypanski.com/blog/2014-08-03-a-vim-like-emacs-config.html][A Vim-like Emacs Configuration from Nathan Typanski]]
    - [[https://stackoverflow.com/questions/25542097/emacs-evil-mode-how-to-change-insert-state-to-emacs-state-automatically][Evil insert state is really Emacs?]] Real answer to that is to set [[help:evil-disable-insert-state-bindings][evil-disable-insert-state-bindings]]
+
+TODO: Rebind the ~z~ keys
 * Evil-Specific Keybindings
 I split the configuration of Evil mode into sections. First, global settings:
 #+begin_src emacs-lisp
@@ -109,7 +112,7 @@ I’m not a long term VI user, and I generally like /easy keys/, e.g. ~w~, have 
     ;; Note that evil-backward-word-end is on the `g e':
 #+end_src
 
-Testing:
+In other words, with the above settings in place, ~w~ and ~e~ should jump from front to back of the entire line, but ~W~ and ~E~ should stop as /subword/:
   - =word-subword-subword=
   - =word_subword_subword=
 
@@ -136,7 +139,7 @@ Keybindings I would like to use more:
      - ~xa`~ :: a back quoted string
      - ~xi`~ :: inner back quoted string
 
-  *Note:* The ~x~ in the above examples are /operations/, e.g. ~d~ for /delete,/ ~v~ for /select,/ ~y~ for /copy/ and ~c~ for /change/.
+*NOTE:* The ~x~ in the above examples are /operations/, e.g. ~d~ for /delete,/ ~v~ for /select,/ ~y~ for /copy/ and ~c~ for /change/.
 
 What text objects are known?
   - ~w~ :: word
@@ -153,6 +156,8 @@ What text objects are known?
   - ~c~ :: for comments
   - ~u~ :: for URLs, really? Useful much?
   - ~a~ :: function arguments (probably a lot like symbol, ~o~), but the ~a~ can include commas. This comes from [[https://github.com/wcsmith/evil-args][evil-args]] extension (see below).
+
+TODO: Search for a plugin, like [[https://github.com/coderifous/textobj-word-column.vim][textobj-word-column]] for text objects based on “columns”.
 
 I am not a long term VI user, and don’t have much need for any of its control sequences (well, not all), so I made the following more Emacsy. I’ll admit, I like ~C-v~ (and use that all the time), so I need to futz around with the scrolling:
 

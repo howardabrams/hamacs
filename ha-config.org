@@ -109,7 +109,7 @@ This package is /called outside of Emacs/, so I bound a keybinding to iCanHazSho
 
 When you type ~C-c C-c~ to close a window, it /doesn’t always/ paste back into the original window, but the text is saved to the clipboard, a quick paste works. And now, I don’t scream when I need to use those Electron apps, like Slack and Discord.
 
-** Indexed Menu Navigation
+** Indexed Menu Navigation (imenu)
 
 I’ve often called =imenu= to easily jump to a function definition in a file (or header in an org file), but after reading [[http://yummymelon.com/devnull/til-imenu.html][this essay]] by Charles Choi, I decided to increase =imenu='s utility.
 
