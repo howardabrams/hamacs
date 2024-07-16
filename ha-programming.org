@@ -517,20 +517,14 @@ Once upon a time, we use to create a =TAGS= file that contained the database for
           xref-show-definitions-function #'xref-show-definitions-completing-read)
 
     (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+    ;; Never using the etags backend. GNU Global? Maybe.
+    (remove-hook 'xref-backend-functions #'etags--xref-backend))
+#+end_src
 
-    ;; Remove this now that https://github.com/jacktasia/dumb-jump/issues/338
-    ;; (defun evil-set-jump-args (&rest ns) (evil-set-jump))
-    ;; (advice-add 'dumb-jump-goto-file-line :before #'evil-set-jump-args)
+While I’m at it, let’s connect various ~g~ sequence keys to =xref-= interface functions:
 
-    (ha-local-leader :keymaps 'prog-mode-map
-      "s"  '(:ignore t :which-key "search")
-      "s s" '("search"       . xref-find-apropos)
-      "s d" '("definitions"  . xref-find-definitions)
-      "s o" '("other window" . xref-find-definitions-other-window)
-      "s r" '("references"   . xref-find-references)
-      "s b" '("back"         . xref-go-back)
-      "s f" '("forward"      . xref-go-forward))
-
+#+begin_src emacs-lisp
+  (use-package emacs
     :general
     (:states 'normal
              "g ." '("find def"       . xref-find-definitions)

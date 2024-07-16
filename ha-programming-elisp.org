@@ -322,9 +322,7 @@ A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression c
       (if (region-active-p)
           (eval-region (region-beginning) (region-end))
 
-        (unless (looking-at (rx (any ")" "]")))
-          (sp-end-of-sexp))
-
+        (sp-end-of-sexp)
         (if (fboundp 'eros-eval-last-sexp)
             (call-interactively 'eros-eval-last-sexp)
           (call-interactively 'eval-last-sexp)))))
