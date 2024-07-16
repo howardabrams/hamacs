@@ -121,11 +121,10 @@ I’ve often called =imenu= to easily jump to a function definition in a file (o
     (when (derived-mode-p 'prog-mode)
       (setq-local imenu-sort-function #'imenu--sort-by-name)))
 
-  ;; Add the imenu-setup to _some_ mode's hooks:
-  (dolist (mode '(prog makefile org markdown))
-    (let ((hook (make-symbol (format "%s-mode-hook" mode))))
-      (message "Add 'ha-imenu-setup to %s" hook)
-      (add-hook hook 'ha-imenu-setup)))
+  (add-hook 'org-mode-hook 'ha-imenu-setup)
+  (add-hook 'markdown-mode-hook 'ha-imenu-setup)
+  (add-hook 'prog-mode-hook 'ha-imenu-setup)
+  (add-hook 'makefile-mode-hook 'ha-imenu-setup)
 #+end_src
 
 ** File Access
