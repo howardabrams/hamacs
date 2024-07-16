@@ -56,7 +56,8 @@ For instance, the following function can be used to quickly select a source code
   (defun avy-jump-org-block ()
     "Jump to org block using Avy subsystem."
     (interactive)
-    (avy-jump (rx "#+begin_src ") :action 'goto-char))
+    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
+              :action 'goto-char))
 #+end_src
 
 I need to take advantage of this feature more.
@@ -78,7 +79,7 @@ At times I would like to jump to a particular block, evaluate the code, and jump
   e.g. `#+begin_src', and then executes the code without moving
   the point."
     (interactive)
-    (avy-jump (rx "#+begin_src ")
+    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
               :action 'org-babel-execute-src-block-at-point))
 #+end_src
 
@@ -113,7 +114,7 @@ Why navigate to a block, just to focus on that block in a dedicated buffer, when
   e.g. `#+begin_src', and then executes the code without moving
   the point."
     (interactive)
-    (avy-jump (rx "#+begin_src ")
+    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
               :action
               'org-babel-edit-src-block-at-point))
 #+end_src
@@ -121,10 +122,277 @@ Why navigate to a block, just to focus on that block in a dedicated buffer, when
 * Finding Code
 One of the issues with literate programming is not being able to use the same interface for moving around code when the source code is in org files.
 
-** Searching by Function Name
-I wrote a function, =ha-org-code-block-jump= to use the standard =xref= interface to jump to a function definition /in the literate org file/. Since the code is specific to /Emacs Lisp/ (the bulk of my literate programming code is in Lisp), I’m leaving it in my [[file:ha-programming-elisp.org::*Goto Definitions][programming-elisp]] configuration.
+** XRef Interface
+The Emacs interface for jumping to function definitions and variable declarations is called xref (see [[https://www.ackerleytng.com/posts/emacs-xref/][this great article]] for an overview of the interface). I think it would be great to be able, even within the prose of an org file, to jump to the definition of a function that is defined in an org file.
 
-TODO: Do all the =xref-= functions for search an collection of org files, not just definition.
+  - [[*Definitions][Definitions]] :: To jump to the line where a macro, function or variable is defined.
+  - [[*References][References]] ::  To get a list of all /calls/ or usage of a symbol, but only within code blocks.
+  - [[*Apropos][Apropos]] :: To get a list of all references, even within org-mode prose.
+
+In a normal source code file, you know the language, so you have way of figuring out what a symbol is and how it could be defined in that language. In org files, however, one can use multiple languages, even in the same file.
+
+In the code that follows, I’ve made an assumption that I will primarily use this xref interface for Emacs Lisp code, however, it wouldn’t take much (a single regular expression) to convert to another language.
+
+Taking a cue from [[https://github.com/jacktasia/dumb-jump][dumb-jump]], I’ve decided to not attempt to build any sort of [[https://github.com/dedi/gxref/][tag interaction]], but instead, call [[https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md][ripgrep]]. I love that its =–-json= option outputs much more parseable text.
+***  Symbols
+I wrote the =ha-literate-symbol-at-point= function as an attempt at being clever with figuring out what sort of symbol references we would want from an org file. I assume that a symbol may be written surrounded by =~= or ~=~ characters (for code and verbatim text), as well as in quotes or braces, etc.
+
+While the goal is Emacs Lisp (and it mostly works for that), it will probably work for other languages as well.
+
+#+begin_src emacs-lisp
+  (defun ha-literate-symbol-at-point ()
+    "Return an alphanumeric sequence at point.
+  Assuming the sequence can be surrounded by typical
+  punctuation found in org-mode and markdown files."
+    (save-excursion
+      ;; Position point at the first alnum character of the symbol:
+      (cond ((looking-at (rx (any "=~({<\"'“`") alnum))
+             (forward-char))
+            ;; Otherwise go back to get "inside" a symbol:
+            ((not (looking-at (rx alnum)))
+             (re-search-backward (rx alnum))))
+
+      ;; Move point to start and end of the symbol:
+      (let ((start (progn (skip-chars-backward "a-zA-Z0-9_-") (point)))
+            (end   (progn (skip-chars-forward "?a-zA-Z0-9_-") (point))))
+        (buffer-substring-no-properties start end))))
+#+end_src
+
+Examples of references in an Org file that should work:
+  - =ha-literate-symbol-at-point=
+  - “ha-literate-symbol-at-point”
+  - `ha-literate-symbol-at-point`
+
+This magical incantation connects our function to Xref with an =org-babel= backend:
+
+#+begin_src emacs-lisp
+  (cl-defmethod xref-backend-identifier-at-point ((_backend (eql org-babel)))
+    (ha-literate-symbol-at-point))
+#+end_src
+*** Calling ripgrep
+This helper function does the work of calling =ripgrep=, parsing its output, and filtering only the /matches/ line. Yes, an interesting feature of =rg= is that it spits out a /sequence/ of JSON-formatted text, so we can use =seq-filter= to grab lines that represent a match, and =seq-map= to “do the work”. Since we have a couple of ways of /doing the work/, we pass in a function, =processor=, which, along with transforming the results, could spit out =nulls=, so the =seq-filter= with the =identity= function eliminates that.
+
+#+begin_src emacs-lisp
+  (defun ha-literate--ripgrep-matches (processor regex)
+    "Return list of running PROCESSOR of `rg' matches from REGEXP.
+  PROCESSOR is called with an assoc-list of the JSON output from
+  the call to ripgrep."
+    (let* ((default-directory (if (project-current)
+                                  (project-root (project-current))
+                                default-directory))
+           (search-str (rxt-elisp-to-pcre regex))
+           (command (format "rg --json '%s' *.org" search-str)))
+
+      (message "Calling %s" command)
+      (thread-last command
+                   (shell-command-to-list)
+                   (seq-map 'ha-literate--parse-rg-line)
+                   (seq-filter 'ha-literate--only-matches)
+                   (seq-map processor)
+                   ;; Remove any nulls from the list:
+                   (seq-filter 'identity))))
+#+end_src
+
+Note: the =processor= function creates an =xref= object, described below. See =ha-literate—process-rg-line=.
+
+The output from =ripgrep= goes through a couple of transformation functions listed here:
+
+#+begin_src emacs-lisp
+  (defun ha-literate--parse-rg-line (line)
+    "Process LINE as a JSON object with `json-parse-string'."
+    (json-parse-string line :object-type 'alist :array-type 'list))
+
+  (defun ha-literate--only-matches (json-data)
+    "Return non-nil if JSON-DATA is an alist with key `type' and value `match'."
+    (string-equal "match" (alist-get 'type json-data)))
+#+end_src
+***  Definitions
+As mentioned above,  let’s assume we can use =ripgrep= to search for /definitions/ in Lisp. I choose that because most of my literate programming is in Emacs Lisp. This regular expression should work with things like =defun= and =defvar=, etc.
+
+#+begin_src emacs-lisp
+  (defun ha-literate-definition (symb)
+    "Return list of `xref' objects of SYMB location in org files.
+  The location is based on a regular expression starting with
+  `(defxyz SYMB' where this can be `defun' or `defvar', etc."
+    (ha-literate--ripgrep-matches 'ha-literate--process-rg-line
+                                  (rx "(def" (1+ (not space))
+                                      (one-or-more space)
+                                      (literal symb)
+                                      word-boundary)))
+#+end_src
+
+The work of processing a match for the =ha-literate-definition= function. It calls =xref-make= to create an object for the Xref system. This takes two parameters, the text and the location. We create a location with =xref-make-file-location=.
+
+#+begin_src emacs-lisp
+  (defun ha-literate--process-rg-line (rg-data-line)
+    "Return an `xref' structure based on the contents of RG-DATA-LINE.
+  The RG-DATA-LINE is a convert JSON data object from ripgrep.
+  The return data comes from `xref-make' and `xref-make-file-location'."
+    (when rg-data-line
+      (let-alist rg-data-line
+        (xref-make .data.lines.text
+                   (xref-make-file-location .data.path.text
+                                            .data.line_number
+                                            (thread-last
+                                              (first .data.submatches)
+                                              (alist-get 'start)))))))
+#+end_src
+
+I really like the use of =let-alist= where the output from JSON can be parsed into a data structure that can then be accessible via /variables/, like =.data.path.text=.
+
+We connect this function to the =xref-backend-definitions= list, so that it can be called when we type something like ~M-.~:
+
+#+begin_src emacs-lisp
+  (cl-defmethod xref-backend-definitions ((_backend (eql org-babel)) symbol)
+    (ha-literate-definition symbol))
+#+end_src
+***  Apropos
+The /apropos/ approach is anything, so the regular expression here is just the symbol, and we can re-use our processor:
+
+#+begin_src emacs-lisp
+  (defun ha-literate-apropos (symb)
+    "Return an `xref' object for SYMB location in org files.
+  The location is based on a regular expression starting with
+  `(defxyz SYMB' where this can be `defun' or `defvar', etc."
+    (ha-literate--ripgrep-matches 'ha-literate--process-rg-line
+                                  (rx word-boundary
+                                      (literal symb)
+                                      word-boundary)))
+#+end_src
+
+And this to /hook it up/:
+
+#+begin_src emacs-lisp
+  (cl-defmethod xref-backend-apropos ((_backend (eql org-babel)) symbol)
+    (ha-literate-apropos symbol))
+#+end_src
+***  References
+While traditionally, =-apropos= can reference symbols in comments and documentation, searching for /references/ tend to be /calls/ and whatnot. What does that mean in the context of an org file? I’ve decided that references should only show symbols /within org blocks/.
+
+How do we know we are /inside/ an org block?
+
+I call =ripgrep= twice, once to get all the =begin_= and =end_src= lines and their line numbers.
+The second =ripgrep= call gets the references.
+
+#+begin_src emacs-lisp
+  (defun ha-literate-references (symb)
+    "Return list of `xref' objects for SYMB location in org files.
+  The location is limited only references in org blocks."
+    ;; First, get and store the block line numbers:
+    (ha-literate--block-line-numbers)
+    ;; Second, call `rg' again to get all matches of SYMB:
+    (ha-literate--ripgrep-matches 'ha-literate--process-rg-block
+                                  (rx word-boundary
+                                      (literal symb)
+                                      word-boundary)))
+#+end_src
+
+Notice for this function, we need a new processor that limits the results to only matches between the beginning and ending of a block, which I’ll describe later.
+
+The =ha-literate--block-line-numbers= returns a hash where the keys are files, and the value is a series of begin/end line numbers. It calls =ripgrep=, but has a new processor.
+
+#+begin_src emacs-lisp
+  (defun ha-literate--block-line-numbers ()
+    "Call `ripgrep' for org blocks and store results in a hash table.
+  See `ha-literate--process-src-refs'."
+    (clrhash ha-literate--process-src-refs)
+    (ha-literate--ripgrep-matches 'ha-literate--process-src-blocks
+        (rx line-start (zero-or-more space)
+                            "#+" (or "begin" "end") "_src")))
+#+end_src
+
+And the function to process the output simply attempts to connect the =begin_src= with the =end_src= lines. In true Emacs Lisp fashion (where we can’t easily, lexically nest functions), we use a global variable:
+
+#+begin_src emacs-lisp
+  (defvar ha-literate--process-src-refs
+    (make-hash-table :test 'equal)
+    "Globabl variable storing results of processing
+  org-mode's block line numbers. The key in this table is a file
+  name, and the value is a list of line numbers marking #+begin_src
+  and #+end_src.")
+
+  (defvar ha-literate--process-begin-src nil
+    "Globabl variable storing the last entry of an
+  org-mode's `#+begin_src' line number.")
+
+  (defun ha-literate--process-src-blocks (rg-data-line)
+    "Return nil if RG-DATA-LINE contains a begin_src entry.
+  Otherwise return a list of previous begin_src, and the
+  current end_src line numbers."
+    (let-alist rg-data-line
+      (puthash .data.path.text ; filename is the key
+               (append
+                (gethash .data.path.text ha-literate--process-src-refs)
+                (list .data.line_number))
+               ha-literate--process-src-refs)))
+#+end_src
+
+With a collection of line numbers for all org-blocks in all org files in our project, we can process a particular match from =ripgrep= to see if the match is /within/ a block. Since the key is a file, and =.data.path.text= is the filename, that part is done, but we need a helper to walk down the list.
+
+#+begin_src emacs-lisp
+  (defun ha-literate--process-rg-block (rg-data-line)
+    "Return an `xref' structure from the contents of RG-DATA-LINE.
+  Return nil if the match is _not_ with org source blocks.
+  Note that the line numbers of source blocks should be filled
+  in the hashmap, `ha-literate--process-src-refs'."
+    (let-alist rg-data-line
+      (let ((line-nums (thread-first .data.path.text
+                                     (gethash ha-literate--process-src-refs)
+                                     ;; Turn list into series of tuples
+                                     (seq-partition 2))))
+        (when (ha-literate--process-in-block .data.line_number line-nums)
+          (ha-literate--process-rg-line rg-data-line)))))
+
+  (defun ha-literate--process-in-block (line-number line-numbers)
+    "Return non-nil if LINE-NUMBER is inclusive in LINE-NUMBERS.
+  The LINE-NUMBERS is a list of two element lists where the first
+  element is the starting line number of a block, and the second
+  is the ending line number."
+    (when line-numbers
+      (let ((block-lines (car line-numbers)))
+        (if (and (> line-number (car block-lines))
+                 (< line-number (cadr block-lines)))
+            (car block-lines)
+          (ha-literate--process-in-block line-number (cdr line-numbers))))))
+#+end_src
+
+The helper function, =ha-literate--process-in-block= is a /recursive/ function that takes each tuple and sees if =line-number= is between them. If it isn’t between any tuple, and the list is empty, then we return =nil= to filter that out later.
+
+Let’s connect the plumbing:
+
+#+begin_src emacs-lisp
+  (cl-defmethod xref-backend-references ((_backend (eql org-babel)) symbol)
+    (ha-literate-references symbol))
+#+end_src
+
+Whew! This is pretty cool to jump out my literate code base as if it were actual =.el= files.
+***  Identifier Completion Table
+Need the completion table before we can find the references. It actually doesn’t even need to return anything purposeful:
+
+#+begin_src emacs-lisp
+  (defun ha-literate-completion-table ())
+#+end_src
+
+But we do need to /hook this up/ to the rest of the system:
+
+#+begin_src emacs-lisp
+  (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql org-babel)))
+    (ha-literate-completion-table))
+#+end_src
+*** Activation of my Literate Searching
+To finish the connections, we need to create a /hook/ that I only allow to turn on with org files:
+
+#+begin_src emacs-lisp :tangle no
+  (defun ha-literate-xref-activate ()
+  "Function to activate org-based literate backend.
+Add this function to `xref-backend-functions' hook. "
+  (when (eq major-mode 'org-mode)
+       'org-babel))
+
+  (add-hook 'xref-backend-functions #'ha-literate-xref-activate)
+#+end_src
+
+This is seriously cool to be able to jump around my literate code as if it were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
 ** Searching by Header
 :PROPERTIES:
 :ID:       de536693-f0b0-48d0-9b13-c29d7a8caa62
@@ -440,3 +708,7 @@ Let's =provide= a name so we can =require= this file:
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# jinx-local-words: "parseable"
+# End:

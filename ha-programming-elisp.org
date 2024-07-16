@@ -85,7 +85,7 @@ This /should work/ with [[help:evil-goto-definition][evil-goto-defintion]], as t
 
 While I love packages that add functionality and I don’t have to learn anything, I’m running into an issue where I do a lot of my Emacs Lisp programming in org files, and would like to jump to the function definition /defined in the org file/. Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun ha-org-code-block-jump (str pos)
     "Go to a literate org file containing a symbol, STR.
   The POS is ignored."
