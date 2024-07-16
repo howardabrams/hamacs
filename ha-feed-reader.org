@@ -92,6 +92,7 @@ And some global keys to display them in the =apps= menu:
 #+end_src
 * The Feeds :elfeed:
 The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =elfeed= to read the RSS feeds from an Org file … like this one!
+
 #+begin_src emacs-lisp
   (use-package elfeed-org
     :after elfeed
@@ -99,11 +100,8 @@ The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =
     (setq rmh-elfeed-org-files (list (f-join hamacs-source-dir "ha-feed-reader.org")))
     (elfeed-org))
 #+end_src
-** Personal :personal:
-*** [[http://www.howardism.org/index.xml][Howardisms]] :mustread:
-Clearly, I know what I write, but often good to see how it displays elsewhere.
-*** [[https://getpocket.com/users/howardabrams/feed/all][Get Pocket Choices]]
-Interesting articles I find through various channels gets saved here. Not sure if this is the best approach, but...
+
+The feeds that I would to read on Emacs involves longer essays, so I’m decided to trim the list down to avoid duplications with the RSS reader on my phone.
 ** Software Development :dev:
 *** Emacs :emacs:
 **** [[https://planet.emacslife.com/atom.xml][Planet Emacslife]]
@@ -165,76 +163,18 @@ Most prolific engineer, who ran [[http://emacsredux.com][Emacs Redux]], is the p
 Personal friend who often has fun interesting projects to keep tabs.
 **** [[https://cestlaz.github.io/rss.xml][C'est la Z]]
 Mike Zamansky's posts on Emacs and computer education.
-*** Other
-**** [[https://livelaugh.blog/rss][Jenn Schiffer]]
-Quirky and fun.  Looking forward to her new project.
-**** [[http://n-gate.com/index.atom][N-Gate's Webshit Weekly]]
-Irreverent and fun.  The summary is hilarious, and often sets my mental state correctly before diving into Hacker News.
-**** [[http://feeds.feedburner.com/InformationIsBeautiful][Information is Beautiful]]
-David McCandless' blog on graphical display of information.
-**** [[http://www.filfre.net/feed/][Digitial Antiquarian]]
-History of technology that is well researched and personal.
-** Science :science:
-Do I need more science articles?  Perhaps, but most of my news in this arena comes from my Twitter lists...
-*** Space
-**** [[https://apod.nasa.gov/apod.rss][NASA's Picture of the Day]] :images:
-**** [[http://feeds.feedburner.com/out-there?format=xml][Discover Magazine's Out There]]
-A pretty good blog of interesting articles that post about once a month.
-*** General
-**** [[http://understandinguncertainty.org/rss.xml][Understanding Uncertainty]]
-Essays on the mathematics of combinatorics.
-**** [[http://sciencesushi.com/feed/][Science Sushi]]
-An interesting blog from [[http://www.discovermagazine.com][Discover]] that has moved on with retirement. Hopefully, Dr. Christie Wilcox will continue writing.
-**** [[http://feeds.feedburner.com/SeriouslyScience?format=xml][Seriously, Science?]]
-Another of my favorite science blogs is retiring.
-** Geeky :funny:geeky:
-*** [[http://xkcd.com/rss.xml][XKCD]]
-The penultimate geek cartoon.
-*** [[http://www.smbc-comics.com/rss.php][Saturday Morning Breakfast Cereal]]
-A daily helping of geeky humor.
-*** [[http://feeds.feedburner.com/Foxtrotcom][Foxtrot]]
-Regular Sunday features of this long-running comic is now even more geeky
-*** [[http://cube-drone.com/rss.xml][Cube Drone]]
-Quite geeky.
-*** [[http://rockpapercynic.tumblr.com/rss][Rock, Paper, Cynic]]
-Oddly drawn, quirky and often geeky.
-*** [[http://buttersafe.com/feed/][Buttersafe]]
-Odd and quirky.
-*** [[http://www.dorktower.com/feed/][Dork Tower]]
-A geeky, gaming-theme comic.
-*** [[http://www.commitstrip.com/en/feed/][Commit Strip]]
-Insightful coding strip.
-*** [[http://phdcomics.com/gradfeed.php][PHD Comics]]
-Sure, make me wish I had continued my studies...
-** Political :funny:political:
-*** [[https://www.politicalirony.com/feed/][Political Irony]]
-While Iron Knee requires a break, any time he posts, its a joy.
-*** [[http://www.newyorker.com/feed/cartoons/daily-cartoon][New Yorker Cartoons]]
-Often political, hopefully more political.
-*** [[http://feeds.feedburner.com/ScenesFromAMultiverse][Scenes From A Multiverse]]
-** Smart and Irreligious :funny:
-*** [[http://pbfcomics.com/feed/feed.xml][Perry Bible Fellowship]]
-Smart, inventive and usually hilarious
-*** [[https://www.comicsrss.com/rss/lio.rss][Lio]]
-I've used to enjoy this comic years ago, but had lost track. Love that Mark is still doing work.
-*** [[http://feeds.feedburner.com/oatmealfeed][The Oatmeal]]
-While funny, sometimes blesses with longer thought pieces.
-*** [[https://warandpeas.com/feed/][War and Peas]]
-*** [[http://existentialcomics.com/rss.xml][Existential Comics]]
-Philosophical, and one would be smarter just by following along (and the Twitter feed too).
-*** [[http://www.venganza.org/feed/atom/][Church of the Flying Spaghetti Monster]]
-News from the world of religious favoritism.
-*** [[http://theatheistpig.com/index.php/feed/][Atheist Pig]]
-Irreligious, as one can guess. Hasn't posted for a while. Break?
-*** [[http://www.jesusandmo.net/feed/atom/][Jesus and Mo]]
-Favorite celebrities arguing with Bar Maid.
-
 ** Role Playing Games        :rpg:dnd:
-Interested in both RPGs and Emacs? Probably.
+Started playing D&D when I was twelve, and while it has a special place in my heart, I actually am
+*** [[https://www.rascal.news/rss/][Rascal News]]
+The alternative, independent news about Indie and other RPGs.
 *** [[https://slyflourish.com/index.xml][Sly Flourish]]
+The Lazy DM is D&D-focused.
 *** [[https://dmdavid.com/feed/][DM David]]
-*** [[https://www.themonstersknow.com/feed/][The Monsters Know what they are Doing]]
-*** [[https://roleplayingtips.om/feed/][Roleplaying Tips]]
+Generally good DMing advice.
+*** [[https://soloist.substack.com/feed][The Soloist]]
+A nice blog about Solo RPGs.
+*** [[https://solotabletop.blogspot.com/feeds/posts/default?alt=rss][Solo Tabletop Blog]]
+From the maker of the [[https://www.drivethrurpg.com/en/product/424108/GEMulator?affiliate_id=377194][GEmulator]].
 ** Misc :misc:
 *** [[https://medium.com/feed/the-long-now-foundation][The Long Now]]
 Always been fascinated with the ideas associated with making a 10,000 year clock.
