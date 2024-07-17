@@ -48,6 +48,9 @@ Since we are using Emacs, the downsides of using a literate approach (even for p
 
 *Note:* What follows is advanced LP usage. I would recommend checking out my [[https://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][Introduction to LP in Org]] before venturing down this essay.
 * Navigating Code Blocks
+:PROPERTIES:
+:ID:       3230b1f4-0d2d-47c7-9f3d-fa53083f8c8d
+:END:
 I’ve been using Oleh Krehel’s (abo-abo) [[https://github.com/abo-abo/avy][Avy project]] to jump around the screen for years, and I just learned that I can wrap the =avy-jump= function to provide either/or regular expression and action to perform.
 
 For instance, the following function can be used to quickly select a source code block, and jump to it:
@@ -56,14 +59,19 @@ For instance, the following function can be used to quickly select a source code
   (defun avy-jump-org-block ()
     "Jump to org block using Avy subsystem."
     (interactive)
-    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
-              :action 'goto-char))
+    (avy-jump (rx line-start (zero-or-more blank) "#+begin_src")
+              :action 'goto-char)
+    ;; Jump _into_ the block:
+    (next-line))
 #+end_src
 
 I need to take advantage of this feature more.
 * Evaluating Code
 Hitting ~C-c C-c~ in a source code block /evaluates/ the code. Simple, sure, but the following enhancements make this more accessible.
 ** Evaluating a Block
+:PROPERTIES:
+:ID:       93a9695c-67be-448a-b068-9727cd0aa9b0
+:END:
 At times I would like to jump to a particular block, evaluate the code, and jump back. This seems like a great job for the [[https://github.com/abo-abo/avy][avy project]]. The =avy-jump= function takes a regular expression of text /in the frame/ (which means you can specify text in other windows), and highlights each match. Normally, selecting a match moves the cursor to that match, the =avy-jump= accepts a function to execute instead:
 
 #+begin_src emacs-lisp
@@ -79,7 +87,7 @@ At times I would like to jump to a particular block, evaluate the code, and jump
   e.g. `#+begin_src', and then executes the code without moving
   the point."
     (interactive)
-    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
+    (avy-jump (rx line-start (zero-or-more blank) "#+begin_src")
               :action 'org-babel-execute-src-block-at-point))
 #+end_src
 
@@ -87,6 +95,9 @@ In this case, =avy-org-babel-execute-src-block= highlights all /visible blocks/ 
 
 TODO Screenshot of multiple highlighted blocks.
 ** Evaluating a Section
+:PROPERTIES:
+:ID:       188e378c-bed4-463c-98d4-d22be1845bc2
+:END:
 A trick to =org-babel-tangle=, is that it tangles /what is shown/, that is, it will only tangle code blocks that are visible after narrowing to the current org section. This means, we can call =org-narrow-to-subtree= to temporary hide everything in the org file except the current heading, evaluate all blocks in the “now visible” buffer, and then widen:
 
 #+begin_src emacs-lisp :results silent
@@ -99,6 +110,9 @@ A trick to =org-babel-tangle=, is that it tangles /what is shown/, that is, it w
       (widen)))
 #+end_src
 ** Editing a Block
+:PROPERTIES:
+:ID:       f143bbd6-fb4d-45b8-bcfa-196c7a26ed34
+:END:
 Why navigate to a block, just to focus on that block in a dedicated buffer, when we can take advantage of the =avy-jump= and edit any visible block?
 
 #+begin_src emacs-lisp
@@ -114,7 +128,7 @@ Why navigate to a block, just to focus on that block in a dedicated buffer, when
   e.g. `#+begin_src', and then executes the code without moving
   the point."
     (interactive)
-    (avy-jump (rx line-start (zero-or-more space) "#+begin_src")
+    (avy-jump (rx line-start (zero-or-more blank) "#+begin_src")
               :action
               'org-babel-edit-src-block-at-point))
 #+end_src
@@ -123,6 +137,9 @@ Why navigate to a block, just to focus on that block in a dedicated buffer, when
 One of the issues with literate programming is not being able to use the same interface for moving around code when the source code is in org files.
 
 ** XRef Interface
+:PROPERTIES:
+:ID:       4dc771a4-b974-4b0d-9cc3-a943108c9d3a
+:END:
 The Emacs interface for jumping to function definitions and variable declarations is called xref (see [[https://www.ackerleytng.com/posts/emacs-xref/][this great article]] for an overview of the interface). I think it would be great to be able, even within the prose of an org file, to jump to the definition of a function that is defined in an org file.
 
   - [[*Definitions][Definitions]] :: To jump to the line where a macro, function or variable is defined.
@@ -297,7 +314,7 @@ The =ha-literate--block-line-numbers= returns a hash where the keys are files, a
   See `ha-literate--process-src-refs'."
     (clrhash ha-literate--process-src-refs)
     (ha-literate--ripgrep-matches 'ha-literate--process-src-blocks
-        (rx line-start (zero-or-more space)
+        (rx line-start (zero-or-more blank)
                             "#+" (or "begin" "end") "_src")))
 #+end_src
 
@@ -668,6 +685,9 @@ So the following tests should pass:
 #+end_src
 
 * Keybindings
+:PROPERTIES:
+:ID:       2412ef3b-b5d0-43a3-bd01-764fd92b0c3c
+:END:
 With a lovely collection of functions, we need to have a way to easily call them. I’ve been using the =pretty-hydra= feature of major-mode-hydra:
 
 #+begin_src emacs-lisp
