@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-07-16 Tue]
+#+lastmod: [2024-07-18 Thu]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -217,14 +217,15 @@ The output from =ripgrep= goes through a couple of transformation functions list
 #+begin_src emacs-lisp
   (defun ha-literate--parse-rg-line (line)
     "Process LINE as a JSON object with `json-parse-string'."
-    (json-parse-string line :object-type 'alist :array-type 'list))
+    (json-parse-string line :object-type 'alist
+                            :array-type 'list))
 
   (defun ha-literate--only-matches (json-data)
     "Return non-nil if JSON-DATA is an alist with key `type' and value `match'."
     (string-equal "match" (alist-get 'type json-data)))
 #+end_src
 ***  Definitions
-As mentioned above,  let’s assume we can use =ripgrep= to search for /definitions/ in Lisp. I choose that because most of my literate programming is in Emacs Lisp. This regular expression should work with things like =defun= and =defvar=, etc.
+As mentioned above,  let’s assume we can use =ripgrep= to search for /definitions/ in Lisp. I choose that because most of my literate programming is in Emacs Lisp. This regular expression should work with things like =defun= and =defvar=, etc. as well as =use-package=, allowing me to search for the /definition/ of an Emacs package:
 
 #+begin_src emacs-lisp
   (defun ha-literate-definition (symb)
@@ -232,7 +233,11 @@ As mentioned above,  let’s assume we can use =ripgrep= to search for /definiti
   The location is based on a regular expression starting with
   `(defxyz SYMB' where this can be `defun' or `defvar', etc."
     (ha-literate--ripgrep-matches 'ha-literate--process-rg-line
-                                  (rx "(def" (1+ (not space))
+                                  (rx "("
+                                      (or "use-package"
+                                          (seq ; Match both defun and cl-defun:
+                                           (optional "cl-")
+                                           "def" (1+ (not space))))
                                       (one-or-more space)
                                       (literal symb)
                                       word-boundary)))
@@ -390,7 +395,7 @@ Need the completion table before we can find the references. It actually doesn�
   (defun ha-literate-completion-table ())
 #+end_src
 
-But we do need to /hook this up/ to the rest of the system:
+Now we /hook this up/ to the rest of the system:
 
 #+begin_src emacs-lisp
   (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql org-babel)))
@@ -399,7 +404,7 @@ But we do need to /hook this up/ to the rest of the system:
 *** Activation of my Literate Searching
 To finish the connections, we need to create a /hook/ that I only allow to turn on with org files:
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (defun ha-literate-xref-activate ()
   "Function to activate org-based literate backend.
 Add this function to `xref-backend-functions' hook. "
@@ -408,6 +413,8 @@ Add this function to `xref-backend-functions' hook. "
 
   (add-hook 'xref-backend-functions #'ha-literate-xref-activate)
 #+end_src
+
+At this point, we can jump to functions and variables that I define in my org file, or even references to standard symbols like =xref-make= or =xref-backend-functions=.
 
 This is seriously cool to be able to jump around my literate code as if it were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
 ** Searching by Header
