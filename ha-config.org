@@ -514,7 +514,30 @@ As an example of its use, any Org files loaded in /this project/ should insert m
   (ha-auto-insert-file (rx ".dir-locals.el") "dir-locals.el")
 #+end_src
 ** Additional Global Packages
-*** Visual Replacing Regular Expressions
+*** Function Call Notifications
+As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.
+
+#+begin_src emacs-lisp
+  (use-package alert
+    :init
+    (setq alert-default-style
+          (if (ha-running-on-macos?)
+              'osx-notifier
+            'libnotify)))
+
+  (use-package beep
+    :straight nil   ; Already in the load-path
+    :hook (after-init . (lambda () (beep-when-finished "Emacs has started." "Eemacs has started")))
+    :config
+    (dolist (func '(org-publish
+                    org-publish-all
+                    org-publish-project
+                    compile
+                    shell-command))
+      (advice-add func :around #'beep-when-runs-too-long)))
+#+end_src
+While that code /advices/ the publishing and compile commands, I may want to add more.
+**** Visual Replacing Regular Expressions
 I appreciated the [[https://github.com/benma/visual-regexp.el][visual-regexp package]] to see what you want to change /before/ executing the replace.
 #+begin_src emacs-lisp
   (use-package visual-regexp
@@ -555,7 +578,7 @@ Now we just need to filter the results from the built-in Emacs function:
 #+begin_src emacs-lisp
   (advice-add 'read-regexp :filter-return 'read-regexp-with-rx)
 #+end_src
-*** Jump with Avy
+**** Jump with Avy
 While I grew up on =Control S=, I am liking the /mental model/ associated with the [[https://github.com/abo-abo/avy][avy project]] that allows a /jump/ among matches across all visible windows. I use the ~F18~ key on my keyboard that should be easy to use, but ~g o~ seems obvious.
 
 #+begin_src emacs-lisp
@@ -591,7 +614,7 @@ If you hit the following keys /before/ you select a target, you get special acti
   - ~i~ :: =ispell= … fix spelling from a distance.
   - ~z~ :: =zap-to-char= … kill from current point to the target
 I’m not thinking of ideas of what would be useful, e.g. ~v~ to highlight from cursor to target, etc.
-*** Link Hint, the Link Jumper
+**** Link Hint, the Link Jumper
 The [[info:emacs#Goto Address mode][Goto Address]] mode (see this [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Goto-Address-mode.html][online link]]) turns URLs into clickable links. Nice feature and built into Emacs, but it requires using the mouse or moving to the URL and hitting ~Return~ (if you like this idea, check out [[https://xenodium.com/actionable-urls-in-emacs-buffers/][Álvaro Ramírez's configuration]] for this).
 
 I appreciated [[https://github.com/abo-abo/ace-link][ace-link]]’s idea for hyperlinks on Org, EWW and Info pages, as it allowed you to jump to a URL from any location on the screen.  The [[https://github.com/noctuid/link-hint.el][link-hint]] project does this, but works with more types of files and links:
@@ -620,7 +643,7 @@ Can I open a link in another window? The idea with this is that I can select a l
     (ace-select-window)
     (eww (current-kill 0)))
 #+end_src
-*** Expand Region
+**** Expand Region
 Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] project allows me to hit ~v~ in =visual= mode, and have the selection grow by syntactical units.
 #+begin_src emacs-lisp
   (use-package expand-region
@@ -633,7 +656,7 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
              "V" 'er/contract-region
              "-" 'er/contract-region))
 #+end_src
-*** iSearch
+**** iSearch
 The built-in =isearch= is fantastically simple and useful, but the [[https://github.com/kickingvegas/cc-isearch-menu][cc-isearch-menu]] helps expose some /buried/ features.
 
 #+begin_src emacs-lisp

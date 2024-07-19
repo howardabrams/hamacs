@@ -2,6 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2023-12-21
 #+filetags: emacs hamacs
+#+startup: inlineimages
 
 A literate programming file for configuring Evil mode in Emacs.
 #+begin_src emacs-lisp :exports none

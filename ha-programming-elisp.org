@@ -48,27 +48,26 @@ Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-d
 #+end_src
 ** Better Function Help
 Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call.
+
 #+begin_src emacs-lisp
   (use-package helpful)
 #+end_src
+
 And we should extend it with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] project:
+
 #+begin_src emacs-lisp
   (use-package elisp-demos
     :after helpful
     :config
-    (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
-      "d a" '("add helpful demo" . elisp-demos-add-demo))
-
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
+
 Find a function without a good demonstration? Call =elisp-demos-add-demo=.
 
 Wilfred’s [[https://github.com/Wilfred/suggest.el][suggest]] function helps you find the right function. Basically, you type in the parameters of a function, and then the desired output, and it will write the function call.
+
 #+begin_src emacs-lisp
-  (use-package suggest
-    :config
-    (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
-      "H" '("suggestions" . suggest)))
+  (use-package suggest)
 #+end_src
 * Navigation
 ** Goto Definitions
@@ -310,7 +309,7 @@ The [[https://github.com/xiongtx/eros][eros]] package stands for Evaluation Resu
     :hook (emacs-lisp-mode . eros-mode))
 #+end_src
 
-A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but Lispyville has a =lispyville-next-closing= function to jump to that closing paren (allowing a call to =eval-last=sexp=), and if I save the position using =save-excursion=, I get this feature.
+A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression currently containing the point. Not sure how they made it, but Lispyville has a =lispyville-next-closing= function to jump to that closing paren (allowing a call to =eval-last-sexp=), and if I save the position using =save-excursion=, I get this feature.
 
 #+begin_src emacs-lisp
   (defun ha-eval-current-expression ()
@@ -330,14 +329,9 @@ A feature I enjoyed from Spacemacs is the ability to evaluate the s-expression c
             (call-interactively 'eros-eval-last-sexp)
           (call-interactively 'eval-last-sexp)))))
 #+end_src
+* Major Mode Hydra
+All the above loveliness can be easily accessible with a [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]] defined for =emacs-lisp-mode=:
 
-And we just need to bind it.
-#+begin_src emacs-lisp
-  (ha-local-leader :keymaps '(emacs-lisp-mode-map lisp-mode-map)
-    "e e" '("current" . ha-eval-current-expression))
-#+end_src
-* Minor Mode Hydra
-put it all together
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config

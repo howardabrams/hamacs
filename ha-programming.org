@@ -28,65 +28,7 @@ A literate programming file for helping me program.
 Configuration for programming interfaces and workflows that behave similarly.
 * General
 The following work for all programming languages.
-** Mise
-Combining my use of programming virtual environments with =direnv= and =Makefile=, the [[http://mise.jdx.dev][Mise-en-Place]] project has [[https://github.com/liuyinz/mise.el][an Emacs mode]]:
-
-#+begin_src emacs-lisp :tangle no
-  (use-package mise
-    :straight (:host github :repo "liuyinz/mise.el")
-    :config (global-mise-mode))
-#+end_src
-
-This requires an underlying program to be installed. On my Linux system, I issued:
-#+begin_src sh
-  apt update -y && apt install -y gpg sudo wget curl
-  sudo install -dm 755 /etc/apt/keyrings
-  wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1> /dev/null
-  echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=amd64] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
-  sudo apt update
-  sudo apt install -y mise
-#+end_src
-
-And on the MacOS:
-#+begin_src sh :results silent
-  brew install mise
-#+end_src
-
-I have the following configured in my home directory, [[file:~/.config/mise.toml][~/.config/mise.toml]] :
-
-#+begin_src toml :tangle ~/.config/mise/config.toml
-  [env]
-  # supports arbitrary env vars so mise can be used like direnv/dotenv
-  # NODE_ENV = 'production'
-
-  [tools]
-  # specify single or multiple versions
-  ruby = '2.6.6'
-  # erlang = ['23.3', '24.0']
-
-  # send arbitrary options to the plugin, passed as:
-  # MISE_TOOL_OPTS__VENV=.venv
-  python = {version='3.10', virtualenv='.venv'}
-#+end_src
-
-And then, in the terminal, grab the version of a tool you need, like:
-#+begin_src sh
-  mise install python
-#+end_src
-
-Next, each project defines their own =.mise.toml= like:
-#+begin_src toml :tangle ~/other/python-xp/.mise.toml
-  [tools]
-  python = '3.10'
-#+end_src
-
-And it seemlessly works:
-#+begin_example
-$ cd ~/other/python-xp/
-$ python --version
-Python 3.10.14
-#+end_example
-** direnv
+** Virtual Environments with direnv
 Farm off commands into /virtual environments/:
 #+begin_src emacs-lisp
   (use-package direnv
@@ -99,7 +41,8 @@ Farm off commands into /virtual environments/:
     :config
     (direnv-mode))
 #+end_src
-** Line Numbers
+** Displaying Code
+*** Displaying Line Numbers
 For all programming languages, I would like to now default to absolute line numbers, and turn off the [[file:ha-display.org::*Mixed Pitch][Mixed Pitch]] feature that seems to /come along/ for the ride:
 
 #+begin_src emacs-lisp
@@ -112,14 +55,64 @@ For all programming languages, I would like to now default to absolute line numb
     :hook
     (prog-mode . ha-prog-mode-config))
 #+end_src
+*** Code Folding
+While Emacs has options for viewing and moving around code, sometimes, we could /collapse/ all functions, and then start to expand them one at a time. For this, we could enable the built-in [[https://www.emacswiki.org/emacs/HideShow][hide-show feature]]:
+#+begin_src emacs-lisp :tangle no
+  (use-package hide-show
+    :straight (:type built-in)
+    :init
+    (setq hs-hide-comments t
+          hs-hide-initial-comment-block t
+          hs-isearch-open t)
+    :hook (prog-mode . hs-minor-mode))
+#+end_src
+Note that =hide-show= doesn’t work with complex YAML files. The [[https://github.com/gregsexton/origami.el][origami]] mode works better /out-of-the-box/, as it works with Python and Lisp, but falls back to indents as the format, which works well.
+#+begin_src emacs-lisp
+  (use-package origami
+    :init
+    (setq origami-fold-replacement "⤵")
+    :hook (prog-mode . origami-mode))
+#+end_src
+To take advantage of this, type:
+  - ~z m~ :: To collapse everything
+  - ~z r~ :: To open everything
+  - ~z o~ :: To open a particular section
+  - ~z c~ :: To collapse a /section/ (like a function)
+  - ~z a~ :: Toggles open to close
+
+Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
+*** Smart Parenthesis
+We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :custom
+    (smartparens-global-strict-mode t)
+
+    :config
+    (sp-with-modes sp-lisp-modes
+      ;; disable ', as it's the quote character:
+      (sp-local-pair "'" nil :actions nil))
+
+    (sp-with-modes (-difference sp-lisp-modes sp-clojure-modes)
+      ;; use the pseudo-quote inside strings where it serve as hyperlink.
+      (sp-local-pair "`" "'"
+                     :when '(sp-in-string-p
+                             sp-in-comment-p)
+                     :skip-match (lambda (ms _mb _me)
+                                   (cond
+                                    ((equal ms "'") (not (sp-point-in-string-or-comment)))
+                                    (t (not (sp-point-in-string-or-comment)))))))
+    :hook
+    (prog-mode . smartparens-strict-mode))
+#+end_src
 ** Spell Checking Comments
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package flyspell
     :hook (prog-mode . flyspell-prog-mode))
 #+end_src
-** Flycheck
+** Linting with Flycheck
 Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Speed used to be the advantage, but I’m now pushing much of this to LSP, so speed is less of an issue.  What about when I am not using LSP? Also, since I’ve hooked grammar checkers, I need this with global keybindings.
 
 #+begin_src emacs-lisp
@@ -169,7 +162,7 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
       "e x" '("disable checker"  . flycheck-disable-checker)
       "e t" '("toggle flycheck"  . flycheck-mode)))
 #+end_src
-** Documentation
+** Language Documentation
 Used to use the Dash project for searching documentation associated with a programming language, but that hardly worked on my Linux systems.
 
 I’m interested in using [[https://devdocs.io/][devdocs.io]] instead, which is similar, but displays it in simple HTML. This can keep it all /inside/ Emacs. Two Emacs projects compete for this position. The Emacs [[https://github.com/astoff/devdocs.el][devdocs]] project is active, and seems to work well. Its advantage is a special mode for moving around the documentation.
@@ -203,57 +196,6 @@ The =devdocs-lookup= command attempts to guess which documentation it should dis
       (devdocs-lookup nil)))
 #+end_src
 
-
-** Code Folding
-While Emacs has options for viewing and moving around code, sometimes, we could /collapse/ all functions, and then start to expand them one at a time. For this, we could enable the built-in [[https://www.emacswiki.org/emacs/HideShow][hide-show feature]]:
-#+begin_src emacs-lisp :tangle no
-  (use-package hide-show
-    :straight (:type built-in)
-    :init
-    (setq hs-hide-comments t
-          hs-hide-initial-comment-block t
-          hs-isearch-open t)
-    :hook (prog-mode . hs-minor-mode))
-#+end_src
-Note that =hide-show= doesn’t work with complex YAML files. The [[https://github.com/gregsexton/origami.el][origami]] mode works better /out-of-the-box/, as it works with Python and Lisp, but falls back to indents as the format, which works well.
-#+begin_src emacs-lisp
-  (use-package origami
-    :init
-    (setq origami-fold-replacement "⤵")
-    :hook (prog-mode . origami-mode))
-#+end_src
-To take advantage of this, type:
-  - ~z m~ :: To collapse everything
-  - ~z r~ :: To open everything
-  - ~z o~ :: To open a particular section
-  - ~z c~ :: To collapse a /section/ (like a function)
-  - ~z a~ :: Toggles open to close
-
-Note: Yes, we could use [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] (and its cousin, [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]]) and we’ll see if I need those.
-** Smart Parenthesis
-We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartparens]] project always in /strict mode/, because who wants to worry about paren-matching:
-#+begin_src emacs-lisp
-  (use-package smartparens
-    :custom
-    (smartparens-global-strict-mode t)
-
-    :config
-    (sp-with-modes sp-lisp-modes
-      ;; disable ', as it's the quote character:
-      (sp-local-pair "'" nil :actions nil))
-
-    (sp-with-modes (-difference sp-lisp-modes sp-clojure-modes)
-      ;; use the pseudo-quote inside strings where it serve as hyperlink.
-      (sp-local-pair "`" "'"
-                     :when '(sp-in-string-p
-                             sp-in-comment-p)
-                     :skip-match (lambda (ms _mb _me)
-                                   (cond
-                                    ((equal ms "'") (not (sp-point-in-string-or-comment)))
-                                    (t (not (sp-point-in-string-or-comment)))))))
-    :hook
-    (prog-mode . smartparens-strict-mode))
-#+end_src
 ** Navigation
 *** Move by Functions
 The =mark-paragraph= and =downcase-word= isn’t very useful in a programming context, and makes more sense to use them to jump around function-by-function:
@@ -654,7 +596,15 @@ Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don�
    :hook ((lsp-mode . lsp-enable-which-key-integration)))
 #+end_src
 I will want to start adding commands under my =,= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
-*** UI
+
+Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :config
+    (setq doom-modeline-lsp t
+          doom-modeline-env-version t))
+#+end_src
+**** UI
 The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP. Seems to make the screen cluttered.
 #+begin_src emacs-lisp
   (use-package lsp-ui
@@ -664,18 +614,6 @@ The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the d
           lsp-ui-sideline-show-hover t
           lsp-ui-sideline-show-diagnostics t)
     :hook (lsp-mode . lsp-ui-mode))
-#+end_src
-*** Treemacs
-#+begin_src emacs-lisp
-  (use-package lsp-treemacs
-    :commands lsp-treemacs-errors-list
-    :bind
-    (:map prog-mode-map
-                ("s-)" . treemacs))
-    (:map treemacs-mode-map
-                ("s-)" . treemacs))
-    :config
-    (lsp-treemacs-sync-mode 1))
 #+end_src
 *** Company Completion
 The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
@@ -702,38 +640,8 @@ The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu
         "g m" '("imenu" . lsp-ui-imenu))
       (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
 #+end_src
-*** Display Configuration
-Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+begin_src emacs-lisp
-  (use-package doom-modeline
-    :config
-    (setq doom-modeline-lsp t
-          doom-modeline-env-version t))
-#+end_src
-** Function Call Notifications
-As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html][on my website]], I've created a [[file:~/website/Technical/Emacs/beep-for-emacs.org][beep function]] that notifies when long running processes complete.
-
-#+begin_src emacs-lisp
-  (use-package alert
-    :init
-    (setq alert-default-style
-          (if (ha-running-on-macos?)
-              'osx-notifier
-            'libnotify)))
-
-  (use-package beep
-    :straight nil   ; Already in the load-path
-    :hook (after-init . (lambda () (beep-when-finished "Emacs has started." "Eemacs has started")))
-    :config
-    (dolist (func '(org-publish
-                    org-publish-all
-                    org-publish-project
-                    compile
-                    shell-command))
-      (advice-add func :around #'beep-when-runs-too-long)))
-#+end_src
-While that code /advices/ the publishing and compile commands, I may want to add more.
-** iEdit
+** General Code Editing
+*** iEdit
 While there are language-specific ways to rename variables and functions, [[https://github.com/victorhge/iedit][iedit]] is often sufficient.
 #+begin_src emacs-lisp :tangle no
   (use-package iedit
@@ -760,7 +668,7 @@ To use, highlight a region with ~v~, and continue to hit ~v~ until you’ve sele
   - ~I~ / ~A~ :: jump to beginning/end of occurrence and go into =iedit-insert= mode (obviously ~a~ and ~i~ do too)
   - ~#~ :: highlights all the matching occurrences
   - ~F~ :: restricts to the current function
-** Case Conversion
+*** Case Conversion
 The [[https://github.com/akicho8/string-inflection][string-inflection]] project (see [[http://sodaware.sdf.org/notes/converting-to-snake-case-in-emacs/][this overview]]) converts symbol variables to /appropriate format/ for the mode. This replaces my home-brewed functions.
 #+begin_src emacs-lisp
   (use-package string-inflection
@@ -776,34 +684,7 @@ The [[https://github.com/akicho8/string-inflection][string-inflection]] project 
 I would like to have this bound on the ~g~ sequence, but that is crowded.
 
 Note that ~g u~ (for lower-casing stuff), and  ~g U~ (for up-casing) requires /something/, for instance ~g U i o~ upper-cases the symbol at point. These functions, however, only work with a symbol (which is the typical case).
-** Commenting
-I like =comment-dwim= (~M-;~), and I like =comment-box=, but I have an odd personal style that I like to codify:
-#+begin_src emacs-lisp
-  (defun ha-comment-line (&optional start end)
-    "Comment a line or region with a block-level format.
-  Calls `comment-region' with START and END set to the region or
-  the start and end of the line."
-    (interactive)
-    (when (or (null start) (not (region-active-p)))
-      (setq start (line-beginning-position))
-      (setq end   (line-end-position)))
-    (save-excursion
-      (narrow-to-region start end)
-      (upcase-region start end)
-      (goto-char (point-min))
-      (insert "------------------------------------------------------------------------\n")
-      (goto-char (point-max))
-      (insert "\n------------------------------------------------------------------------")
-      (comment-region (point-min) (point-max))
-      (widen)))
-#+end_src
-And a keybinding:
-#+begin_src emacs-lisp :tangle no
-  (ha-local-leader :keymaps 'prog-mode-map
-    "c"  '(:ignore t :which-key "comment")
-    "c l" '("comment line" . ha-comment-line))
-#+end_src
-** Evaluation
+** Inline Code Evaluation
 While I like [[help:eval-print-last-sexp][eval-print-last-sexp]], I would like a bit of formatting in order to /keep the results/ in the file.
 #+begin_src emacs-lisp
   (defun ha-eval-print-last-sexp (&optional internal-arg)
@@ -1319,7 +1200,7 @@ Integration with the [[https://github.com/bash-lsp/bash-language-server][Bash LS
 #+begin_src sh
   brew install bash-language-server
 #+end_src
-** Fish Shell
+*** Fish Shell
 I think the [[https://fishshell.com/][fish shell]] is an interesting experiment (and I appreciate the basics that come with [[https://github.com/emacsmirror/fish-mode][fish-mode]]).
 #+begin_src emacs-lisp
   (use-package fish-mode
