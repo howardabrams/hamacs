@@ -105,6 +105,102 @@ We need to make sure we keep the [[https://github.com/Fuco1/smartparens][smartpa
     :hook
     (prog-mode . smartparens-strict-mode))
 #+end_src
+** Symbol Highlighting
+I appreciate calling =hi-lock-face-symbol-at-point= (or =highlight-symbol-at-point=) to highlight all instances of a variable or other symbol.
+
+#+begin_src emacs-lisp
+  (use-package auto-highlight-symbol
+    :config
+    (setq ahs-idle-interval 0.1)
+
+    (set-face-attribute ahs-face nil :foreground nil :background nil
+                        :weight 'ultra-bold :slant 'italic)
+    (set-face-attribute ahs-plugin-default-face nil :foreground nil
+                        :background nil :weight 'bold :slant 'normal))
+#+end_src
+
+Instead of calling =global-auto-highlight-symbol-mode=, we should just hook it to the =prog-mode=:
+
+#+begin_src emacs-lisp
+  (use-package auto-highlight-symbol
+    :hook ((prog-mode . auto-highlight-symbol-mode)))
+#+end_src
+
+Similarly, the [[https://github.com/wolray/symbol-overlay][symbol-overlay]] project highlights instances of symbols, but like =iedit= creates a keymap allowing manipulation of the symbols. The workflow is:
+
+  1. ~SPC t s s~ to highlight the symbol at point.
+  2. ~n~ and ~p~ to move from symbol to symbol.
+  3. Quitting the menu involves one of these:
+       - ~q~ to leave point at spot
+       - ~e~ to return to previous cursor placement
+       - ~x~ to un-highlight all symbols
+  4. ~SPC t s s~ to highlight another symbol at point.
+  5. ~N~ and ~P~ to move to a /different symbol/.
+  6. ~r~ to rename symbol (like =iedit=)
+
+#+begin_src emacs-lisp
+  (use-package symbol-overlay
+    :config
+    (pretty-hydra-define symbol-overlay (:color pink :quit-key "q")
+      ("Show"
+       (("s" symbol-overlay-put "highlight")
+        ("t" symbol-overlay-toggle-in-scope "in scope"))
+       "Navigate"
+       (("n" symbol-overlay-jump-next "next")      ; j?
+        ("p" symbol-overlay-jump-prev "previous")  ; k?
+        ("<" symbol-overlay-jump-first "first")
+        (">" symbol-overlay-jump-last "last"))
+       "Switch"
+       (("N" symbol-overlay-switch-forward "next")
+        ("P" symbol-overlay-switch-backward "previous")
+
+        ("d" symbol-overlay-jump-to-definition "definition"))
+       "Edit"
+       (("r" symbol-overlay-rename "replace" :color blue)
+        ("R" symbol-overlay-query-replace "query replace" :color blue))
+       "Misc"
+       (("w" symbol-overlay-save-symbol "to clipboard")   ; y?
+        ("C-s" symbol-overlay-isearch-literally "search all" :color blue))
+       "Exit"
+       (("e" symbol-overlay-echo-mark "return" :color blue)
+        ("x" symbol-overlay-remove-all "hide all" :color blue)
+        ("q" nil "leave" :color blue))))
+
+    (ha-leader "t s" '("symbols" . symbol-overlay/body)))
+#+end_src
+
+While I created a Hydra for the commands,
+this project includes a keymap available only when the cursor (point) is on a highlighted symbol. These keybindings include:
+
+    - ~n~ :: next matching symbol
+    - ~p~ :: previous matching symbol
+    - <  :: jump first
+    - > :: jump last
+    - ~d~ :: jump to definition
+    - ~e~ :: return to original point position
+    - ~h~ :: help
+    - ~i~ :: unhighlight symbol
+    - ~q~ :: query replace
+    - ~r~ :: rename
+    - ~s~ :: isearch
+    - ~t~ :: toggle in scope
+    - ~w~ :: save symbol to clipboard
+
+After reading [[https://lmno.lol/alvaro/its-all-up-for-grabs-and-it-compounds][this essay]] by Álvaro Ramírez, I’ve been thinking of ways to connect services together. In my case, I am not sure I need [[https://github.com/magnars/multiple-cursors.el][multiple cursors]] (as symbol-overlay can rename the symbol which would be 90% of my use case), but I would like to highlight a symbol without actually moving to it.
+
+#+begin_src emacs-lisp
+  (use-package symbol-overlay
+    :after avy
+    :config
+    (defun avy-action-highlight-symbol (pt foobar)
+      "Highlight symbol starting at PT at the current point."
+      (save-excursion
+        (avy-action-goto pt foobar)
+        (symbol-overlay-put))
+      t)
+
+    (add-to-list 'avy-dispatch-alist '(?S . avy-action-highlight-symbol)))
+#+end_src
 ** Spell Checking Comments
 The [[https://www.emacswiki.org/emacs/FlySpell#h5o-2][flyspell-prog-mode]] checks for misspellings in comments.
 
