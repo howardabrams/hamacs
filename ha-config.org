@@ -356,7 +356,18 @@ Since I seldom remember keybindings, or even function names, for major-modes, I 
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config
-    (global-set-key (kbd "s-,") #'major-mode-hydra))
+    (global-set-key (kbd "s-,") #'major-mode-hydra)
+
+    (setq major-mode-hydra-title-generator
+      '(lambda (mode)
+         (let ((title (thread-last mode
+                                   (symbol-name)
+                                   (string-replace "-" " ")
+                                   (string-replace " mode" "")
+                                   (s-titleize))))
+           (s-concat ; (s-repeat 5 " ")
+                     (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                     " " title " Commands")))))
 #+end_src
 
 For this feature, I may want to pull it out into its own file, so as to keep all of its features together... however, those feature often /depend/ of the functions they are calling. If so, we would have a series like this:

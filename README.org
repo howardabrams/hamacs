@@ -2,6 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2021-11-01 November
 #+tags: emacs readme
+#+startup: inlineimages
 
 ** Introduction
 I’ve crafted my Emacs configuration, I cheekily call /hamacs/, in a literate programming model, heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  While I used both extensively, I decided I would /roll my own/ as Emacs people like myself, tend to be /control freaks/ (at least a little bit).

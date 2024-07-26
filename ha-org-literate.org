@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-07-18 Thu]
+#+lastmod: [2024-07-25 Thu]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -433,7 +433,7 @@ The following section shows some code to use the fuzzy matching features of [[fi
   the heading is located."
     (interactive)
     (let* ((default-directory (or project-root (project-root (project-current))))
-           (file-headings (ha-hamacs-edit--file-heading-list project-root))
+           (file-headings (ha-hamacs-edit--file-heading-list))
            (file-choice   (completing-read "Edit Heading: " file-headings))
            (file-tuple    (alist-get file-choice file-headings
                                      nil nil 'string-equal)))
@@ -457,8 +457,9 @@ ha-applications.org:386:** EWW
 We then filter out non-useful headers (with =ha-hamcs-edit—filter-heading=), and convert the headlines with =ha-hamcs-edit—process-entry= to be more presentable:
 
 #+begin_src emacs-lisp
-  (defun ha-hamacs-edit--file-heading-list (&optional project-root)
+  (defun ha-hamacs-edit--file-heading-list ()
     "Return list of lists of headlines and file locations.
+  This is found by calling `ripgrep' in the `default-directory'.
   Using the output from the shell command, `ha-hamacs-edit-ripgrep-headers',
   it parses and returns something like:
 
@@ -467,15 +468,14 @@ We then filter out non-useful headers (with =ha-hamcs-edit—filter-heading=), a
     (\"Applications∷ Git and Magit ﹥ Git Delta\" \"ha-applications.org\" 110)
     (\"Applications∷ Git and Magit ﹥ Time Machine\" \"ha-applications.org\" 265)
     ...)"
-    (let ((default-directory (or project-root (project-root (project-current)))))
-      (thread-last ha-hamacs-edit-ripgrep-headers
-                   (shell-command-to-list)
-                   ;; Let's remove non-helpful, duplicate headings,
-                   ;; like Introduction:
-                   (seq-remove 'ha-hamacs-edit--filter-heading)
-                   ;; Convert the results into both a displayable
-                   ;; string as well as the file and line structure:
-                   (seq-map 'ha-hamacs-edit--process-entry))))
+    (thread-last ha-hamacs-edit-ripgrep-headers
+                 (shell-command-to-list)
+                 ;; Let's remove non-helpful, duplicate headings,
+                 ;; like Introduction:
+                 (seq-remove 'ha-hamacs-edit--filter-heading)
+                 ;; Convert the results into both a displayable
+                 ;; string as well as the file and line structure:
+                 (seq-map 'ha-hamacs-edit--process-entry)))
 #+end_src
 
 As the above function’s documentation string claims, I create a list that contains the data structure necessary for =completing-read= as well as the information I need to load/jump to a position in the file. This is a three-element list of the /headline/, /filename/ and /line number/ for each entry:
@@ -695,23 +695,27 @@ So the following tests should pass:
 :PROPERTIES:
 :ID:       2412ef3b-b5d0-43a3-bd01-764fd92b0c3c
 :END:
-With a lovely collection of functions, we need to have a way to easily call them. I’ve been using the =pretty-hydra= feature of major-mode-hydra:
+With a lovely collection of functions, we need to have a way to easily call them. I’ve been using the =pretty-hydra= feature of [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]]:
 
 #+begin_src emacs-lisp
-  (pretty-hydra-define org-babel (:color blue)
-    ("Navigate"
-     (("g" avy-jump-org-block "goto")
-      ("j" org-next-block "previous block" :color pink)
-      ("k" org-previous-block "next block" :color pink))
+  (defvar org-babel--title (concat (all-the-icons-faicon "pencil-square-o")
+                                   "  Literate Programming Support"))
+  (pretty-hydra-define org-babel
+    (:title org-babel--title :color blue)
+    ("Code Blocks"
+     (("g" avy-jump-org-block "Goto ")
+      ("j" org-next-block "Previous" :color pink)
+      ("k" org-previous-block "Next" :color pink))
      "Evaluate"
-     (("o" avy-org-babel-execute-src-block "block")
-      ("h" org-babel-execute-subtree "section")
-      ("b" org-babel-execute-buffer "buffer"))
+     (("o" avy-org-babel-execute-src-block "Block ")
+      ("h" org-babel-execute-subtree "Section")
+      ("b" org-babel-execute-buffer "Buffer"))
      "Tangle"
-     (("t" org-babel-tangle "to File")
+     (("t" org-babel-tangle "to Default")
+      ("f" org-babel-tangle-file "choose File")
       ("T" org-babel-detangle "from File"))
      "Misc"
-     (("e" avy-org-babel-edit-src-block "edit"))))
+     (("e" avy-org-babel-edit-src-block "Edit Block "))))
 #+end_src
 
 And tie this hydra into the existing leader system:
