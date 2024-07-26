@@ -303,7 +303,29 @@ Or add it to your =Gemfile=:
 #+begin_src ruby
   gem 'solargraph', group: :development
 #+end_src
+* XRef Interface with GNU Global
+The [[http://www.gnu.org/software/global/][GNU Global]] has the ability to generate a tags file for large, multi-project Ruby code bases.
 
+First, issue these two:
+#+begin_src sh :dir ~/work/gourmet
+  find . -name .git | while read DOTGIT
+  do
+    REPO=$(dirname $DOTGIT)
+    (cd $REPO && git pull origin master)
+  done
+
+  find . -name "*.rb" > gtags.files
+  gtags --gtagslabel=new-ctags --file gtags.files
+#+end_src
+
+And now we need the GNU Global for Emacs, we are using the most up-to-date version of [[https://github.com/leoliu/ggtags][ggtags]].
+
+#+begin_src emacs-lisp
+  (use-package ggtags
+    :hook ((ruby-mode . #'ggtags-mode)))
+#+end_src
+
+Careful observers will note that
 * Technical Artifacts                                :noexport:
 
 Let's =provide= a name so we can =require= this file:
