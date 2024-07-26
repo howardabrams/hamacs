@@ -333,16 +333,15 @@ Using =rsync= to keep published files in sync with my website:
 * Keybindings
 Make it easy to publish all projects or single project:
 #+begin_src emacs-lisp
-  (with-eval-after-load 'ha-org
-    (ha-leader :keymaps 'org-mode-map
-      "o p"  '(:ignore t :which-key "publish")
-      "o p a" '("all" . org-publish-all)
-      "o p p" '("project" . org-publish-project)
-      "o p s" '("sync site" . ha-sync-site)
-      "o p h" '("hamacs" . (lambda () (interactive)
-                             (org-publish-project "hamacs")
-                             (sit-for 30)
-                             (ha-sync-site "hamacs")))))
+  (ha-leader :keymaps 'org-mode-map
+    "o p"  '(:ignore t :which-key "publish")
+    "o p a" '("all" . org-publish-all)
+    "o p p" '("project" . org-publish-project)
+    "o p s" '("sync site" . ha-sync-site)
+    "o p h" '("hamacs" . (lambda () (interactive)
+                           (org-publish-project "hamacs")
+                           (sit-for 30)
+                           (ha-sync-site "hamacs"))))
 #+end_src
 
 And let's put a /leader key/ sequence for my favorite file on my website:
