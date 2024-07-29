@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-07-25 Thu]
+#+lastmod: [2024-07-26 Fri]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -210,7 +210,7 @@ This helper function does the work of calling =ripgrep=, parsing its output, and
                    (seq-filter 'identity))))
 #+end_src
 
-Note: the =processor= function creates an =xref= object, described below. See =ha-literate—process-rg-line=.
+Note: the =processor= function creates an =xref= object, described below. See =ha-literate--process-rg-line=.
 
 The output from =ripgrep= goes through a couple of transformation functions listed here:
 
@@ -406,10 +406,10 @@ To finish the connections, we need to create a /hook/ that I only allow to turn 
 
 #+begin_src emacs-lisp
   (defun ha-literate-xref-activate ()
-  "Function to activate org-based literate backend.
-Add this function to `xref-backend-functions' hook. "
-  (when (eq major-mode 'org-mode)
-       'org-babel))
+    "Function to activate org-based literate backend.
+  Add this function to `xref-backend-functions' hook. "
+    (when (eq major-mode 'org-mode)
+      'org-babel))
 
   (add-hook 'xref-backend-functions #'ha-literate-xref-activate)
 #+end_src
