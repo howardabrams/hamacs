@@ -127,7 +127,6 @@ I’ve often called =imenu= to easily jump to a function definition in a file (o
   (add-hook 'prog-mode-hook 'ha-imenu-setup)
   (add-hook 'makefile-mode-hook 'ha-imenu-setup)
 #+end_src
-
 ** File Access
 *** Remote Files
 To speed up TRAMP access, let’s disabled lock files, you know, the ones that have the =#= surrounding characters:
