@@ -58,7 +58,7 @@ In normal Org file, I like large headers, but in my Journal, where each task is 
 But new files could use /my formatting/ (which is different than the options available in the project):
 
 #+begin_src emacs-lisp
-(ha-auto-insert-file (rx "journal/" (zero-or-more any) (= 8 digit)) "journal")
+  (ha-auto-insert-file (rx "journal/" (zero-or-more any) (= 8 digit)) "journal")
 #+end_src
 
 This depends on the following [[file:~/.doom.d/snippets/org-journal-mode/__journal][snippet/template file]]:

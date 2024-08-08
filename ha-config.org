@@ -477,14 +477,17 @@ Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to expand templates
                  (expand-file-name "snippets" user-emacs-directory))
     (yas-global-mode +1))
 #+end_src
+
 Check out [[http://joaotavora.github.io/yasnippet/][the documentation]] for writing them.
 
 Since I have troubles installing Doom’s [[https://github.com/hlissner/doom-snippets][collection of snippets]], lets use the [[http://github.com/AndreaCrotti/yasnippet-snippets][yasnippet-snippets]] package:
+
 #+begin_src emacs-lisp
   (use-package yasnippet-snippets)
 #+end_src
 *** Auto Insert Templates
 The [[https://www.emacswiki.org/emacs/AutoInsertMode][auto-insert]] feature is a wee bit complicated. All I want is to associate a filename regular expression with a YASnippet template. I'm stealing some ideas from Henrik Lissner's [[https://github.com/hlissner/doom-emacs/blob/develop/modules/editor/file-templates/autoload.el][set-file-template!]] macro, but simpler?
+
 #+begin_src emacs-lisp
   (use-package autoinsert
     :init
@@ -509,6 +512,7 @@ Since auto insertion requires entering data for particular fields, and for that 
 #+end_src
 
 And since I'll be associating snippets with new files all over my configuration, let's make a helper function:
+
 #+begin_src emacs-lisp
   (defun ha-auto-insert-file (filename-re snippet-name)
     "Autofill file buffer matching FILENAME-RE regular expression.

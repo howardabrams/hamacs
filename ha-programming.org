@@ -280,7 +280,7 @@ I’m interested in using [[https://devdocs.io/][devdocs.io]] instead, which is 
 
 The =devdocs-lookup= command attempts to guess which documentation it should display based on the mode, but if I’m editing YAML files, I actually want to pull up the Ansible documentation, and probably the Jinja ones too.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun ha-devdocs-major-mode ()
     "My mapping of major mode to Devdocs slug."
     (interactive)
@@ -1143,8 +1143,8 @@ With the =markdown-header-scaling= set, we no longer need to color the headers i
     :after org
     :config
     (let ((default-color (face-attribute 'default :foreground)))
-      (set-face-attribute 'markdown-italic-face nil :foreground nil)
-      (set-face-attribute 'markdown-bold-face nil :foreground nil)
+      (set-face-attribute 'markdown-italic-face nil :foreground 'unspecified)
+      (set-face-attribute 'markdown-bold-face nil :foreground 'unspecified)
       (set-face-attribute 'markdown-pre-face nil
                           :foreground (face-attribute 'org-code :foreground))
       (set-face-attribute 'markdown-code-face nil

@@ -141,7 +141,7 @@ And let’s see the results:
 ** My Code Location
 Much of my more complicated code comes from my website essays and other projects. The destination shows up here:
 #+begin_src emacs-lisp
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/elisp"))
+  (add-to-list 'load-path (expand-file-name "elisp" user-emacs-directory))
 #+end_src
 
 Hopefully, this will tie me over while I transition.
@@ -227,12 +227,12 @@ With this function, we can test/debug/reload any individual file, via:
     "Load or reload an org-mode FILE containing literate
   Emacs configuration code."
     (interactive (list (completing-read "Org file: "
-			     (ha-hamacs-files :all))))
+                             (ha-hamacs-files :all))))
     ;; TODO: Replace concat here:
     (let ((full-file (file-name-concat hamacs-source-dir file)))
       (when (file-exists-p full-file)
-	(ignore-errors
-	    (org-babel-load-file full-file)))))
+        (ignore-errors
+            (org-babel-load-file full-file)))))
 #+end_src
 
 ** Tangling the Hamacs
