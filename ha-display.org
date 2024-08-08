@@ -384,10 +384,12 @@ Oh, and turn off the line highlighting:
   (global-hl-line-mode -1)
 #+end_src
 
-And of course, the default is /inside/ where it is dark and safe:
+And of course, the default is /inside/ where it is dark and safe. Let’s also wait til the world settles down before calling this.
 
 #+begin_src emacs-lisp
-  (laptop-inside)
+  (progn
+    (sit-for 2)
+    (laptop-inside))
 #+end_src
 ** Highlight Task Labels
 In code, if you drop a specific /text/ labels, we can highlight them with [[https://github.com/tarsius/hl-todo][hl-todo package]]:
