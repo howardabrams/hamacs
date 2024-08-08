@@ -1,0 +1,6 @@
+# key: slv
+# name: emacs-lisp-defvar
+# --
++begin_src emacs-lisp
+(defvar ${1:symbol} ${2:initvalue} "${3:docstring}")
+#+end_src

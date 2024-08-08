@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: shell-script-code
-# key: <ss
+# key: #ss
 # --
 #+begin_src sh
 $0
