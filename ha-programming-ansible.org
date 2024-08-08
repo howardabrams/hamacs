@@ -33,25 +33,25 @@ Moving by lines is our default navigation mode, but for Yaml and Python, that do
 
 The obvious keybindings are ~M-h/j/k/l~ … but that is used … well, somewhat. In org files, this is a way to move the outline of subtrees around. Useful, and =spatial-navigate= wouldn’t be helpful in org files anyway.
 
-#+begin_src emacs-lisp
-    (use-package spatial-navigate
-      :straight (:repo "https://codeberg.org/ideasman42/emacs-spatial-navigate")
-      :config
-      (pretty-hydra-define spatial-navigate (:color amaranth :quit-key "q")
-        ("Box"
-         (("k" spatial-navigate-backward-vertical-box "up")
-          ("j" spatial-navigate-forward-vertical-box "Down")
-          ("h" spatial-navigate-backward-horizontal-box "Down")
-          ("l" spatial-navigate-forward-horizontal-box "Down"))
-         "Bar"
-         (("K" spatial-navigate-backward-vertical-bar "up")
-          ("J" spatial-navigate-forward-vertical-bar "Down")
-          ("H" spatial-navigate-backward-horizontal-bar "Down")
-          ("L" spatial-navigate-forward-horizontal-bar "Down")))))
+#+begin_src emacs-lisp :tangle no
+  (use-package spatial-navigate
+    :straight (:repo "https://codeberg.org/ideasman42/emacs-spatial-navigate")
+    :config
+    (pretty-hydra-define spatial-navigate (:color amaranth :quit-key "q")
+      ("Box"
+       (("k" spatial-navigate-backward-vertical-box "up")
+        ("j" spatial-navigate-forward-vertical-box "Down")
+        ("h" spatial-navigate-backward-horizontal-box "Down")
+        ("l" spatial-navigate-forward-horizontal-box "Down"))
+       "Bar"
+       (("K" spatial-navigate-backward-vertical-bar "up")
+        ("J" spatial-navigate-forward-vertical-bar "Down")
+        ("H" spatial-navigate-backward-horizontal-bar "Down")
+        ("L" spatial-navigate-forward-horizontal-bar "Down")))))
 #+end_src
 
 And we can attach this menu to the “g” section:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package spatial-navigate
     :general
     (:states '(normal visual motion operator)
@@ -114,9 +114,6 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =ya
         (("l" ha-yaml-next-section "Next section")
          ("h" ha-yaml-prev-section "Previous"))))))
 #+end_src
-
-#+RESULTS:
-: major-mode-hydras/yaml-ts-mode/body
 
 Allow this mode in Org blocks:
 #+begin_src emacs-lisp :results silent
@@ -202,12 +199,20 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 #+end_src
 
 We need to make sure the =mixed-pitch-mode= doesn’t screw things up.
+
 #+begin_src emacs-lisp
   (add-hook 'poly-yaml-jinja2-mode-hook (lambda () (mixed-pitch-mode -1)))
-
-  ;; (add-hook 'yaml-ts-mode-hook 'poly-yaml-jinja2-mode)
 #+end_src
-#+begin_src yaml-ts
+
+We /can/ hook this up to Org, via:
+
+#+begin_src emacs-lisp
+  (add-to-list 'org-babel-load-languages '(poly-yaml-jinja2 . t))
+#+end_src
+
+Now we can use either =yaml-ts= or =poly-yaml-jinja2= (which perhaps we should make an alias?):
+
+#+begin_src poly-yaml-jinja2 :tangle no
   ---
   # Let's see how this works
   - name: Busta move
@@ -244,6 +249,7 @@ The YAML files get access Ansible’s documentation using the [[https://github.c
 
 #+begin_src emacs-lisp
   (use-package ansible-doc
+    :after yaml-ts-mode
     :hook (yaml-ts-mode . ansible-doc-mode)
     :config
     ;; (add-to-list 'exec-path (expand-file-name "~/.local/share/mise/installs/python/3.10/bin/ansible-doc"))

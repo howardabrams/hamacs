@@ -213,6 +213,7 @@ Why use [[https://www.flycheck.org/][flycheck]] over the built-in =flymake=? Spe
 
 #+begin_src emacs-lisp
   (use-package flycheck
+    :straight (:host github :repo "flycheck/flycheck")
     :init
     (setq next-error-message-highlight t)
     :bind (:map flycheck-error-list-mode-map
@@ -1115,7 +1116,6 @@ Most project =README= files and other documentation use [[https://jblevins.org/p
 Also, I like Markdown is look like a word processor, similarly to my org files:
 #+begin_src emacs-lisp
   (use-package markdown-mode
-    :straight (:host github :repo "jrblevin/markdown-mode")
     :mode ((rx ".md" string-end) . gfm-mode)
     :init (setq markdown-command (expand-file-name "markdown" "~/bin")
                 markdown-open-command (expand-file-name "markdown-open" "~/bin")
@@ -1135,38 +1135,25 @@ Also, I like Markdown is look like a word processor, similarly to my org files:
              ", e" '("export" . markdown-export)
              ", p" '("preview" . markdown-preview)))
 #+end_src
+
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
 
-With the =markdown-header-scaling= set, we no longer need to color the headers in Markdown, nor many of the /garish/ colors.
+Let’s make sure that [[https://www.flycheck.org/en/latest/languages.html#markdown][markdown]] is proper using [[https://pypi.org/project/pymarkdownlnt/][PyMarkdown]]. First, get the script installed globally:
+
+#+begin_src sh
+  pip install pymarkdown
+#+end_src
+
+And then we can use it. For some reason, the =pymarkdown= (which I need to use from work) doesn’t seem to be part of the version of Flycheck available on Melpa, so…
+
 #+begin_src emacs-lisp
   (use-package markdown-mode
-    :after org
+    :after flycheck
     :config
-    (let ((default-color (face-attribute 'default :foreground)))
-      (set-face-attribute 'markdown-italic-face nil :foreground 'unspecified)
-      (set-face-attribute 'markdown-bold-face nil :foreground 'unspecified)
-      (set-face-attribute 'markdown-pre-face nil
-                          :foreground (face-attribute 'org-code :foreground))
-      (set-face-attribute 'markdown-code-face nil
-                          :background (face-attribute 'org-block :background))
-      (set-face-attribute 'markdown-language-keyword-face nil
-                          :foreground (face-attribute 'org-block-begin-line :foreground))
-      (set-face-attribute 'markdown-url-face nil
-                          :foreground (face-attribute 'font-lock-comment-face :foreground))
-      (set-face-attribute 'markdown-header-face nil
-                          :font ha-variable-header-font
-                          :foreground default-color)
-      (when window-system
-        (dolist (level '(1 2 3 4))
-          (let ((md-level (make-face (make-symbol (format "markdown-header-face-%d" level))))
-                (org-level (nth (1- level) org-level-faces)))
-            (message "Setting %s size %.1f to %s" org-level (face-attribute org-level :height) md-level)
-            (print `(set-face-attribute ,md-level nil
-                                        :height ,(face-attribute org-level :height)))
-            (set-face-attribute md-level nil :foreground default-color
-                                :height (face-attribute org-level :height)))))))
+    (setq flycheck-markdown-pymarkdown-config ".pymarkdown.yml")
+    (flycheck-may-enable-checker 'markdown-pymarkdown))
 
-
+  ;;  defcustom flycheck-markdown-pymarkdown-config
 #+end_src
 
 Both the =markdown-command= and the =markdown-open-command= variables are called to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):

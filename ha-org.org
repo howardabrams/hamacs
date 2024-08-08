@@ -696,7 +696,7 @@ Bindings specific to org files:
 Limit the number of exporters to the ones that I would use:
 #+name: ox-exporters
 #+begin_src emacs-lisp
-(setq org-export-backends '(ascii html icalendar md odt))
+  (setq org-export-backends '(ascii html md texinfo odt))
 #+end_src
 
 I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence exporter]] for my org files:
@@ -711,15 +711,16 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
 
 And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
 #+begin_src emacs-lisp
-(use-package graphviz-dot-mode
-    :mode "\\.dot\\'"
-    :init
-    (setq tab-width 4
-          graphviz-dot-indent-width 2
-          graphviz-dot-auto-indent-on-newline t
-          graphviz-dot-auto-indent-on-braces t
-          graphviz-dot-auto-indent-on-semi t))
+  (use-package graphviz-dot-mode
+      :mode "\\.dot\\'"
+      :init
+      (setq tab-width 4
+            graphviz-dot-indent-width 2
+            graphviz-dot-auto-indent-on-newline t
+            graphviz-dot-auto-indent-on-braces t
+            graphviz-dot-auto-indent-on-semi t))
 #+end_src
+
 *** HTML Style
 
 I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
