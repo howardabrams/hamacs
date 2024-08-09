@@ -629,6 +629,8 @@ If you hit the following keys /before/ you select a target, you get special acti
   - ~i~ :: =ispell= … fix spelling from a distance.
   - ~z~ :: =zap-to-char= … kill from current point to the target
 I’m not thinking of ideas of what would be useful, e.g. ~v~ to highlight from cursor to target, etc.
+
+Want to know something amazing. In a Terminal, like =vterm= or =eshell=, I run ~s-g~ and pinpoint the UUID in the output of a long command. Then type ~y~ and then ~C-y~ to paste that ID without even moving the mouse.
 **** Link Hint, the Link Jumper
 The [[info:emacs#Goto Address mode][Goto Address]] mode (see this [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Goto-Address-mode.html][online link]]) turns URLs into clickable links. Nice feature and built into Emacs, but it requires using the mouse or moving to the URL and hitting ~Return~ (if you like this idea, check out [[https://xenodium.com/actionable-urls-in-emacs-buffers/][Álvaro Ramírez's configuration]] for this).
 

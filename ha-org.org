@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-06-02 Sun]
+#+lastmod: [2024-08-08 Thu]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -547,8 +547,10 @@ Not sure if anyone has made a /package/, so we need to download and build locall
 #+end_src
 
 Of course, since we are dealing with Emacs, any good idea will be assimilated. Johann Klähn created [[https://github.com/kljohann/pikchr-mode][pikchr-mode]]:
+
 #+begin_src emacs-lisp
   (use-package pikchr-mode
+    :straight (:local-repo "~/other/pikchr-mode")
     :custom
     (pikchr-executable "~/bin/pikchr"))
 #+end_src

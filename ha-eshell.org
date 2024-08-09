@@ -1248,7 +1248,7 @@ And finally, add our new functions to [[elisp(describe-variable 'eshell-virtual-
 * EAT and Eshell
 The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides flicker-free, perfect display, of visual commands in Eshell, eliminating one of my primary issue with using Eshell all the time.  (Check out Akib Azmain Turja’s [[https://emacsconf.org/2023/talks/eat/][talk at EmacsConf2023]]).
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package eat
     :after eshell
     :straight (:repo "https://codeberg.org/akib/emacs-eat")
