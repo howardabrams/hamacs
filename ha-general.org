@@ -849,6 +849,7 @@ Unfilling a paragraph joins all the lines in a paragraph into a single line. Tak
 * Help Operations
 While the ~C-h~ is easy enough, I am now in the habit of typing ~SPC h~ instead.
 Since I tweaked the help menu, I craft my own menu:
+
 #+begin_src emacs-lisp
   (ha-leader
     "h"  '(:ignore t :which-key "help")
@@ -879,6 +880,11 @@ Since I tweaked the help menu, I craft my own menu:
 
     "h <escape>" '(keyboard-escape-quit :which-key t)
     "h C-g" '(keyboard-escape-quit :which-key t))
+#+end_src
+
+Some of these call the [[file:ha-programming-elisp.org::*Helpful Functions][Helpful]] package:
+#+begin_src emacs-lisp
+  (use-package helpful)
 #+end_src
 
 Remember these keys in the *Help* buffer:

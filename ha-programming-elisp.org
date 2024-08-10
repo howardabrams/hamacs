@@ -46,7 +46,7 @@ Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-d
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
 #+end_src
-** Better Function Help
+** Helpful Functions
 Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call.
 
 #+begin_src emacs-lisp
