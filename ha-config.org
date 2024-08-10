@@ -22,6 +22,11 @@ A literate programming file for configuring Emacs.
   ;;          ~/other/hamacs/ha-config.org
   ;;       Using `find-file-at-point', and tangle the file to recreate this.
   ;;
+  ;;; Commentary:
+  ;;
+  ;; Basic configuration of Emacs. Should be executed early in the
+  ;; loading sequence.
+  ;;
   ;;; Code:
 #+end_src
 * Basic Configuration
@@ -59,6 +64,7 @@ Emacs has some new code to display line-numbers, and the =visual= value works we
 But sometimes we want to jump to /absolute/ line numbers, so I have a toggling function:
 #+begin_src emacs-lisp
   (defun ha-toggle-relative-line-numbers ()
+    "Change line numbering from relative to visual to off."
     (interactive)
     (cond
      ((null display-line-numbers)  (display-line-numbers-mode))
@@ -120,7 +126,7 @@ I’ve often called =imenu= to easily jump to a function definition in a file (o
       (imenu-add-menubar-index)
       (setq-local imenu-auto-rescan t)
       (when (derived-mode-p 'prog-mode)
-        (setq-local imenu-sort-function #'imenu--sort-by-name))))
+        (setq-local imenu-sort-function 'imenu--sort-by-name))))
 
   (add-hook 'org-mode-hook 'ha-imenu-setup)
   (add-hook 'markdown-mode-hook 'ha-imenu-setup)
@@ -138,7 +144,8 @@ What do I think about [[elisp:(describe-variable 'remote-file-name-inhibit-auto-
 During remote access, TRAMP can slow down performing Git operations. Let’s turn that off as well:
 #+begin_src emacs-lisp
   (defun turn-off-vc-for-remote-files ()
-    "Disable"
+    "Disable version control for remote files.
+  Use with the `find-file-hook'."
     (when (file-remote-p (buffer-file-name))
       (setq-local vc-handled-backends nil)))
 
@@ -199,10 +206,11 @@ The [[help:version-control][version-control]] variable affect backups (not some 
 Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=10314][this essay]]):
 #+begin_src emacs-lisp
   (defun save-all-buffers ()
-    "Saves all buffers, because, why not?"
+    "Save all buffers, because, why not?"
     (interactive)
     (save-some-buffers t))
 
+  ;; See 'after-focus-change -hook?
   (add-hook 'focus-out-hook 'save-all-buffers)
 #+end_src
 *** Download Files via URL
@@ -356,7 +364,7 @@ Since I seldom remember keybindings, or even function names, for major-modes, I 
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config
-    (global-set-key (kbd "s-,") #'major-mode-hydra)
+    (global-set-key (kbd "s-,") 'major-mode-hydra)
 
     (setq major-mode-hydra-title-generator
       '(lambda (mode)
@@ -502,10 +510,9 @@ Since auto insertion requires entering data for particular fields, and for that 
 #+begin_src emacs-lisp
   (defun ha-autoinsert-yas-expand()
     "Replace text in yasnippet template."
-    (let ((orig-mode major-mode)
-          (auto-insert-query nil)
+    (let ((auto-insert-query nil)
           (yas-indent-line nil))
-      (yas/minor-mode 1)
+      (yas-minor-mode +1)
       (when (fboundp 'evil-insert-state)
         (evil-insert-state))
       (yas-expand-snippet (buffer-string) (point-min) (point-max))))
@@ -516,7 +523,7 @@ And since I'll be associating snippets with new files all over my configuration,
 #+begin_src emacs-lisp
   (defun ha-auto-insert-file (filename-re snippet-name)
     "Autofill file buffer matching FILENAME-RE regular expression.
-    The contents inserted from the YAS SNIPPET-NAME."
+  The contents inserted from the YAS SNIPPET-NAME."
     ;; The define-auto-insert takes a regular expression and an ACTION:
     ;; ACTION may also be a vector containing successive single actions.
     (define-auto-insert filename-re
@@ -526,7 +533,7 @@ And since I'll be associating snippets with new files all over my configuration,
 As an example of its use, any Org files loaded in /this project/ should insert my config file:
 #+begin_src emacs-lisp
   (ha-auto-insert-file (rx "hamacs/" (one-or-more any) ".org" eol) "hamacs-config")
-  (ha-auto-insert-file (rx ".dir-locals.el") "dir-locals.el")
+  (ha-auto-insert-file (rx ".dir-locals.el") "dir-locals")
 #+end_src
 ** Additional Global Packages
 *** Function Call Notifications
@@ -655,6 +662,7 @@ Can I open a link in another window? The idea with this is that I can select a l
 
 #+begin_src emacs-lisp
   (defun link-hint-open-link-ace-window ()
+    "Select link via avy, and open link in other window."
     (interactive)
     (link-hint-copy-link)
     (ace-select-window)
@@ -688,7 +696,7 @@ I like ~C-a~ to go to the beginning of the line, but what about getting to the b
 
 #+begin_src emacs-lisp
   (defun ha-beginning-of-line (&optional n)
-    "Toggles between the beginning of line and first of text."
+    "Toggle between the beginning of line and first of text."
     (interactive "^p")
     (if (= (point) (line-beginning-position))
         (beginning-of-line-text n)
@@ -736,8 +744,8 @@ To do this, we need a way to generate a string of the perspectives in alphabetic
 
 #+begin_src emacs-lisp
   (defun ha--persp-label (num names)
-    "Return string of numbered elements. NUM is the starting
-  number and NAMES is a list of strings."
+    "Return string of numbered elements.
+  NUM is the starting number and NAMES is a list of strings."
     (when names
       (concat
        (format "  %d: %s%s"    ; Shame that the following doesn't work:
@@ -784,7 +792,7 @@ Build the hydra as well as configure the =perspective= project.
       ("9" (persp-switch-by-number 9))
       ("0" (persp-switch-by-number 0))
       ("n" ha-project-persp)
-      ("N" ha-new-persp)
+      ("N" persp-switch)
       ("]" persp-next :color pink)
       ("[" persp-prev :color pink)
       ("d" persp-kill)
@@ -862,7 +870,7 @@ Given a list of information about project-workspaces, can we create them all?
 
   (defun ha-workspace-initialize (&optional projects)
     "Precreate workspace projects from a PROJECTS list.
-    Each entry in the list is a list containing:
+  Each entry in the list is a list containing:
       - name (as a string)
       - project root directory
       - a optional list of files to display"
@@ -871,7 +879,7 @@ Given a list of information about project-workspaces, can we create them all?
       (setq projects ha-workspace-projects-personal))
 
     (dolist (project projects)
-      (-let (((name root files) project))
+      (seq-let (name root files) project
         (unless (ha-persp-exists? name)
           (message "Creating workspace: %s (from %s)" name root)
           (ha-project-persp root name files))))
@@ -893,23 +901,19 @@ Often, but not always, I want a perspective based on an actual Git repository, e
         (setq name (f-filename project)))
       (persp-switch name)
 
-      ;; Unclear if the following is actually necessary.
-      (ignore-errors
-        (project-remember-project root)
-        (project-switch-project root))
-
       (let ((recent-files (thread-last recentf-list
                                        (--filter (s-starts-with? project it))
                                        (-take 3)))
             (readme-org (f-join project "README.org"))
-            (readme-org (f-join project "README.md"))
-            (readme-md  (f-join project "README.rst")))
+            (readme-md  (f-join project "README.md"))
+            (readme-rst (f-join project "README.rst")))
         (cond
          (files                  (ha--project-show-files project files))
          (recent-files           (ha--project-show-files project recent-files))
          ((f-exists? readme-org) (find-file readme-org))
          ((f-exists? readme-md)  (find-file readme-md))
-         (t                      (dirvish project))))))
+         ((f-exists? readme-rst) (find-file readme-rst))
+         (t                      (dired project))))))
 #+end_src
 
 When starting a new perspective, and I specify more than one file, this function splits the window horizontally for each file.
@@ -930,16 +934,6 @@ When starting a new perspective, and I specify more than one file, this function
           (ha--project-show-files root more)))))
 #+end_src
 
-The =persp-switch= allows me to select or create a new project, but what if we insisted on a new workspace?
-#+begin_src emacs-lisp
-  (defun ha-new-persp (name)
-    (interactive "sNew Workspace: ")
-    (persp-switch name)
-    (cond
-     ((s-ends-with? "mail" name) (notmuch))
-     ((s-starts-with? "twit" name) (twit))))
-#+end_src
-Once we create the new perspective workspace, if it matches a particular name, I pretty much know what function I would like to call.
 * Pretty Good Encryption
 For details on using GnuPG in Emacs, see Mickey Petersen’s [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][GnuPG Essay]].
 
