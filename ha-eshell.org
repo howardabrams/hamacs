@@ -97,9 +97,22 @@ In short, use parens to limit the files, for instance:
   ls *.sh(*)   # List shell scripts that are executable
   ls *(/)      # List directories (recursively)
 #+end_src
+
 And parens with a colon character transform the filename, useful with =for=:
+
 #+begin_src sh
   for F in *.org(:r) { mv $F.org $F.el }
+#+end_src
+
+Keep in mind that the predicates are somewhat finicky. For instance, the following doesn’t work:
+#+begin_src sh
+  mv $f $f(:r).txt
+#+end_src
+
+But you could call this:
+
+#+begin_src sh
+  mv $f $f(:s/org$/txt/)
 #+end_src
 
 The =T= predicate filter allows me to limit file results that have internal =org-mode= tags.
@@ -193,7 +206,40 @@ I have also had a lot of trouble getting aliases to work, for instance =dired= w
   alias less view-file $1
   alias d dired $1
 #+end_src
-To work around this, I create functions instead.
+
+To work around this, I create functions instead. For instance …
+
+The =basename= shell command strips off a parent, and can strip off the extension. However, you have to specify the extension. Why not take advantage of Emacs’ =file-name-base= to strip it off without needing to specify it.
+
+#+begin_src emacs-lisp
+  (defalias 'eshell/base 'file-name-base)
+#+end_src
+
+However, the following doesn’t work as expected:
+
+#+begin_example
+  $ set f some-file.org # usually this is from a 'for' loop
+  $ mv $f {base $f}.txt
+#+end_example
+
+While the sequence ={base $f}= works, the =.txt= without a space screws it up, creating a list. So I create this simple function:
+
+#+begin_src emacs-lisp
+  (defun eshell/newbase (file newbase)
+    (unless (string-match (rx bos ".") newbase)
+      (setq newbase (concat "." newbase)))
+    (concat (file-name-base file) newbase))
+#+end_src
+
+Which works as expected:
+
+#+begin_example
+  $ echo {newbase $f txt}
+  some-file.txt
+#+end_example
+
+A better approach, however, is to take advantage of [[*Predicate Filters and Modifiers][modifiers]].
+
 * Eshell Functions
 Any function that begins with =eshell/= is available as a command (with the remaining letters). For instance:
 #+begin_src emacs-lisp
@@ -394,15 +440,41 @@ Let’s make some test examples:
         (should (bufferp (second parms))))))
 #+end_src
 ** Setting Variables
-To set a variable in Eshell, you use good ol’ =setq=, but that would create global variables. We can make a version for Eshell, that makes buffer-local variables.
+To set a variable in Eshell, you use good ol’ =setq=, but that would create global variables. We can make a version for Eshell, that makes buffer-local variables. While we are at it, let’s set it as environment variables too. Then everyone can pick it up:
+
 #+begin_src emacs-lisp
   (defun eshell/set (&rest args)
-    "Creates a buffer local variables."
-    (dolist (arg-pair (seq-partition args 2))
-      (seq-let (var val) arg-pair
-        (let ((var-sym (make-symbol var)))
-          (set (make-local-variable var-sym) val)))))
+    "Creates a buffer local variable.
+  The first parameters of ARGS is the name of the variable.
+  The other parameters are the values. If not given, the
+  variable is deleted."
+    (let* ((var (car args))
+           (var-sym (make-symbol var))
+           ;; Convert value to a string
+           (val (pcase (seq-length (cdr args))
+                  (0 nil)
+                  (1 (format "%s" (cadr args)))
+                  (_ (thread-last (cdr args)
+                                  (seq-map 'eshell-stringify)
+                                  (s-join " "))))))
+      (if val
+          (progn
+            (set (make-local-variable var-sym) val)
+            (setenv var val))
+
+        ;; If we don't get both a variable and a value, let's try to
+        ;; delete the variable:
+        (makunbound var-sym)
+        (setenv var))))
 #+end_src
+
+Something like:
+
+#+begin_example
+  $ set a 42 b 7
+#+end_example
+
+Would create a single variable, =a=, set to the value of the string, =42 b 7= which is similar to how the Fish shell works.
 ** Less and More
 While I can type =find-file=, I often use =e= as an alias for =emacsclient= in Terminals, so let’s do something similar for =eshell=:
 Also note that we can take advantage of the =eshell-fn-on-files= function to expand the [[help:find-file][find-file]] (which takes one argument), to open more than one file at one time.
@@ -1651,14 +1723,10 @@ Sometimes you need to change something about the current file you are editing...
       chmod a+x
 
   Works as expected. We replace the special variable `$$' with the
-  filename of the buffer. Note that `eshell-command' executes this
-  command, so eshell modifiers are available, for instance:
+  filename of the buffer. So:
 
-      mv $$ $$(:r).txt
-
-  Will rename the current file to now have a .txt extension.
-  See `eshell-display-modifier-help' for details on that."
-    (interactive "sExecute command on File Buffer: ")
+      mv $$ `basename $$`.txt"
+    (interactive (list (read-shell-command "Execute command on File Buffer: ")))
     (let* ((file-name (buffer-file-name))
            (full-cmd (cond ((string-match (rx "$$") cmd)
                             (replace-regexp-in-string (rx "$$") file-name cmd))
@@ -1667,7 +1735,7 @@ Sometimes you need to change something about the current file you are editing...
                            (t
                             (concat cmd " " file-name)))))
       (message "Executing: %s" full-cmd)
-      (eshell-command full-cmd)))
+      (shell-command full-cmd)))
 #+end_src
 * Configuration
 Here is where we associate all the functions and their hooks with =eshell=, through the magic of =use-package=.
