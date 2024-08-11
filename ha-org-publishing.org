@@ -30,15 +30,24 @@ While the Emacs community have a plethora of options for generating a static web
 While the following packages come with Emacs, they aren't necessarily loaded:
 
 #+begin_src emacs-lisp :results silent
-  (require 'ox-html)
-  (require 'ox-rss)
-  (require 'ox-publish)
+  (use-package org
+    :config
+    (require 'ox-html)
+    (require 'ox-rss)
+    (require 'ox-publish))
 #+end_src
 
 Render my code with my font colors:
 
 #+begin_src emacs-lisp :results silent
   (use-package htmlize)
+#+end_src
+
+Also, we need Jack, and his HTML prowess:
+#+begin_src emacs-lisp
+  (use-package jack
+    :straight (:host github :repo "tonyaldon/jack")
+    :commands (jack-html))
 #+end_src
 
 Variable settings:
@@ -330,6 +339,20 @@ Using =rsync= to keep published files in sync with my website:
                    (message)
                    (async-shell-command))))
 #+end_src
+** Workflows for Hamacs
+A single function to publish and sync my literate initialization of Emacs.
+
+The idea is that pushing a Git commit to this project, triggers a Forgejo Workflow, that /exports/ the literate text as HTML to [[https://www.howardabrams.com/hamacs][my website]].
+
+#+begin_src emacs-lisp
+  (defun hamacs-publishing-workflow ()
+    "Render and push a new web version of my Emacs initialization."
+    (interactive)
+    (org-publish-project "hamacs")
+    (org-publish-project "hamacs-static")
+    (ha-sync-site "hamacs"))
+#+end_src
+
 * Keybindings
 Make it easy to publish all projects or single project:
 #+begin_src emacs-lisp
