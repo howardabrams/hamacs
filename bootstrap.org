@@ -116,8 +116,8 @@ The [[help:shell-command][shell-command]] function is useful, but having it spli
     (thread-last command
        shell-command-to-string
        s-lines
-       (-map 's-trim)
-       (-remove 's-blank-str?)))
+       (seq-map 's-trim)
+       (seq-remove 's-blank-str?)))
 #+end_src
 
 And let’s see the results:
@@ -156,15 +156,19 @@ I actually run two instances of Emacs on some systems, where one instance has al
 #+end_src
 
 And now start the server with an appropriate tag name:
-#+begin_src emacs-lisp
-  (if (not (ha-emacs-for-work?))
-      (setq server-name "personal")
-    (setq server-name "work")
-    (when (ha-running-on-macos?)
-      (set-exec-path-from-shell)))
 
-  (server-start)
+#+begin_src emacs-lisp
+  (when (display-graphic-p)
+    (if (not (ha-emacs-for-work?))
+        (setq server-name "personal")
+      (setq server-name "work")
+      (when (ha-running-on-macos?)
+        (set-exec-path-from-shell)))
+
+    (server-start))
 #+end_src
+
+*Note:* When starting Emacs as a terminal program (only happens when I am attempting to evaluate code), we don’t start the server.
 * Load the Rest
 The following /defines/ the rest of my org-mode literate files, that I load later with the =ha-hamacs-load= function:
 #+begin_src emacs-lisp
@@ -227,13 +231,16 @@ With this function, we can test/debug/reload any individual file, via:
     "Load or reload an org-mode FILE containing literate
   Emacs configuration code."
     (interactive (list (completing-read "Org file: "
-                             (ha-hamacs-files :all))))
-    ;; TODO: Replace concat here:
-    (let ((full-file (file-name-concat hamacs-source-dir file)))
+                                        (ha-hamacs-files :all))))
+    (let ((full-file (expand-file-name file hamacs-source-dir)))
       (when (file-exists-p full-file)
-        (ignore-errors
-            (org-babel-load-file full-file)))))
+        (message ">>> %s" full-file)
+        (if (called-interactively-p)
+            (org-babel-load-file full-file)
+          (ignore-errors (org-babel-load-file full-file))))))
 #+end_src
+
+Notice that when we call this function /non-interactively/ (e.g. from the Lisp function, =ha-hamacs-reload-all=), we suppress any errors. Obviously, I want to see the errors when calling interactively.
 
 ** Tangling the Hamacs
 And this similar function, will /tangle/ one of my files. Notice that in order to increase the speed of the tangling process (and not wanting to pollute a project perspective), I use a /temporary buffer/ instead of =find-file=.
@@ -272,8 +279,7 @@ And we can tangle /all/ the files:
     "Tangle all my Org initialization/configuration files."
     (interactive)
     (dolist (file (ha-hamacs-files))
-      (unless (equal file "bootstrap.org")
-        (ha-hamacs-tangle file))))
+      (ha-hamacs-tangle file)))
 #+end_src
 ** Edit my Files
 Changing my Emacs configuration is as simple as editing an Org file containing the code, and evaluating that block or expression.  Or even /re-loading/ the entire file as described above. Calling =find-file= (or more often [[file:ha-config.org::*Projects][project-find-file]]) is sufficient but quicker if I supply a /focused list/ of just the files in my project:

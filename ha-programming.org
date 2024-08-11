@@ -1198,7 +1198,8 @@ Support for [[https://docutils.sourceforge.io/rst.html][reStructuredText]] is [[
 #+begin_src emacs-lisp
   (use-package rst
     :config
-    (set-face-attribute 'rst-literal nil :font ha-fixed-font))
+    (when (and (display-graphic-p) (boundp 'ha-fixed-font))
+      (set-face-attribute 'rst-literal nil :font ha-fixed-font)))
 #+end_src
 ** Docker
 Edit =Dockerfiles= with the [[https://github.com/spotify/dockerfile-mode][dockerfile-mode]] project:

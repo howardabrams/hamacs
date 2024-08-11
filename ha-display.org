@@ -37,10 +37,24 @@ Let's turn off the menu and other settings:
 #+end_src
 
 And let’s make this Emacs look more like a fancy IDE with [[https://github.com/domtronn/all-the-icons.el][all-the-icons]]:
+
 #+begin_src emacs-lisp
   (use-package all-the-icons
-    :if (display-graphic-p))
+    :if (display-graphic-p)
+    :config
+    (setq major-mode-hydra-title-generator
+          '(lambda (mode)
+             (let ((title (thread-last mode
+                                       (symbol-name)
+                                       (string-replace "-" " ")
+                                       (string-replace " mode" "")
+                                       (s-titleize))))
+               (s-concat ; (s-repeat 5 " ")
+                (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+                " " title " Commands")))))
 #+end_src
+
+This also expands the [[file:ha-config.org::*Leader Sequences][Major Mode Hydra]] title sequence with a pretty icon.
 * Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:
 #+begin_src emacs-lisp
