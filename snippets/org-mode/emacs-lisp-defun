@@ -2,7 +2,7 @@
 # name: emacs-lisp-test
 # key: #elt
 # --
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (ert-deftest $1-test ()
   (should (= $0)))
-#+end_src
+#+END_SRC

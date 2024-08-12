@@ -1,11 +1,7 @@
 # -*- mode: snippet -*-
-# name: header
-# key: header
+# name: python-src-block
+# key: #sp
 # --
-#+title:  ${1:`(replace-regexp-in-string "-" " " (capitalize (file-name-nondirectory (file-name-sans-extension (buffer-file-name)))))`}
-#+author: `(user-full-name)`
-#+email:  `user-mail-address`
-#+date:   `(format-time-string "%Y-%m-%d %B")`
-#+tags:   $2
-
-$0
+#+BEGIN_SRC python
+  $0
+#+END_SRC
