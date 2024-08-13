@@ -152,7 +152,10 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
     :config
     (setq telega-user-use-avatars nil
           telega-use-tracking-for nil ; '(any pin unread)
-          telega-chat-use-markdown-formatting t
+          ;; Use org formatting for normal messages.
+          ;; Want to send the org markup without formatting?
+          ;; The `nil' sets that with `C-u' then Return:
+          telega-chat-input-markups '("org" nil)
           telega-emoji-use-images t
                                           ; telega-completing-read-function #'ivy-completing-read
           telega-msg-rainbow-title nil)

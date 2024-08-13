@@ -967,8 +967,25 @@ Need to make sure that Emacs will handle the prompts, and turn it on:
     :config
     (setenv "GPG_AGENT_INFO" nil)
     (epa-file-enable))
-
 #+end_src
+
+Since I already (at this point in my file) have Org installed and running, the following code configures the encryption of certain header sections (see [[https://orgmode.org/worg/org-tutorials/encrypting-files.html][this tutorial]]). Headers with a =:crypt:tag (see =org-crypt-tag-matcher= to change it) will be encrypted.
+
+To temporarily read an encrypted part, and call =M-x org-decrypt-entry= when the cursor is inside that section. Saving the file, will re-encrypt it.
+
+
+#+begin_src emacs-lisp
+  (use-package org
+    :config
+    (require 'org-crypt)
+
+    (org-crypt-use-before-save-magic)
+    (setq org-tags-exclude-from-inheritance (quote ("crypt")))
+    ;; GPG key to use for encryption
+    ;; Either the Key ID or set to nil to use symmetric encryption.
+    (setq org-crypt-key nil))
+#+end_src
+
 * Technical Artifacts :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp :exports none
