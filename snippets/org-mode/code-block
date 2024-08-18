@@ -1,7 +1,7 @@
 # -*- mode: snippet -*-
 # name: code-block
-# key: #s
+# key: <s
 # --
-#+begin_src $1
+#+BEGIN_SRC $1
 $0
-#+end_src
+#+END_SRC

@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: name
-# key: #n
+# key: <n
 # --
 #+NAME: $0

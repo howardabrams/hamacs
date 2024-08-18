@@ -1,8 +1,10 @@
 # -*- mode: snippet -*-
-# name: emacs-lisp-test
-# key: #elt
+# name: emacs-lisp-defun
+# key: <slf
 # --
 #+BEGIN_SRC emacs-lisp
-(ert-deftest $1-test ()
-  (should (= $0)))
+(defun ${1:fun} (${2:args})
+  "${3:docstring}"
+  ${4:(interactive${5: "${6:P}"})}
+  $0)  
 #+END_SRC

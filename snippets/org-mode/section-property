@@ -2,6 +2,6 @@
 # name: section-property
 # key: prop
 # --
-:properties:
-:header-args:${1:emacs-lisp} :${2:results} ${3:silent}
-:end:
+:PROPERTIES:
+:HEADER-ARGS:${1:emacs-lisp} :${2:results} ${3:silent}
+:END:

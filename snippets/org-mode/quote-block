@@ -1,7 +1,7 @@
 # -*- mode: snippet -*-
 # name: quote-block
-# key: #q
+# key: <q
 # --
-#+begin_quote
+#+BEGIN_QUOTE
 $0
-#+end_quote
+#+END_QUOTE
