@@ -92,7 +92,7 @@ The [[https://github.com/syohex/emacs-git-gutter-fringe][git-gutter-fringe]] pro
     ;; To have both flymake and git-gutter work, we put
     ;; git-gutter on the right side:
     (git-gutter-fr:side 'right-fringe)
-    (left-fringe-width 15)
+    ;; (left-fringe-width 15)
     (right-fringe-width 10)
 
     :config
@@ -457,7 +457,7 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
 #+end_src
 
 This function allows Imenu to offer HTML headings in EWW buffers, helpful for navigating long, technical documents.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package eww
     :config
     (defun unpackaged/imenu-eww-headings ()
@@ -489,7 +489,7 @@ Make my EWW browsers /look/ like an Org file with the [[https://github.com/cheny
     :straight (:host github :repo "chenyanming/shrface")
     :config
     (shrface-basic)
-    (shrface-trial)
+    ;; (shrface-trial)
     ;; (shrface-default-keybindings) ; setup default keybindings
     (setq shrface-href-versatile t)
 
@@ -500,17 +500,18 @@ Make my EWW browsers /look/ like an Org file with the [[https://github.com/cheny
         ("J" shrface-headline-consult "Goto Heading")))))
 #+end_src
 
-And connect it to EWW:
+The following connection to EWW throws errors now. Hrm.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package eww
     :after shrface
     :hook (eww-after-render #'shrface-mode))
 #+end_src
+
 ** Get Pocket
 The [[https://github.com/alphapapa/pocket-reader.el][pocket-reader]] project connects to the [[https://getpocket.com/en/][Get Pocket]] service.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package pocket-reader
     :init
     (setq org-web-tools-pandoc-sleep-time 1)

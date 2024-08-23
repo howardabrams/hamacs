@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Hugo Callout
+# key: callout
+# --
+{{< callout type="${2:$$(yas-choose-value '("note" "warning" "hint"))}" >}}
+  $0
+{{< /callout >}}

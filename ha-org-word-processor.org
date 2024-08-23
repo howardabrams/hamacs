@@ -33,14 +33,19 @@ I like having org-mode files look more like a word processor than having it look
 Since I use ellipsis in my writing… to /change/ how org renders a collapsed heading.
 
 #+begin_src emacs-lisp
-  (setq org-pretty-entities t
-        org-ellipsis "⤵"     ; …, ➡, ⚡, ▼, ↴, , ∞, ⬎, ⤷, ⤵
-        org-agenda-breadcrumbs-separator " ❱ "
-        org-catch-invisible-edits 'show-and-error
-        org-special-ctrl-a/e t     ; Note: Need to get this working with Evil!
-        org-src-fontify-natively t ; Pretty code blocks
-        org-hide-emphasis-markers t)
+  (use-package org
+    :config
+    (setq org-pretty-entities t
+          org-hide-emphasis-markers t
+          org-auto-align-tags nil
+          org-tags-column 0
+          org-ellipsis "⤵"                ; …, ➡, ⚡, ▼, ↴, , ∞, ⬎, ⤷, ⤵
+          org-catch-invisible-edits 'show-and-error
+          org-special-ctrl-a/e t ; Note: Need to get this working with Evil!
+          org-src-fontify-natively t      ; Pretty code blocks
+          org-agenda-breadcrumbs-separator " ❱ "))
 #+end_src
+
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I stay with dashed bullets. Numeric bullets should cycle:
 
 #+begin_src emacs-lisp
@@ -51,9 +56,42 @@ Oh, and as I indent lists, they should change the /bulleting/ in a particular se
 The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really work well with variable-width fonts, so let’s make the spaces at the beginning of the line fixed:
 #+begin_src emacs-lisp
   (use-package org
-    ;; TODO: Using the latest org-mode
-    ;; :straight (:type built-in)
     :custom-face (org-indent ((t (:inherit fixed-pitch)))))
+#+end_src
+
+Finally, let’s add frame borders and window dividers:
+
+#+begin_src emacs-lisp
+  (modify-all-frames-parameters
+   '((right-divider-width . 20)
+     (internal-border-width . 20)))
+
+  (dolist (face '(window-divider
+                  window-divider-first-pixel
+                  window-divider-last-pixel))
+    (face-spec-reset-face face)
+    (set-face-foreground face (face-attribute 'default :background)))
+
+  (set-face-background 'fringe (face-attribute 'default :background))
+#+end_src
+
+** Hide Heading Stars
+I’ve struggled with hiding the initial asterisks that denote a headline in Org.
+
+#+begin_src emacs-lisp
+  (defun org-mode-hide-stars ()
+    (font-lock-add-keywords
+     nil
+     '(("^\\*+ "
+        (0 (put-text-property (match-beginning 0) (match-end 0) 'face
+                              (list :foreground
+                                    (face-attribute 'default :background))))))))
+#+end_src
+
+And hook this function to Org:
+#+begin_src emacs-lisp
+  (use-package org
+    :hook (org-mode . org-mode-hide-stars))
 #+end_src
 ** Markup View
 The variable, =org-hide-emphasis-markers=, is key to pretending that Emacs can be a word processor, however, since the org markup controls aren’t viewable, I find it challenging at times, to change that. The [[https://github.com/awth13/org-appear][org-appear project]] seeks to fix this by showing the markup when the point is nearby:
@@ -244,39 +282,37 @@ I really want to use the Org Beautify package, but it overrides my darker themes
   (defun ha-word-processor-fonts ()
     "Configure `org-mode' fonts and faces."
     (interactive)
-
+    (when window-system
     ;; First step is to make all Org header levels to use the variable
     ;; font, and be the same color as the default text:
-
-    (when window-system
       (let ((default-color (face-attribute 'default :foreground)))
         (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4
-                        org-level-5 org-level-6 org-level-7 org-level-8))
+                                    org-level-5 org-level-6 org-level-7 org-level-8))
           (set-face-attribute face nil :height 1.1
                               :foreground default-color :weight 'bold
-                              :font ha-variable-header-font))))
+                              :font ha-variable-header-font)))
 
-    ;; Change the header sizes to show their level visually:
-    (set-face-attribute 'org-level-1 nil :height 2.2)
-    (set-face-attribute 'org-level-2 nil :height 1.8)
-    (set-face-attribute 'org-level-3 nil :height 1.4)
-    (set-face-attribute 'org-level-4 nil :height 1.2)
+      ;; Change the header sizes to show their level visually:
+      (set-face-attribute 'org-level-1 nil :height 2.2)
+      (set-face-attribute 'org-level-2 nil :height 1.8)
+      (set-face-attribute 'org-level-3 nil :height 1.4)
+      (set-face-attribute 'org-level-4 nil :height 1.2)
 
-    (dolist (face '(org-block org-code org-verbatim org-table org-drawer
-                              org-table org-formula org-special-keyword org-block
-                              org-property-value org-document-info-keyword))
-      (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9))
+      (dolist (face '(org-block org-code org-verbatim org-table org-drawer
+                                org-table org-formula org-special-keyword org-block
+                                org-property-value org-document-info-keyword))
+        (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9))
 
-    ;; While we are at it, let’s make sure the code blocks are using my fixed with font:
-    (set-face-attribute 'org-table nil :height 1.0)
-    (set-face-attribute 'org-formula nil :height 1.0)
+      ;; While we are at it, let’s make sure the code blocks are using my fixed with font:
+      (set-face-attribute 'org-table nil :height 1.0)
+      (set-face-attribute 'org-formula nil :height 1.0)
 
-    (set-face-attribute 'org-block-begin-line nil :height 0.9)
-    (set-face-attribute 'org-block-end-line nil :height 0.8)
+      (set-face-attribute 'org-block-begin-line nil :height 0.9)
+      (set-face-attribute 'org-block-end-line nil :height 0.8)
 
-    (set-face-attribute 'org-drawer nil :height 0.8)
-    (set-face-attribute 'org-property-value nil :height 0.85)
-    (set-face-attribute 'org-special-keyword nil :height 0.85))
+      (set-face-attribute 'org-drawer nil :height 0.8)
+      (set-face-attribute 'org-property-value nil :height 0.85)
+      (set-face-attribute 'org-special-keyword nil :height 0.85)))
 #+end_src
 
 We call this function when we start:
@@ -289,11 +325,14 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
 #+begin_src emacs-lisp
   (use-package org-modern
     :straight (:host github :repo "minad/org-modern")
-    :hook
-    ((org-mode . global-org-modern-mode)
-     (org-agenda-finalize . org-modern-agenda))
+    :after org
+    :hook ( ; (add-hook 'org-mode-hook #'org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda))
     :custom
-    (org-modern-table nil))
+    (org-modern-table nil)
+    :config
+    (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
+    (global-org-modern-mode))
 #+end_src
 
 I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.

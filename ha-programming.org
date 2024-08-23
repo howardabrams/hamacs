@@ -1152,8 +1152,33 @@ And then we can use it. For some reason, the =pymarkdown= (which I need to use f
     :config
     (setq flycheck-markdown-pymarkdown-config ".pymarkdown.yml")
     (flycheck-may-enable-checker 'markdown-pymarkdown))
+#+end_src
 
-  ;;  defcustom flycheck-markdown-pymarkdown-config
+Ugh
+
+#+begin_src emacs-lisp
+  (flycheck-def-config-file-var flycheck-markdown-pymarkdown-config
+      markdown-pymarkdown nil
+    :package-version '(flycheck . "34"))
+
+  (flycheck-define-checker markdown-pymarkdown
+    "Markdown checker using PyMarkdown.
+
+  See URL `https://pypi.org/project/pymarkdownlnt/'."
+    :command ("pymarkdown"
+              (config-file "--config" flycheck-markdown-pymarkdown-config)
+              "scan"
+              source)
+    :error-patterns
+    ((error line-start
+            (file-name) ":" line
+            (? ":" column) ": " (id (one-or-more alnum))
+            ": " (message) line-end))
+    :error-filter
+    (lambda (errors)
+      (flycheck-sanitize-errors
+       (flycheck-remove-error-file-names "(string)" errors)))
+    :modes (markdown-mode gfm-mode))
 #+end_src
 
 Both the =markdown-command= and the =markdown-open-command= variables are called to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):

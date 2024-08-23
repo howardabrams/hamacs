@@ -75,15 +75,21 @@ To make the active window /more noticeable/, we /dim/ the in-active windows with
 
 #+begin_src emacs-lisp
   (use-package dimmer
-    :custom
-    (dimmer-adjustment-mode :foreground)
-    :config
-    (dimmer-configure-which-key)    ; Do not dim these special windows
-    (dimmer-configure-hydra)
-    (dimmer-configure-magit)
-
-    (dimmer-mode t))
+    :custom (dimmer-adjustment-mode :foreground))
 #+end_src
+
+I get issues with Magic and Dimmer, so let’s turn off this feature in certain windows:
+
+#+begin_src emacs-lisp
+   (use-package dimmer
+     :config
+     (dimmer-configure-which-key)    ; Do not dim these special windows
+     (dimmer-configure-hydra)
+     (dimmer-configure-magit)
+
+     (dimmer-mode t))
+#+end_src
+
 As an interesting alternative, check out the [[https://www.emacs.dyerdwelling.family/emacs/20240208164549-emacs-selected-window-accent-mode-now-on-melpa/][selected-window-accent]] project.
 * Find the Bloody Cursor
 Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.

@@ -249,11 +249,43 @@ Bind these functions to the /local/ mode key sequence:
     (ha-leader :keymaps 'org-mode-map
        "o y" '("format yank" . ha-org-yank-clipboard)))
 #+end_src
+** Converting to Markdown
+Let's work top-down at this point with the interactive function that inserts the clipboard into the current buffer:
+#+begin_src emacs-lisp
+  (defun ha-md-yank-clipboard ()
+    "Yanks (pastes) the contents of the Apple Mac clipboard in an
+  markdown-mode-compatible format."
+    (interactive)
+    (insert (ha-md-clipboard)))
+#+end_src
+
+This function does the heavy lifting. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.
+
+#+begin_src emacs-lisp
+  (defun ha-md-clipboard ()
+    "Return the contents of the clipboard in markdown-mode format."
+    (seq-let (type contents) (ha-get-clipboard)
+      (with-temp-buffer
+        (insert contents)
+        (if (eq :html type)
+            (shell-command-on-region (point-min) (point-max)
+                                     "pandoc -f html -t markdown --wrap=auto --ascii --markdown-headings=atx -t gfm-raw_html" t t)
+          (shell-command-on-region (point-min) (point-max)
+                                   "pandoc -f markdown -t markdown --wrap=auto --ascii" t t))
+        ;; (ha-html-paste-touchup)
+        (buffer-substring-no-properties (point-min) (point-max)))))
+#+end_src
+
+Bind these functions to the /local/ mode key sequence:
+#+begin_src emacs-lisp
+  (ha-leader :keymaps '(markdown-mode-map gfm-mode-map)
+    "o y" '("format yank" . ha-md-yank-clipboard))
+#+end_src
 * Technical Artifacts                                :noexport:
 Let's provide a name so we can =require= this file:
 #+begin_src emacs-lisp
-(provide 'ha-org-clipboard)
-;;; ha-org-clipboard.el ends here
+  (provide 'ha-org-clipboard)
+  ;;; ha-org-clipboard.el ends here
 #+end_src
 
 #+description: A literate programming version of functions for formatting the clipboard.

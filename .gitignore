@@ -6,3 +6,5 @@
 /incubate.org
 /elisp/bookmark+*.el
 /.DS_Store
+/elisp/gourmet.el
+/elisp/wd-imaas.el

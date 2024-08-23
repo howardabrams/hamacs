@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-08-20 Tue]
+#+lastmod: [2024-09-02 Mon]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -351,6 +351,7 @@ Add a keybinding to the function:
 ** Misc
 *** Babel Blocks
 I use [[https://orgmode.org/worg/org-contrib/babel/intro.html][org-babel]] (obviously) and don’t need confirmation before evaluating a block:
+
 #+name: ob-configuration
 #+begin_src emacs-lisp :tangle no
   (setq org-confirm-babel-evaluate nil
@@ -382,6 +383,15 @@ And turn on ALL the languages:
                                  (css        . t)
                                  (plantuml   . t)))
 #+end_src
+
+The [[https://github.com/isamert/corg.el][corg project]] does completing feature for all the block header values. To do this, type ~M-Tab~ (not just regular ~Tab~).
+
+#+begin_src emacs-lisp :results list :hlines yes
+  (use-package corg
+    :straight (:host github :repo "isamert/corg.el")
+    :hook (org-mode . 'corg-setup))
+#+end_src
+
 *** Searching Literate Files
 A noweb definition, e.g. =<<something-something>>= could /jump/ to the =#name= definition.
 Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
@@ -899,12 +909,15 @@ Once in the dictionary buffer, acquiesce these keybindings:
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
 *** Writegood
-The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words, but isn’t integrated into =flycheck=:
-#+begin_src emacs-lisp :tangle no
-  (use-package writegood-mode
-    :hook (org-mode . writegood-mode))
+The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words.
+#+begin_src emacs-lisp
+  (use-package writegood-mode)
 #+end_src
 And it reports obnoxious messages.
+
+Hrm::hook ((org-mode . writegood-mode)
+           (gfm-mode . writegood-mode)
+           (markdown-mode) . writegood-mode)
 
 We install the =write-good= NPM:
 #+begin_src shell
@@ -957,7 +970,7 @@ And tell [[https://www.flycheck.org/][flycheck]] to use this:
 #+end_src
 *** Textlint
 The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as long as there is an executable:
-#+begin_src sh
+#+begin_src sh :results silent
   npm install -g textlint
   # And all the rules
   npm install -g textlint-rule-alex

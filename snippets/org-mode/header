@@ -1,7 +1,12 @@
-# -*- mode: snippet -*-
-# name: python-src-block
-# key: <sp
+# key: header
+# name: header
 # --
-#+BEGIN_SRC python
-  $0
-#+END_SRC
+#+TITLE:  ${1:`(s-titleized-words (s-replace-regexp (rx (any "-" "_")) " " (file-name-base (buffer-file-name))))`}
+#+AUTHOR: Howard Abrams
+#+EMAIL:  howard@howardabrams.com
+#+DATE:   `(format-time-string "%Y-%m-%d %a")`
+#+LASTMOD: [`(format-time-string "%Y-%m-%d %a")`]
+#+FILETAGS: ${2:personal}
+#+STARTUP: ${3:inlineimages}
+
+$0
