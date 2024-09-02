@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-08-08 Thu]
+#+lastmod: [2024-08-20 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -33,7 +33,7 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
   (use-package org
     ;; TODO: Using the latest org-mode
     ;; :straight (:type built-in)
-    :mode ("\\.org" . org-mode)    ; Addresses an odd warning
+    :mode (("\\.org" . org-mode))
     :init
     <<variables>>
     <<org-todo>>
