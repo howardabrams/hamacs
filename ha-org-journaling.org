@@ -25,33 +25,50 @@ A literate programming configuration file for extending the Journaling capabilit
   ;;; Code:
 #+end_src
 * Introduction
-Using the [[https://github.com/bastibe/org-journal][org-journal]] project to easily create /daily/ journal entries:
+I used to use the [[https://github.com/bastibe/org-journal][org-journal]] project to create /daily/ journal entries, but what I like is one file per journal entry, and that project did more than I needed. I made my own.
 
-#+begin_src emacs-lisp
-  (use-package org-journal
-    :after org
-    :config
-    (setq org-journal-dir "~/journal"
-          org-journal-date-format " "
-          org-journal-time-format ""
-          org-journal-file-type 'daily
-          org-journal-file-format "%Y%m%d")
+My requirements are simple:
 
+  1. A directory of entries, =~/journal=. Each file is based on the date, e.g. =20241228= or =20130401=.
+  2. A minor mode to identify a journal entry as opposed to a regular org file.
+
+Where do I store these?
+
+#+BEGIN_SRC emacs-lisp
+  (defvar org-journal-dir (expand-file-name "~/journal")
+    "Location of Journal entries, org files.")
+#+END_SRC
+
+And what identifies a Journal file?
+
+#+BEGIN_SRC emacs-lisp
+  (defvar org-journal-rx (rx (group (= 4 digit))
+                             (optional "-")
+                             (group (= 2 digit))
+                             (optional "-")
+                             (group (= 2 digit)))
+    "A regular expression that identifies journal file entries.")
+  #+END_SRC
+And a function to create a new entry:
+
+#+BEGIN_SRC emacs-lisp
+  (defun org-journal-new-entry ()
+    "Opens today's journal entry file."
+    (interactive)
+    (find-file (expand-file-name (format-time-string "%Y%m%d")
+                                 org-journal-dir)))
+#+END_SRC
+
+And connect files that /look/ like a Journal entry with =org-mode=:
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'auto-mode-alist `(,org-journal-rx . org-mode))
+#+END_SRC
+
+And pull ‘er up:
+#+BEGIN_SRC emacs-lisp
     (ha-leader "f j" '("journal" . org-journal-new-entry))
-
-
-    ;; In normal Org file, I like large headers, but in my Journal,
-    ;; where each task is a header, I want them smaller:
-    (add-hook 'org-journal-mode-hook
-          (lambda ()
-            (set-face-attribute 'org-level-1 nil :height 1.2)
-            (set-face-attribute 'org-level-2 nil :height 1.1)
-            (set-face-attribute 'org-level-3 nil :height 1.0)))
-
-    ;; But new files could use /my formatting/ (which is different
-    ;; than the options available in the project):
-    (ha-auto-insert-file (rx "journal/" (zero-or-more any) (= 8 digit)) "journal"))
-#+end_src
+#+END_SRC
 
 This depends on the following [[file:~/.doom.d/snippets/org-journal-mode/__journal][snippet/template file]]:
 
@@ -59,8 +76,13 @@ This depends on the following [[file:~/.doom.d/snippets/org-journal-mode/__journ
 #+title: Journal Entry- `(ha-journal-file-datestamp)`
 
 $0
-
 #+end_src
+
+And the code to connect that template to those files:
+
+#+BEGIN_SRC emacs-lisp
+  (ha-auto-insert-file (rx "journal/" (regexp org-journal-rx)) "journal"))
+#+END_SRC
 
 Note that when I create a new journal entry, I want a title that should insert a date to match the file's name, not necessarily the current date (see below).
 * Journal Filename to Date
@@ -68,39 +90,43 @@ Since the Journal's filename represents a date, I should be able to get the "dat
 
 #+begin_src emacs-lisp
   (defun ha-journal-file-date (&optional datename)
-    "Returns a Lisp date-timestamp based on the format of the current filename,
-  or DATENAME if given."
+    "Return a Lisp date-timestamp from current filename.
+  If DATENAME is given, return that timestamp."
     (unless datename
-      (setq datename (buffer-file-name)))
+      (setq datename (file-name-base (buffer-file-name))))
 
-    (let* ((datename-parser (rx (group (= 4 digit))
-                                (group (= 2 digit))
-                                (group (= 2 digit))))
-           (parsed-datename (string-match datename-parser datename))
-           (day (string-to-number (match-string 3 datename)))
-           (month (string-to-number (match-string 2 datename)))
-           (year(string-to-number (match-string 1 datename))))
-      (encode-time 0 0 0 day month year)))
+    (when (string-match org-journal-rx datename)
+      (let ((day (string-to-number   (match-string 3 datename)))
+            (month (string-to-number (match-string 2 datename)))
+            (year(string-to-number   (match-string 1 datename))))
+        (encode-time 0 0 0 day month year))))
 #+end_src
 
+And some unit tests to validate this function:
+
+#+begin_src emacs-lisp :tangle no
+  (ert-deftest ha-journal-file-date-test ()
+    (should (equal (ha-journal-file-date "20240817") '(26304 19056)))
+    (should (equal (ha-journal-file-date "2024-08-17") '(26304 19056))))
+#+end_src
 Using the "date" associated with a file, we can create our standard timestamp:
 
 #+begin_src emacs-lisp
   (defun ha-journal-file-datestamp (&optional datename)
-    "Return a string of the buffer's date (based on the file's name)."
+    "Return date string of DATENAME if given.
+  If nil, use the buffer's filename's date."
     (format-time-string "%e %b %Y (%A)" (ha-journal-file-date datename)))
 #+end_src
-
 * Journal Capture
 Capturing a task (that when uncompleted, would then spillover to following days) could go to the daily journal entry. This requires a special function that opens today's journal, but specifies a non-nil prefix argument in order to inhibit inserting the heading, as =org-capture= will insert the heading.
 
 #+begin_src emacs-lisp
   (defun org-journal-find-location ()
-    (org-journal-new-entry t)
-    (org-narrow-to-subtree)
+    (org-journal-new-entry)
     (goto-char (point-max)))
 
   (defvar org-capture-templates (list))
+
   (add-to-list 'org-capture-templates
                '("j" "Journal Task/Entry" plain
                  (function org-journal-find-location)
@@ -111,16 +137,18 @@ Capturing a task (that when uncompleted, would then spillover to following days)
 Sometimes it is obvious what is the /next file/ based on the one I'm currently reading. For instance, in my journal entries, the filename is a number that can be incremented. Same with presentation files...
 
 #+begin_src emacs-lisp
-  (defun split-string-with-number (string)
-    "Returns a list of three components of the string, the first is
-    the text prior to any numbers, the second is the embedded number,
-    and the third is the rest of the text in the string."
-    (let* ((start (string-match "[0-9]+" string))
-           (end (string-match "[^0-9]+" string start)))
-      (if start
-          (list (substring string 0 start)
-                (substring string start end)
-                (if end  (substring string end)  "")))))
+  (defun split-string-with-number (str)
+    "Return list of three components of string, STR.
+  The first is the text prior to any numbers, The second is the
+  embedded number, and the third is the rest of the text in the
+  string."
+    (let* ((ms (string-match (rx (one-or-more digit)) str)))
+      (when ms
+        (list (substring str 0 ms)
+              (match-string 0 str)
+              (substring str
+                         (+ ms
+                            (length (match-string 0 str))))))))
 #+end_src
 
 Which means that the following defines this function:
@@ -170,6 +198,14 @@ And this allows us to create two simple functions that can load the "next" and "
     (interactive)
     (find-file (find-file-number-change '1-)))
 #+end_src
+
+And we could bind those:
+
+#+BEGIN_SRC emacs-lisp
+  (ha-leader "f +" '("next file" . find-file-increment)
+             "f -" '("previous file" . find-file-decrement))
+#+END_SRC
+
 * Technical Artifacts                          :noexport:
 Let's =provide= a name so we can =require= this file.
 
