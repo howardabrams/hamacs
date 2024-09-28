@@ -97,7 +97,9 @@ Next, we need some basic configuration settings and some global keybindings:
            :map notmuch-tree-mode-map
                 ("C" . notmuch-mua-new-mail)))
 #+end_src
+
 And some leader-based keybindings:
+
 #+begin_src emacs-lisp :noweb yes
   (use-package notmuch
     :config
@@ -105,19 +107,17 @@ And some leader-based keybindings:
       "a n" '("new mail" . notmuch-retrieve-messages)
       "a c" '("compose mail" . compose-mail))
 
-    (major-mode-hydra-define notmuch-hello-mode nil
+    (major-mode-hydra-define notmuch-hello-mode (:quit-key "q")
       ("Mail"
        (("u" notmuch-retrieve-messages "new mail")
         ("m" notmuch "read mail"))
        "Messages"
        (("c" notmuch-mua-new-mail "compose")
-        ("C" hey-notmuch-reply-later "reply-later"))))
-
-    <<hey-show-keybindings>>
-    <<hey-search-keybindings>>)
-
+        ("C" hey-notmuch-reply-later "reply-later")))))
 #+end_src
+
 Also, let's do some basic configuration of Emacs' mail system:
+
 #+begin_src emacs-lisp
   (setq mm-text-html-renderer 'shr
         mail-specify-envelope-from t
@@ -138,14 +138,16 @@ Do I want to sign messages by default? Nope.
 ** Addresses
 I need to incorporate an address book again, but in the meantime, searching through a history of past email works well enough.
 #+begin_src emacs-lisp
-  (setq notmuch-address-selection-function
-        (lambda (prompt collection initial-input)
-          (completing-read prompt
-                           (cons initial-input collection)
-                           nil
-                           t
-                           nil
-                           'notmuch-address-history)))
+  (use-package notmuch
+    :config
+    (setq notmuch-address-selection-function
+          (lambda (prompt collection initial-input)
+            (completing-read prompt
+                             (cons initial-input collection)
+                             nil
+                             t
+                             nil
+                             'notmuch-address-history))))
 #+end_src
 ** Sending Messages
 Do I need to set up [[https://marlam.de/msmtp/][MSMTP]]? No, as Notmuch will do that work.
@@ -173,6 +175,7 @@ There are global settings:
 
 The following section is for my /personal/ (not too general) account.
 The file generally can have a =Pass= entry for the encrypted passcode, but to show how to connect to more than one accounts, I'm using a GPG daemon:
+
 #+begin_src conf :tangle ~/.mbsyncrc :noweb yes
   # PERSONAL ACCOUNT
   IMAPAccount personal
@@ -439,69 +442,71 @@ To allow me to keep Vedang's and my code side-by-side in the same Emacs variable
 A list of pre-defined searches act like "Folder buttons" at the top to quickly see files that match those /buckets/:
 
 #+begin_src emacs-lisp
-(setq notmuch-saved-searches '((:name "Imbox"
-                                      :query "tag:inbox AND tag:screened AND tag:unread"
-                                      :key "i"
-                                      :search-type 'tree)
-                               (:name "Previously Seen"
-                                      :query "tag:screened AND NOT tag:unread"
-                                      :key "I")
-                               (:name "Unscreened"
-                                      :query "tag:inbox AND tag:unread AND NOT tag:screened AND NOT date:..14d AND NOT tag:thefeed AND NOT tag:/ledger/ AND NOT tag:old-project"
-                                      :key "s")
-                               (:name "New Feed"
-                                      :query "tag:thefeed AND tag:unread"
-                                      :key "f"
-                                      :search-type 'tree)
-                               (:name "Old Feed"
-                                      :query "tag:thefeed"
-                                      :key "f"
-                                      :search-type 'tree)
-                               (:name "New Receipts"
-                                      :query "tag:/ledger/ AND tag:unread"
-                                      :key "p")
-                               (:name "Papertrail"
-                                      :query "tag:/ledger/"
-                                      :key "P")
+  (use-package notmuch
+    :config
+    (setq notmuch-saved-searches '((:name "Imbox"
+                                          :query "tag:inbox AND tag:screened AND tag:unread"
+                                          :key "i"
+                                          :search-type 'tree)
+                                   (:name "Previously Seen"
+                                          :query "tag:screened AND NOT tag:unread"
+                                          :key "I")
+                                   (:name "Unscreened"
+                                          :query "tag:inbox AND tag:unread AND NOT tag:screened AND NOT date:..14d AND NOT tag:thefeed AND NOT tag:/ledger/ AND NOT tag:old-project"
+                                          :key "s")
+                                   (:name "New Feed"
+                                          :query "tag:thefeed AND tag:unread"
+                                          :key "f"
+                                          :search-type 'tree)
+                                   (:name "Old Feed"
+                                          :query "tag:thefeed"
+                                          :key "f"
+                                          :search-type 'tree)
+                                   (:name "New Receipts"
+                                          :query "tag:/ledger/ AND tag:unread"
+                                          :key "p")
+                                   (:name "Papertrail"
+                                          :query "tag:/ledger/"
+                                          :key "P")
 
-                               ;; (push '(:name "Projects"
-                               ;;               :query "tag:project AND NOT tag:unread"
-                               ;;               :key "x")
-                               ;;       notmuch-saved-searches)
-                               (:name "Old Projects"
-                                      :query "tag:old-project AND NOT tag:unread"
-                                      :key "X")))
+                                   ;; (push '(:name "Projects"
+                                   ;;               :query "tag:project AND NOT tag:unread"
+                                   ;;               :key "x")
+                                   ;;       notmuch-saved-searches)
+                                   (:name "Old Projects"
+                                          :query "tag:old-project AND NOT tag:unread"
+                                          :key "X"))))
 #+end_src
 ** Helper Functions
 
 With good bucket definitions, we should be able to scan the mail quickly and deal with the entire lot of them:
 
 #+begin_src emacs-lisp
-(defun hey-notmuch-archive-all ()
-  "Archive all the emails in the current view."
-  (interactive)
-  (notmuch-search-archive-thread nil (point-min) (point-max)))
+  (defun hey-notmuch-archive-all ()
+    "Archive all the emails in the current view."
+    (interactive)
+    (notmuch-search-archive-thread nil (point-min) (point-max)))
 
-(defun hey-notmuch-delete-all ()
-  "Archive all the emails in the current view.
-Mark them for deletion by cron job."
-  (interactive)
-  (notmuch-search-tag-all '("+deleted"))
-  (hey-notmuch-archive-all))
+  (defun hey-notmuch-delete-all ()
+    "Archive all the emails in the current view.
+  Mark them for deletion by cron job."
+    (interactive)
+    (notmuch-search-tag-all '("+deleted"))
+    (hey-notmuch-archive-all))
 
-(defun hey-notmuch-search-delete-and-archive-thread ()
-  "Archive the currently selected thread. Add the deleted tag as well."
-  (interactive)
-  (notmuch-search-add-tag '("+deleted"))
-  (notmuch-search-archive-thread))
+  (defun hey-notmuch-search-delete-and-archive-thread ()
+    "Archive the currently selected thread. Add the deleted tag as well."
+    (interactive)
+    (notmuch-search-add-tag '("+deleted"))
+    (notmuch-search-archive-thread))
 
-(defun hey-notmuch-tag-and-archive (tag-changes &optional beg end)
-  "Prompt the user for TAG-CHANGES.
-Apply the TAG-CHANGES to region and also archive all the emails.
-When called directly, BEG and END provide the region."
-  (interactive (notmuch-search-interactive-tag-changes))
-  (notmuch-search-tag tag-changes beg end)
-  (notmuch-search-archive-thread nil beg end))
+  (defun hey-notmuch-tag-and-archive (tag-changes &optional beg end)
+    "Prompt the user for TAG-CHANGES.
+  Apply the TAG-CHANGES to region and also archive all the emails.
+  When called directly, BEG and END provide the region."
+    (interactive (notmuch-search-interactive-tag-changes))
+    (notmuch-search-tag tag-changes beg end)
+    (notmuch-search-archive-thread nil beg end))
 #+end_src
 
 A key point in organizing emails with the Hey model, is looking at the "from" address:
@@ -637,53 +642,57 @@ This means:
 ** Bucket Keybindings
 A series of keybindings to quickly send messages to one of the pre-defined buckets.
 #+name: hey-show-keybindings
-#+begin_src emacs-lisp :tangle no
-  (major-mode-hydra-define notmuch-show-mode nil
-    ("Messages"
-     (("c" notmuch-mua-new-mail "compose")
-      ("C" hey-notmuch-reply-later "reply-later"))))
+#+begin_src emacs-lisp
+  (use-package notmuch
+    :config
+    (major-mode-hydra-define notmuch-show-mode (:quit-key "q")
+      ("Messages"
+       (("c" notmuch-mua-new-mail "compose")
+        ("C" hey-notmuch-reply-later "reply-later"))))
 
-  (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later)
+    (define-key notmuch-show-mode-map (kbd "C") 'hey-notmuch-reply-later))
 #+end_src
 
 The bindings in =notmuch-search-mode= are available when looking at a list of messages:
 
 #+name: hey-search-keybindings
-#+begin_src emacs-lisp :tangle no
-  (major-mode-hydra-define notmuch-search-mode nil
-    ("Mail"
-     (("r" notmuch-search-reply-to-thread "reply")
-      ("R" notmuch-search-reply-to-thread-sender "reply-all")
-      ("A" hey-notmuch-archive-all "archive all")
-      ("D" hey-notmuch-delete-all "delete all")
-      ("d" hey-notmuch-search-delete-and-archive-thread "delete thread"))
-     "Search"
-     (("/" notmuch-search-filter "search")
-      ("L" hey-notmuch-filter-by-from "filter by from")
-      (";" hey-notmuch-search-by-from "search by from"))
-     "Messages"
-     (("s" hey-notmuch-move-sender-to-spam "send to spam")
-      ("i" hey-notmuch-move-sender-to-screened "send to screened")
-      ("p" hey-notmuch-move-sender-to-papertrail "send to papertrail")
-      ("f" hey-notmuch-move-sender-to-thefeed "send to feed")
-      ("C" hey-notmuch-reply-later "reply")
-      ("c" notmuch-mua-new-mail) "compose")))
+#+begin_src emacs-lisp
+  (use-package notmuch
+    :config
+    (major-mode-hydra-define notmuch-search-mode (:color blue :title "Notmuch")
+      ("Mail"
+       (("r" notmuch-search-reply-to-thread "reply")
+        ("R" notmuch-search-reply-to-thread-sender "reply-all")
+        ("A" hey-notmuch-archive-all "archive all")
+        ("D" hey-notmuch-delete-all "delete all")
+        ("d" hey-notmuch-search-delete-and-archive-thread "delete thread"))
+       "Search"
+       (("/" notmuch-search-filter "search")
+        ("L" hey-notmuch-filter-by-from "filter by from")
+        (";" hey-notmuch-search-by-from "search by from"))
+       "Messages"
+       (("s" hey-notmuch-move-sender-to-spam "send to spam")
+        ("i" hey-notmuch-move-sender-to-screened "send to screened")
+        ("p" hey-notmuch-move-sender-to-papertrail "send to papertrail")
+        ("f" hey-notmuch-move-sender-to-thefeed "send to feed")
+        ("C" hey-notmuch-reply-later "reply")
+        ("c" notmuch-mua-new-mail "compose"))))
 
-  ;; And if I can remember the keybindings...
-  (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
-  (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
-  (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
-  (define-key notmuch-search-mode-map (kbd "A") 'hey-notmuch-archive-all)
-  (define-key notmuch-search-mode-map (kbd "D") 'hey-notmuch-delete-all)
-  (define-key notmuch-search-mode-map (kbd "L") 'hey-notmuch-filter-by-from)
-  (define-key notmuch-search-mode-map (kbd ";") 'hey-notmuch-search-by-from)
-  (define-key notmuch-search-mode-map (kbd "d") 'hey-notmuch-search-delete-and-archive-thread)
+    ;; And if I can remember the keybindings...
+    (define-key notmuch-search-mode-map (kbd "r") 'notmuch-search-reply-to-thread)
+    (define-key notmuch-search-mode-map (kbd "R") 'notmuch-search-reply-to-thread-sender)
+    (define-key notmuch-search-mode-map (kbd "/") 'notmuch-search-filter)
+    (define-key notmuch-search-mode-map (kbd "A") 'hey-notmuch-archive-all)
+    (define-key notmuch-search-mode-map (kbd "D") 'hey-notmuch-delete-all)
+    (define-key notmuch-search-mode-map (kbd "L") 'hey-notmuch-filter-by-from)
+    (define-key notmuch-search-mode-map (kbd ";") 'hey-notmuch-search-by-from)
+    (define-key notmuch-search-mode-map (kbd "d") 'hey-notmuch-search-delete-and-archive-thread)
 
-  (define-key notmuch-search-mode-map (kbd "S") 'hey-notmuch-move-sender-to-spam)
-  (define-key notmuch-search-mode-map (kbd "I") 'hey-notmuch-move-sender-to-screened)
-  (define-key notmuch-search-mode-map (kbd "P") 'hey-notmuch-move-sender-to-papertrail)
-  (define-key notmuch-search-mode-map (kbd "f") 'hey-notmuch-move-sender-to-thefeed)
-  (define-key notmuch-search-mode-map (kbd "C") 'hey-notmuch-reply-later)
+    (define-key notmuch-search-mode-map (kbd "S") 'hey-notmuch-move-sender-to-spam)
+    (define-key notmuch-search-mode-map (kbd "I") 'hey-notmuch-move-sender-to-screened)
+    (define-key notmuch-search-mode-map (kbd "P") 'hey-notmuch-move-sender-to-papertrail)
+    (define-key notmuch-search-mode-map (kbd "f") 'hey-notmuch-move-sender-to-thefeed)
+    (define-key notmuch-search-mode-map (kbd "C") 'hey-notmuch-reply-later))
 #+end_src
 ** Org Integration
 The gods ordained that Mail and Org should dance together, so step one is composing mail with org:
