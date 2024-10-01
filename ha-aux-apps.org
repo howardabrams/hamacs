@@ -33,7 +33,7 @@ Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/ma
   (use-package mastodon
     :straight (:host codeberg :repo "martianh/mastodon.el")
     :init
-    (setq mastodon-instance-url "https://emacs.ch"
+    (setq mastodon-instance-url "https://pdx.sh"
           mastodon-active-user "howard"))
 #+end_src
 
