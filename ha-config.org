@@ -523,9 +523,11 @@ And since I'll be associating snippets with new files all over my configuration,
     "Autofill file buffer matching FILENAME-RE regular expression.
   The contents inserted from the YAS SNIPPET-NAME."
     ;; The define-auto-insert takes a regular expression and an ACTION:
-    ;; ACTION may also be a vector containing successive single actions.
-    (define-auto-insert filename-re
-      (vector snippet-name 'ha-autoinsert-yas-expand)))
+    ;; ACTION may also be a vector containing _successive_ single actions.
+    ;; This means running this twice results in two repeated expansions, so:
+    (unless (assoc filename-re auto-insert-alist 'equal)
+      (define-auto-insert filename-re
+        (vector snippet-name 'ha-autoinsert-yas-expand))))
 #+end_src
 
 As an example of its use, any Org files loaded in /this project/ should insert my config file:

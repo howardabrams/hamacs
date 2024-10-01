@@ -30,7 +30,7 @@ At the beginning of each Sprint, I create a new org file dedicated to it. This w
 
 I want a single keybinding that always displays the current Sprint note file, regardless of the Sprint. This means, I need to have functions that can calculate what this is.
 
-To have the Org Capture features to be able to write to correct locations in the current file, I need each file to follow a particular format. I create a [[file:snippets/org-mode/__sprint.org][sprint note template]] that will be automatically expanded with a new sprint.
+To have the Org Capture features to be able to write to correct locations in the current file, I need each file to follow a particular format. I create a [[file:templates/sprint.org][sprint note template]] that will be automatically expanded with a new sprint.
 
 This template needs the following functions:
   - =sprint-current-name= to be both the numeric label as well as the nickname
