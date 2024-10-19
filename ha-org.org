@@ -908,6 +908,10 @@ Once in the dictionary buffer, acquiesce these keybindings:
     Also note that the dictionary has links to other pages, so ~n~ and ~TAB~ jumps to the next link and ~RET~ opens that link.
 ** Grammar and Prose Linting
 Flagging cliches, weak phrasing and other poor grammar choices.
+
+We are trying a lot of checkers, so we need to /chain/ them with a call to =flycheck-add-next-checker=:
+
+   =write-good= —> =proselint= —> =textlint= —> =languagetool=?
 *** Writegood
 The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words.
 #+begin_src emacs-lisp
@@ -1003,19 +1007,52 @@ I create a configuration file in my home directory:
   }
 }
 #+end_src
+
 Add =textlint= to the /chain/ for Org files:
 #+begin_src emacs-lisp
   (use-package flycheck
     :config
     (setq flycheck-textlint-config (format "%s/.textlintrc" (getenv "HOME")))
-    (flycheck-add-next-checker 'proselint 'textlint))
+    (flycheck-add-next-checker 'proselint 'textlint t))
 #+end_src
+
+*** Language Tool
+Another flycheck feature is to use [[http://languagetool.org][LanguageTool]] connection to [[https://github.com/emacs-languagetool/flycheck-languagetool][flycheck-languagetool]]:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package flycheck-languagetool
+    :ensure t
+    :hook (text-mode . flycheck-languagetool-setup)
+    :init
+    (setq flycheck-languagetool-server-jar (expand-file-name "~/other/LanguageTool/languagetool-server.jar")
+          flycheck-languagetool-server-args (expand-file-name "~/.config/languagetool/config.properties")))
+#+END_SRC
+
+And connect it to the chain:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package flycheck
+    :config (flycheck-add-next-checker 'textlint 'languagetool t)
+
+    ;; May have to specify a Java on one of my Mac machines:
+    (when (file-exists-p "/opt/homebrew/opt/openjdk")
+      (add-to-list 'exec-path "/opt/homebrew/opt/openjdk/bin")))
+#+END_SRC
+
+This check complains about whitespace in Org files (duh), so let’s create a configuration file where we can disable that rule (and any other we can require):
+
+#+BEGIN_SRC conf :tangle ~/.config/languagetool/config.properties :mkdirp ~/.config/languagetool
+  disabledRuleIds: WHITESPACE
+#+END_SRC
+
+Gotta admit that Language Tool doesn’t seem to help much. $ 100 ?
 ** Perfect Sentence
-Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] demonstrates the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. Similar to how org-mode edits blocks.
+Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] demonstrates the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. For instance, how org-mode edits blocks.
 
-The idea is based on Jordan Peterson's writing app, Essay.  Love the idea, and thought I might work on it. The difference is that I want my version more resilient and not as dependent on the context.
+Malorana based this idea on Jordan Peterson's writing app, [[https://essay.app/guide][Essay]]. Thought I might work on it, but I want my version more resilient and not as dependent on the context.
 
- When we create a new buffer, we want a number of /buffer-local/ variables, so that we know where to return:
+When we create a new buffer, we set the following /buffer-local/ variables, so we know where to return:
+
 #+begin_src emacs-lisp
   (defvar-local ha-sentence-buffer nil
     "The name of the buffer to return when completed.")
@@ -1026,6 +1063,7 @@ The idea is based on Jordan Peterson's writing app, Essay.  Love the idea, and t
 #+end_src
 
 My first thought is how to select the sentence. Sure, sometimes that should be the /region/, but we can also use the help:bounds-of-thing-at-point to define the start and the end of the current sentence:
+
 #+begin_src emacs-lisp
   (defun ha-sentence--select-region (type-of-thing &optional start end)
     "Return a tuple of the start and end of the selected sentence."
@@ -1034,17 +1072,19 @@ My first thought is how to select the sentence. Sure, sometimes that should be t
      ((and start end)   (cons start end))
      (t                 (bounds-of-thing-at-point type-of-thing))))
 #+end_src
-In the original buffer, we want to edit a /sentence/, but in the editing buffer, a single sentence may expand to multiple sentences, so we need to change whether we select a ='sentence= or a ='defun= (for a paragraph).
+
+In the original buffer, we want to edit a /sentence/, but in the editing buffer, a single sentence may expand to more than one, so we need to change whether we select a ='sentence= or a ='defun= (for a paragraph).
 
 With this function, we can call [[help:cl-destructuring-bind][destructuring-bind]] to define what section we want to edit by assigning the =start= and =end= values. Now we create another buffer window, set the local variables, and insert the region/sentence we requested:
 
 #+begin_src emacs-lisp
   (defun ha-sentence-break (&optional start end)
     "Break a sentence out and work it in a new buffer.
-    A sentence chosen is based on the location of a point,
-    or the active region."
+  We base the chosen sentence chosen on the location of a point,
+  or the active region."
     (interactive)
-    (cl-destructuring-bind (start . end) (ha-sentence--select-region 'sentence start end)
+    (cl-destructuring-bind (start . end)
+         (ha-sentence--select-region 'sentence start end)
       (let ((orig-mode major-mode)
             (orig-buffer (current-buffer))
             (orig-sentence (buffer-substring-no-properties start end)))
@@ -1065,7 +1105,10 @@ With this function, we can call [[help:cl-destructuring-bind][destructuring-bind
         (kill-new orig-sentence))))
 #+end_src
 
-With the new buffer displayed, the sentence to edit is shown, and the idea is to write different versions of that sentence. When we have the version we like, we hit ~C-c C-c~ which calls [[help:ha-sentence-choose][ha-sentence-choose]] /to choose/ the version that replaces the old one. But what if a sentence becomes multiple sentences? Well, in that case, we need to select the text before hitting the ~C-c C-c~ sequence. The buffer-local variables tell us which buffer to return, and what text to replace.
+With the new buffer displayed, we show the sentence to edit, with the idea to write different versions of that sentence. When we have the version we like, we hit ~C-c C-c~ which calls [[help:ha-sentence-choose][ha-sentence-choose]] /to choose/ the version that replaces the old one. But what if, during the editing process, we create more than one sentence?
+
+In that case, we need to select the text before hitting the ~C-c C-c~ sequence. The buffer-local variables tell us which buffer to return, and what text to replace.
+
 #+begin_src emacs-lisp
   (defun ha-sentence-choose (&optional start end)
     "Choose a sentence and go back to the other window."
