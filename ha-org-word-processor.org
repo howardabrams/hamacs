@@ -275,16 +275,15 @@ Well, using the =composition-function-table=, we can finally get some ligatures 
 #+end_src
 This is now fine and ffantastic!
 * Org Beautify
-I really want to use the Org Beautify package, but it overrides my darker themes (and all I really want is headlines to behave).
-
+The Org Beautify package, overrides my darker themes, and headlines should behave, so I manually set these:
 
 #+begin_src emacs-lisp
   (defun ha-word-processor-fonts ()
     "Configure `org-mode' fonts and faces."
     (interactive)
     (when window-system
-    ;; First step is to make all Org header levels to use the variable
-    ;; font, and be the same color as the default text:
+      ;; First step is to make all Org header levels to use the variable
+      ;; font, and be the same color as the default text:
       (let ((default-color (face-attribute 'default :foreground)))
         (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4
                                     org-level-5 org-level-6 org-level-7 org-level-8))
@@ -301,13 +300,9 @@ I really want to use the Org Beautify package, but it overrides my darker themes
       (dolist (face '(org-block org-code org-verbatim org-table org-drawer
                                 org-table org-formula org-special-keyword org-block
                                 org-property-value org-document-info-keyword))
-        (set-face-attribute face nil :inherit 'fixed-pitch :height 0.9))
+        (set-face-attribute face nil :inherit 'fixed-pitch :height 'unspecified))
 
-      ;; While we are at it, let’s make sure the code blocks are using my fixed with font:
-      (set-face-attribute 'org-table nil :height 1.0)
-      (set-face-attribute 'org-formula nil :height 1.0)
-
-      (set-face-attribute 'org-block-begin-line nil :height 0.9)
+      (set-face-attribute 'org-block-begin-line nil :height 0.85)
       (set-face-attribute 'org-block-end-line nil :height 0.8)
 
       (set-face-attribute 'org-drawer nil :height 0.8)
