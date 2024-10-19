@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-09-02 Mon]
+#+lastmod: [2024-10-18 Fri]
 
 A literate programming file for configuring org-mode and those files.
 
