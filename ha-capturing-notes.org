@@ -188,11 +188,15 @@ And a less-disruptive keybinding:
 #+end_src
 * External Capturing
 Using =emacsclient=, the operating system or other applications can trigger a call to capture content into Emacs. I started with the functions from [[https://macowners.club/posts/org-capture-from-everywhere-macos/][this essay]], which made a nice approach to opening and closing a frame:
+
 #+begin_src emacs-lisp
   (defun start-capture-frame (&optional template-key)
     "Create a new frame and run `org-capture'."
     (interactive)
     (make-frame '((name . "capture")
+                  (title . "Emacs Capture Window")
+                  (window-system . ns)
+                  (popup-frame . t)
                   (top . 300)
                   (left . 700)
                   (width . 80)
@@ -216,7 +220,7 @@ Wouldn’t it be grand if when we finished capturing, the frame automatically cl
 #+end_src
 
 This external shell script calls the function to kick everything off from applications that aren’t Emacs:
-#+begin_src sh :shebang "#!/bin/bash" :tangle ~/bin/emacs-capture
+#+begin_src sh :shebang "#!/bin/bash" :tangle ~/bin/emacs-capture :chmod 755
   /usr/local/bin/emacsclient -s work -n -e "(start-capture-frame)"
 #+end_src
 

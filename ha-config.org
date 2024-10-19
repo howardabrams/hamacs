@@ -658,7 +658,7 @@ I appreciated [[https://github.com/abo-abo/ace-link][ace-link]]’s idea for hyp
              "o" 'link-hint-open-link))
 #+end_src
 
-Can I open a link in another window? The idea with this is that I can select a link, and with multiple windows open, I can specify where the =*eww*= window should show the link. If only two windows, then the new EWW buffer shows in the /other/ one.
+Can I open a link in another window? The idea with this is that I can select a link, and with multiple windows open, I can specify where the =*eww*= window should show the link. If only two windows, then the new EWW buffer shows in the /src/ one.
 
 #+begin_src emacs-lisp
   (defun link-hint-open-link-ace-window ()
