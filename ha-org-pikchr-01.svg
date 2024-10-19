@@ -1,9 +1,9 @@
 <svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 260.64 76.32">
-<path d="M2.16,38.16L74.16,38.16"  style="fill:none;stroke-width:2.16;stroke:rgb(255,255,255);" />
-<path d="M74.16,74.16L182.16,74.16L182.16,2.16L74.16,2.16Z"  style="fill:none;stroke-width:2.16;stroke:rgb(255,255,255);" />
-<text x="128.16" y="28.08" text-anchor="middle" fill="rgb(255,255,255)" dominant-baseline="central">Hello,</text>
-<text x="128.16" y="48.24" text-anchor="middle" fill="rgb(255,255,255)" dominant-baseline="central">World!</text>
-<polygon points="254.16,38.16 242.64,42.48 242.64,33.84" style="fill:rgb(255,255,255)"/>
-<path d="M182.16,38.16L248.4,38.16"  style="fill:none;stroke-width:2.16;stroke:rgb(255,255,255);" />
+<path d="M2.16,38.16L74.16,38.16"  style="fill:none;stroke-width:2.16;stroke:rgb(238,238,238);" />
+<path d="M74.16,74.16L182.16,74.16L182.16,2.16L74.16,2.16Z"  style="fill:none;stroke-width:2.16;stroke:rgb(238,238,238);" />
+<text x="128.16" y="28.08" text-anchor="middle" fill="rgb(238,238,238)" dominant-baseline="central">Hello,</text>
+<text x="128.16" y="48.24" text-anchor="middle" fill="rgb(238,238,238)" dominant-baseline="central">World!</text>
+<polygon points="254.16,38.16 242.64,42.48 242.64,33.84" style="fill:rgb(238,238,238)"/>
+<path d="M182.16,38.16L248.4,38.16"  style="fill:none;stroke-width:2.16;stroke:rgb(238,238,238);" />
 </svg>
 

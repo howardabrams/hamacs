@@ -586,7 +586,37 @@ And this example shows off the syntax colorization:
 For the results:
 #+ATTR_HTML: :width 300 :background white
 [[file:ha-org-pikchr-02.svg]]
+*** Mermaid
+At work, I’ve been integrating [[https://mermaidjs.github.io/][Mermaid]] into our documentation, =foobar=.
 
+Assuming we have installed the [[https://github.com/mermaid-js/mermaid-cli][Mermaid CLI]]:
+
+#+BEGIN_SRC sh
+npm install -g @mermaid-js/mermaid-cli
+#+END_SRC
+
+We edit the code with [[https://github.com/abrochard/mermaid-mode][mermaid-mode]]:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mermaid-mode
+    :config
+    (setq mermaid-mmdc-location "/opt/homebrew/bin/mmdc"))
+#+END_SRC
+
+We can make Mermaid diagrams in Emacs Org files using [[https://github.com/arnm/ob-mermaid][ob-mermaid]]:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ob-mermaid
+    :config
+    (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc"))
+#+END_SRC
+
+#+BEGIN_SRC mermaid :file ha-org-mermaid.png :theme dark :background-color transparent
+  sequenceDiagram
+   A-->B: Works!
+#+END_SRC
+
+[[file:ha-org-mermaid.png]]
 *** Next Image
 When I create images or other artifacts that I consider /part/ of the org document, I want to have them based on the org file, but with a prepended number. Keeping track of what numbers are now free is difficult, so for a /default/ let's figure it out:
 
