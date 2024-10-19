@@ -228,7 +228,8 @@ I probably don't need to have such a ranking system, as chances are good I have 
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("SN Pro"   ; https://supernotes.app/open-source/sn-pro
+                    '("Atkinson Hyperlegible"
+                      "SN Pro"   ; https://supernotes.app/open-source/sn-pro
                       "Literata" ; Clean, readable with litagures
                       ;; Next best can be downloaded here:
                       ;; https://fontesk.com/xcharter-typeface/
@@ -473,13 +474,14 @@ Display these two symbols as one:
 #+end_src
 
 And turn the prettifier on:
+
 #+begin_src emacs-lisp
   (global-prettify-symbols-mode 1)
 #+end_src
 
-In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. My systems, seems to work fine, but I’m leaving this code here in case I have issues, as I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
-#+begin_src emacs-lisp
-  ;; set font for symbols
+Also, we need a font for the symbols, and both Apple and Linux supplies different ones:
+
+#+BEGIN_SRC emacs-lisp
   (set-fontset-font t 'symbol
    (cond
     ((ha-running-on-macos?)
@@ -489,19 +491,28 @@ In Emacs 28.1, we have better Unicode 14 support. Which means, we need to instal
      (cond
       ((member "Symbola" (font-family-list)) "Symbola")))))
 
+#+END_SRC
+
+In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install either [[https://fonts.google.com/noto/specimen/Noto+Emoji][Noto Emoji]] or [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Since I’m also on Mac, I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+
+#+begin_src emacs-lisp
   ;; set font for emoji (should come after setting symbols)
   (set-fontset-font t 'emoji
    (cond
     ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
-    ((member "Noto Color Emoji" (font-family-list)) "Noto Color Emoji")
-    ((member "Symbola" (font-family-list)) "Symbola")))
+    ((member "Noto Color Emoji" (font-family-list))  "Noto Color Emoji")
+    ((member "Noto Emoji" (font-family-list))        "Noto Emoji")
+    ((member "Symbola" (font-family-list))           "Symbola")))
 #+end_src
+
 Test this out: 😄 😱 😸 👸 👽 🙋
 
 Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
+
 #+begin_src emacs-lisp
   (use-package all-the-icons)
 #+end_src
+
 *Note:* Install everything with the function, =all-the-icons-install-fonts=.
 * Ligatures
 Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
