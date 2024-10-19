@@ -22,8 +22,8 @@ No longer need to install [[https://apps.apple.com/us/app/xcode/id497799835?mt=1
 
 If I want to build from source (and not build from Homebrew), install all the dependencies first, by running:
 #+begin_src sh
-brew install pkg-config automake texinfo jpeg giflib\
-  libtiff jansson libpng librsvg gnutls cmake
+  brew install pkg-config automake texinfo jpeg giflib\
+    libtiff jansson libpng librsvg gnutls cmake
 #+end_src
 
 To get the native compilation for Emacs working, install:

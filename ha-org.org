@@ -560,7 +560,7 @@ Of course, since we are dealing with Emacs, any good idea will be assimilated. J
 
 #+begin_src emacs-lisp
   (use-package pikchr-mode
-    :straight (:local-repo "~/other/pikchr-mode")
+    :straight (:local-repo "~/src/pikchr-mode")
     :custom
     (pikchr-executable "~/bin/pikchr"))
 #+end_src
