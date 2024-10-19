@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-18 Fri]
+#+lastmod: [2024-10-19 Sat]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -717,6 +717,7 @@ Global keybindings available to all file buffers:
 
     "o n"  '(:ignore t :which-key "narrow")
     "o n s" '("subtree" . org-narrow-to-subtree)
+    "o n S" '("tree -> win" . org-tree-to-indirect-buffer)
     "o n b" '("block"   . org-narrow-to-block)
     "o n e" '("element" . org-narrow-to-element)
     "o n w" '("widen"   . widen))
