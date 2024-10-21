@@ -41,7 +41,7 @@ Render my code with my font colors:
 
 #+begin_src emacs-lisp :results silent
   (use-package htmlize
-    :conf
+    :config
     ;; But I turn the source code coloring off to use a CSS stylesheet I
     ;; control, as otherwise, switching between dark and light themes
     ;; make the code difficult to read:
