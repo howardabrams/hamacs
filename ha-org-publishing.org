@@ -40,7 +40,12 @@ While the following packages come with Emacs, they aren't necessarily loaded:
 Render my code with my font colors:
 
 #+begin_src emacs-lisp :results silent
-  (use-package htmlize)
+  (use-package htmlize
+    :conf
+    ;; But I turn the source code coloring off to use a CSS stylesheet I
+    ;; control, as otherwise, switching between dark and light themes
+    ;; make the code difficult to read:
+    (setq org-html-htmlize-output-type 'css))
 #+end_src
 
 Also, we need Jack, and his HTML prowess:
@@ -132,7 +137,10 @@ My main blog made up a collection of org files:
                      (:link (@ :rel "shortcut icon" :href "/img/dragon-head.svg"))
                      (:link (@ :rel "icon" :href "/img/dragon.svg"))
                      (:link (@ :rel "me" :href "https://emacs.ch/@howard"))
-                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "GNU Terry Pratchett"))))))
+                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Darol Allen"))
+                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "George Vanecek"))
+                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Rick Cooper"))
+                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Terry Pratchett"))))))
 #+end_src
 
 Why not break out the images and other static files into a separate project:

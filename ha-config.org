@@ -351,7 +351,7 @@ The [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] isn’t much to the
     (global-set-key (kbd "s-S-z") 'undo-fu-only-redo))
 #+end_src
 
-While I usually use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), when I’m on the Mac, I need to cover my bases.
+While I generally use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), when I’m on the Mac, I need to cover my bases.
 
 ** Leader Sequences
 Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:ha-leader.org][ha-leader]] file.
@@ -367,16 +367,20 @@ Since I seldom remember keybindings, or even function names, for major-modes, I 
     (global-set-key (kbd "s-,") 'major-mode-hydra)
 
     (setq major-mode-hydra-title-generator
-      '(lambda (mode)
-         (let ((title (thread-last mode
-                                   (symbol-name)
-                                   (string-replace "-" " ")
-                                   (string-replace " mode" "")
-                                   (s-titleize))))
-           (concat "ϻ " title " Commands")))))
+          '(lambda (mode)
+             (if (symbolp mode)
+                 (setq mode (symbol-name mode))
+               (setq mode (pp-to-string mode)))
+
+             (let ((title (thread-last mode
+                                       (string-replace "-" " ")
+                                       (string-replace " mode" "")
+                                       (s-titleize))))
+               (concat "ϻ " title " Commands")))))
 #+end_src
 
-For this feature, I may want to pull it out into its own file, so as to keep all of its features together... however, those feature often /depend/ of the functions they are calling. If so, we would have a series like this:
+Scattered throughout my configuration, I use =major-mode-hydra-define= where I’m configuring that mode. For instance, for the built-in Info, I can make:
+
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config
@@ -464,7 +468,7 @@ In the shell, IDEs and other systems, the key binding is typically ~TAB~. In mod
 *** Corfu
 The default completion system either inserts the first option directly in the text (without cycling, so let’s hope it gets it right the first time), or presents choices in another buffer (who wants to hop to it to select an expansion).
 
-After using  [[http://company-mode.github.io/][company]] for my completion back-end, I switch to [[https://github.com/minad/corfu][corfu]] as it works with the variable-spaced font of my org files (also see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for my initial motivation).
+After using  [[http://company-mode.github.io/][company]] for my completion back-end, I switched to [[https://github.com/minad/corfu][corfu]] as it works with the variable-spaced font of my org files (also see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for my initial motivation).
 #+begin_src emacs-lisp
   (use-package corfu
     :custom

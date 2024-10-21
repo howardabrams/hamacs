@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-19 Sat]
+#+lastmod: [2024-10-20 Sun]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -983,6 +983,10 @@ With overlapping goals to =write-good=, the [[https://github.com/amperser/prosel
 #+begin_src sh
   brew install proselint
 #+end_src
+And on Linux:
+#+BEGIN_SRC sh
+  sudo apt install python3-proselint
+#+END_SRC
 
 Next, create a configuration file, =~/.config/proselint/config= file, to turn on/off checks:
 #+begin_src js :tangle ~/.config/proselint/config.json :mkdirp yes
@@ -1006,17 +1010,17 @@ And tell [[https://www.flycheck.org/][flycheck]] to use this:
 *** Textlint
 The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as long as there is an executable:
 #+begin_src sh :results silent
-  npm install -g textlint
+  sudo npm install -g textlint
   # And all the rules
-  npm install -g textlint-rule-alex
-  npm install -g textlint-rule-diacritics
-  npm install -g textlint-rule-en-max-word-count
-  npm install -g textlint-rule-max-comma
-  npm install -g textlint-rule-no-start-duplicated-conjunction
-  npm install -g textlint-rule-period-in-list-item
-  npm install -g textlint-rule-stop-words
-  npm install -g textlint-rule-terminology
-  npm install -g textlint-rule-unexpanded-acronym
+  sudo npm install -g textlint-rule-alex
+  sudo npm install -g textlint-rule-diacritics
+  sudo npm install -g textlint-rule-en-max-word-count
+  sudo npm install -g textlint-rule-max-comma
+  sudo npm install -g textlint-rule-no-start-duplicated-conjunction
+  sudo npm install -g textlint-rule-period-in-list-item
+  sudo npm install -g textlint-rule-stop-words
+  sudo npm install -g textlint-rule-terminology
+  sudo npm install -g textlint-rule-unexpanded-acronym
 #+end_src
 I create a configuration file in my home directory:
 #+begin_src js :tangle ~/.textlintrc
