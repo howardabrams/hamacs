@@ -24,8 +24,7 @@ A literate programming file for configuring Emacs.
   ;;
   ;;; Commentary:
   ;;
-  ;; Basic configuration of Emacs. Should be executed early in the
-  ;; loading sequence.
+  ;; Basic configuration of Emacs. Start early in the loading sequence.
   ;;
   ;;; Code:
 #+end_src

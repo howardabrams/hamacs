@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-20 Sun]
+#+lastmod: [2024-10-25 Fri]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -827,7 +827,11 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
     :config
     (ha-leader
      "o f" '("begin focus" . ha-focus-begin)
-     "o F" '("break focus" . ha-focus-break)))
+     "o F" '("break focus" . ha-focus-break))
+    :bind
+    (("<f12>" . ha-focus-begin)
+     ("S-<f12>" . ha-focus-interrupt)
+     ("s-<f12>" . ha-focus-timer-left)))
 #+end_src
 ** Spell Checking
 Let's hook some spell-checking into org files, and actually all text files. I’m making this particularly delicious.

@@ -41,7 +41,7 @@ I'm not trying an experiment where specially-placed function keys on my fancy er
       :states '(normal visual motion)
       :keymaps 'override
       :prefix "SPC"
-      :non-normal-prefix "M-SPC"
+      :non-normal-prefix "s-SPC"
       :global-prefix "<f13>")
 
     (general-create-definer ha-local-leader
