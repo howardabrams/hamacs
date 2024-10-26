@@ -1,0 +1,7 @@
+,# -*- mode: snippet -*-
+,# name: split-org-block
+,# key: #split
+,# --
+#+END_SRC
+`yas-selected-text`
+#+BEGIN_SRC `(ha-org-block-language-and)`

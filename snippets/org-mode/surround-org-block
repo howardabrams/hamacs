@@ -1,0 +1,5 @@
+# name: surround-org-block
+# --
+#+BEGIN_${1:SRC} ${2:emacs-lisp} $0
+`yas-selected-text`
+#+END_$1

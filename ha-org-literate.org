@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-07-26 Fri]
+#+lastmod: [2024-10-24 Thu]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -47,6 +47,126 @@ If literate programming is so great, why doesn’t everyone do it? Most of the /
 Since we are using Emacs, the downsides of using a literate approach (even for personal projects) can be minimized.
 
 *Note:* What follows is advanced LP usage. I would recommend checking out my [[https://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][Introduction to LP in Org]] before venturing down this essay.
+* Snippets
+** Surround with Org Block
+This simple change allows me to highlight any text, and surround it in an org block. We
+
+#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/surround-org-block
+  # name: surround-org-block
+  # --
+  ,#+BEGIN_${1:SRC} ${2:emacs-lisp} $0
+  `yas-selected-text`
+  ,#+END_$1
+#+END_SRC
+
+Without a key (that is intentional), I can call the snippet with ~C-c & C-s~ (ugh).
+
+** Split an Org Block
+What is the /language/ or /major-mode/ associated with the “current” block?
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-org-block-language ()
+    "Return the language associated with the current block."
+    (save-excursion
+      (re-search-backward (rx bol (zero-or-more space)
+                              "#+begin_src"
+                              (one-or-more space)
+                              (group (one-or-more (not space)))))
+      (match-string 1)))
+#+END_SRC
+
+Actually, I probably want all the parameters (if any) to come along for the ride:
+
+#+BEGIN_SRC emacs-lisp
+   (defun ha-org-block-language-and ()
+     "Return language and parameters of the current block."
+     (save-excursion
+       (re-search-backward (rx bol (zero-or-more space)
+                               "#+begin_src"
+                               (one-or-more space)
+                               (group (one-or-more any))))
+       (match-string 1)))
+    #+END_SRC
+
+This allows us to now split a block into two parts:
+
+#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/split-org-block
+  ,# -*- mode: snippet -*-
+  ,# name: split-org-block
+  ,# key: #split
+  ,# --
+  ,#+END_SRC
+  `yas-selected-text`
+  ,#+BEGIN_SRC `(ha-org-block-language-and)`
+
+#+END_SRC
+
+* Visit Tangled File
+After tangling a file, you might want to take a look at it. But a single org file can tangle out to more than one file, so how to choose? Each block could have its one file, as would the particular language-specific blocks in a section or the entire file. I don’t care to be too pendantic here, because I often know the name of the file.
+
+Perhaps a little function to map a /language/ to a file name:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-org-babel-tangle-default (language)
+    "Return the default tangled file based on LANGUAGE."
+    (format "%s.%s"
+            (file-name-sans-extension (buffer-file-name))
+            (pcase language
+              ("emacs-lisp" "el")
+              ("elisp" "el")
+              ("python" "py")
+              ("ruby" "rb")
+              ;; ...
+              ("bash" "sh")
+              ("sh" "sh")
+              ("shell" "sh"))))
+    #+END_SRC
+
+This function returns the name of the tangled file based on either the block or a default name based on the file name:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-org-babel-tangle-file-name ()
+    "Return _potential_ file name or Org source.
+  If nearest block has a `:tangle' entry, return that.
+  If block doesn't have `:tangle' (or set to `yes'),
+  return the filename based on the block's language."
+    (save-excursion
+      (org-previous-block 1)
+      (when (looking-at
+             (rx "#+begin_src"
+                 (one-or-more space)
+                 (group (one-or-more (not space)))
+                 (one-or-more space) (zero-or-more any)
+                 (optional
+                  (group ":tangle" (one-or-more space)
+                         (optional "\"")
+                         (group (one-or-more any))
+                         (optional "\"")))))
+        (let ((language (match-string 1))
+              (filename (match-string 3)))
+          (if (or (null filename) (equal filename "yes") (equal filename "true"))
+              (ha-org-babel-tangle-default language)
+            filename)))))
+    #+END_SRC
+
+And this function calls =find-file= on the tangled file (if found):
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-org-babel-tangle-visit-file ()
+    "Attempt to call `find-file' on Org's tangled file."
+    (interactive)
+    (let ((tangled-file (ha-org-babel-tangle-file-name)))
+      (if (file-exists-p tangled-file)
+          (find-file tangled-file)
+        (message "Looking for %s, which doesn't exist." tangled-file))))
+#+END_SRC
+
+*Note:* You can /return/ to the original Org file with =org-babel-tangle-jump-to-org=, if you set the tangle =comments= to =link=, as in this global property:
+
+#+begin_example
+  ,#+PROPERTY: header-args:emacs-lisp :tangle yes :comments link
+#+end_example
+
 * Navigating Code Blocks
 :PROPERTIES:
 :ID:       3230b1f4-0d2d-47c7-9f3d-fa53083f8c8d
@@ -98,7 +218,7 @@ TODO Screenshot of multiple highlighted blocks.
 :PROPERTIES:
 :ID:       188e378c-bed4-463c-98d4-d22be1845bc2
 :END:
-A trick to =org-babel-tangle=, is that it tangles /what is shown/, that is, it will only tangle code blocks that are visible after narrowing to the current org section. This means, we can call =org-narrow-to-subtree= to temporary hide everything in the org file except the current heading, evaluate all blocks in the “now visible” buffer, and then widen:
+A trick to =org-babel-tangle=, is that it tangles /what Emacs shows/, that is, it tangles /visible/ code blocks after narrowing to the current org section. This means, we can call =org-narrow-to-subtree= to temporary hide everything in the org file except the current heading, evaluate all blocks in the “now visible” buffer, and then widen:
 
 #+begin_src emacs-lisp :results silent
   (defun org-babel-execute-subtree ()
@@ -113,7 +233,7 @@ A trick to =org-babel-tangle=, is that it tangles /what is shown/, that is, it w
 :PROPERTIES:
 :ID:       f143bbd6-fb4d-45b8-bcfa-196c7a26ed34
 :END:
-Why navigate to a block, just to focus on that block in a dedicated buffer, when we can take advantage of the =avy-jump= and edit any visible block?
+Why navigate to a block, solely to focus on that block in a dedicated buffer, when we can take advantage of the =avy-jump= and edit any visible block?
 
 #+begin_src emacs-lisp
   (defun org-babel-edit-src-block-at-point (&optional point)
@@ -715,7 +835,8 @@ With a lovely collection of functions, we need to have a way to easily call them
       ("f" org-babel-tangle-file "choose File")
       ("T" org-babel-detangle "from File"))
      "Misc"
-     (("e" avy-org-babel-edit-src-block "Edit Block "))))
+     (("e" avy-org-babel-edit-src-block "Edit Block ")
+      ("v" ha-org-babel-tangle-visit-file "Visit Tangled"))))
 #+end_src
 
 And tie this hydra into the existing leader system:
@@ -733,7 +854,7 @@ Let's =provide= a name so we can =require= this file:
 #+DESCRIPTION: literate programming in Emacs Org Files.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp  :tangle yes
+#+PROPERTY:    header-args:emacs-lisp :tangle yes :comments link
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
