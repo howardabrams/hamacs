@@ -422,14 +422,14 @@ The following defines my use of the Emacs completion system. I’ve decided my /
 
 I don’t find the Emacs completion system obvious, with different interfaces, some distinct, some connected. As ~TAB~ is often overloaded. Emacs can have a cascade of functions. Here’s the summary as I understand (as well as the overriding keybindings I use):
 
-   #+BEGIN_EXAMPLE
-        ╭─▷ indent-for-tab-command          ╭───────╮
-        │     ╷                          ╭──┤ M-TAB │  ╭─────╮
-        │     ╰─▶ completion-at-point ◁──╯  ╰───────╯  │ M-/ │
-     ╭──┴──╮      (completion-at-point-functions)      ╰──┬──╯
-     │ TAB │        ╷                                     │
-     ╰─────╯        ╰─▶ hippie and dabbrev ◁──────────────╯
-   #+END_EXAMPLE
+#+BEGIN_EXAMPLE
+     ╭─▷ indent-for-tab-command          ╭───────╮
+     │     ╷                          ╭──┤ M-TAB │  ╭─────╮
+     │     ╰─▶ completion-at-point ◁──╯  ╰───────╯  │ M-/ │
+  ╭──┴──╮      (completion-at-point-functions)      ╰──┬──╯
+  │ TAB │        ╷                                     │
+  ╰─────╯        ╰─▶ hippie and dabbrev ◁──────────────╯
+#+END_EXAMPLE
 
 In =org-mode=, ~TAB~ calls [[help:org-cycle][org-cycle]], which is even more overload and context-specific. In the context of typing text, calls the binding for ~TAB~, which is the [[help:indent-for-tab-command][indent-for-tab-command]]. If the line is /indented/, it then completes the word:
 

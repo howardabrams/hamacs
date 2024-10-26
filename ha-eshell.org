@@ -73,12 +73,14 @@ If any program wants to pause the output through the =$PAGER= variable, well, we
 #+end_src
 ** Argument Completion
 Shell completion uses the flexible =pcomplete= mechanism internally, which allows you to program the completions per shell command. To know more, check out this [[https://www.masteringemacs.org/article/pcomplete-context-sensitive-completion-emacs][blog post]], about how to configure =pcomplete= for git commands. The [[https://github.com/JonWaltman/pcmpl-args.el][pcmpl-args]] package extends =pcomplete= with completion support for more commands, like the Fish and other modern shells. I love how a package can gives benefits without requiring learning anything.
+
 #+begin_src emacs-lisp
   (use-package pcmpl-args)
 #+end_src
 Note that this will work with =shell-command= as well.
 ** Better Command Line History
 On [[http://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/][this discussion]] a little gem for using IDO to search back through the history, instead of =M-R= to prompt for the history.
+
 #+begin_src emacs-lisp
   (defun eshell-insert-history ()
     "Displays the eshell history to select and insert back into your eshell."

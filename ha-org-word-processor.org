@@ -59,12 +59,12 @@ The =org-indent-indentation-per-level=, which defaults to =2= doesn’t really w
     :custom-face (org-indent ((t (:inherit fixed-pitch)))))
 #+end_src
 
-Finally, let’s add frame borders and window dividers:
+The following adds frame borders and window dividers to give space between window buffers. Do I need this when my Org files indent the text? Dunno, but it makes the view more pleasant.
 
 #+begin_src emacs-lisp
   (modify-all-frames-parameters
-   '((right-divider-width . 20)
-     (internal-border-width . 20)))
+   '((right-divider-width . 2)
+     (internal-border-width . 10)))
 
   (dolist (face '(window-divider
                   window-divider-first-pixel
@@ -385,7 +385,7 @@ However, I'm just going to have to write a function to clean this.
       (replace-match (match-string 1) nil :no-error)))
 #+end_src
 Now that is some complicated regular expressions.
-* Technical Artifacts                               :noexport:
+* Technical Artifacts                            :noexport:
 Note, according to [[https://www.reddit.com/r/emacs/comments/vahsao/orgmode_use_capitalized_property_keywords_or/][this discussion]] (and especially [[https://scripter.co/org-keywords-lower-case/][this essay]]), I’m switching over to lower-case version of org properties. Using this helper function:
 
 Let's provide a name so we can =require= this file:

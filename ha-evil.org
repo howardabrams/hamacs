@@ -91,30 +91,38 @@ I’m not a long term VI user, and I generally like /easy keys/, e.g. ~w~, have 
 
 #+begin_src emacs-lisp
   (use-package evil
-    :config
-    (require 'evil-commands)
-    (evil-define-key '(normal visual motion operator) 'global
+    :config (require 'evil-commands)
+    (evil-define-key
+      '(normal visual motion operator) 'global
       "w" 'evil-forward-WORD-begin
       "W" 'evil-forward-word-begin
       "e" 'evil-forward-WORD-end
-      "E" 'evil-forward-word-end
+      "E" 'evil-forward-word-end)
+#+END_SRC
 
-      ;; This may be an absolute heresy to most VI users,
-      ;; but I'm Evil and really, I use M-x and SPC instead.
-      ;; Besides, I don't know any : colon commands...
-      ":" 'evil-repeat-find-char-reverse)
+The ~b~ key bindings seems to need their own call, and I’m not sure why I can’t include it in the ~w~ and ~e~ bindings.
 
-    ;; The `b' key seems to need its own configuration setting:
-    (evil-define-key '(normal visual motion operator) 'global
-      "b" 'evil-backward-WORD-begin)
-    (evil-define-key '(normal visual motion operator) 'global
-      "B" 'evil-backward-word-begin))
-    ;; Note that evil-backward-word-end is on the `g e':
+#+BEGIN_SRC emacs-lisp
+  (evil-define-key
+    '(normal visual motion operator) 'global
+    "b" 'evil-backward-WORD-begin)
+  (evil-define-key
+    '(normal visual motion operator) 'global
+    "B" 'evil-backward-word-begin)
 #+end_src
 
 In other words, with the above settings in place, ~w~ and ~e~ should jump from front to back of the entire line, but ~W~ and ~E~ should stop as /subword/:
   - =word-subword-subword=
   - =word_subword_subword=
+
+Note I don’t bind =evil-backward-word-end= with a single key, but bind it to ~g e~ below.
+
+While an absolute heresy to most VI users, I'm Evil and use ~M-x~ and ~SPC~ instead of ~:~ for running commands. I bind the ~:~ as a reverse of the ~;~ which continues the search from ~f~ and ~t~:
+#+BEGIN_SRC emacs-lisp
+  (evil-define-key
+    '(normal visual motion operator) 'global
+    ":" 'evil-repeat-find-char-reverse))
+#+END_SRC
 
 This clever hack from [[https://manueluberti.eu//emacs/2022/10/16/back-last-edit/][Manuel Uberti]] got me finding these useful bindings:
   - ~g ;~ ::  [[help:goto-last-change][goto-last-change]]

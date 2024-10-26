@@ -283,7 +283,15 @@ Came up with a great way to search a project for Org-specific files, and wrote [
     (ha-leader "f o" '("load org" . org-find-file)))
 #+end_src
 
-Now that my paragraphs in an org file are on a single line, I could use =rg= (or some other =grep= program), but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results than line-oriented search systems. Let’s create operating-system functions the command line for searching:
+Now that my paragraphs in an org file are on a single line, I could use =rg= (or some other =grep= program), but being able to use an /indexed search system/, like [[https://ss64.com/osx/mdfind.html][mdfind]] on Macos, or [[https://www.lesbonscomptes.com/recoll/][recoll]] on Linux, gives better results than line-oriented search systems.
+
+While =mdfind= is builtin to MacOS, we need to install =recoll=:
+
+#+BEGIN_SRC sh
+  sudo apt install -y recoll
+#+END_SRC
+
+Let’s create operating-system functions the command line for searching:
 
 #+begin_src emacs-lisp
   (defun ha-search-notes--macos (phrase path)
@@ -322,8 +330,11 @@ This function calls the above-mentioned operating-system-specific functions, but
 #+end_src
 Let’s see it in action:
 #+begin_src emacs-lisp :tangle no :results replace
-  (ha-search-notes--files "openstack grafana" '("~/Notes"))
+  (ha-search-notes--files "bread" '("~/personal"))
 #+end_src
+
+#+RESULTS:
+: ':3:common/rclinit.cpp:391::Recoll 1.36.1 + Xapian 1.4.22 [/home/howard/.recoll]'
 
 Returns this string:
 #+begin_example
@@ -382,14 +393,6 @@ And turn on ALL the languages:
                                  (dot        . t)
                                  (css        . t)
                                  (plantuml   . t)))
-#+end_src
-
-The [[https://github.com/isamert/corg.el][corg project]] does completing feature for all the block header values. To do this, type ~M-Tab~ (not just regular ~Tab~).
-
-#+begin_src emacs-lisp :results list :hlines yes
-  (use-package corg
-    :straight (:host github :repo "isamert/corg.el")
-    :hook (org-mode . 'corg-setup))
 #+end_src
 
 *** Searching Literate Files
@@ -470,7 +473,21 @@ And let’s try this:
 #+end_src
 
 *** Graphviz
-The [[https://graphviz.org/][graphviz project]] can be written in org blocks, and then rendered as an image:
+Using the [[https://graphviz.org/][graphviz project]], create charts with /textual instructions/ (code), and then rendered as an image. First setup Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
+
+#+begin_src emacs-lisp
+  (use-package graphviz-dot-mode
+      :mode "\\.dot\\'"
+      :init
+      (setq tab-width 4
+            graphviz-dot-indent-width 2
+            graphviz-dot-auto-indent-on-newline t
+            graphviz-dot-auto-indent-on-braces t
+            graphviz-dot-auto-indent-on-semi t))
+#+end_src
+
+Next, add it to org-babel:
+
 #+name: ob-graphviz
 #+begin_src emacs-lisp :tangle no
     (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
@@ -547,7 +564,7 @@ Here is a sequence diagram example to show how is looks/works:
 #+attr_org: :width 800px
 [[file:ha-org-plantuml-example.png]]
 *** Pikchr
-No, not Pikachu, but close. The [[https://pikchr.org/home/doc/trunk/homepage.md][Pikchr project]] is similar to Graphviz and Plantuml, but makes the boxes more positional and really allows one to place things more precisely. Yet another steep learning curve.
+No, not Pikachu, but close. Unlike Graphviz and Plantuml, the [[https://pikchr.org/home/doc/trunk/homepage.md][Pikchr project]] makes  boxes more positional and allows one to place the parts more precisely. Yet another steep learning curve.
 
 Not sure if anyone has made a /package/, so we need to download and build locally:
 #+begin_src sh :dir ~/bin
@@ -556,17 +573,18 @@ Not sure if anyone has made a /package/, so we need to download and build locall
   gcc -DPIKCHR_SHELL -o ~/bin/pikchr ~/bin/pikchr.c -lm # to build the pikchr command-line tool
 #+end_src
 
-Of course, since we are dealing with Emacs, any good idea will be assimilated. Johann Klähn created [[https://github.com/kljohann/pikchr-mode][pikchr-mode]]:
+Of course, since we are dealing with Emacs, where we assimilate any good idea. Johann Klähn created [[https://github.com/kljohann/pikchr-mode][pikchr-mode]]:
 
 #+begin_src emacs-lisp
   (use-package pikchr-mode
     :straight (:local-repo "~/src/pikchr-mode")
+    ;; :straight (:host github :repo "kljohann/pikchr-mode")
     :custom
     (pikchr-executable "~/bin/pikchr"))
 #+end_src
 
 Let’s see this in action:
-#+begin_src pikchr :file ha-org-pikchr-01.svg :results file :exports both
+#+begin_src pikchr :file ha-org-pikchr-01.png :results file :exports both
   bgcolor = 0x1d2021
   fgcolor = 0xeeeeee
   line; box "Hello," "World!"; arrow
@@ -592,7 +610,7 @@ At work, I’ve been integrating [[https://mermaidjs.github.io/][Mermaid]] into 
 Assuming we have installed the [[https://github.com/mermaid-js/mermaid-cli][Mermaid CLI]]:
 
 #+BEGIN_SRC sh
-npm install -g @mermaid-js/mermaid-cli
+  npm install -g @mermaid-js/mermaid-cli
 #+END_SRC
 
 We edit the code with [[https://github.com/abrochard/mermaid-mode][mermaid-mode]]:
@@ -600,7 +618,9 @@ We edit the code with [[https://github.com/abrochard/mermaid-mode][mermaid-mode]
 #+BEGIN_SRC emacs-lisp
   (use-package mermaid-mode
     :config
-    (setq mermaid-mmdc-location "/opt/homebrew/bin/mmdc"))
+    (setq mermaid-mmdc-location (if (file-exists-p "/opt/homebrew")
+              "/opt/homebrew/bin/mmdc"
+            "/usr/local/bin/mmdc")))
 #+END_SRC
 
 We can make Mermaid diagrams in Emacs Org files using [[https://github.com/arnm/ob-mermaid][ob-mermaid]]:
@@ -608,7 +628,7 @@ We can make Mermaid diagrams in Emacs Org files using [[https://github.com/arnm/
 #+BEGIN_SRC emacs-lisp
   (use-package ob-mermaid
     :config
-    (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc"))
+    (setq ob-mermaid-cli-path mermaid-mmdc-location))
 #+END_SRC
 
 #+BEGIN_SRC mermaid :file ha-org-mermaid.png :theme dark :background-color transparent
@@ -750,18 +770,6 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
     :config
     (ha-leader :keymaps 'org-mode-map
       "o E" '("to confluence"     . ox-export-to-confluence)))
-#+end_src
-
-And Graphviz configuration using [[https://github.com/ppareit/graphviz-dot-mode][graphviz-dot-mode]]:
-#+begin_src emacs-lisp
-  (use-package graphviz-dot-mode
-      :mode "\\.dot\\'"
-      :init
-      (setq tab-width 4
-            graphviz-dot-indent-width 2
-            graphviz-dot-auto-indent-on-newline t
-            graphviz-dot-auto-indent-on-braces t
-            graphviz-dot-auto-indent-on-semi t))
 #+end_src
 
 *** HTML Style

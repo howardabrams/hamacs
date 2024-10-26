@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2024-10-18
 #+filetags: emacs hamacs
-#+lastmod: [2024-10-19 Sat]
+#+lastmod: [2024-10-24 Thu]
 
 A literate programming file for creating and running demonstrations
 
@@ -114,8 +114,8 @@ Instead of executing a sequence of demonstration steps, demonstrations key on �
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (define-ha-demo ha-simple-demo
-                  (:head "New Demonstration" :i 0) (message "Howdy")
-                  (:head "New Demonstration" :i 1) (message "Hi there"))
+                  (:heading "New Demonstration" :i 0) (message "Howdy")
+                  (:heading "New Demonstration" :i 1) (message "Hi there"))
 
   (global-set-key (kbd "<f6>") 'ha-simple-demo)
   (global-set-key (kbd "<f5>") 'org-present-next)
@@ -136,7 +136,7 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
   (define-demo demo1
    (:buffer \"demonstrations.py\") (message \"In a buffer\")
    (:mode 'dired-mode)             (message \"In a dired\")
-   (:head \"Raven Civilizations\"  (message \"In an org file\")))
+   (:heading \"Raven Civilizations\"  (message \"In an org file\")))
 
   Calling `(demo1)' displays a message based on position of the
   point in a particular buffer or place in a heading in an Org file.
@@ -151,7 +151,7 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
        (interactive)
        (let ((state (list :buffer (buffer-name)
                           :mode major-mode
-                          :head (when (eq major-mode 'org-mode)
+                          :heading (when (eq major-mode 'org-mode)
                                   (org-get-heading)))))
          (cond
           ,@(seq-map (lambda (tf-pair)
@@ -214,7 +214,7 @@ Let’s test:
                   '(:a 1 :i 5) '((:a 1) (:b 2) (:c 3))))))
 #+END_SRC
 
-But can I check if I have triggered a state once before? Let’s keep track of the /states/ that have returned true before, in a hash table where the key is the /state/ (a list of =:buffer=, =:mode=, =:head=, etc.) and the /value/ is the number of times triggered at that state:
+But can I check if I have triggered a state once before? Let’s keep track of the /states/ that have returned true before, in a hash table where the key is the /state/ (a list of =:buffer=, =:mode=, =:heading=, etc.) and the /value/ is the number of times triggered at that state:
 
 #+BEGIN_SRC emacs-lisp
   (defvar ha-demo-prev-state (make-hash-table :test 'equal)
@@ -237,6 +237,91 @@ Let’s create a function that could accept a list of /triggering keys/, and the
   pairs, e.g. `((:a 1) (:b 2))'."
     ;; If difference returns anything, we've failed:
     (not (seq-difference triggers state)))
+#+END_SRC
+
+* Demonstration Support
+What sort of functions will I often be doing?
+
+** Display File
+Displaying a File with:
+  - On the side or covering the entire frame
+  - Larger font size
+  - Modeline or no modeline
+  - Going to a particular text or line
+  - Moving the cursor to the top or middle of the buffer window
+
+All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
+
+#+BEGIN_SRC emacs-lisp
+  (cl-defun ha-demo-show-file (filename &key position size modeline
+                                        line heading shift commands)
+    "Show a file, FILENAME, in a buffer based on keyed parameters.
+  POSITION can be 'full 'right or 'below and positions the window.
+  SIZE is an integer for the font size based on the default size.
+  MODELINE is shown if non-line, default is to hide it.
+  LINE is either a line number or a regular expression to match.
+  SHIFT is the number of lines above the point to show, in case
+  the LINE shouldn't be at the top of the window.
+
+  COMMANDS is a lambda expression that can contain any other
+  instructions to happen to the buffer display."
+    (unless position
+      (setq position :right))
+
+    ;; Step 1: Create a window
+    (pcase position
+      ('full )
+      ('right (progn (split-window-horizontally) (other-window 1)))
+      ('below (progn (split-window-vertically) (other-window 1))))
+    ;; We could do :left and :top by not doing the other window bit...
+
+    ;; Step 2: Load the file
+    (find-file filename)
+    (goto-char (point-min))
+
+    ;; Step 3: Increase the font size
+    (when size
+      (text-scale-set size))
+
+    (when line
+      (if (integerp line)
+          (goto-line line)
+        (re-search-forward line nil t)))
+
+    (when heading
+      (re-search-forward (rx bol (one-or-more "*") (one-or-more space)
+                             (literal heading))
+                         nil t))
+
+    ;; If SHIFT is positive integer, left that many line above point,
+    ;; otherwise don't do anything to leave it in the middle.
+    ;; If SHIFT is null, move it to the top of the buffer window:
+    (if shift
+        (when (integerp shift)
+          (recenter-top-bottom shift))
+      (recenter-top-bottom 0))
+
+    (unless modeline
+      (setq-local mode-line-format nil))
+
+    (when commands (funcall commands))
+    )
+
+  (funcall (lambda () (message "Hello")))
+#+END_SRC
+
+Let try it all together:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-demo-show-file "ha-config.org" :position 'right :size 1 :modeline nil :line 418 :shift 4)
+#+END_SRC
+
+Or:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-demo-show-file "ha-config.org" :modeline t
+                     :heading "Text Expanders"
+                     :commands (lambda () (jinx-mode -1)))
 #+END_SRC
 
 * Technical Artifacts                              :noexport:
