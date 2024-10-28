@@ -94,7 +94,7 @@ This is a cool and under-rated feature of Eshell. Type the following commands in
   - ~eshell-display-modifier-help~
   - ~eshell-display-predicate-help~
 
-In short, use parens to limit the files, for instance:
+In short, use parenthesis to limit the files, for instance:
 #+begin_src sh
   ls *.sh(*)   # List shell scripts that are executable
   ls *(/)      # List directories (recursively)
