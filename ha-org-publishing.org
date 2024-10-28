@@ -85,6 +85,9 @@ Years of having two domain names can be confusing, but I have to keep them going
                  :publishing-directory ,ha-publishing-howardabrams))
 #+end_src
 ** The Blog
+:PROPERTIES:
+:ID:       7c4cb568-93a5-44e8-8758-4f415dccf232
+:END:
 My main blog made up a collection of org files:
 #+begin_src emacs-lisp
   (add-to-list 'org-publish-project-alist
@@ -118,7 +121,11 @@ My main blog made up a collection of org files:
                  ;; :html-postamble "<hr><div id='comments'></div>"
                  :html-head-extra
                  ,(jack-html
-                   '((:link (@ :rel "stylesheet"
+                   '((:link (@ :rel "alternate"
+                        :type "application/rss+xml"
+                        :title "RSS"
+                        :href "https://www.howardism.org/index.xml"))
+                     (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700&subset=latin,latin-ext"))
                      (:link (@ :rel "stylesheet"
@@ -136,7 +143,7 @@ My main blog made up a collection of org files:
                      (:meta (@ :name "viewport" :content "width=device-width, initial-scale=1"))
                      (:link (@ :rel "shortcut icon" :href "/img/dragon-head.svg"))
                      (:link (@ :rel "icon" :href "/img/dragon.svg"))
-                     (:link (@ :rel "me" :href "https://emacs.ch/@howard"))
+                     (:link (@ :rel "me" :href "https://pdx.sh/@howard"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Darol Allen"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "George Vanecek"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Rick Cooper"))
