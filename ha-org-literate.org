@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-10-24 Thu]
+#+lastmod: [2024-10-27 Sun]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -221,12 +221,12 @@ TODO Screenshot of multiple highlighted blocks.
 A trick to =org-babel-tangle=, is that it tangles /what Emacs shows/, that is, it tangles /visible/ code blocks after narrowing to the current org section. This means, we can call =org-narrow-to-subtree= to temporary hide everything in the org file except the current heading, evaluate all blocks in the “now visible” buffer, and then widen:
 
 #+begin_src emacs-lisp :results silent
-  (defun org-babel-execute-subtree ()
+  (defun org-babel-execute-subtree (prefix)
     "Execute all Org source blocks in current subtree."
     (interactive "P")
     (save-excursion
       (org-narrow-to-subtree)
-      (org-babel-execute-buffer)
+      (org-babel-execute-buffer prefix)
       (widen)))
 #+end_src
 ** Editing a Block
@@ -300,10 +300,10 @@ Examples of references in an Org file that should work:
   - “ha-literate-symbol-at-point”
   - `ha-literate-symbol-at-point`
 
-This magical incantation connects our function to Xref with an =org-babel= backend:
+This magical incantation connects our function to Xref with an =org= backend:
 
 #+begin_src emacs-lisp
-  (cl-defmethod xref-backend-identifier-at-point ((_backend (eql org-babel)))
+  (cl-defmethod xref-backend-identifier-at-point ((_backend (eql org)))
     (ha-literate-symbol-at-point))
 #+end_src
 *** Calling ripgrep
@@ -318,9 +318,9 @@ This helper function does the work of calling =ripgrep=, parsing its output, and
                                   (project-root (project-current))
                                 default-directory))
            (search-str (rxt-elisp-to-pcre regex))
-           (command (format "rg --json '%s' *.org" search-str)))
+           (command (format "rg --json --type org '%s'" search-str)))
 
-      (message "Calling %s" command)
+      (message "Literate xref Calling: %s" command)
       (thread-last command
                    (shell-command-to-list)
                    (seq-map 'ha-literate--parse-rg-line)
@@ -344,23 +344,54 @@ The output from =ripgrep= goes through a couple of transformation functions list
     "Return non-nil if JSON-DATA is an alist with key `type' and value `match'."
     (string-equal "match" (alist-get 'type json-data)))
 #+end_src
+
+TODO Relative Filenames
+Since our =ripgrep= searches from the /project root/, but xref wants to make file references relative to the buffer that is calling it, we need to make some changes:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-literate-make-xref-file (filepath)
+    "Return FILEPATH relative to current buffer's file."
+    (let ((abspath (expand-file-name filepath
+                                     (if (project-current)
+                                         (project-root (project-current))
+                                       default-directory)))
+          (relative-to (file-name-parent-directory (buffer-file-name))))
+      (file-relative-name abspath relative-to))))
+#+END_SRC
+
+Let’s test this function:
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ert-deftest ha-literate-make-xref-file-test ()
+    ;; Current directory
+    (should (equal (ha-literate-make-xref-file "ha-display.org")
+                   "ha-display.org"))
+    ;; Subdirectory
+    (should (equal (ha-literate-make-xref-file "elisp/beep.el")
+                   "elisp/beep.el"))
+    (should (equal (ha-literate-make-xref-file "~/foo/bar.org")
+                   "../../foo/bar.org")))
+    #+END_SRC
+
 ***  Definitions
 As mentioned above,  let’s assume we can use =ripgrep= to search for /definitions/ in Lisp. I choose that because most of my literate programming is in Emacs Lisp. This regular expression should work with things like =defun= and =defvar=, etc. as well as =use-package=, allowing me to search for the /definition/ of an Emacs package:
 
 #+begin_src emacs-lisp
+  (defun ha-literate-definition-rx (symb)
+    "Return a regular expression to search for definition of SYMB."
+    (rx "("
+        (or "use-package"
+            (seq ; Match both defun and cl-defun:
+             (optional "cl-")
+             "def" (1+ (not space))))
+        (one-or-more space)
+        (literal symb)
+        word-boundary))
+
   (defun ha-literate-definition (symb)
     "Return list of `xref' objects of SYMB location in org files.
   The location is based on a regular expression starting with
   `(defxyz SYMB' where this can be `defun' or `defvar', etc."
     (ha-literate--ripgrep-matches 'ha-literate--process-rg-line
-                                  (rx "("
-                                      (or "use-package"
-                                          (seq ; Match both defun and cl-defun:
-                                           (optional "cl-")
-                                           "def" (1+ (not space))))
-                                      (one-or-more space)
-                                      (literal symb)
-                                      word-boundary)))
+                                  (ha-literate-definition-rx symb)))
 #+end_src
 
 The work of processing a match for the =ha-literate-definition= function. It calls =xref-make= to create an object for the Xref system. This takes two parameters, the text and the location. We create a location with =xref-make-file-location=.
@@ -368,24 +399,29 @@ The work of processing a match for the =ha-literate-definition= function. It cal
 #+begin_src emacs-lisp
   (defun ha-literate--process-rg-line (rg-data-line)
     "Return an `xref' structure based on the contents of RG-DATA-LINE.
-  The RG-DATA-LINE is a convert JSON data object from ripgrep.
-  The return data comes from `xref-make' and `xref-make-file-location'."
+    The RG-DATA-LINE is a convert JSON data object from ripgrep.
+    The return data comes from `xref-make' and `xref-make-file-location'."
     (when rg-data-line
       (let-alist rg-data-line
+        ;; (message "xref-make %s" .data.path.text)
         (xref-make .data.lines.text
-                   (xref-make-file-location .data.path.text
-                                            .data.line_number
-                                            (thread-last
-                                              (first .data.submatches)
-                                              (alist-get 'start)))))))
+                   (xref-make-file-location
+                    ;; Relative filename:
+                    (ha-literate-make-xref-file .data.path.text)
+                    ;; Line number:
+                    .data.line_number
+                    ;; Column: Icky to parse:
+                    (thread-last
+                      (first .data.submatches)
+                      (alist-get 'start)))))))
 #+end_src
 
-I really like the use of =let-alist= where the output from JSON can be parsed into a data structure that can then be accessible via /variables/, like =.data.path.text=.
+I like the use of =let-alist= where I can access the /parsed/ output from JSON via /variables/, like =.data.path.text=.
 
 We connect this function to the =xref-backend-definitions= list, so that it can be called when we type something like ~M-.~:
 
 #+begin_src emacs-lisp
-  (cl-defmethod xref-backend-definitions ((_backend (eql org-babel)) symbol)
+  (cl-defmethod xref-backend-definitions ((_backend (eql org)) symbol)
     (ha-literate-definition symbol))
 #+end_src
 ***  Apropos
@@ -405,7 +441,7 @@ The /apropos/ approach is anything, so the regular expression here is just the s
 And this to /hook it up/:
 
 #+begin_src emacs-lisp
-  (cl-defmethod xref-backend-apropos ((_backend (eql org-babel)) symbol)
+  (cl-defmethod xref-backend-apropos ((_backend (eql org)) symbol)
     (ha-literate-apropos symbol))
 #+end_src
 ***  References
@@ -503,7 +539,7 @@ The helper function, =ha-literate--process-in-block= is a /recursive/ function t
 Let’s connect the plumbing:
 
 #+begin_src emacs-lisp
-  (cl-defmethod xref-backend-references ((_backend (eql org-babel)) symbol)
+  (cl-defmethod xref-backend-references ((_backend (eql org)) symbol)
     (ha-literate-references symbol))
 #+end_src
 
@@ -518,7 +554,7 @@ Need the completion table before we can find the references. It actually doesn�
 Now we /hook this up/ to the rest of the system:
 
 #+begin_src emacs-lisp
-  (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql org-babel)))
+  (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql org)))
     (ha-literate-completion-table))
 #+end_src
 *** Activation of my Literate Searching
@@ -529,14 +565,16 @@ To finish the connections, we need to create a /hook/ that I only allow to turn 
     "Function to activate org-based literate backend.
   Add this function to `xref-backend-functions' hook. "
     (when (eq major-mode 'org-mode)
-      'org-babel))
+      'org))
 
-  (add-hook 'xref-backend-functions #'ha-literate-xref-activate)
+  ;; Add this hook to the beginning, as we want to call our
+  ;; backend reference before dumb-jump:
+  (add-hook 'xref-backend-functions #'ha-literate-xref-activate -100)
 #+end_src
 
 At this point, we can jump to functions and variables that I define in my org file, or even references to standard symbols like =xref-make= or =xref-backend-functions=.
 
-This is seriously cool to be able to jump around my literate code as if it were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
+I can jump around my literate code as if they were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
 ** Searching by Header
 :PROPERTIES:
 :ID:       de536693-f0b0-48d0-9b13-c29d7a8caa62
