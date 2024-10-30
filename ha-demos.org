@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2024-10-18
 #+filetags: emacs hamacs
-#+lastmod: [2024-10-24 Thu]
+#+lastmod: [2024-10-26 Sat]
 
 A literate programming file for creating and running demonstrations
 
@@ -275,8 +275,11 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
       ('below (progn (split-window-vertically) (other-window 1))))
     ;; We could do :left and :top by not doing the other window bit...
 
-    ;; Step 2: Load the file
-    (find-file filename)
+    ;; Step 2: Load the file or switch to the buffer:
+    (if (file-exists-p filename)
+        (find-file filename)
+      (switch-to-buffer filename))
+
     (goto-char (point-min))
 
     ;; Step 3: Increase the font size
