@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-29 Tue]
+#+lastmod: [2024-10-30 Wed]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -882,10 +882,11 @@ And the Emacs interface to that:
 
 #+begin_src emacs-lisp
   (use-package jinx
-    :straight (:host github :repo "minad/jinx")
+    :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
     :hook (emacs-startup . global-jinx-mode)
     :bind (("M-$" . jinx-correct-nearest)
            ("s-;" . jinx-correct-nearest))
+           ;;   :bind (([remap ispell-word] . #'jinx-correct))
     :general
     (:states '(normal insert) :keymaps 'text-mode-map
              "M-s M-s" 'jinx-correct)

@@ -117,7 +117,7 @@ Converted to use [[https://github.com/rlister/org-present][org-present]]. I love
       (org-present-show-cursor))
 
     :bind
-    (:map org-tree-slide-mode-map
+    (:map org-present-mode-keymap
           ("<f5>" . org-present-next)
           ("S-<f5>" . org-present-previous)
           ("C-<f5>" . org-present-quit))
@@ -136,7 +136,7 @@ Converted to use [[https://github.com/rlister/org-present][org-present]]. I love
              "p" #'org-present-prev
              "r" #'org-present-read-only
              "w" #'org-present-read-write
-             "q" #'org-present-quit)
+             "Q" #'org-present-quit)
 
     :hook
     (org-present-mode . ha-org-present-start)
@@ -150,6 +150,7 @@ I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for yea
     :config
     (setq org-tree-slide-heading-emphasis nil
           org-tree-slide-activate-message "† This demonstration is running in Emacs"
+          org-tree-slide-indicator '(:next nil :previous nil :content nil)
           org-tree-slide-cursor-init nil)
     (org-tree-slide-simple-profile)
 
@@ -197,7 +198,7 @@ I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for yea
              "j" #'org-tree-slide-move-next-tree
              "k" #'org-tree-slide-move-previous-tree
              "p" #'org-tree-slide-move-previous-tree
-             "q" (lambda () (interactive) (org-slide-tree-mode -1)))
+             "Q" (lambda () (interactive) (org-slide-tree-mode -1)))
 
     :hook
     ((org-tree-slide-play . ha-org-tree-slide-start)
@@ -219,16 +220,18 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
 
 #+BEGIN_SRC emacs-lisp
   (defmacro define-ha-demo (demo-name &rest forms)
-    "Create a demonstration sequence as DEMO-NAME function.
-  Call DEMO-NAME (as an interactive function), executes a function based matching list of states at point.
-  Where FORMS is an even number of _matcher_ and _function_ to call.
+    "Create a demonstration sequence from FORMS as DEMO-NAME function.
+
+  Call DEMO-NAME (as an interactive function), executes a function
+  based matching list of states at point. Where FORMS is an even
+  number of _matcher_ and _function_ to call.
 
   Probably best to explain this in an example:
 
-  (define-demo demo1
-   (:buffer \"demonstrations.py\") (message \"In a buffer\")
-   (:mode 'dired-mode)             (message \"In a dired\")
-   (:heading \"Raven Civilizations\"  (message \"In an org file\")))
+    \(define-demo demo1
+     \(:buffer \"demonstrations.py\")    \(message \"In a buffer\"\)
+     \(:mode 'dired-mode\)              \(message \"In a dired\"\)
+     \(:heading \"Raven Civilizations\"\) \(message \"In an org file\"\)\)
 
   Calling `(demo1)' displays a message based on position of the
   point in a particular buffer or place in a heading in an Org file.
@@ -236,9 +239,9 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
   You can use the `:i' to specify different forms to call when
   the trigger matches the first time, versus the second time, etc.
 
-  (define-demo demo2
-   (:buffer \"demonstrations.org\" :i 0) (message \"First time\")
-   (:buffer \"demonstrations.org\" :i 1) (message \"Second time\"))"
+  \(define-demo demo2
+   \(:buffer \"demonstrations.org\" :i 0\) \(message \"First time\"\)
+   \(:buffer \"demonstrations.org\" :i 1\) \(message \"Second time\"\)\)"
     `(defun ,demo-name ()
        (interactive)
        (let ((state (list :buffer (buffer-name)
@@ -444,7 +447,7 @@ Displaying a File with:
 
 All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (cl-defun ha-demo-show-file (filename &key position size modeline
                                         line heading shift commands)
     "Show a file, FILENAME, in a buffer based on keyed parameters.
@@ -452,6 +455,7 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
   SIZE is an integer for the font size based on the default size.
   MODELINE is shown if non-line, default is to hide it.
   LINE is either a line number or a regular expression to match.
+  HEADING is a headline from the currently display Org file.
   SHIFT is the number of lines above the point to show, in case
   the LINE shouldn't be at the top of the window.
 
@@ -480,7 +484,7 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 
     (when line
       (if (integerp line)
-          (goto-line line)
+          (forward-line line)
         (re-search-forward line nil t)))
 
     (when heading

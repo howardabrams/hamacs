@@ -9,7 +9,7 @@ A literate programming file for defining leaders with general
   ;;; ha-leader --- defining leaders with general -*- lexical-binding: t; -*-
   ;;
   ;; © 2024 Howard X. Abrams
-  ;;   This work is licensed under a Creative Commons Attribution 4.0 International License.
+  ;;   Work licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
   ;;
   ;; Author: Howard X. Abrams <http://gitlab.com/howardabrams>
