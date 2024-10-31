@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-10-27 Sun]
+#+lastmod: [2024-10-29 Tue]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -182,7 +182,7 @@ For instance, the following function can be used to quickly select a source code
     (avy-jump (rx line-start (zero-or-more blank) "#+begin_src")
               :action 'goto-char)
     ;; Jump _into_ the block:
-    (next-line))
+    (forward-line))
 #+end_src
 
 I need to take advantage of this feature more.
@@ -222,7 +222,8 @@ A trick to =org-babel-tangle=, is that it tangles /what Emacs shows/, that is, i
 
 #+begin_src emacs-lisp :results silent
   (defun org-babel-execute-subtree (prefix)
-    "Execute all Org source blocks in current subtree."
+    "Execute all Org source blocks in current subtree.
+  The PREFIX is passed to `org-babel-execute-buffer'."
     (interactive "P")
     (save-excursion
       (org-narrow-to-subtree)
@@ -280,7 +281,7 @@ While the goal is Emacs Lisp (and it mostly works for that), it will probably wo
   (defun ha-literate-symbol-at-point ()
     "Return an alphanumeric sequence at point.
   Assuming the sequence can be surrounded by typical
-  punctuation found in org-mode and markdown files."
+  punctuation found in `org-mode' and markdown files."
     (save-excursion
       ;; Position point at the first alnum character of the symbol:
       (cond ((looking-at (rx (any "=~({<\"'“`") alnum))
@@ -311,7 +312,7 @@ This helper function does the work of calling =ripgrep=, parsing its output, and
 
 #+begin_src emacs-lisp
   (defun ha-literate--ripgrep-matches (processor regex)
-    "Return list of running PROCESSOR of `rg' matches from REGEXP.
+    "Return list of running PROCESSOR of `rg' matches from REGEX.
   PROCESSOR is called with an assoc-list of the JSON output from
   the call to ripgrep."
     (let* ((default-directory (if (project-current)
@@ -345,8 +346,8 @@ The output from =ripgrep= goes through a couple of transformation functions list
     (string-equal "match" (alist-get 'type json-data)))
 #+end_src
 
-TODO Relative Filenames
 Since our =ripgrep= searches from the /project root/, but xref wants to make file references relative to the buffer that is calling it, we need to make some changes:
+
 #+BEGIN_SRC emacs-lisp
   (defun ha-literate-make-xref-file (filepath)
     "Return FILEPATH relative to current buffer's file."
@@ -355,7 +356,7 @@ Since our =ripgrep= searches from the /project root/, but xref wants to make fil
                                          (project-root (project-current))
                                        default-directory)))
           (relative-to (file-name-parent-directory (buffer-file-name))))
-      (file-relative-name abspath relative-to))))
+      (file-relative-name abspath relative-to)))
 #+END_SRC
 
 Let’s test this function:
@@ -399,8 +400,8 @@ The work of processing a match for the =ha-literate-definition= function. It cal
 #+begin_src emacs-lisp
   (defun ha-literate--process-rg-line (rg-data-line)
     "Return an `xref' structure based on the contents of RG-DATA-LINE.
-    The RG-DATA-LINE is a convert JSON data object from ripgrep.
-    The return data comes from `xref-make' and `xref-make-file-location'."
+  The RG-DATA-LINE is a convert JSON data object from ripgrep.
+  The return data comes from `xref-make' and `xref-make-file-location'."
     (when rg-data-line
       (let-alist rg-data-line
         ;; (message "xref-make %s" .data.path.text)
@@ -484,14 +485,12 @@ And the function to process the output simply attempts to connect the =begin_src
 #+begin_src emacs-lisp
   (defvar ha-literate--process-src-refs
     (make-hash-table :test 'equal)
-    "Globabl variable storing results of processing
-  org-mode's block line numbers. The key in this table is a file
-  name, and the value is a list of line numbers marking #+begin_src
-  and #+end_src.")
+    "Globabl variable storing org-mode's block line numbers.
+  The key in this table is a file name, and the value is a list of
+  line numbers marking #+begin_src and #+end_src.")
 
   (defvar ha-literate--process-begin-src nil
-    "Globabl variable storing the last entry of an
-  org-mode's `#+begin_src' line number.")
+    "Global variable last `#+begin_src' line number.")
 
   (defun ha-literate--process-src-blocks (rg-data-line)
     "Return nil if RG-DATA-LINE contains a begin_src entry.
@@ -551,7 +550,7 @@ Need the completion table before we can find the references. It actually doesn�
   (defun ha-literate-completion-table ())
 #+end_src
 
-Now we /hook this up/ to the rest of the system:
+Now we /hook this up/ to the rest of the system, and the =xref= is now complete:
 
 #+begin_src emacs-lisp
   (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql org)))
@@ -563,7 +562,7 @@ To finish the connections, we need to create a /hook/ that I only allow to turn 
 #+begin_src emacs-lisp
   (defun ha-literate-xref-activate ()
     "Function to activate org-based literate backend.
-  Add this function to `xref-backend-functions' hook. "
+  Add this function to `xref-backend-functions' hook."
     (when (eq major-mode 'org-mode)
       'org))
 
@@ -835,8 +834,7 @@ I would like to make the /filename/ more readable, I use the =s-match= again, to
   (defvar ha-hamacs-edit-file-to-title
     (rx (optional (or "README-" "ha-"))
         (group (one-or-more any)) ".org")
-    "Regular expression for extracting the interesting part of a
-  file to use as a title.")
+    "Extract the part of a file to use as a title.")
 #+end_src
 
 So the following tests should pass:

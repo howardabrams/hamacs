@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-25 Fri]
+#+lastmod: [2024-10-29 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -882,6 +882,7 @@ And the Emacs interface to that:
 
 #+begin_src emacs-lisp
   (use-package jinx
+    :straight (:host github :repo "minad/jinx")
     :hook (emacs-startup . global-jinx-mode)
     :bind (("M-$" . jinx-correct-nearest)
            ("s-;" . jinx-correct-nearest))
