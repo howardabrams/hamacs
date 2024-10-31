@@ -175,8 +175,8 @@ I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for yea
       (demo-it--presentation-display-restore)  ; Restore previous changes
       (setq org-hide-emphasis-markers t)
       (ha-demo-show-mode-line)
-      (ha-demo-normalize-frame)
       (ha-demo-show-cursor)
+      (ha-demo-normalize-frame)
       (git-gutter-mode)
       (text-scale-set 0)
       (flycheck-mode)
@@ -348,44 +348,47 @@ The typical presentation software has an issue for hiding the cursor when workin
   (defun ha-demo-hide-cursor ()
     "Hide the cursor for the current frame."
     (interactive)
-    (setq ha-demo-cursor
-          (list cursor-type
-                t ; (when (boundp 'evil-default-cursor) evil-default-cursor)
-                (when (boundp 'evil-emacs-state-cursor) evil-emacs-state-cursor)
-                (when (boundp 'evil-normal-state-cursor) evil-normal-state-cursor)
-                (default-value blink-cursor-mode)
-                (when (display-graphic-p)
-                  (frame-parameter (selected-frame) 'cursor-type))))
+    (unless ha-demo-cursor
+      (setq ha-demo-cursor
+            (list cursor-type
+                  t ; (when (boundp 'evil-default-cursor) evil-default-cursor)
+                  (when (boundp 'evil-emacs-state-cursor) evil-emacs-state-cursor)
+                  (when (boundp 'evil-normal-state-cursor) evil-normal-state-cursor)
+                  (default-value blink-cursor-mode)
+                  (when (display-graphic-p)
+                    (frame-parameter (selected-frame) 'cursor-type))))
 
-    ;; Turn off the cursor blinking minor mode:
-    (blink-cursor-mode -1)
+      ;; Turn off the cursor blinking minor mode:
+      (blink-cursor-mode -1)
 
-    ;; Change the cursor types for normal and Evil states:
-    (setq-local cursor-type nil)
-    (when (boundp 'evil-default-cursor)
-      (setq-local
-       evil-default-cursor nil
-       evil-emacs-state-cursor nil
-       evil-normal-state-cursor nil))
+      ;; Change the cursor types for normal and Evil states:
+      (setq-local cursor-type nil)
+      (when (boundp 'evil-default-cursor)
+        (setq-local
+         evil-default-cursor nil
+         evil-emacs-state-cursor nil
+         evil-normal-state-cursor nil))
 
-    ;; And most importantly, turn off the cursor for the selected frame:
-    (set-frame-parameter (selected-frame) 'cursor-type nil))
+      ;; And most importantly, turn off the cursor for the selected frame:
+      (set-frame-parameter (selected-frame) 'cursor-type nil)))
 
   (defun ha-demo-show-cursor ()
     "Restore cursor properties turned off by `ha-demo-hide-cursor'."
     (interactive)
-    (setq cursor-type (car ha-demo-cursor))
+    (when ha-demo-cursor
+      (setq cursor-type (car ha-demo-cursor))
 
-    (when (boundp 'evil-default-cursor)
-      (setq-local
-       evil-default-cursor (nth 1 ha-demo-cursor)
-       evil-emacs-state-cursor (nth 2 ha-demo-cursor)
-       evil-normal-state-cursor (nth 3 ha-demo-cursor)))
+      (when (boundp 'evil-default-cursor)
+        (setq-local
+         evil-default-cursor (nth 1 ha-demo-cursor)
+         evil-emacs-state-cursor (nth 2 ha-demo-cursor)
+         evil-normal-state-cursor (nth 3 ha-demo-cursor)))
 
-    (when (nth 4 ha-demo-cursor) (blink-cursor-mode 1))
+      (when (nth 4 ha-demo-cursor) (blink-cursor-mode 1))
 
-    (set-frame-parameter (selected-frame)
-                         'cursor-type (nth 5 ha-demo-cursor)))
+      (set-frame-parameter (selected-frame)
+                           'cursor-type (nth 5 ha-demo-cursor))
+      (setq ha-demo-cursor nil)))
     #+END_SRC
 
 ** Hide and Show the Modeline
