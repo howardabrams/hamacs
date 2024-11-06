@@ -458,7 +458,7 @@ Displaying a File with:
 
 All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (cl-defun ha-demo-show-file (filename &key position size modeline
                                         line heading shift commands)
     "Show a file, FILENAME, in a buffer based on keyed parameters.

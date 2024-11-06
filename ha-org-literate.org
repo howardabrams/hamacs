@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-10-29 Tue]
+#+lastmod: [2024-11-05 Tue]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -872,6 +872,7 @@ With a lovely collection of functions, we need to have a way to easily call them
       ("T" org-babel-detangle "from File"))
      "Misc"
      (("e" avy-org-babel-edit-src-block "Edit Block ")
+      ("s" org-babel-pop-to-session-maybe "Session REPL")
       ("v" ha-org-babel-tangle-visit-file "Visit Tangled"))))
 #+end_src
 
