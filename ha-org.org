@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-10-30 Wed]
+#+lastmod: [2024-11-09 Sat]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -393,39 +393,6 @@ And turn on ALL the languages:
                                  (dot        . t)
                                  (css        . t)
                                  (plantuml   . t)))
-#+end_src
-
-*** Searching Literate Files
-A noweb definition, e.g. =<<something-something>>= could /jump/ to the =#name= definition.
-Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
-
-#+begin_src emacs-lisp :noweb no
-  (defun ha-org-noweb-block-jump (str pos)
-    "Go to a literate org file containing a symbol, STR.
-  The POS is ignored."
-    ;; Sometimes I wrap a function name in `=' characters, and these should be removed:
-    (when (string-match (rx "<<" (group (one-or-more any)) ">>") str)
-      (setq str (match-string 1 str)))
-    (ignore-errors
-      (let* ((default-directory (project-root (project-current)))
-             (command (format "rg --ignore-case --json '#\\+name: +%s' *.org" str))
-
-             (results (thread-last command
-                                   shell-command-to-list
-                                   second
-                                   json-parse-string))
-             (file    (thread-last results
-                                   (gethash "data")
-                                   (gethash "path")
-                                   (gethash "text")))
-             (line    (thread-last results
-                                   (gethash "data")
-                                   (gethash "line_number"))))
-        (find-file file)
-        (goto-line line))))
-
-  (when (fboundp 'evil-goto-definition-functions)
-    (add-to-list 'evil-goto-definition-functions 'ha-org-noweb-block-jump))
 #+end_src
 
 *** REST Web Services

@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-11-05 Tue]
+#+lastmod: [2024-11-11 Mon]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -311,7 +311,7 @@ This magical incantation connects our function to Xref with an =org= backend:
 This helper function does the work of calling =ripgrep=, parsing its output, and filtering only the /matches/ line. Yes, an interesting feature of =rg= is that it spits out a /sequence/ of JSON-formatted text, so we can use =seq-filter= to grab lines that represent a match, and =seq-map= to “do the work”. Since we have a couple of ways of /doing the work/, we pass in a function, =processor=, which, along with transforming the results, could spit out =nulls=, so the =seq-filter= with the =identity= function eliminates that.
 
 #+begin_src emacs-lisp
-  (defun ha-literate--ripgrep-matches (processor regex)
+  (defun ha-literate--ripgrep-matches (processor regex &optional symb)
     "Return list of running PROCESSOR of `rg' matches from REGEX.
   PROCESSOR is called with an assoc-list of the JSON output from
   the call to ripgrep."
@@ -321,7 +321,9 @@ This helper function does the work of calling =ripgrep=, parsing its output, and
            (search-str (rxt-elisp-to-pcre regex))
            (command (format "rg --json --type org '%s'" search-str)))
 
-      (message "Literate xref Calling: %s" command)
+      ;; (message "Literate xref Calling: %s" command)
+      (message "Searching `%s' %s..." default-directory
+               (if symb (format "for `%s' " symb) ""))
       (thread-last command
                    (shell-command-to-list)
                    (seq-map 'ha-literate--parse-rg-line)
@@ -392,7 +394,8 @@ As mentioned above,  let’s assume we can use =ripgrep= to search for /definiti
   The location is based on a regular expression starting with
   `(defxyz SYMB' where this can be `defun' or `defvar', etc."
     (ha-literate--ripgrep-matches 'ha-literate--process-rg-line
-                                  (ha-literate-definition-rx symb)))
+                                  (ha-literate-definition-rx symb)
+                                  symb))
 #+end_src
 
 The work of processing a match for the =ha-literate-definition= function. It calls =xref-make= to create an object for the Xref system. This takes two parameters, the text and the location. We create a location with =xref-make-file-location=.
@@ -574,11 +577,45 @@ To finish the connections, we need to create a /hook/ that I only allow to turn 
 At this point, we can jump to functions and variables that I define in my org file, or even references to standard symbols like =xref-make= or =xref-backend-functions=.
 
 I can jump around my literate code as if they were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
+** Noweb References
+A noweb definition, e.g. =<<something-something>>=  should /jump/ to the =#name= definition.
+
+Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
+
+#+begin_src emacs-lisp :noweb no
+  (defun ha-org-noweb-block-jump (str pos)
+    "Go to a literate org file containing a symbol, STR.
+  The POS is ignored."
+    ;; Sometimes I wrap a function name in `=' characters, and these should be removed:
+    (when (string-match (rx "<<" (group (one-or-more any)) ">>") str)
+      (setq str (match-string 1 str)))
+    (ignore-errors
+      (let* ((default-directory (project-root (project-current)))
+             (command (format "rg --ignore-case --json '#\\+name: +%s' *.org" str))
+
+             (results (thread-last command
+                                   shell-command-to-list
+                                   second
+                                   json-parse-string))
+             (file    (thread-last results
+                                   (gethash "data")
+                                   (gethash "path")
+                                   (gethash "text")))
+             (line    (thread-last results
+                                   (gethash "data")
+                                   (gethash "line_number"))))
+        (find-file file)
+        (goto-line line))))
+
+  (when (fboundp 'evil-goto-definition-functions)
+    (add-to-list 'evil-goto-definition-functions 'ha-org-noweb-block-jump))
+#+end_src
+
 ** Searching by Header
 :PROPERTIES:
 :ID:       de536693-f0b0-48d0-9b13-c29d7a8caa62
 :END:
-As large literate programming projects grow, I refine, re-organize and refactor content. I don’t always remember where I put particular code. For instance, in my Emacs configuration, did I configure /eww/, in [[file:ha-config.org][my default config]] file, or did I move it somewhere?  Originally, after loading the file, I  could issue a call to [[file:ha-general.org::*Consult][consult-imenu]] to get to the right location, but that assumes I have the correct file loaded.
+As large literate programming projects grow, I refine, re-organize and refactor content. I don’t always remember where I put particular code. For instance, in my Emacs configuration, did I configure /eww/, in [[file:ha-config.org][my default config]] file, or did I move it somewhere?  Originally, after loading the file, I  could issue a call to [[file:ha-general.org::*Consult][consult-imenu]] or [[help:org-consult-heading][org-consult-heading]] to get to the right location, but that assumes I have the correct file loaded.
 
 The following section shows some code to use the fuzzy matching features of [[file:ha-config.org::*Orderless][Orderless]], to choose a headline in any of my Org files in a project, and then load that file and jump to that headline. The interface is =ha-hamacs-edit-file-heading=, and the supporting functions begin with =ha-hamacs-edit-=:
 
