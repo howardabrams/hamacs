@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2024-10-18
 #+filetags: emacs hamacs
-#+lastmod: [2024-11-05 Tue]
+#+lastmod: [2024-11-09 Sat]
 
 A literate programming file for creating and running demonstrations
 
@@ -199,7 +199,7 @@ I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for yea
              "C" #'ha-demo-toggle-cursor
              "n" #'org-tree-slide-move-next-tree
              "N" #'org-tree-slide-move-previous-tree
-             "Q" (lambda () (interactive) (org-slide-tree-mode -1)))
+             "Q" (lambda () (interactive) (org-tree-slide-mode -1)))
 
     :hook
     ((org-tree-slide-play . ha-org-tree-slide-start)
@@ -460,7 +460,8 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 
 #+BEGIN_SRC emacs-lisp
   (cl-defun ha-demo-show-file (filename &key position size modeline
-                                        line heading shift commands)
+                                        line heading shift cursor
+                                        commands)
     "Show a file, FILENAME, in a buffer based on keyed parameters.
   POSITION can be 'full 'right or 'below and positions the window.
   SIZE is an integer for the font size based on the default size.
@@ -490,6 +491,11 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
       (switch-to-buffer filename))
 
     (goto-char (point-min))
+
+    (when cursor
+      (if (or (eq cursor 'yes) (eq cursor 'show))
+          (ha-demo-show-cursor)
+        (ha-demo-hide-cursor)))
 
     ;; Step 3: Increase the font size
     (when size
