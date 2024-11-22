@@ -444,18 +444,6 @@ And YAML specifically:
 #+END_SRC
 
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
-  (setq hamacs-theme-colors-alist
-    '(
-      <<specials>>
-      <<region>>
-      <<links>>
-      <<region>>
-      <<grays>>
-      <<colors>>
-      <<header-sizes>>
-      ))
-  #+END_SRC
 * Technical Artifacts                          :noexport:
 
 Let's =provide= a name so we can =require= this file:
