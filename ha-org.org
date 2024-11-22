@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-11-09 Sat]
+#+lastmod: [2024-11-22 Fri]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -551,14 +551,14 @@ Of course, since we are dealing with Emacs, where we assimilate any good idea. J
 #+end_src
 
 Let’s see this in action:
-#+begin_src pikchr :file ha-org-pikchr-01.png :results file :exports both
+#+begin_src pikchr :file ha-org-pikchr-01.svg :results file :exports both :dark-mode
   bgcolor = 0x1d2021
   fgcolor = 0xeeeeee
   line; box "Hello," "World!"; arrow
 #+end_src
 
 Results in:
-#+ATTR_HTML: :width 300 :style font-family:Sans,Arial
+#+ATTR_HTML: :width 300 :style font-family:Sans,Arial :background black
 [[file:ha-org-pikchr-01.svg]]
 
 And this example shows off the syntax colorization:
