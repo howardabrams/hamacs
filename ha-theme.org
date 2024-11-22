@@ -56,24 +56,7 @@ Consider this theme /drab/? That is the beauty of themes. Everyone can make thei
 ** Warm Grays
 The codes for grays are hex numbers with equal values of red, green and blue, for instance, =#888888=. To /warm/ a gray, we need to add a bit more green, and a bit more than that of red. I notice, the closer to white you go, the less of that “more” you need. Otherwise, I end up with dark brown and beige.
 
-I came up with a pattern palette: For the darkest gray, assume =10= for the blue, and start with /15/ shades more for the red, and /7/ more shades for the green. Then, for each step towards white, decrease the red by one, and the green, by 1/2. See the following table:
-
-    | #101010 | → | 1f1710 |
-    | #202020 | → | 2e2720 |
-    | #303030 | → | 3d3630 |
-    | #404040 | → | 4c4640 |
-    | #505050 | → | 5b5550 |
-    | #606060 | → | 6a6560 |
-    | #707070 | → | 797470 |
-    | #808080 | → | 888480 |
-    | #909090 | → | 979390 |
-    | #a0a0a0 | → | a6a3a0 |
-    | #b0b0b0 | → | b5b2b0 |
-    | #c0c0c0 | → | c4c2c0 |
-    | #d0d0d0 | → | d3d1d0 |
-    | #e0e0e0 | → | e2e1e0 |
-
-Actually, using the HSV scale (hue, saturation and value, where /value/ is brightness). The /hue/ would be a nice red-orange color, around =30=, and the saturation would /start/ as =1=, but increase as we get darker, because we can increase the color saturation the closer to black we get. We can create 20 shades of warm gray:
+I started with a /pattern/ of manipulating the RPG values, but found working with the HSV scale (hue, saturation and value, where /value/ is brightness) better. The /hue/ would be a nice red-orange color, around =30=, and the saturation would /start/ as =1=, but increase as we get darker, because we can increase the color saturation the closer to black we get. We can create 20 shades of warm gray:
 
 #+begin_src pikchr :results file :file ha-theme-grays.svg :exports results
   R1: box "H:30 S:1  V:95%" "#f2f1ef" fit  color 0x0c0906 thin fill 0xf2f1ef
@@ -96,9 +79,10 @@ Actually, using the HSV scale (hue, saturation and value, where /value/ is brigh
       box "H:30 S:48 V:10%" "#19130d" same color 0xf2f1ef thin fill 0x19130d
       # box "H:30 S:75 V:5%"  "#0c0703" fit color 0xf2f1ef thin fill 0x0c0703
 #+end_src
+
 [[file:ha-theme-grays.svg]]
 
-I can encapsulate those values in an
+I encapsulate those values in a list:
 
 #+NAME: grays
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -124,7 +108,6 @@ I can encapsulate those values in an
   ("gray-00"      . "#0c0703")
 #+END_SRC
 
-In Emacs way of displaying the colors?
 
 
 ** Subtle Colors
@@ -133,36 +116,31 @@ With this knowledge of /saturation/ vs. darkness /value/, I can collect /warm/ c
 #+begin_src pikchr :results file :file ha-theme-colors.svg :exports results
   Red: box fit  fill 0x0c0906 "Red" "#860116"  color 0x860116
        box same fill 0x860116 "H: 351" "25/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Red" "#d8a2aa"  color 0xd8a2aa with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Red-lt" "#d8a2aa"  color 0xd8a2aa with .w at .1 right of previous.e
 
   Org: box fit  fill 0x0c0906 "Orange" "#ce5f15"  color 0xce5f15 with .n at .1 below Red.s
        box same fill 0xce5f15 "H: 24" "25/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#d89e77"  color 0xd89e77 with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Orange-lt" "#d89e77"  color 0xd89e77 with .w at .1 right of previous.e
 
   Ylw: box fit  fill 0x0c0906 "Yellow" "#f9b419"  color 0xf9b419 with .n at .1 below Org.s
        box same fill 0xf9b419 "H: 42" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#d8bb77"  color 0xd8b8a2 with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Yellow-lt" "#d8bb77"  color 0xd8b8a2 with .w at .1 right of previous.e
 
   Gr1: box fit  fill 0x0c0906 "Green" "#899d03"  color 0x899d03 with .n at .1 below Ylw.s
        box same fill 0x899d03 "H: 68" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#B3BF8E"  color 0xB3BF8E with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Green-lt" "#B3BF8E"  color 0xB3BF8E with .w at .1 right of previous.e
 
-  /*
-  Gr2: box fit  fill 0x0c0906 "Chew" "#90862d"  color 0x90862d with .n at .1 below Gr1.s
-       box same fill 0x90862d "H: 68" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#979e6e"  color 0x979e6e with .w at .1 right of previous.e
-  ,*/
   Gr2: box fit  fill 0x0c0906 "Dk Green" "#55702c"  color 0x55702c with .n at .1 below Gr1.s
        box same fill 0x55702c "H: 68" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#979e6e"  color 0x979e6e with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Dk Green-lt" "#979e6e"  color 0x979e6e with .w at .1 right of previous.e
 
   Bl1: box fit  fill 0x0c0906 "Blue" "#6f8b93"  color 0x6f8b93 with .n at .1 below Gr2.s
        box same fill 0x6f8b93 "H: 193" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#91b5bf"  color 0x91b5bf with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Blue-lt" "#91b5bf"  color 0x91b5bf with .w at .1 right of previous.e
 
   Prp: box fit  fill 0x0c0906 "Purple" "#893161"  color 0x893161 with .n at .1 below Bl1.s
        box same fill 0x893161 "H: 68" "45/85" color 0x0c0906 with .w at .1 right of previous.e
-       box same fill 0x0c0906 "Warn" "#997a8b"  color 0x997a8b with .w at .1 right of previous.e
+       box same fill 0x0c0906 "Purple-lt" "#997a8b"  color 0x997a8b with .w at .1 right of previous.e
        /* or 625E7B */
 #+end_src
 
@@ -172,20 +150,33 @@ And encapsulate them in a named list:
 
 #+NAME: colors
 #+BEGIN_SRC emacs-lisp :tangle no
-  ("red-lt"    . "#ffb7a5") ; make this lighter as it is the :symbol
-  ("red"       . "#d8a2aa")
-  ("orange-lt" . "#f2d7a9")
-  ("orange-dk" . "#d67c00")
-  ("brown-lt"  . "#d69333")
-  ("yellow-lt" . "#e5e1ce")
-  ("almond"    . "#ffe3bf")
-  ("green-lt"  . "#a8b269")
-  ("blue-lt"   . "#b1d2ee")
-  ("blue"      . "#81a2be")
-  ("slate"     . "#708C93") ; Slate? For function name? Change this
-  ("purple-dk" . "#b172ff")
-  ("purple"    . "#cfacf9")
-  ("purple-lt" . "#e5d4f9")
+  ("red"          . "#860116")
+  ("red-lt"       . "#d8a2aa")
+  ("orange"       . "#ce5f15")
+  ("orange-lt"    . "#d89e77")
+  ("yellow"       . "#f9b419")
+  ("yellow-lt"    . "#d8bb77")
+  ("green"        . "#899d03")
+  ("green-lt"     . "#b3bf8e")
+  ("blue"         . "#6f8b93")
+  ("blue-lt"      . "#91b5bf")
+  ("purple"       . "#893161")
+  ("purple-lt"    . "#997a8b")
+
+  ("red2-lt"      . "#ffb7a5")
+  ("red2"         . "#d8a2aa")
+  ("orange2-lt"   . "#f2d7a9")
+  ("orange-dk"    . "#d67c00")
+  ("brown-lt"     . "#d69333")
+  ("yellow2-lt"   . "#e5e1ce")
+  ("almond"       . "#ffe3bf")
+  ("green2-lt"    . "#a8b269")
+  ("blue2-lt"     . "#b1d2ee")
+  ("blue2"        . "#81a2be")
+  ("slate"        . "#708C93") ; Slate? For function name? Change this
+  ("purple-dk"    . "#b172ff")
+  ("purple2"      . "#cfacf9")
+  ("purple2-lt"   . "#e5d4f9")
 #+END_SRC
 
 ** Special Settings
@@ -196,13 +187,13 @@ The default is a high contrast between a 95% and 5% brightest values:
 
 #+NAME: specials
 #+BEGIN_SRC emacs-lisp :tangle no
-  ("default-fg" . "#f2e9e1")
-  ("default-bg" . "#0c0906")
+  ("default-fg"   . "#f2e9e1")
+  ("default-bg"   . "#0c0906")
 
-  ("active"     . "#801000")
-  ("inactive"   . "#462200")
+  ("active"       . "#801000")
+  ("inactive"     . "#462200")
 
-  ("cursor"     . "orange")
+  ("cursor"       . "orange")
 #+END_SRC
 
 Our /active/ and /inactive/ is mostly used for the mode-line, and is designed to be noticeable, but not too much?
@@ -211,7 +202,7 @@ The region should be noticeable, but not obnoxious:
 
 #+NAME: region
 #+BEGIN_SRC emacs-lisp :tangle no
-  ("region" . "#945703")
+  ("region"       . "#945703")
 #+END_SRC
 
 Org and Markdown inherit from some Emacs faces, so we define a consistent color for [[http://duckduckgo.com][hyperlinks]]:
@@ -228,19 +219,21 @@ For Org, Markdown, and other document formatting, I want a list of header size i
 
 #+NAME: header-sizes
 #+BEGIN_SRC emacs-lisp :tangle no
-  ("header-1" . 2.2)
-  ("header-2" . 1.8)
-  ("header-3" . 1.4)
-  ("header-4" . 1.2)
-  ("header-5" . 1.16)
-  ("header-6" . 1.14)
-  ("header-7" . 1.12)
-  ("header-8" . 1.1)
-  ("normal"   . 1.0)
-  ("small"    . 0.9)
-  ("smaller"  . 0.85)
-  ("smallest" . 0.8)
+  ("header-1"     . 2.2)
+  ("header-2"     . 1.8)
+  ("header-3"     . 1.4)
+  ("header-4"     . 1.2)
+  ("header-5"     . 1.16)
+  ("header-6"     . 1.14)
+  ("header-7"     . 1.12)
+  ("header-8"     . 1.1)
+  ("normal"       . 1.0)
+  ("small"        . 0.9)
+  ("smaller"      . 0.85)
+  ("smallest"     . 0.8)
 #+END_SRC
+
+** Colors as Code
 
 Color definition injects the /named/ lists defined above (using Org’s =noweb= feature):
 
@@ -357,12 +350,13 @@ Let’s make a /theme/:
 
      `(font-lock-comment-face ((t (:foreground ,gray-70))))
      `(font-lock-comment-delimiter-face ((t (:foreground ,gray-50))))
-     `(font-lock-string-face ((t (:foreground ,yellow-lt))))
-     `(font-lock-doc-face ((t (:foreground ,orange-lt))))
+     `(font-lock-string-face ((t (:foreground ,gray-90))))
+     `(font-lock-type-face ((t (:foreground ,green-lt))))
+     `(font-lock-doc-face ((t (:foreground ,almond))))
      `(font-lock-constant-face ((t (:foreground ,orange-lt))))
      `(font-lock-builtin-face ((t (:foreground ,red-lt))))
      `(font-lock-keyword-face ((t (:foreground ,green-lt))))
-     `(font-lock-function-name-face ((t (:foreground ,blue))))
+     `(font-lock-function-name-face ((t (:foreground ,blue :weight ultra-bold))))
      `(font-lock-property-use-face ((t (:foreground ,blue-lt))))
 
      `(parenthesis ((t (:foreground ,gray-50))))
@@ -376,8 +370,9 @@ Let’s make a /theme/:
      `(org-block-begin-line ((t (:foreground ,gray-50 :background ,gray-20 :height ,smaller :extend t))))
      `(org-block-end-line ((t (:inherit org-block-begin-line :height ,smallest))))
 
-     `(org-document-title ((t (:foreground ,orange-dk))))
+     `(org-document-title ((t (:foreground ,orange-lt :weight ultra-bold))))
      `(org-document-info ((t (:foreground ,brown-lt))))
+     `(org-document-info-keyword ((t (:foreground ,gray-70))))
      `(org-meta-line ((t (:foreground ,gray-55))))
      `(org-drawer ((t (:foreground ,purple-dk :height ,smallest))))
      `(org-special-keyword ((t (:foreground ,purple :height ,smaller))))
@@ -433,13 +428,12 @@ Functions and variables would look like:
 #+begin_src emacs-lisp :tangle no
   (defun function-name (arg1 arg2)
     "The doc string is part string and part comment.
-  It references ARG1 and ARG2, but also `other-functions'."
     (interactive "P")
     (list "strings not crazy" 2 :keywords-moreso))
 #+end_src
 
 And YAML specifically:
-#+BEGIN_SRC yaml-ts
+#+BEGIN_SRC yaml-ts :tangle no
   foo:
     number: 42
     string: Nothing much
@@ -450,6 +444,18 @@ And YAML specifically:
 #+END_SRC
 
 
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle no
+  (setq hamacs-theme-colors-alist
+    '(
+      <<specials>>
+      <<region>>
+      <<links>>
+      <<region>>
+      <<grays>>
+      <<colors>>
+      <<header-sizes>>
+      ))
+  #+END_SRC
 * Technical Artifacts                          :noexport:
 
 Let's =provide= a name so we can =require= this file:
