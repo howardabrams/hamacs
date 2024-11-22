@@ -1,0 +1,57 @@
+<svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 451.526 306.72">
+<path d="M2.16,52.56L151.229,52.56L151.229,2.16L2.16,2.16Z"  style="fill:rgb(242,241,239);stroke-width:1.4472;stroke:rgb(12,9,6);" />
+<text x="76.6944" y="17.28" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:1  V:95%</text>
+<text x="76.6944" y="37.44" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#f2f1ef</text>
+<path d="M151.229,52.56L300.298,52.56L300.298,2.16L151.229,2.16Z"  style="fill:rgb(229,228,227);stroke-width:0.969624;stroke:rgb(12,9,6);" />
+<text x="225.763" y="17.28" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:1  V:90%</text>
+<text x="225.763" y="37.44" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#e5e4e3</text>
+<path d="M300.298,52.56L449.366,52.56L449.366,2.16L300.298,2.16Z"  style="fill:rgb(216,215,214);stroke-width:0.649648;stroke:rgb(12,9,6);" />
+<text x="374.832" y="17.28" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:1  V:85%</text>
+<text x="374.832" y="37.44" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#d8d7d6</text>
+<path d="M2.16,102.96L151.229,102.96L151.229,52.56L2.16,52.56Z"  style="fill:rgb(204,201,199);stroke-width:0.435264;stroke:rgb(12,9,6);" />
+<text x="76.6944" y="67.68" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:2  V:80%</text>
+<text x="76.6944" y="87.84" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#ccc9c7</text>
+<path d="M151.229,102.96L300.298,102.96L300.298,52.56L151.229,52.56Z"  style="fill:rgb(191,189,187);stroke-width:0.291627;stroke:rgb(12,9,6);" />
+<text x="225.763" y="67.68" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:2  V:75%</text>
+<text x="225.763" y="87.84" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#bfbdbb</text>
+<path d="M300.298,102.96L449.366,102.96L449.366,52.56L300.298,52.56Z"  style="fill:rgb(178,175,173);stroke-width:0.19539;stroke:rgb(12,9,6);" />
+<text x="374.832" y="67.68" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:3  V:70%</text>
+<text x="374.832" y="87.84" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#b2afad</text>
+<path d="M2.16,153.36L151.229,153.36L151.229,102.96L2.16,102.96Z"  style="fill:rgb(166,163,160);stroke-width:0.130911;stroke:rgb(12,9,6);" />
+<text x="76.6944" y="118.08" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:4  V:65%</text>
+<text x="76.6944" y="138.24" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#a6a3a0</text>
+<path d="M151.229,153.36L300.298,153.36L300.298,102.96L151.229,102.96Z"  style="fill:rgb(153,148,145);stroke-width:0.0877106;stroke:rgb(12,9,6);" />
+<text x="225.763" y="118.08" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:5  V:60%</text>
+<text x="225.763" y="138.24" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#999491</text>
+<path d="M300.298,153.36L449.366,153.36L449.366,102.96L300.298,102.96Z"  style="fill:rgb(140,136,131);stroke-width:0.0587661;stroke:rgb(12,9,6);" />
+<text x="374.832" y="118.08" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H:30 S:6  V:55%</text>
+<text x="374.832" y="138.24" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">#8c8883</text>
+<path d="M2.16,203.76L151.229,203.76L151.229,153.36L2.16,153.36Z"  style="fill:rgb(127,122,118);stroke-width:0.0393733;stroke:rgb(242,241,239);" />
+<text x="76.6944" y="168.48" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:7  V:50%</text>
+<text x="76.6944" y="188.64" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#7f7a76</text>
+<path d="M151.229,203.76L300.298,203.76L300.298,153.36L151.229,153.36Z"  style="fill:rgb(114,109,104);stroke-width:0.0263801;stroke:rgb(242,241,239);" />
+<text x="225.763" y="168.48" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:9  V:45%</text>
+<text x="225.763" y="188.64" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#726d68</text>
+<path d="M300.298,203.76L449.366,203.76L449.366,153.36L300.298,153.36Z"  style="fill:rgb(102,97,92);stroke-width:0.0176747;stroke:rgb(242,241,239);" />
+<text x="374.832" y="168.48" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:10 V:40%</text>
+<text x="374.832" y="188.64" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#66615c</text>
+<path d="M2.16,254.16L151.229,254.16L151.229,203.76L2.16,203.76Z"  style="fill:rgb(89,83,78);stroke-width:0.011842;stroke:rgb(242,241,239);" />
+<text x="76.6944" y="218.88" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:12 V:35%</text>
+<text x="76.6944" y="239.04" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#59534e</text>
+<path d="M151.229,254.16L300.298,254.16L300.298,203.76L151.229,203.76Z"  style="fill:rgb(76,70,64);stroke-width:0.00793416;stroke:rgb(242,241,239);" />
+<text x="225.763" y="218.88" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:16 V:30%</text>
+<text x="225.763" y="239.04" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#4c4640</text>
+<path d="M300.298,254.16L449.366,254.16L449.366,203.76L300.298,203.76Z"  style="fill:rgb(63,57,50);stroke-width:0.00531589;stroke:rgb(242,241,239);" />
+<text x="374.832" y="218.88" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:21 V:25%</text>
+<text x="374.832" y="239.04" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#3f3932</text>
+<path d="M2.16,304.56L151.229,304.56L151.229,254.16L2.16,254.16Z"  style="fill:rgb(51,44,38);stroke-width:0.00356164;stroke:rgb(242,241,239);" />
+<text x="76.6944" y="269.28" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:e5 V:20%</text>
+<text x="76.6944" y="289.44" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#332c26</text>
+<path d="M151.229,304.56L300.298,304.56L300.298,254.16L151.229,254.16Z"  style="fill:rgb(38,32,26);stroke-width:0.0023863;stroke:rgb(242,241,239);" />
+<text x="225.763" y="269.28" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:30 V:15%</text>
+<text x="225.763" y="289.44" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#26201a</text>
+<path d="M300.298,304.56L449.366,304.56L449.366,254.16L300.298,254.16Z"  style="fill:rgb(25,19,13);stroke-width:0.00159882;stroke:rgb(242,241,239);" />
+<text x="374.832" y="269.28" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">H:30 S:48 V:10%</text>
+<text x="374.832" y="289.44" text-anchor="middle" fill="rgb(242,241,239)" dominant-baseline="central">#19130d</text>
+</svg>
+

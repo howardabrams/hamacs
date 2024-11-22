@@ -318,8 +318,13 @@ Which font to choose?
 #+begin_src emacs-lisp
   (use-package mixed-pitch
     :straight (:host github :repo "jabranham/mixed-pitch")
+    :config
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-property-value)
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'font-lock-comment-face)
     :hook (text-mode . mixed-pitch-mode))
 #+end_src
+
+
 ** Zooming or Increasing Font Size
 Do we want to increase the size of font in a single window (using =text-scale-increase=), or globally (using my new =font-size-increase=)?
 
@@ -353,16 +358,7 @@ And some keybindings to call them:
   (global-set-key (kbd "s--") 'font-size-decrease)
 #+end_src
 * Themes
-One does get used to a particular collection of colors. After happily using Steve Purcell’s port of the Tomorrow theme for many years, I decided I needed a change. First, I want Emacs to be less garish:
-
-#+begin_src emacs-lisp
-  (use-package doom-themes
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-wilmersdorf t))
-#+end_src
+One does get used to a particular collection of colors. After happily using Steve Purcell’s port of the Tomorrow theme for years, I decided I needed a change, so I made [[file:ha-theme.org][made my own theme]].
 
 Most of the time, Emacs is on my desk is a darkened room, so I choose the dark theme:
 
@@ -370,10 +366,7 @@ Most of the time, Emacs is on my desk is a darkened room, so I choose the dark t
   (defun laptop-inside ()
     "Customize the theme for inside programming."
     (interactive)
-    (load-theme 'doom-wilmersdorf t)
-    (ignore-errors
-      ;; TODO: File in progress!
-      (load-file "~/src/hamacs/ha-theme-dark.el"))
+    (load-theme 'hamacs)
     (ha-word-processor-fonts))
 #+end_src
 
@@ -383,21 +376,25 @@ But, when feeling adventurous, I /sometimes/ take my laptop outside:
   (defun laptop-in-the-sun ()
     "Customize the theme for outside programming."
     (interactive)
-    (load-theme 'doom-ayu-light t)
-    (set-face-attribute 'default nil :foreground "#0c0906")
-    (set-face-attribute 'region nil :background "orange")
-    (set-face-attribute 'org-block nil :background "#f2f1ef")
-    (set-face-attribute 'org-block-begin-line nil :foreground "#999491" :background "#e5e4e3")
+
+    (use-package doom-themes
+      :config
+      (setq doom-themes-enable-bold t ; if nil, bold is universally disabled
+            doom-themes-enable-italic t)
+      (load-theme 'doom-ayu-light t)
+
+      ;; This theme needs a bit of help:
+      (set-face-attribute 'default nil :foreground "#0c0906")
+      (set-face-attribute 'org-block nil :background "#f2f1ef")
+      (set-face-attribute 'org-block-begin-line nil :foreground "#999491" :background "#e5e4e3")
+      (set-face-attribute 'font-lock-comment-face nil :foreground "#888888" :slant 'italic :weight 'normal)
+      (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#aaaaaa" :slant 'italic :weight 'bold))
+
     (ha-word-processor-fonts))
 #+end_src
 
 I’ve been playing around with making the current window more pronounced.
 This isn’t needed as much with the [[*Window Dimmer][Window Dimmer]] feature, but if I do, this would be the settings:
-
-#+begin_src emacs-lisp :tangle no
-  (set-face-attribute 'mode-line nil :background "#cccccc")
-  (set-face-attribute 'mode-line-inactive nil :background "#888888")
-#+end_src
 
 Oh, and turn off the line highlighting:
 
@@ -405,12 +402,17 @@ Oh, and turn off the line highlighting:
   (global-hl-line-mode -1)
 #+end_src
 
-And of course, the default is /inside/ where it is dark and safe. Let’s also wait til the world settles down before calling this.
+And of course, the default is /inside/ where my mind is dark and safe:
 
 #+begin_src emacs-lisp
-  (progn
-    (sit-for 2)
-    (laptop-inside))
+  (add-to-list 'custom-theme-load-path hamacs-source-dir)
+
+  ;; (ha-hamacs-load "ha-theme.org")
+  ;; (ha-hamacs-tangle "ha-theme.org")
+  (require 'hamacs-theme)
+  (load-theme 'hamacs)
+
+  (laptop-inside)
 #+end_src
 ** Highlight Task Labels
 In code, if you drop a specific /text/ labels, we can highlight them with [[https://github.com/tarsius/hl-todo][hl-todo package]]:
@@ -426,13 +428,14 @@ In code, if you drop a specific /text/ labels, we can highlight them with [[http
     (global-hl-todo-mode 1))
 #+end_src
 
-This means that comments like the following visually standout:
-TODO Attempt to validate that this shows something I need to do.
+This package visually standout comments like:
+TODO Fix bug where highlight isn’t loading
 
 Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, but the [[https://github.com/liuyinz/consult-todo][consult-todo]] implements that in a more visual way:
 
 #+begin_src emacs-lisp
   (use-package consult-todo
+    :straight (:host github :repo "liuyinz/consult-todo")
     :init
     (defconst consult-todo--narrow
       '((?t . "TODO")

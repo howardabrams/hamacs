@@ -46,6 +46,12 @@ Since I use ellipsis in my writing… to /change/ how org renders a collapsed he
           org-agenda-breadcrumbs-separator " ❱ "))
 #+end_src
 
+I would like Quote and Verse blocks /special/, that is, in italics. This means, we first need to allow them to be /different/, and then I can alter [[file:ha-theme.org][my theme]] to make quotes italics:
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-fontify-quote-and-verse-blocks t)
+#+END_SRC
+
 Oh, and as I indent lists, they should change the /bulleting/ in a particular sequence. If I begin with an =*= asterisk, I walk down the chain, but with the dashed bullets (my default choice), I stay with dashed bullets. Numeric bullets should cycle:
 
 #+begin_src emacs-lisp

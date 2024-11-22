@@ -1,0 +1,66 @@
+<svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 357.12 594.72">
+<path d="M2.16,74.16L110.16,74.16L110.16,2.16L2.16,2.16Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(134,1,22);" />
+<text x="56.16" y="28.08" text-anchor="middle" fill="rgb(134,1,22)" dominant-baseline="central">Red</text>
+<text x="56.16" y="48.24" text-anchor="middle" fill="rgb(134,1,22)" dominant-baseline="central">#860116</text>
+<path d="M124.56,74.16L232.56,74.16L232.56,2.16L124.56,2.16Z"  style="fill:rgb(134,1,22);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="28.08" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 351</text>
+<text x="178.56" y="48.24" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">25/85</text>
+<path d="M246.96,74.16L354.96,74.16L354.96,2.16L246.96,2.16Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(216,162,170);" />
+<text x="300.96" y="28.08" text-anchor="middle" fill="rgb(216,162,170)" dominant-baseline="central">Red</text>
+<text x="300.96" y="48.24" text-anchor="middle" fill="rgb(216,162,170)" dominant-baseline="central">#d8a2aa</text>
+<path d="M2.16,160.56L110.16,160.56L110.16,88.56L2.16,88.56Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(206,95,21);" />
+<text x="56.16" y="114.48" text-anchor="middle" fill="rgb(206,95,21)" dominant-baseline="central">Orange</text>
+<text x="56.16" y="134.64" text-anchor="middle" fill="rgb(206,95,21)" dominant-baseline="central">#ce5f15</text>
+<path d="M124.56,160.56L232.56,160.56L232.56,88.56L124.56,88.56Z"  style="fill:rgb(206,95,21);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="114.48" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 24</text>
+<text x="178.56" y="134.64" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">25/85</text>
+<path d="M246.96,160.56L354.96,160.56L354.96,88.56L246.96,88.56Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(216,158,119);" />
+<text x="300.96" y="114.48" text-anchor="middle" fill="rgb(216,158,119)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="134.64" text-anchor="middle" fill="rgb(216,158,119)" dominant-baseline="central">#d89e77</text>
+<path d="M2.16,246.96L110.16,246.96L110.16,174.96L2.16,174.96Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(249,180,25);" />
+<text x="56.16" y="200.88" text-anchor="middle" fill="rgb(249,180,25)" dominant-baseline="central">Yellow</text>
+<text x="56.16" y="221.04" text-anchor="middle" fill="rgb(249,180,25)" dominant-baseline="central">#f9b419</text>
+<path d="M124.56,246.96L232.56,246.96L232.56,174.96L124.56,174.96Z"  style="fill:rgb(249,180,25);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="200.88" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 42</text>
+<text x="178.56" y="221.04" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">45/85</text>
+<path d="M246.96,246.96L354.96,246.96L354.96,174.96L246.96,174.96Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(216,184,162);" />
+<text x="300.96" y="200.88" text-anchor="middle" fill="rgb(216,184,162)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="221.04" text-anchor="middle" fill="rgb(216,184,162)" dominant-baseline="central">#d8bb77</text>
+<path d="M2.16,333.36L110.16,333.36L110.16,261.36L2.16,261.36Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(137,157,3);" />
+<text x="56.16" y="287.28" text-anchor="middle" fill="rgb(137,157,3)" dominant-baseline="central">Green</text>
+<text x="56.16" y="307.44" text-anchor="middle" fill="rgb(137,157,3)" dominant-baseline="central">#899d03</text>
+<path d="M124.56,333.36L232.56,333.36L232.56,261.36L124.56,261.36Z"  style="fill:rgb(137,157,3);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="287.28" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 68</text>
+<text x="178.56" y="307.44" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">45/85</text>
+<path d="M246.96,333.36L354.96,333.36L354.96,261.36L246.96,261.36Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(179,191,142);" />
+<text x="300.96" y="287.28" text-anchor="middle" fill="rgb(179,191,142)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="307.44" text-anchor="middle" fill="rgb(179,191,142)" dominant-baseline="central">#B3BF8E</text>
+<path d="M2.16,419.76L110.16,419.76L110.16,347.76L2.16,347.76Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(85,112,44);" />
+<text x="56.16" y="373.68" text-anchor="middle" fill="rgb(85,112,44)" dominant-baseline="central">Dk Green</text>
+<text x="56.16" y="393.84" text-anchor="middle" fill="rgb(85,112,44)" dominant-baseline="central">#55702c</text>
+<path d="M124.56,419.76L232.56,419.76L232.56,347.76L124.56,347.76Z"  style="fill:rgb(85,112,44);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="373.68" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 68</text>
+<text x="178.56" y="393.84" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">45/85</text>
+<path d="M246.96,419.76L354.96,419.76L354.96,347.76L246.96,347.76Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(151,158,110);" />
+<text x="300.96" y="373.68" text-anchor="middle" fill="rgb(151,158,110)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="393.84" text-anchor="middle" fill="rgb(151,158,110)" dominant-baseline="central">#979e6e</text>
+<path d="M2.16,506.16L110.16,506.16L110.16,434.16L2.16,434.16Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(111,139,147);" />
+<text x="56.16" y="460.08" text-anchor="middle" fill="rgb(111,139,147)" dominant-baseline="central">Blue</text>
+<text x="56.16" y="480.24" text-anchor="middle" fill="rgb(111,139,147)" dominant-baseline="central">#6f8b93</text>
+<path d="M124.56,506.16L232.56,506.16L232.56,434.16L124.56,434.16Z"  style="fill:rgb(111,139,147);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="460.08" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 193</text>
+<text x="178.56" y="480.24" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">45/85</text>
+<path d="M246.96,506.16L354.96,506.16L354.96,434.16L246.96,434.16Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(145,181,191);" />
+<text x="300.96" y="460.08" text-anchor="middle" fill="rgb(145,181,191)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="480.24" text-anchor="middle" fill="rgb(145,181,191)" dominant-baseline="central">#91b5bf</text>
+<path d="M2.16,592.56L110.16,592.56L110.16,520.56L2.16,520.56Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(137,49,97);" />
+<text x="56.16" y="546.48" text-anchor="middle" fill="rgb(137,49,97)" dominant-baseline="central">Purple</text>
+<text x="56.16" y="566.64" text-anchor="middle" fill="rgb(137,49,97)" dominant-baseline="central">#893161</text>
+<path d="M124.56,592.56L232.56,592.56L232.56,520.56L124.56,520.56Z"  style="fill:rgb(137,49,97);stroke-width:2.16;stroke:rgb(12,9,6);" />
+<text x="178.56" y="546.48" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">H: 68</text>
+<text x="178.56" y="566.64" text-anchor="middle" fill="rgb(12,9,6)" dominant-baseline="central">45/85</text>
+<path d="M246.96,592.56L354.96,592.56L354.96,520.56L246.96,520.56Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(153,122,139);" />
+<text x="300.96" y="546.48" text-anchor="middle" fill="rgb(153,122,139)" dominant-baseline="central">Warn</text>
+<text x="300.96" y="566.64" text-anchor="middle" fill="rgb(153,122,139)" dominant-baseline="central">#997a8b</text>
+</svg>
+

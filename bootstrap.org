@@ -144,7 +144,6 @@ Much of my more complicated code comes from my website essays and other projects
   (add-to-list 'load-path (expand-file-name "elisp" user-emacs-directory))
 #+end_src
 
-Hopefully, this will tie me over while I transition.
 * Emacs Server Control
 I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like LSP), and my personal instance has other packages running (like IRC and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
 #+begin_src emacs-lisp
@@ -174,13 +173,14 @@ The following /defines/ the rest of my org-mode literate files, that I load late
 #+begin_src emacs-lisp
   (defvar ha-hamacs-files (flatten-list
                            `("ha-private.org"
+                             ,(when (display-graphic-p)
+                                "ha-theme.org"
+                                "ha-display.org")
                              "ha-config.org"
                              ;; "ha-leader.org"
                              "ha-evil.org"
                              ;; "ha-meow.org"
                              "ha-applications.org"
-                             ,(when (display-graphic-p)
-                                "ha-display.org")
                              "ha-org.org"
                              ,(when (display-graphic-p)
                                 "ha-org-word-processor.org")
