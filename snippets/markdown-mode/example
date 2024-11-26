@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: example
+# key: <e
+# --
+\`\`\`text
+$0
+\`\`\`

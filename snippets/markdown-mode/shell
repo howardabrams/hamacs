@@ -1,6 +1,6 @@
 # key: <ss
 # name: shell
 # --
-```bash
+\`\`\`bash
 ${0}
-```
+\`\`\`
