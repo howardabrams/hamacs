@@ -1,4 +1,7 @@
-<svg xmlns='http://www.w3.org/2000/svg' class="pikchr" viewBox="0 0 357.12 594.72">
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="800px"
+     viewBox="0 0 357.12 594.72">
 <path d="M2.16,74.16L110.16,74.16L110.16,2.16L2.16,2.16Z"  style="fill:rgb(12,9,6);stroke-width:2.16;stroke:rgb(134,1,22);" />
 <text x="56.16" y="28.08" text-anchor="middle" fill="rgb(134,1,22)" dominant-baseline="central">Red</text>
 <text x="56.16" y="48.24" text-anchor="middle" fill="rgb(134,1,22)" dominant-baseline="central">#860116</text>
@@ -63,4 +66,3 @@
 <text x="300.96" y="546.48" text-anchor="middle" fill="rgb(153,122,139)" dominant-baseline="central">Purple-lt</text>
 <text x="300.96" y="566.64" text-anchor="middle" fill="rgb(153,122,139)" dominant-baseline="central">#997a8b</text>
 </svg>
-

@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-06-18
 #+filetags: emacs hamacs
-#+lastmod: [2024-11-22 Fri]
+#+lastmod: [2024-11-26 Tue]
 
 A literate programming file for defining a warm, autumn, but subtle color theme for Emacs.
 
@@ -25,9 +25,9 @@ A literate programming file for defining a warm, autumn, but subtle color theme 
   ;;
   ;;; Commentary:
   ;;
-  ;; These color themes are designed for use with Emacs' built-in
-  ;; theme support in Emacs 24. However, they also work with older Emacs
-  ;; versions, in which case color-theme.el is required.
+  ;; These color themes, designed for use with Emacs' built-in theme
+  ;; support in Emacs 24, also work with older Emacs versions, in which
+  ;; case, require color-theme.el.
   ;;
   ;; Usage:
   ;;
@@ -348,13 +348,16 @@ Let’s make a /theme/:
      `(link ((t (:foreground ,link-color))))
      `(link-visited ((t (:foreground ,visited-color))))
 
-     `(font-lock-comment-face ((t (:foreground ,gray-70))))
+     `(font-lock-comment-face ((t (:foreground ,gray-65))))
      `(font-lock-comment-delimiter-face ((t (:foreground ,gray-50))))
-     `(font-lock-string-face ((t (:foreground ,gray-90))))
+     `(font-lock-string-face ((t (:foreground ,gray-75))))
      `(font-lock-type-face ((t (:foreground ,green-lt))))
      `(font-lock-doc-face ((t (:foreground ,almond))))
-     `(font-lock-constant-face ((t (:foreground ,orange-lt))))
+     ;; References like `reference' in doc strings:
+     `(font-lock-constant-face ((t (:foreground ,link-color))))
+     ;; Keywords like :this
      `(font-lock-builtin-face ((t (:foreground ,red-lt))))
+     ;; Like defun or `interactive'
      `(font-lock-keyword-face ((t (:foreground ,green-lt))))
      `(font-lock-function-name-face ((t (:foreground ,blue :weight ultra-bold))))
      `(font-lock-property-use-face ((t (:foreground ,blue-lt))))
@@ -413,37 +416,16 @@ Let’s make a /theme/:
      `(vertico-group-separator ((t (:foreground ,gray-45))))
      `(vertico-group-multiline ((t (:foreground ,gray-45))))
      `(vertico-group-title ((t (:foreground ,gray-45))))
+
+     `(sh-heredoc ((t (:foreground ,almond))))
+     `(sh-quoted-exec ((t (:foreground ,orange2-lt))))
+
+     `(ahs-face ((t (:foreground ,orange-lt :background unspecified))))
+     `(ahs-plugin-default-face ((t (:foreground unspecified :background unspecified))))
      ))
 #+END_SRC
 
-Let’s see how Org-formatted faces look:
-  - *bold*
-  - /italics/
-  - _underlined_
-  - =verbatim=
-  - ~code, er keys~
-
-Functions and variables would look like:
-
-#+begin_src emacs-lisp :tangle no
-  (defun function-name (arg1 arg2)
-    "The doc string is part string and part comment.
-    (interactive "P")
-    (list "strings not crazy" 2 :keywords-moreso))
-#+end_src
-
-And YAML specifically:
-#+BEGIN_SRC yaml-ts :tangle no
-  foo:
-    number: 42
-    string: Nothing much
-    quoted_string: "Nothing much"
-    boolean: true
-    multiline: >
-      Here we go with {{ substitutions }} from Jinja/Ansible
-#+END_SRC
-
-
+[[file:ha-theme-results.png]]
 * Technical Artifacts                          :noexport:
 
 Let's =provide= a name so we can =require= this file:
