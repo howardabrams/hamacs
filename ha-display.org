@@ -320,6 +320,7 @@ Which font to choose?
     :straight (:host github :repo "jabranham/mixed-pitch")
     :config
     (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-property-value)
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-special-keyword)
     (add-to-list 'mixed-pitch-fixed-pitch-faces 'font-lock-comment-face)
     :hook (text-mode . mixed-pitch-mode))
 #+end_src

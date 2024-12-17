@@ -82,23 +82,29 @@ The following adds frame borders and window dividers to give space between windo
 #+end_src
 
 ** Hide Heading Stars
-I’ve struggled with hiding the initial asterisks that denote a headline in Org.
+I’ve struggled with hiding the initial asterisks that denote a headline in Org. The following code doesn’t work with how the built-in [[https://orgmode.org/manual/Org-Indent-Mode.html][org-indent-mode]] works.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defun org-mode-hide-stars ()
     (font-lock-add-keywords
      nil
-     '(("^\\*+ "
-        (0 (put-text-property (match-beginning 0) (match-end 0) 'face
-                              (list :foreground
-                                    (face-attribute 'default :background))))))))
+     `(( ,(rx line-start (one-or-more "*") space)
+        (0 (put-text-property (match-beginning 0) (match-end 0)
+                            'invisible t))))))
 #+end_src
 
 And hook this function to Org:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package org
     :hook (org-mode . org-mode-hide-stars))
 #+end_src
+
+The list of things to try:
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-hide-leading-stars nil) ; or t
+#+END_SRC
+
 ** Markup View
 The variable, =org-hide-emphasis-markers=, is key to pretending that Emacs can be a word processor, however, since the org markup controls aren’t viewable, I find it challenging at times, to change that. The [[https://github.com/awth13/org-appear][org-appear project]] seeks to fix this by showing the markup when the point is nearby:
 
