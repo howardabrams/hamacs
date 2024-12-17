@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-06-18
 #+filetags: emacs hamacs
-#+lastmod: [2024-11-26 Tue]
+#+lastmod: [2024-12-10 Tue]
 
 A literate programming file for defining a warm, autumn, but subtle color theme for Emacs.
 
@@ -158,6 +158,8 @@ And encapsulate them in a named list:
   ("yellow-lt"    . "#d8bb77")
   ("green"        . "#899d03")
   ("green-lt"     . "#b3bf8e")
+  ("dk-green"     . "#55702c")
+  ("dk-green-lt"  . "#979e6e")
   ("blue"         . "#6f8b93")
   ("blue-lt"      . "#91b5bf")
   ("purple"       . "#893161")
@@ -348,7 +350,7 @@ Let’s make a /theme/:
      `(link ((t (:foreground ,link-color))))
      `(link-visited ((t (:foreground ,visited-color))))
 
-     `(font-lock-comment-face ((t (:foreground ,gray-65))))
+     `(font-lock-comment-face ((t (:foreground ,gray-60))))
      `(font-lock-comment-delimiter-face ((t (:foreground ,gray-50))))
      `(font-lock-string-face ((t (:foreground ,gray-75))))
      `(font-lock-type-face ((t (:foreground ,green-lt))))
@@ -378,8 +380,8 @@ Let’s make a /theme/:
      `(org-document-info-keyword ((t (:foreground ,gray-70))))
      `(org-meta-line ((t (:foreground ,gray-55))))
      `(org-drawer ((t (:foreground ,purple-dk :height ,smallest))))
-     `(org-special-keyword ((t (:foreground ,purple :height ,smaller))))
-     `(org-property-value ((t (:foreground ,purple-lt :height ,smaller))))
+     `(org-special-keyword ((t (:foreground ,purple2 :height ,small))))
+     `(org-property-value ((t (:foreground ,purple2-lt :height ,small))))
      `(org-table ((t (:foreground ,purple-lt))))
      `(org-quote ((t (:inherit variable-pitch :slant italic :height 0.9))))
 
@@ -422,6 +424,9 @@ Let’s make a /theme/:
 
      `(ahs-face ((t (:foreground ,orange-lt :background unspecified))))
      `(ahs-plugin-default-face ((t (:foreground unspecified :background unspecified))))
+
+     `(mastodon-display-name-face ((t (:foreground ,orange-lt))))
+     `(mastodon-boosted-face ((t (:foreground ,green-lt))))
      ))
 #+END_SRC
 
