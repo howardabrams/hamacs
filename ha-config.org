@@ -41,14 +41,16 @@ I like the rendering of curved quotes using [[help:text-quoting-style][text-quot
 #+end_src
 When typing prose in Org documents, I need to [[file:ha-org-word-processor.org::*Typographic Quotes][do something else]] for rounded quotes and ellipsis.
 
-Changes and settings I like introduced that were introduced in Emacs 28:
+Changes and settings I like introduced in Emacs 28:
+
 #+begin_src emacs-lisp
   (setq use-short-answers t
         describe-bindings-outline t
         completions-detailed t)
 #+end_src
 
-I’ve got preferences for how I like scrolling, and with my org files, I need a little more of the of the context, so this increases from =2= to =3=, but I really like to keep the cursor in place when I can:
+I’ve got preferences for how I like scrolling, and with my org files, I need a little more of the of the context, so this increases from =2= to =3=, but I like to keep the cursor in place when I can:
+
 #+begin_src emacs-lisp
 (setq next-screen-context-lines 3
           scroll-error-top-bottom t
@@ -139,7 +141,7 @@ After reading [[https://irreal.org/blog/?p=12139][Jon Sander’s essay]] as well
     :straight (:host github :repo "tecosaur/emacs-everywhere"))
 #+end_src
 
-This package is /called outside of Emacs/, so I bound a keybinding to iCanHazShortcut:
+This package /called outside of Emacs/, so I bound a keybinding to iCanHazShortcut:
 
 #+begin_src sh
   emacsclient --socket-name personal --eval "(emacs-everywhere)"

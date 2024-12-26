@@ -84,31 +84,47 @@ Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I 
 
     (general-nmap "<escape>" #'transient-quit-one))
 #+end_src
-** Git Gutter
-The [[https://github.com/syohex/emacs-git-gutter-fringe][git-gutter-fringe]] project displays markings in the fringe (extreme left margin) to show modified and uncommitted lines. This project builds on [[https://github.com/emacsorphanage/git-gutter][git-gutter]] project to provide movement between /hunks/:
-#+begin_src emacs-lisp
-  (use-package git-gutter-fringe
+** VC Diff Highlight
+The [[https://github.com/dgutov/diff-hl][diff-hl project]], while more active, has more features than the [[https://github.com/syohex/emacs-git-gutter-fringe][git-gutter-fringe]] project.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package diff-hl
     :custom
-    ;; To have both flymake and git-gutter work, we put
-    ;; git-gutter on the right side:
-    (git-gutter-fr:side 'right-fringe)
-    ;; (left-fringe-width 15)
-    (right-fringe-width 10)
+    (diff-hl-side 'right)
+    (fringe-mode '(8 . 4))
+    (diff-hl-draw-borders nil)
 
+    :hook ((dired-mode   . diff-hl-dired-mode)
+           (diff-hl-mode . diff-hl-flydiff-mode)))
+#+END_SRC
+
+Turning on the mode, as well as binding some new /leader/ keys:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package diff-hl
     :config
-    (set-face-foreground 'git-gutter-fr:modified "yellow")
-    (set-face-foreground 'git-gutter-fr:added    "green")
-    (set-face-foreground 'git-gutter-fr:deleted  "red")
-
-    (global-git-gutter-mode)
+    (global-diff-hl-mode)
 
     (ha-leader
-      "g n" '("next hunk"     . git-gutter:next-hunk)
-      "g p" '("previous hunk" . git-gutter:previous-hunk)
-      "g e" '("end of hunk"   . git-gutter:end-of-hunk)
-      "g r" '("revert hunk"   . git-gutter:revert-hunk)
-      "g s" '("stage hunk"    . git-gutter:stage-hunk)))
-#+end_src
+      "g j" '("jump hunk"     . diff-hl-diff-goto-hunk)
+      "g ]" '("next hunk"     . diff-hl-next-hunk)
+      "g [" '("previous hunk" . diff-hl-previous-hunk)
+      "g e" '("end of hunk"   . diff-hl-end-of-hunk)
+      "g r" '("revert hunk"   . diff-hl-revert-hunk)
+      "g s" '("show hunk"     . diff-hl-show-hunk)
+      "g S" '("stage hunk"    . diff-hl-stage-dwim)
+
+      ;; Using Gerrit means I might want to view changes not from my
+      ;; last review, but from the original changes:
+      "g a" '("diff amend"    . diff-hl-amend-mode)))
+#+END_SRC
+
+This project (and others) can use repeat mode, but
+
+#+BEGIN_SRC emacs-lisp
+  (repeat-mode)
+#+END_SRC
+
 ** Git Delta
 The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses [[https://github.com/dandavison/delta][git-delta]] for colorized diffs.
 #+begin_src emacs-lisp
@@ -264,6 +280,8 @@ What's left is integrating the new show and diff commands in Magit. For that pur
 
   (ha-leader "g d" '("difftastic" . ha-difftastic-here))
 #+end_src
+
+How much has been already integrated? Need to re-evaluate this.
 ** Time Machine
 The [[https://github.com/emacsmirror/git-timemachine][git-timemachine]] project visually shows how a code file changes with each iteration:
 #+begin_src emacs-lisp
