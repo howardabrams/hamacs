@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: Front Matter
+# key: <front
+# --
+---
+title: ${1}
+linkTitle: ${2}
+type: docs
+weight: ${3:50}
+${4:next: ${5:`(file-name-base (read-file-name "Next: "))`}}
+${6:prev: ${7:`(file-name-base (read-file-name "Prev: "))`}}
+---
+
+$0
