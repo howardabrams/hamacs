@@ -1,8 +1,8 @@
-#+title:  Demonstrations in Emacs
-#+author: Howard X. Abrams
-#+date:   2024-10-18
-#+filetags: emacs hamacs
-#+lastmod: [2024-12-16 Mon]
+#+TITLE:  Demonstrations in Emacs
+#+AUTHOR: Howard X. Abrams
+#+DATE:   2024-10-18
+#+FILETAGS: emacs hamacs
+#+LASTMOD: [2025-01-14 Tue]
 #+STARTUP: showstars
 
 A literate programming file for creating and running demonstrations
@@ -59,6 +59,156 @@ But I feel I should replace it, and this project encapsulates the following goal
 
 * Presentations with Org
 A demonstration begins with an Org file where the screen shows a /single heading/ with a larger font. Not much more. I’m playing around with /all/ the projects available, including writing my own.
+** My Slides
+A /full/ presentation requires my /notes/ on one frame, and the presentation on the other.
+
+To use this, following:
+  1. Select the Org mode presentation
+  2. Run the function, =ha-slide-make-notes-frame=
+  3. Reference the notes file associated with the presentation
+
+The end result is two frames, where updating the presentation, updates the location of the other frame to match the same headline.
+
+#+begin_src emacs-lisp
+  (defvar ha-slide-notes-frame-name "Demonstration Notes"
+    "The name of the frame that displays the presentation notes.")
+
+  (defvar ha-slide-notes-frame nil
+    "Frame containing the presentation notes.")
+
+  (defvar ha-slide-notes-window nil
+    "Window containing the presentation notes.")
+
+  (defun ha-slide-make-notes-frame (filename &optional heading)
+    "Display the notes, FILENAME, in a new frame.
+  With HEADING, jump to that `org-mode' headline."
+    (interactive "fNotes File: ")
+    (let ((f (selected-frame)))
+      (setq ha-slide-notes-frame
+            (make-frame `((name . ,ha-slide-notes-frame-name))))
+      (set-frame-position ha-slide-notes-frame 1310 0)
+      (set-frame-size ha-slide-notes-frame 920 1420 t)
+
+      ;; While I could call `find-file-other-frame', I want to make
+      ;; sure I get the file loaded in the correct frame:
+      (x-focus-frame ha-slide-notes-frame)
+      (find-file filename)
+      (goto-char (point-min))
+      (when heading
+        (re-search-forward (rx bol (one-or-more "*") (one-or-more space) (literal heading)))
+        (recenter-top-bottom 0))
+
+      (setq ha-slide-notes-window (selected-window))
+      (delete-other-windows)
+
+      ;; Highlight the original window containing the presentation:
+      (x-focus-frame f)))
+#+end_src
+
+These interactive functions scroll the “notes” in the other window in another frame:
+
+#+begin_src emacs-lisp
+  (defun ha-slide-notes-scroll-up ()
+    "Scroll the frame/window containing the notes, up."
+    (interactive)
+    (when ha-slide-notes-window
+      (with-selected-window ha-slide-notes-window
+        (scroll-up -10))))
+
+  (defun ha-slide-notes-scroll-down ()
+    "Scroll the frame/window containing the notes, down."
+    (interactive)
+    (when ha-slide-notes-window
+      (with-selected-window ha-slide-notes-window
+        (scroll-up 10))))
+
+  (defun ha-slide-notes-update ()
+    "Function to move the notes headline to current buffers.
+  Assuming the buffer is showing an org-file, and have
+  called `ha-slide-make-notes-frame', this function moves
+  the point in that buffer to the same headline."
+    (interactive)
+    (when ha-slide-notes-window
+      (let ((heading (thread-first
+                       (org-get-heading t t t t)
+                       (substring-no-properties))))
+        (with-selected-window ha-slide-notes-window
+          (goto-char (point-min))
+          (re-search-forward (rx (literal heading)) nil t)
+          (recenter-top-bottom 0)))))
+#+end_src
+
+Call the =ha-slide-notes-update= function automatically after updating a slide. With =dslide=, we add a hook:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dslide
+    :straight (dslide :host github :repo "positron-solutions/dslide")
+    :commands (dslide-narrow-hook)
+    :hook (dslide-narrow . 'ha-slide-notes-update))
+#+END_SRC
+
+** My Presentation View
+Regardless of the presentation package I use, I make them all look similar with the following code. Much of this is getting rid of Emacs visual elements, like the cursor and the mode-line, as well as stopping minor modes that add visual changes, like spellchecking and the gutter. I can call this function from any presentation software used.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-setup (&optional frame-name)
+    "Configure the look I want for presentations.
+  The frame associated with FRAME-NAME is tidied
+  by removing the gutters and other informative
+  widgets not needed for a presentation."
+    (org-indent-mode -1)
+    ;; (org-modern-mode -1)
+
+    (setq org-image-actual-width nil)
+    (org-display-inline-images)
+    (ha-org-blocks-hide-headers)
+    (ha-org-hide-stars)
+    (font-lock-update)
+    (ha-demo-hide-mode-line)
+    (ha-demo-hide-cursor)
+    (ha-demo-presentation-frame frame-name)
+
+    (text-scale-set 4)
+    (diff-hl-mode -1)
+    (flycheck-mode -1)
+    (jinx-mode -1)
+
+    ;; Clear the demonstration state cache:
+    (clrhash ha-demo-prev-state)
+
+    (evil-normal-state))
+#+END_SRC
+
+And after a presentation finishes, this function cleans up by restoring minor modes, etc:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-teardown ()
+    "Reset the Org after a presentation."
+    (org-indent-mode 1)
+    ;; (org-modern-mode 1)
+
+    (ha-org-blocks-show-headers)
+    (font-lock-update)
+    (ha-demo-show-mode-line)
+    (ha-demo-show-cursor)
+    (ha-demo-normalize-frame)
+
+    (text-scale-set 0)
+    (diff-hl-mode)
+    (flycheck-mode)
+    (jinx-mode))
+#+END_SRC
+
+The =dslide= seems to reset /everything/ on each slide display, so:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-reset ()
+    "Reset the current slide."
+    (interactive)
+    (ha-org-blocks-hide-headers)
+    (font-lock-update))
+    #+END_SRC
+
 ** Org Tree Slide
 I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for years for showing org files as presentations. I like the /simple/ presentation and it seems to shows all the images.
 
@@ -129,8 +279,8 @@ The [[https://github.com/positron-solutions/dslide][dslide project]] is flexible
 
 #+begin_src emacs-lisp
   (use-package dslide
-    :straight (dslide :type git :host github :repo "positron-solutions/dslide")
-
+    :straight (dslide :host github :repo "positron-solutions/dslide")
+    :commands (dslide-deck-start dslide-deck-stop)
     :custom
     (dslide-start-from 'point)
     ;; Let's keep our presentations simple:
@@ -176,7 +326,9 @@ What features do I like and want to take advantage of?
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dslide
+    :straight (:host github :repo "positron-solutions/dslide")
      :config
+     (defun dslide (&rest ignored))
      ;; The dslide-highlight inherits from 'highlight'
      ;; (set-face-attribute dslide-highlight :foreground "red")
      ;; This too inherits from 'highlight'
@@ -203,6 +355,16 @@ The =moc-screenshot= seems to only work on Linux.
 
 An interesting approach for making presentations, that I’m not sure I will need.
 
+*** TopSpace
+
+The [[https://github.com/trevorpogue/topspace][topspace]] project can pad the top of a buffer, to make the first line in the center of the window. Helpful for presentations:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package topspace
+    :straight (:type git :host github :repo "trevorpogue/topspace")
+    )
+    #+END_SRC
+
 *** Showing Something associated with a Headline
 :PROPERTIES:
 :DSLIDE_ACTIONS: dslide-action-babel
@@ -214,13 +376,13 @@ But how would I get it to close? Maybe we use a combination of actions and my �
 
 *Note:* Code blocks with =exports= set to =none= are not displayed.
 
-#+begin_src elisp :tangle no :exports none :results none
+#+begin_src elisp :tangle no :exports none :results none :eval no
   (ha-demo-show-file "ha-org.org" :position 'right
                      :focus 'presentation :heading "Meetings"
                      :shift 0)
 #+end_src
 
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none
+#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none :eval no
   (ha-demo-highlight-buffer :buffer "ha-org.org"
                             :hi-lines "268-274")
 #+END_SRC
@@ -234,213 +396,59 @@ I would like to highlight a bullet point or a paragraph while talking.
 To do this, add =:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs= to the properties of a section.
 
 #+begin_src elisp emacs-lisp
-  (defclass dslide-action-highlight-paragraphs (dslide-action)
-    ((overlays :initform nil))
-    "Paint the paragraphs with the highlight color, one by one.")
+  (use-package dslide
+    :straight (:host github :repo "positron-solutions/dslide")
+    :config
+    (defclass dslide-action-highlight-paragraphs (dslide-action)
+      ((overlays :initform nil))
+      "Paint the paragraphs with the highlight color, one by one.")
 
-  ;; Default no-op `dslide-begin' is sufficient
+    ;; In this case, the Default no-op `dslide-begin' works.
+    ;; Default implementation of `dslide-end', plays forward to the end.
 
-  ;; Default implementation of `dslide-end', which just plays forward to the end,
-  ;; is well-behaved with this class.
+    ;; Remove any remaining overlays when calling final.
+    (cl-defmethod dslide-final :after ((obj dslide-action-highlight-paragraphs))
+      (mapc #'delete-overlay (oref obj overlays)))
 
-  ;; Remove any remaining overlays when calling final.
-  (cl-defmethod dslide-final :after ((obj dslide-action-highlight-paragraphs))
-    (mapc #'delete-overlay (oref obj overlays)))
+    ;; Find the next paragraph and add an overlay if it exists
+    (cl-defmethod dslide-forward ((obj dslide-action-highlight-paragraphs))
+      ;; This line removes all overlays allowing us to highlight a new one.
+      ;; Remove this if you want the paragraphs to _linger_.
+      (mapc #'delete-overlay (oref obj overlays))
+      (when-let ((paragraph (dslide-section-next obj 'paragraph)))
+        (let* ((beg (org-element-property :begin paragraph))
+               (end (org-element-property :end paragraph))
+               (new-overlay (make-overlay beg end)))
+          (overlay-put new-overlay 'face 'highlight)
+          (push new-overlay (oref obj overlays))
+          ;; Return non-nil indicates we made progress.  This also informs the
+          ;; highlight when following the slides in the base buffer.
+          beg)))
 
-  ;; Find the next paragraph and add an overlay if it exists
-  (cl-defmethod dslide-forward ((obj dslide-action-highlight-paragraphs))
-    ;; This line removes all overlays allowing us to highlight a new one.
-    ;; Remove this if you want the paragraphs to _linger_.
-    (mapc #'delete-overlay (oref obj overlays))
-    (when-let ((paragraph (dslide-section-next obj 'paragraph)))
-      (let* ((beg (org-element-property :begin paragraph))
-             (end (org-element-property :end paragraph))
-             (new-overlay (make-overlay beg end)))
-        (overlay-put new-overlay 'face 'highlight)
-        (push new-overlay (oref obj overlays))
-        ;; Return non-nil to indicate progress was made.  This also informs the
-        ;; highlight when following the slides in the base buffer.
-        beg)))
-
-  (cl-defmethod dslide-backward ((obj dslide-action-highlight-paragraphs))
-    (when-let* ((overlay (pop (oref obj overlays))))
-      (delete-overlay overlay)
-      ;; If there is a preceding overlay, move to its beginning else move to the
-      ;; beginning of the heading.
-      (if-let ((overlay (car (oref obj overlays))))
-          (dslide-marker obj (overlay-start overlay))
-        (dslide-marker obj (org-element-property :begin (dslide-heading obj))))))
+    (cl-defmethod dslide-backward ((obj dslide-action-highlight-paragraphs))
+      (when-let* ((overlay (pop (oref obj overlays))))
+        (delete-overlay overlay)
+        ;; If there is a preceding overlay, move to its beginning else move to the
+        ;; beginning of the heading.
+        (if-let ((overlay (car (oref obj overlays))))
+            (dslide-marker obj (overlay-start overlay))
+          (dslide-marker obj (org-element-property :begin (dslide-heading obj)))))))
 #+end_src
 *** Custom Action Demo
 :PROPERTIES:
 :DSLIDE_ACTIONS: dslide-action-highlight-paragraphs
 :END:
-Massachusetts, in particular, has always been one of the laboratories of democracy. It's where people try things before they're popular. It's where we experiment.
+Phasellus at dui in ligula mollis ultricies.  Phasellus lacus.  Fusce commodo.  Nulla posuere.  Nunc rutrum turpis sed pede.  Pellentesque tristique imperdiet tortor.  Nullam libero mauris, consequat quis, varius et, dictum id, arcu.  Phasellus lacus.  Sed diam.  Nullam tristique diam non turpis.
 
-  - Red
-  - Orange
-  - Yellow
+  * Donec vitae dolor.
+  * Fusce commodo.
+  * Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
 
-Democracy depends on an informed citizenry and the social cohesion that those citizens can show even when they disagree.
-
-The essence of democracy is the resolve of individuals working together to shape our institutions and our society in ways that allow all of us to flourish.
-** My Slides
-A /full/ presentation requires my /notes/ on one frame, and the presentation on the other.
-
-To use this, following:
-  1. Select the Org mode presentation
-  2. Run the function, =ha-slide-make-notes-frame=
-  3. Reference the notes file that would be associated with the presentation
-
-The end result is two frames, where updating the presentation, updates the location of the other frame to match the same headline.
-
-#+begin_src emacs-lisp
-  (defvar ha-slide-notes-frame-name "Demonstration Notes"
-    "The name of the frame that displays the presentation notes.")
-
-  (defvar ha-slide-notes-frame nil
-    "Frame containing the presentation notes.")
-
-  (defvar ha-slide-notes-window nil
-    "Window containing the presentation notes.")
-
-  (defun ha-slide-make-notes-frame (filename &optional heading)
-    "Display the notes, FILENAME, in a new frame.
-  If HEADING is given, jump to that `org-mode' headline."
-    (interactive "fNotes File: ")
-    (let ((f (selected-frame)))
-      (setq ha-slide-notes-frame
-            (make-frame `((name . ,ha-slide-notes-frame-name))))
-      (set-frame-position ha-slide-notes-frame 1310 0)
-      (set-frame-size ha-slide-notes-frame 920 1420 t)
-
-      ;; While I could call `find-file-other-frame', I want to make
-      ;; sure I get the file loaded in the correct frame:
-      (x-focus-frame ha-slide-notes-frame)
-      (find-file filename)
-      (goto-char (point-min))
-      (when heading
-        (re-search-forward (rx bol (one-or-more "*") (one-or-more space) (literal heading)))
-        (recenter-top-bottom 0))
-
-      (setq ha-slide-notes-window (selected-window))
-      (delete-other-windows)
-
-      ;; Highlight the original window containing the presentation:
-      (x-focus-frame f)))
-#+end_src
-
-These interactive functions scroll the “notes” in the other window in another frame:
-
-#+begin_src emacs-lisp
-  (defun ha-slide-notes-scroll-up ()
-    "Scroll the frame/window containing the notes, up."
-    (interactive)
-    (when ha-slide-notes-window
-      (with-selected-window ha-slide-notes-window
-        (scroll-up -10))))
-
-  (defun ha-slide-notes-scroll-down ()
-    "Scroll the frame/window containing the notes, down."
-    (interactive)
-    (when ha-slide-notes-window
-      (with-selected-window ha-slide-notes-window
-        (scroll-up 10))))
-
-  (defun ha-slide-notes-update ()
-    "Function to move the notes headline to current buffers.
-  Assuming the buffer is showing an org-file, and previously
-  called `ha-slide-make-notes-frame', this function moves
-  the point in that buffer to the same headline."
-    (interactive)
-    (when ha-slide-notes-window
-      (let ((heading (thread-first
-                       (org-get-heading t t t t)
-                       (substring-no-properties))))
-        (with-selected-window ha-slide-notes-window
-          (goto-char (point-min))
-          (re-search-forward (rx (literal heading)) nil t)
-          (recenter-top-bottom 0)))))
-#+end_src
-
-Call the =ha-slide-notes-update= function automatically after updating a slide. With =dslide=, we add a hook:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dslide
-    :hook (dslide-narrow . 'ha-slide-notes-update))
-#+END_SRC
-
-
-
-
-#+END_SRC
-
-** My Presentation View
-Regardless of the presentation package I use, I make them all look similar with the following code. Much of this is getting rid of Emacs visual elements, like the cursor and the mode-line, as well as stopping minor modes that add visual changes, like spellchecking and the gutter. I can call this function from any presentation software used.
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-setup (&optional frame-name)
-    "Configure the look I want for presentations.
-  The frame associated with FRAME-NAME is tidied
-  by removing the gutters and other informative
-  widgets not needed for a presentation."
-    (org-indent-mode -1)
-    ;; (org-modern-mode -1)
-
-    (setq org-image-actual-width nil)
-    (org-display-inline-images)
-    (ha-org-blocks-hide-headers)
-    (ha-org-hide-stars)
-    (font-lock-update)
-    (ha-demo-hide-mode-line)
-    (ha-demo-hide-cursor)
-    (ha-demo-presentation-frame frame-name)
-
-    (text-scale-set 4)
-    (git-gutter-mode -1)
-    (flycheck-mode -1)
-    (jinx-mode -1)
-
-    ;; Clear the demonstration state cache:
-    (clrhash ha-demo-prev-state)
-
-    (evil-normal-state))
-#+END_SRC
-
-And after a presentation finishes, this function cleans up by restoring minor modes, etc:
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-teardown ()
-    "Reset the Org after a presentation."
-    (org-indent-mode 1)
-    ;; (org-modern-mode 1)
-
-    (ha-org-blocks-show-headers)
-    (font-lock-update)
-    (ha-demo-show-mode-line)
-    (ha-demo-show-cursor)
-    (ha-demo-normalize-frame)
-
-    (text-scale-set 0)
-    (git-gutter-mode)
-    (flycheck-mode)
-    (jinx-mode))
-#+END_SRC
-
-The =dslide= seems to reset /everything/ on each slide display, so:
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-reset ()
-    "Reset the current slide."
-    (interactive)
-    (ha-org-blocks-hide-headers)
-    (font-lock-update))
-    #+END_SRC
-
+Nunc porta vulputate tellus.  Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  Donec posuere augue in quam.  Sed id ligula quis est convallis tempor.  Integer placerat tristique nisl.  Nunc rutrum turpis sed pede.  Nullam rutrum.  Sed id ligula quis est convallis tempor.
 * New Demonstration
 Instead of executing a sequence of demonstration steps, demonstrations key on “state”, that is, the active buffer or major-mode, or the heading of an Org file, etc. I described the [[https://howardism.org/Technical/Emacs/demonstrations-part-two.html][guts of writing this code]], but we bind a key to calling =ha-demo-step= with a list of /state matchers/ to functions to call when matched. For instance:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
   (define-ha-demo ha-simple-demo
                   (:heading "New Demonstration" :i 0) (message "Howdy")
                   (:heading "New Demonstration" :i 1) (message "Hi there"))
@@ -718,6 +726,47 @@ Like the work I’m doing to the mode-line, can we make the frame cleaner for a 
     (set-frame-parameter (selected-frame) 'right-fringe (nth 1 ha-demo-frame-state)))
 #+END_SRC
 
+** Side Window Helpers
+The following sections create side windows (potentially) and run stuff inside them.
+
+#+BEGIN_SRC emacs-lisp
+  (cl-defun ha-demo-create-side-window (&key position keep-windows)
+    "Display a side window.
+  POSITION can be 'full 'right or 'below and positions the window.
+  Deletes other windows unless KEEP-WINDOWS is non-nil."
+    (unless position
+      (setq position :right))
+
+    ;; Remove any other windows that may be shown:
+    (unless keep-windows
+      (ignore-errors
+        (delete-other-windows)))
+
+    (pcase position
+      ('above (progn (split-window-vertically)))
+      ('up    (progn (split-window-vertically)))
+      ('left  (progn (split-window-horizontally)))
+      ('right (progn (split-window-horizontally) (other-window 1)))
+      ('above (progn (split-window-vertically) (other-window 1)))
+      ('below (progn (split-window-vertically) (other-window 1)))))
+
+  (cl-defun ha-demo-set-side-window (&key size modeline cursor)
+    "Standard settings for demonstration windows.
+  SIZE is an integer for the font size based on the default size.
+  Show MODELINE if non-nil, default is to hide it.
+  The CURSOR can be 'show / 'yes or 'hide / 'no."
+    (when size
+      (text-scale-set size))
+
+    (unless modeline
+      (setq-local mode-line-format nil))
+
+    (when cursor
+      (if (or (eq cursor 'yes) (eq cursor 'show))
+          (ha-demo-show-cursor)
+        (ha-demo-hide-cursor))))
+    #+END_SRC
+
 ** Display File
 Displaying a File with:
   - On the side or covering the entire frame
@@ -731,7 +780,8 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 #+BEGIN_SRC emacs-lisp
   (cl-defun ha-demo-show-file (filename &key position size modeline
                                         line heading shift cursor
-                                        commands focus)
+                                        hi-lines hi-face
+                                        commands keep-windows focus)
     "Show a file, FILENAME, in a buffer based on keyed parameters.
   POSITION can be 'full 'right or 'below and positions the window.
   SIZE is an integer for the font size based on the default size.
@@ -747,38 +797,21 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
   COMMANDS is a lambda expression that can contain any other
   instructions to happen to the buffer display."
     (let ((orig-buf (current-buffer)))
-      (unless position
-        (setq position :right))
+      (ha-demo-create-side-window :position position :keep-windows keep-windows)
 
-      ;; Step 1: Create a window
-      (pcase position
-        ('above (progn (split-window-vertically)))
-        ('up    (progn (split-window-vertically)))
-        ('left  (progn (split-window-horizontally)))
-        ('right (progn (split-window-horizontally) (other-window 1)))
-        ('above (progn (split-window-vertically) (other-window 1)))
-        ('below (progn (split-window-vertically) (other-window 1))))
-
-      ;; Step 2: Load the file or switch to the buffer:
       (if (file-exists-p filename)
           (find-file filename)
         (switch-to-buffer filename))
 
       (goto-char (point-min))
 
-      (when cursor
-        (if (or (eq cursor 'yes) (eq cursor 'show))
-            (ha-demo-show-cursor)
-          (ha-demo-hide-cursor)))
-
-      ;; Step 3: Increase the font size
-      (when size
-        (text-scale-set size))
-
-      (unless modeline
-        (setq-local mode-line-format nil))
+      (ha-demo-set-side-window :size size :modeline modeline
+                               :cursor cursor)
+      (when (fboundp 'topspace-mode)
+        (topspace-mode 1))
 
       (ha-demo-highlight-buffer :line line :heading heading :shift shift
+                                :hi-lines hi-lines :hi-face hi-face
                                 :commands commands)
 
       (when (and focus (eq focus 'presentation))
@@ -787,13 +820,13 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
 
 Let try it all together:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
   (ha-demo-show-file "ha-config.org" :position 'right :size 1 :modeline nil :line 418 :shift 4)
 #+END_SRC
 
 Or:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
   (ha-demo-show-file "ha-config.org" :modeline t
                      :heading "Text Expanders"
                      :commands (lambda () (jinx-mode -1)))
@@ -820,45 +853,50 @@ Perhaps when we call =ha-demo-show-file=, we want to highlight different parts o
   If HI-LINES is given, create an overlay for those lines
   based on the face, HI-FACE (if that isn't given, bold those lines).
   Finally execute COMMANDS, if given."
-    (when buffer
-      (pop-to-buffer buffer))
+    (let ((orig-buf (current-buffer)))
 
-    (when line
-      (if (integerp line)
-          (forward-line line)
-        (re-search-forward line nil t)))
+      (when buffer
+        (pop-to-buffer buffer))
 
-    (when heading
-      (re-search-forward (rx bol (one-or-more "*") (one-or-more space)
-                             (literal heading))
-                         nil t))
+      (when line
+        (if (integerp line)
+            (forward-line line)
+          (re-search-forward line nil t)))
 
-    ;; If SHIFT is positive integer, left that many line above point,
-    ;; otherwise don't do anything to leave it in the middle.
-    ;; If SHIFT is null, move it to the top of the buffer window:
-    (when shift
-      (if (integerp shift)
-          (recenter-top-bottom shift))
-      (recenter-top-bottom 0))
+      (when heading
+        (re-search-forward (rx bol (one-or-more "*") (one-or-more space)
+                               (literal heading))
+                           nil t))
 
-    (when hi-lines
+      ;; If SHIFT is positive integer, left that many line above point,
+      ;; otherwise don't do anything to leave it in the middle.
+      ;; If SHIFT is null, move it to the top of the buffer window:
+      (when shift
+        (if (integerp shift)
+            (recenter-top-bottom shift))
+        (recenter-top-bottom 0))
+
       (remove-overlays)
-      (seq-let (first-line last-line) (string-split hi-lines (rx (or ":" "-")))
-        (save-excursion
-          (let* ((beg (goto-line (string-to-number first-line)))
-                 (end (progn
-                        (goto-line (string-to-number last-line))
-                        (line-end-position)))
-                 (new-overlay (make-overlay beg end)))
+      (when hi-lines
+        (seq-let (first-line last-line) (string-split hi-lines (rx (or ":" "-")))
+          (save-excursion
+            (let* ((beg (goto-line (string-to-number first-line)))
+                   (end (progn
+                          (goto-line (string-to-number last-line))
+                          (line-end-position)))
+                   (new-overlay (make-overlay beg end)))
 
-            (if hi-face
-                (overlay-put new-overlay 'face hi-face)
-              (overlay-put new-overlay 'face ha-demo-highlight-2))
+              (if hi-face
+                  (overlay-put new-overlay 'face hi-face)
+                (overlay-put new-overlay 'face 'ha-demo-highlight-3))
 
-            ;; (push new-overlay (oref obj overlays))
-            ))))
+              ;; (push new-overlay (oref obj overlays))
+              ))))
 
-    (when commands (funcall commands)))
+      (when commands (funcall commands))
+
+      (when buffer
+        (pop-to-buffer orig-buf))))
     #+END_SRC
 
 Example:
@@ -867,6 +905,80 @@ Example:
   (ha-demo-highlight-buffer :hi-lines "874-881" :hi-face 'ha-demo-highlight-3)
 #+END_SRC
 
+
+** Shell Commands
+
+Demo-like wrapper around the [[file:~/other/hamacs/ha-remoting.org::*Programmatic Interface][ha-shell]] commands, where I can make bigger shell terminals.
+
+We would normally just have a single shell for a demonstration, with a name associated with the directory:
+
+#+BEGIN_SRC emacs-lisp
+  (defvar ha-demo-shell-dir (getenv "HOME")
+    "Store the directory for repeated commands")
+  #+END_SRC
+
+And we can open the shell in a window:
+
+#+BEGIN_SRC emacs-lisp
+  (cl-defun ha-demo-shell (&key directory position size modeline
+                                cursor command focus)
+    "Open a shell, and potentially send COMMAND to it.
+  POSITION can be 'full 'right or 'below and positions the window.
+  SIZE is an integer for the font size based on the default size.
+  Show MODELINE when non-nil, default is to hide it.
+  The CURSOR can be 'show / 'yes or 'hide / 'no.
+  The FOCUS can be 'presentation to return the cursor to the
+  calling buffer."
+    (let ((orig-buf (current-buffer)))
+      (ha-demo-create-side-window :position position)
+
+      (when directory
+        (setq ha-demo-shell-dir directory))
+
+      ;; We could also do ha-ssh
+      (ha-shell ha-demo-shell-dir)
+
+      (ha-demo-set-side-window :size size :modeline modeline :cursor cursor)
+
+      (when command
+        (sit-for 1)
+        (ha-shell-send command ha-demo-shell-dir))
+
+      (when (and focus (eq focus 'presentation))
+        (pop-to-buffer orig-buf))))
+
+  (defun ha-demo-shell-send (command)
+    "Send COMMAND to the currently opened shell, `ha-demo-shell'."
+    (ha-shell-send command ha-demo-shell-dir))
+
+  (defun ha-demo-shell-quit ()
+    "Close the window associated with a shell."
+    (ha-shell-send "exit" ha-demo-shell-dir)
+    (delete-other-windows))
+#+END_SRC
+
+Try it out:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-demo-shell :position 'right :directory "/tmp" :command "ls -l")
+#+END_SRC
+
+ And:
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-demo-shell-send "date > now.txt")
+
+  (ha-demo-shell-send "cat now.txt")
+#+END_SRC
+
+** Delete Specific Windows
+While often safe to call =delete-other-windows=, being able to delete a particular window that hosts a particular buffer seems helpful.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-demo-delete-window (bufname)
+    "Delete the window associated with BUFNAME."
+    (ignore-errors
+      (delete-window (get-buffer-window bufname))))
+    #+END_SRC
 
 * Technical Artifacts                              :noexport:
 Let's =provide= a name so we can =require= this file:
@@ -885,3 +997,7 @@ Let's =provide= a name so we can =require= this file:
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# jinx-local-words: "Modeline"
+# End:
