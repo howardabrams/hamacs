@@ -1,8 +1,8 @@
-#+title:  Hamacs Color Theme
-#+author: Howard Abrams
-#+date:   2024-06-18
-#+filetags: emacs hamacs
-#+lastmod: [2024-12-10 Tue]
+#+TITLE:  Hamacs Color Theme
+#+AUTHOR: Howard Abrams
+#+DATE:   2024-06-18
+#+FILETAGS: emacs hamacs
+#+LASTMOD: [2025-01-14 Tue]
 
 A literate programming file for defining a warm, autumn, but subtle color theme for Emacs.
 
@@ -367,7 +367,7 @@ Let’s make a /theme/:
      `(parenthesis ((t (:foreground ,gray-50))))
      `(show-paren-match ((t (:foreground ,cursor :weight ultra-bold))))
 
-     `(org-link ((t (:foreground ,link-color))))
+     `(org-link ((t (:foreground ,link-color :inherit variable-pitch))))
      `(org-code ((t (:foreground ,almond))))
      `(org-verbatim ((t (:foreground ,gray-95))))
 
@@ -419,6 +419,19 @@ Let’s make a /theme/:
      `(vertico-group-multiline ((t (:foreground ,gray-45))))
      `(vertico-group-title ((t (:foreground ,gray-45))))
 
+     `(term-color-red ((t (:foreground ,red2-lt))))
+     `(term-color-green ((t (:foreground ,green-lt))))
+     `(term-color-blue ((t (:foreground ,blue-lt))))
+     `(term-color-magenta ((t (:foreground ,purple-lt))))
+     `(term-color-yellow ((t (:foreground ,yellow-lt))))
+     `(term-color-cyan ((t (:foreground ,slate))))
+     `(term-color-bright-red ((t (:foreground ,red2))))
+     `(term-color-bright-green ((t (:foreground ,green))))
+     `(term-color-bright-blue ((t (:foreground ,blue))))
+     `(term-color-bright-magenta ((t (:foreground ,purple))))
+     `(term-color-bright-yellow ((t (:foreground ,yellow))))
+     `(term-color-bright-cyan ((t (:foreground ,slate))))
+
      `(sh-heredoc ((t (:foreground ,almond))))
      `(sh-quoted-exec ((t (:foreground ,orange2-lt))))
 
@@ -427,7 +440,16 @@ Let’s make a /theme/:
 
      `(mastodon-display-name-face ((t (:foreground ,orange-lt))))
      `(mastodon-boosted-face ((t (:foreground ,green-lt))))
-     ))
+
+     `(message-header-name ((t (:foreground ,gray-70))))
+     `(message-header-to ((t (:foreground ,dk-green-lt))))
+     `(message-header-cc ((t (:foreground ,dk-green))))
+     `(message-header-bcc ((t (:foreground ,dk-green))))
+     `(message-header-subject ((t (:foreground ,orange-lt :weight ultra-bold))))
+     `(message-header-other ((t (:foreground ,red2))))
+
+     `(elfeed-search-feed-face ((t (:foreground ,brown-lt))))
+     `(elfeed-search-tag-face ((t (:foreground ,slate))))))
 #+END_SRC
 
 [[file:ha-theme-results.png]]
@@ -449,4 +471,3 @@ Let's =provide= a name so we can =require= this file:
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
--
