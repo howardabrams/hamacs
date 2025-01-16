@@ -147,10 +147,11 @@ The venerable [[https://github.com/hayamiz/twittering-mode/tree/master][twitteri
 And we are no longer using this package.
 ** Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
+
 #+begin_src emacs-lisp
   (use-package telega
     :config
-    (setq telega-user-use-avatars nil
+    (setq telega-chat-show-avatars nil
           telega-use-tracking-for nil ; '(any pin unread)
           ;; Use org formatting for normal messages.
           ;; Want to send the org markup without formatting?
