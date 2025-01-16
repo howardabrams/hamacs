@@ -302,10 +302,10 @@ The [[https://github.com/positron-solutions/dslide][dslide project]] is flexible
              "<down>"  '("next slide"        . next-line))
 
     :bind
-    ("C-<f5>" . dslide-deck-start)
+    ("C-<f5>" . ha-dslide-deck-start)
     (:map dslide-mode-map
-          ("<f5>"   . dslide-deck-forward)
-          ("S-<f5>" . dslide-deck-backward)
+          ("<f5>"   . ha-dslide-deck-forward)
+          ("S-<f5>" . ha-dslide-deck-backward)
           ("C-<f5>" . dslide-deck-stop))
 
     :hook ((dslide-start  . ha-slide-setup)
@@ -324,18 +324,38 @@ What features do I like and want to take advantage of?
   - Hiding Blocks
   - Results Only
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package dslide
-    :straight (:host github :repo "positron-solutions/dslide")
-     :config
-     (defun dslide (&rest ignored))
-     ;; The dslide-highlight inherits from 'highlight'
-     ;; (set-face-attribute dslide-highlight :foreground "red")
-     ;; This too inherits from 'highlight'
-     ;; (set-face-attribute dslide-babel-success-highlight :foreground "red")
-     ;; This inherits from `error'
-     ;; (set-face-attribute dslide-babel-error-highlight :foreground "red")
-     (set-face-attribute 'highlight nil :background 'unspecified :foreground "lightblue"))
+Fixes and improvements for the dslide:
+
+#+BEGIN_SRC emacs-lisp
+  (defun dslide (&rest ignored))
+
+  (defvar ha-dslide-presentation nil "The buffer name of the starting presentation.")
+
+  (defun ha-dslide-deck-start ()
+    "Start (and remember) a dslide presentation."
+    (interactive)
+    (unless (eq major-mode 'org-mode)
+      (call-interactively 'org-find-file))
+    (setq ha-dslide-presentation (buffer-name))
+    (call-interactively 'dslide-deck-start))
+
+  (defun ha-dslide-deck-forward ()
+    "Switch to current running presentation, and advance slide deck."
+    (interactive)
+    (when ha-dslide-presentation
+      (pop-to-buffer ha-dslide-presentation))
+    (setq ha-dslide-presentation (buffer-name))
+    (dslide-deck-forward))
+
+  (defun ha-dslide-deck-backward ()
+    "Switch to current running presentation, and reverse slide deck."
+    (interactive)
+    (when ha-dslide-presentation
+      (pop-to-buffer ha-dslide-presentation))
+    (setq ha-dslide-presentation (buffer-name))
+    (dslide-deck-backward))
+
+  (set-face-attribute 'highlight nil :background 'unspecified :foreground "lightblue")
 #+END_SRC
 
 *** Master of Ceremonies
@@ -361,8 +381,7 @@ The [[https://github.com/trevorpogue/topspace][topspace]] project can pad the to
 
 #+BEGIN_SRC emacs-lisp
   (use-package topspace
-    :straight (:type git :host github :repo "trevorpogue/topspace")
-    )
+    :straight (:type git :host github :repo "trevorpogue/topspace"))
     #+END_SRC
 
 *** Showing Something associated with a Headline
