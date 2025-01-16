@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: emacs-lisp-use-package
+# key: <slu
+# --
+#+BEGIN_SRC emacs-lisp
+(use-package ${1:package}
+  :straight (:type git ${2::host ${3:github}} :repo "${4:repo}")
+  $0)
+#+END_SRC
