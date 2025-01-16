@@ -1,7 +1,7 @@
-#+title:  Emacs Graphical Display Configuration
-#+author: Howard X. Abrams
-#+date:   2020-09-10
-#+tags:   emacs macos
+#+TITLE:  Emacs Graphical Display Configuration
+#+AUTHOR: Howard X. Abrams
+#+DATE:   2020-09-10
+#+TAGS:   emacs macos
 
 A literate programming file to configure the Emacs UI.
 
@@ -407,12 +407,6 @@ And of course, the default is /inside/ where my mind is dark and safe:
 
 #+begin_src emacs-lisp
   (add-to-list 'custom-theme-load-path hamacs-source-dir)
-
-  ;; (ha-hamacs-load "ha-theme.org")
-  ;; (ha-hamacs-tangle "ha-theme.org")
-  (require 'hamacs-theme)
-  (load-theme 'hamacs)
-
   (laptop-inside)
 #+end_src
 ** Highlight Task Labels

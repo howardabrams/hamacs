@@ -411,6 +411,8 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
     :init
     (setq browse-url-browser-function 'eww-browse-url
           browse-url-secondary-browser-function 'browse-url-default-browser
+          browse-url-chrome-program "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
           eww-browse-url-new-window-is-tab nil
           shr-use-colors nil
           shr-use-fonts t     ; I go back and forth on this one
