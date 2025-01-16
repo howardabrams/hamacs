@@ -139,7 +139,11 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
                            (native-comp-available-p))
                       "with Native Compilation" "")
                   (ha-dashboard-version))
-          dashboard-startup-banner "~/src/hamacs/support/levitating-gnu.png"
+
+          ;; Choose a random image from my collection of startup images:
+          dashboard-startup-banner (thread-first "~/src/hamacs/support/dashboard"
+                                                 (directory-files t (rx ".png"))
+                                                 (seq-random-elt))
           dashboard-center-content t
           dashboard-set-init-info t
           dashboard-projects-switch-function 'project-switch-project
