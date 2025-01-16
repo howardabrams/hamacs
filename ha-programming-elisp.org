@@ -40,17 +40,23 @@ The [[https://github.com/tarsius/paren-face][paren-face]] project lowers the col
     :hook (emacs-lisp-mode . paren-face-mode))
 #+end_src
 
+** Helpful Functions
+
 Show code examples with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] package.
+
 #+begin_src emacs-lisp
   (use-package elisp-demos
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
 #+end_src
-** Helpful Functions
-Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call.
+
+Find a function without a good demonstration? Call =elisp-demos-add-demo=.
+
+Let’s take advantage of [[https://github.com/Wilfred/helpful][helpful]] package for getting more information into the =describe-function= call, but note that this package doesn’t seem to be compatible with Emacs v30.
 
 #+begin_src emacs-lisp
-  (use-package helpful)
+  (use-package helpful
+    :if (version< emacs-version "30"))
 #+end_src
 
 And we should extend it with the [[https://github.com/xuchunyang/elisp-demos][elisp-demos]] project:
@@ -61,8 +67,6 @@ And we should extend it with the [[https://github.com/xuchunyang/elisp-demos][el
     :config
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
-
-Find a function without a good demonstration? Call =elisp-demos-add-demo=.
 
 Wilfred’s [[https://github.com/Wilfred/suggest.el][suggest]] function helps you find the right function. Basically, you type in the parameters of a function, and then the desired output, and it will write the function call.
 

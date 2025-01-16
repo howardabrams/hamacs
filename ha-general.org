@@ -877,11 +877,6 @@ Since I tweaked the help menu, I craft my own menu:
     "h C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 
-Some of these call the [[file:ha-programming-elisp.org::*Helpful Functions][Helpful]] package:
-#+begin_src emacs-lisp
-  (use-package helpful)
-#+end_src
-
 Remember these keys in the *Help* buffer:
   - ~s~ :: view source of the function
   - ~i~ :: view info manual of the function
