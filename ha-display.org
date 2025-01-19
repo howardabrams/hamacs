@@ -25,6 +25,7 @@ A literate programming file to configure the Emacs UI.
   ;;; Code:
 #+end_src
 
+* Visual Settings
 Let's turn off the menu and other settings:
 #+begin_src emacs-lisp
   (when (display-graphic-p)
@@ -36,6 +37,7 @@ Let's turn off the menu and other settings:
           frame-inhibit-implied-resize t))
 #+end_src
 
+** All the Icons
 And let’s make this Emacs look more like a fancy IDE with [[https://github.com/domtronn/all-the-icons.el][all-the-icons]]:
 
 #+begin_src emacs-lisp
@@ -55,6 +57,94 @@ And let’s make this Emacs look more like a fancy IDE with [[https://github.com
 #+end_src
 
 This also expands the [[file:ha-config.org::*Leader Sequences][Major Mode Hydra]] title sequence with a pretty icon.
+
+** Symbols and Emojis
+
+Display these two symbols as one character, as using [[Ligatures]] often stretches wider, and the following are nice to be collapsed:
+
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook (lambda ()
+                              (dolist (pair '(("!?" . "‽")
+                                              ("ae" . "æ")
+                                              ("..." . "…")  ; ??
+                                              ("??" . "⁇")
+                                              ;; ("<<" . "«")
+                                              ;; (">>" . "»")
+                                              ("AE" . "Æ")))
+                                (push pair prettify-symbols-alist))))
+#+end_src
+
+And turn the /prettifier/ on:
+
+#+begin_src emacs-lisp
+  (global-prettify-symbols-mode 1)
+#+end_src
+
+How, we <<We can write loudly!?>>
+Also, we need a font for the symbols, and both Apple and Linux supplies different ones:
+
+#+BEGIN_SRC emacs-lisp
+  (set-fontset-font t 'symbol
+   (cond
+    ((ha-running-on-macos?)
+     (cond
+      ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
+    ((ha-running-on-linux?)
+     (cond
+      ((member "Symbola" (font-family-list)) "Symbola")))))
+#+END_SRC
+
+In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install either [[https://fonts.google.com/noto/specimen/Noto+Emoji][Noto Emoji]] or [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Since I’m also on Mac, I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+
+#+begin_src emacs-lisp
+  ;; set font for emoji (should come after setting symbols)
+  (set-fontset-font t 'emoji
+   (cond
+    ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
+    ((member "Noto Color Emoji" (font-family-list))  "Noto Color Emoji")
+    ((member "Noto Emoji" (font-family-list))        "Noto Emoji")
+    ((member "Symbola" (font-family-list))           "Symbola")))
+#+end_src
+
+Test this out: 😄 😱 😸 👸 👽 🙋
+
+Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+#+end_src
+
+*Note:* Install everything with the function, =all-the-icons-install-fonts=.
+** Ultra Scroll
+
+The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows smoother scrolling of text and images. While this splits text at the top/bottom of buffer windows, we no longer work within a 80x24 text matrix. Large images would
+either be "there or not" which resulted large jumps and large distractions.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ultra-scroll
+    :straight (:type git :host github :repo "jdtsmith/ultra-scroll")
+    :config
+    (setq scroll-conservatively 101 ; important!
+        scroll-margin 0)
+    (ultra-scroll-mode 1))
+#+END_SRC
+** Ligatures
+Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
+
+#+begin_src emacs-lisp :tangle no
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+
+  (global-prettify-symbols-mode +1)
+  (prettify-symbols-mode +1)
+#+end_src
+
+We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
+
+Also note that adding a /little/ extra space between lines makes text files easier to read.
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook (lambda () (setq-local line-spacing 0.1)))
+#+end_src
+
 * Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:
 #+begin_src emacs-lisp
@@ -260,7 +350,7 @@ Simple function that gives me the font information based on the size I need.  Re
     (let ((fav-font (format "%s-%d" ha-fixed-font size)))
       (set-face-attribute 'default nil :font fav-font)
       (set-face-attribute 'fixed-pitch nil :family ha-fixed-font :inherit 'default :height 1.0)
-      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.2)))
+      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.0)))
 #+end_src
 
 Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
@@ -454,79 +544,6 @@ But when capturing, I subsequently open smaller frames that shouldn’t be /odd 
 Now that I’m using v29 of Emacs, I can /un-decorate/ the non-full-sized frames:
 #+begin_src emacs-lisp
   (add-to-list 'default-frame-alist '(undecorated-round . t))
-#+end_src
-* Emojis, Icons and Whatnot
-Display these two symbols as one:
-#+begin_src emacs-lisp
-  (add-hook 'text-mode-hook (lambda ()
-                              (dolist (pair '(("!?" . "‽")
-                                              ("ae" . "æ")
-                                              ("AE" . "Æ")
-
-                                              ;; If we have ligatures, why these?
-                                              ;; ("->" . ?→)
-                                              ;; ("<-" . ?←)
-                                              ;; ("=>" . ?⇒)
-                                              ))
-                                (push pair prettify-symbols-alist))))
-#+end_src
-
-And turn the prettifier on:
-
-#+begin_src emacs-lisp
-  (global-prettify-symbols-mode 1)
-#+end_src
-
-Also, we need a font for the symbols, and both Apple and Linux supplies different ones:
-
-#+BEGIN_SRC emacs-lisp
-  (set-fontset-font t 'symbol
-   (cond
-    ((ha-running-on-macos?)
-     (cond
-      ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
-    ((ha-running-on-linux?)
-     (cond
-      ((member "Symbola" (font-family-list)) "Symbola")))))
-
-#+END_SRC
-
-In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install either [[https://fonts.google.com/noto/specimen/Noto+Emoji][Noto Emoji]] or [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Since I’m also on Mac, I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
-
-#+begin_src emacs-lisp
-  ;; set font for emoji (should come after setting symbols)
-  (set-fontset-font t 'emoji
-   (cond
-    ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
-    ((member "Noto Color Emoji" (font-family-list))  "Noto Color Emoji")
-    ((member "Noto Emoji" (font-family-list))        "Noto Emoji")
-    ((member "Symbola" (font-family-list))           "Symbola")))
-#+end_src
-
-Test this out: 😄 😱 😸 👸 👽 🙋
-
-Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
-
-#+begin_src emacs-lisp
-  (use-package all-the-icons)
-#+end_src
-
-*Note:* Install everything with the function, =all-the-icons-install-fonts=.
-* Ligatures
-Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
-
-#+begin_src emacs-lisp :tangle no
-  (setq prettify-symbols-unprettify-at-point 'right-edge)
-
-  (global-prettify-symbols-mode +1)
-  (prettify-symbols-mode +1)
-#+end_src
-
-We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
-
-Also note that adding a /little/ extra space between lines makes text files easier to read.
-#+begin_src emacs-lisp
-  (add-hook 'text-mode-hook (lambda () (setq-local line-spacing 0.1)))
 #+end_src
 * Technical Artifacts :noexport:
 

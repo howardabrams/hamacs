@@ -333,13 +333,19 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
   (use-package org-modern
     :straight (:host github :repo "minad/org-modern")
     :after org
-    :hook ( ; (add-hook 'org-mode-hook #'org-modern-mode)
+    :hook ((org-mode . org-modern-mode)
            (org-agenda-finalize . org-modern-agenda))
     :custom
     (org-modern-table nil)
+    (org-pretty-entities t)
+    (setq org-modern-fold-stars '(("▸" . "▾")
+                             ("▹" . "▿")
+                             ("▸" . "▾")
+                             ("▹" . "▿")
+                             ("▸" . "▾")))
     :config
-    (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
-    (global-org-modern-mode))
+    (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil :underline nil)
+    (set-face-attribute 'org-modern-symbol nil :family "Iosevka"))
 #+end_src
 
 I like the smaller code blocks as well as the <2022-06-16 Thu> timestamps.

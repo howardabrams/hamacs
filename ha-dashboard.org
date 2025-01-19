@@ -250,12 +250,14 @@ The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]]
     "Shows the extra stuff with the dashboard."
     (interactive)
     (switch-to-buffer "*dashboard*")
+    (setq-local mode-line-format nil)
     (delete-other-windows)
     (split-window-horizontally)
     (other-window 1)
     (switch-to-buffer "*cheatsheet*")
     (ignore-errors
       (cheatsheet-mode)
+      (setq-local mode-line-format nil)
       (erase-buffer)
       (insert (cheatsheet--format))
       (setq buffer-read-only t))
