@@ -31,7 +31,7 @@ Tell straight to use the built-in =eshell=:
 #+begin_src emacs-lisp
   (use-package eshell
     :straight (:type built-in)
-    :hook (eshell-mode . 'ha-eshell-setup))
+    :hook (eshell-mode . ha-eshell-setup))
 #+end_src
 
 After reading [[https://xenodium.com/my-emacs-eye-candy/][this essay]], I decided to try hiding the mode line in eshell windows … at least, until I get the mode line to display more important information. Note that hiding the mode line is fairly straight-forward, but others might want to use the [[https://github.com/hlissner/emacs-hide-mode-line][hide-mode-line]] package that turns that /mode-line definition/ into a minor mode that can be toggled.
@@ -39,9 +39,8 @@ After reading [[https://xenodium.com/my-emacs-eye-candy/][this essay]], I decide
 I like =debug-on-error=, but not in Eshell, so I set this up when entering Eshell:
 #+begin_src emacs-lisp
   (defun ha-eshell-setup ()
-    (make-local-variable 'debug-on-error)
-    (setq mode-line-format nil
-          debug-on-error nil))
+    (set (make-local-variable 'debug-on-error) nil)
+    (setq mode-line-format nil))
 #+end_src
 ** Navigation and Keys
 Along with the regular Emacs keybindings, Eshell comes with some interesting features:
@@ -1326,7 +1325,7 @@ The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides
   (use-package eat
     :after eshell
     :straight (:repo "https://codeberg.org/akib/emacs-eat")
-    :hook (eshell-load . #'eat-eshell-visual-command-mode))
+    :hook (eshell-load . eat-eshell-visual-command-mode))
 #+end_src
 
 Note that the =eat-eshell-visual-command-mode= also kicks off the global minor mode, =eat-eshell-mode=. The big advantage of Eat is the /three input modes/, however, in Eshell with Evil, I can just type ~Escape~ to go into Emacs Mode, and ~G A~ to return to typing Terminal commands.
@@ -1500,17 +1499,17 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
   (defun ha-eshell-banner ()
     "Return a string containing the files in the current directory."
     (let ((fg (face-attribute 'default :background))
-          (bg (face-attribute 'default :foreground))
-          (bg "#c09644")
-          (dd (replace-regexp-in-string (getenv "HOME") "~" default-directory))
-          (gs (or (ha-eshell-banner-git-branch) "")))
+          (bg (if (boundp 'hamacs-theme-colors-alist)
+                  (alist-get "almond" hamacs-theme-colors-alist "#ffe3bf" nil 'string-equal)
+                "#ffe3bf"))
+          (gs (ha-eshell-banner-git-branch)))
       (condition-case err
           (concat
            ;; Line 1
-           (propertize
-            (format "   %s  •  ⑆ %s   " dd gs)
-            'face `(:background ,bg :foreground ,fg))
-           "\n"
+           (when gs
+             (propertize
+              (format "   %s  •  ⑆ %s\n" default-directory gs)
+              'face `(:background ,bg :foreground ,fg :extend t)))
            ;; Line 2
            (ha-dad-joke)
            "\n\n")
@@ -1530,6 +1529,7 @@ Whenever I open a shell, I instinctively type =ls= … so why not do that automa
                    (replace-regexp-in-string
                     (rx "...") " → "))))
 #+end_src
+
 * Shell Windows
 Now that I often need to pop into remote systems to run a shell or commands, I create helper functions to create those buffer windows. Each buffer begins with =eshell=: allowing me to have more than one eshells, typically, one per project.
 ** Shell There
@@ -1745,7 +1745,6 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
   (use-package eshell
     :straight (:type built-in)
     :custom (eshell-banner-message '(ha-eshell-banner))
-
     :init
     (setq eshell-error-if-no-glob t
           ;; This jumps back to the prompt:
@@ -1762,7 +1761,7 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
           ;; Me neither, so this makes it act a bit more shell-like:
           eshell-prefer-lisp-functions nil)
 
-    :hook ((eshell-pred-load . ha-eshell-add-predicates))
+    ;; :hook ((eshell-pred-load . ha-eshell-add-predicates))
 
     :bind (("M-!" . eshell-command)
            :map eshell-mode-map
@@ -1770,6 +1769,7 @@ Here is where we associate all the functions and their hooks with =eshell=, thro
            ("C-d"   . ha-eshell-quit-or-delete-char)))
 #+end_src
 Note that the default list to [[elisp:(describe-variable 'eshell-visual-commands)][eshell-visual-commands]] is good enough, but some of my /newer/ Rust-based apps need to be added:
+
 #+begin_src emacs-lisp :tangle no
   (use-package eshell
     :config

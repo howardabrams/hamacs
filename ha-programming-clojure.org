@@ -101,7 +101,7 @@ Need the IDE features associated with [[https://github.com/clojure-emacs/cider][
     ;; backward-word, etc) in the REPL is quite useful since we often have
     ;; to deal with Java class and method names. The built-in Emacs minor
     ;; mode subword-mode provides such functionality
-    :hook (cider-repl-mode . #'subword-mode)
+    :hook (cider-repl-mode . subword-mode)
 
     :config
     (ha-local-leader :keymaps clojure-mode-map

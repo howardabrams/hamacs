@@ -55,7 +55,7 @@ The [[https://github.com/mihaimaruseac/hindent][hindent package]] looks interest
 #+begin_src emacs-lisp
   (use-package hindent
     :custom (hindent-style "johan-tibell")
-    :hook (haskell-mode . #'hindent-mode))
+    :hook (haskell-mode . hindent-mode))
 #+end_src
 * Haskell and Org
 #+begin_src emacs-lisp
