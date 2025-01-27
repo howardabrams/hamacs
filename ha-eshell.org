@@ -42,6 +42,51 @@ I like =debug-on-error=, but not in Eshell, so I set this up when entering Eshel
     (set (make-local-variable 'debug-on-error) nil)
     (setq mode-line-format nil))
 #+end_src
+** Directory Notification
+While most people put the “current directory” in their shell prompt, I’ve always found that pretty distracting, difficult when copy/pasting commands, and cuts out on the length of my commands (which might be a good thing, tbh).
+
+I use the =header-line= for this.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-eshell-header-line ()
+    "Update the buffer-local `header-line-format' with the current directory.
+  This also calls `ha-eshell-git-branch' to format the Git repo string."
+    (let* ((branch   (ha-eshell-git-branch))
+           (git-icon (all-the-icons-octicon "git-branch"))
+           (git-line (if branch (format "%s %s" git-icon branch) ""))
+           (home-rx  (rx (literal (getenv "HOME"))))
+           (dir-line (thread-last default-directory
+                                  (replace-regexp-in-string home-rx "~")
+                                  (directory-file-name))))
+      (setq header-line-format
+            (format " %s %s" dir-line git-line))))
+#+END_SRC
+
+Which depends on a function to get the current branch and git status. How else but shelling out for this information?
+
+#+BEGIN_SRC emacs-lisp
+(defun ha-eshell-git-branch ()
+  "Return simplified Git branch for current directory."
+  (ignore-errors
+    (thread-last "git status --short --branch --ahead-behind 2>/dev/null"
+                 (shell-command-to-list)
+                 (first)
+                 (replace-regexp-in-string
+                  (rx "## "
+                      (group (zero-or-more not-newline))
+                      (zero-or-more anychar))
+                  "\\1")
+                 (replace-regexp-in-string
+                  (rx "...") " → "))))
+#+END_SRC
+
+Need to hook this when we change the directory.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eshell
+    :hook (eshell-directory-change . ha-eshell-header-line))
+    #+END_SRC
+
 ** Navigation and Keys
 Along with the regular Emacs keybindings, Eshell comes with some interesting features:
 - ~M-RET~ gives you a prompt, even when you are running another command.  Since =eshell= passes all input to subprocesses, there is no automatic input queueing as there is with other shells.
@@ -1494,40 +1539,16 @@ The [[http://projects.ryuslash.org/eshell-fringe-status/][eshell-fringe-status]]
     :hook (eshell-mode . eshell-fringe-status-mode))
 #+end_src
 ** Opening Banner
-Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? The [[elisp:(describe-variable 'eshell-banner-message)][eshell-banner-message]] variable, while defaults to a string, this variable can be a /form/ (an s-expression) that calls a function, so I made a customized =ls= that can be attractive:
+
+Whenever I open a shell, I instinctively type =ls= … so why not do that automatically? The [[elisp:(describe-variable 'eshell-banner-message)][eshell-banner-message]] variable, while defaults to a string, this variable can be a /form/ (an s-expression) that calls a function, so I call my customized =lsd= to be more attractive:
+
 #+begin_src emacs-lisp
   (defun ha-eshell-banner ()
     "Return a string containing the files in the current directory."
-    (let ((fg (face-attribute 'default :background))
-          (bg (if (boundp 'hamacs-theme-colors-alist)
-                  (alist-get "almond" hamacs-theme-colors-alist "#ffe3bf" nil 'string-equal)
-                "#ffe3bf"))
-          (gs (ha-eshell-banner-git-branch)))
-      (condition-case err
-          (concat
-           ;; Line 1
-           (when gs
-             (propertize
-              (format "   %s  •  ⑆ %s\n" default-directory gs)
-              'face `(:background ,bg :foreground ,fg :extend t)))
-           ;; Line 2
-           (ha-dad-joke)
-           "\n\n")
-        (error "🐚 Welcome to Eshell\n\n"))))
-
-  (defun ha-eshell-banner-git-branch ()
-    "Return simplified Git branch for current directory."
-    (ignore-errors
-      (thread-last "git status --short --branch --ahead-behind 2>/dev/null"
-                   (shell-command-to-list)
-                   (first)
-                   (replace-regexp-in-string
-                    (rx "## "
-                        (group (zero-or-more not-newline))
-                        (zero-or-more anychar))
-                    "\\1")
-                   (replace-regexp-in-string
-                    (rx "...") " → "))))
+    (ha-eshell-header-line)
+    (condition-case err
+        (eshell/lsd)
+      (error "🐚 Welcome to Eshell\n\n")))
 #+end_src
 
 * Shell Windows

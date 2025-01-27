@@ -341,7 +341,7 @@ Let’s make a /theme/:
      `(line-number ((t (:foreground ,gray-50 :background ,gray-10))))
      `(line-number-current-line ((t (:foreground ,gray-95 :background ,gray-20 :weight ultra-bold))))
 
-     `(header-line ((t (:foreground ,gray-80))))
+     `(header-line ((t (:foreground ,almond :background ,inactive :extend t))))
      `(help-key-binding ((t (:foreground ,gray-80 :weight ultra-bold))))
      `(bold ((t (:foreground ,gray-90 :weight ultra-bold))))
      `(italics ((t (:foreground ,gray-95))))
