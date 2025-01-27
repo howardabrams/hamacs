@@ -33,7 +33,7 @@ Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/ma
   (use-package mastodon
     :straight (:host codeberg :repo "martianh/mastodon.el")
     :init
-    (setq mastodon-instance-url "https://pdx.sh"
+    (setq mastodon-instance-url "https://pdx.social"
           mastodon-active-user "howard"))
 #+end_src
 
@@ -97,15 +97,26 @@ Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [
   (use-package ement
     :straight (:host github :repo "alphapapa/ement.el")
     :config
+    (major-mode-hydra-define ement-room-mode (:quit-key "q")
+      ("Send"
+       (("c" ement-room-compose-message "Compose Message")
+        ("d" ement-send-direct-message "Direct Message")
+        ("S" ement-room-dispatch-reply-to-message "Message Reply")
+        ("s" ement-room-send-message "Send (or <Return>)"))
+       "Other"
+       (("r" ement-room-send-reaction "React")
+        ("e" ement-room-send-emote "Emote")
+        ("R" ement-view-room "Jump to Room"))))
+
     (defun ha-ement-connect ()
       (interactive)
-      (let* ((auth-results (auth-source-search :host "howardism-matrix"))
+      (let* ((auth-results (auth-source-search :host "matrix"))
              (auth-first   (first auth-results))
              (username     (plist-get auth-first :user))
              (password     (funcall (plist-get auth-first :secret))))
         (ement-connect :user-id username
                        :password password
-                       :uri-prefix "https://howardism.org"))
+                       :uri-prefix "https://matrix.org"))
 
       (ha-leader
           "a x S" '("send" . ement-send-direct-message)
