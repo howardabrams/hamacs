@@ -252,6 +252,7 @@ Color definition injects the /named/ lists defined above (using Org’s =noweb= 
       )
     "A list of named colors available in theme.")
   #+END_SRC
+
 * Theme Support
 Stole the following macro from Zenburn, which converts color references defined above, but only within the body of the macro. Sweet way to trim down a lot of boilerplate:
 
@@ -344,13 +345,13 @@ Let’s make a /theme/:
      `(header-line ((t (:foreground ,almond :background ,inactive :extend t))))
      `(help-key-binding ((t (:foreground ,gray-80 :weight ultra-bold))))
      `(bold ((t (:foreground ,gray-90 :weight ultra-bold))))
-     `(italics ((t (:foreground ,gray-95))))
-     `(bold-italic ((t (:foreground "white"))))
+     `(italics ((t (:foreground ,gray-95 :slant italic))))
+     `(bold-italic ((t (:foreground "white" :slant italic :weight ultra-bold))))
 
      `(link ((t (:foreground ,link-color))))
      `(link-visited ((t (:foreground ,visited-color))))
 
-     `(font-lock-comment-face ((t (:foreground ,gray-60))))
+     `(font-lock-comment-face ((t (:foreground ,gray-60 :slant italic))))
      `(font-lock-comment-delimiter-face ((t (:foreground ,gray-50))))
      `(font-lock-string-face ((t (:foreground ,gray-75))))
      `(font-lock-type-face ((t (:foreground ,green-lt))))

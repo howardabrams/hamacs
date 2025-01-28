@@ -22,6 +22,12 @@ A literate programming file to configure the Emacs UI.
   ;;           ~/src/hamacs/ha-display.org
   ;;       Using `find-file-at-point', and tangle the file to recreate this one .
   ;;
+  ;;; Commentary:
+  ;;
+  ;;  Configuration settings related to graphical display. Ran when the setting
+  ;;  `display-graphic-p' is non-nil. Change the fonts, colors and ligatures;
+  ;;  settings unavailable when ran from a Terminal emulator.
+  ;;
   ;;; Code:
 #+end_src
 
@@ -288,19 +294,27 @@ brew tap homebrew/cask-fonts
 brew install --cask font-hack-nerd-font
 #+end_src
 ** Specifying a Font
-My /current/ favorite font is actually the top list of fonts that may be installed on my system:
+
+My /current/ favorite /coding/ font changes often…call me /font-curious/. Since I may/may not have each font installed, I make a list, and pick the first one installed, so I order them:
+
+  - While I like Microsoft’s [[https://github.com/microsoft/cascadia-code][Cascadia]], I’m using [[https://github.com/eliheuer/caskaydia-cove][Caskaydia Cove]] from our beloved [[https://www.nerdfonts.com/font-downloads][NerdFonts]] as it has:
+      - A dot in the 0
+      - Good distinguishing aspects between parens, brackets and braces
+      - Medium level of ligatures, like -> for arrows, but triple === signs don’t make three lines
+      - Less serifs mean less letters
+  - [[https://github.com/emersion/nanum-gothic-coding][Nanum Gothic Coding]] won the [[https://www.codingfont.com][CodingFont Challenge]] for me, like Hack (a fav) but with ligatures
+  - [[https://github.com/source-foundry/Hack][Hack]] is another favorite, but looses out without ligatures
+
 #+begin_src emacs-lisp
   (defvar ha-fixed-font
     (when window-system
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("CaskaydiaCove Nerd Font"  ; finally found it
-                      ;; funky font with litagures and a dotted 0
-                      "Cascadia Code PL"
-                      ;; clean font, but no litagures!?
-                      "Hack Nerd Font"
-                      "FiraCode Nerd Font"       ; has litagures
+                    '("CaskaydiaCove Nerd Font"  ; Best Nerd-based font
+                      "NanumGothicCoding"        ; Winner of codingfont.com
+                      "Hack Nerd Font"           ; no litagures!?
+                      "FiraCode Nerd Font"       ; has too much ligatures
                       "Cousine Nerd Font"
                       "Iosevka Nerd Font"
                       "FantasqueSansMono Nerd Font"
@@ -311,21 +325,19 @@ My /current/ favorite font is actually the top list of fonts that may be install
     "My fixed width font based on what I have installed.")
 #+end_src
 
-I probably don't need to have such a ranking system, as chances are good I have them all installed.
+While I like [[https://www.brailleinstitute.org/freefont/][Atkinson Hyperlegible]] a lot (oh, and [[https://fontesk.com/xcharter-typeface/][Literata]]), I found that [[https://supernotes.app/open-source/sn-pro][SN Pro]] is great for headers as well as matches my monospace font, [[https://github.com/eliheuer/caskaydia-cove/][Caskaydia Cove]].
+
 #+begin_src emacs-lisp
   (defvar ha-variable-font
     (when window-system
       (or
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("Atkinson Hyperlegible"
-                      "SN Pro"   ; https://supernotes.app/open-source/sn-pro
-                      "Literata" ; Clean, readable with litagures
-                      ;; Next best can be downloaded here:
-                      ;; https://fontesk.com/xcharter-typeface/
+                    '("SN Pro"
+                      "Atkinson Hyperlegible"
+                      "Literata"
                       "XCharter"
                       "Charter"
-                      ;;  Interesting idea: "Iosevka Comfy Motion Duo"
                       "Serif")))
        (warn "Cannot find a Serif Font.  Install Source Sans Pro."))))
 

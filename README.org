@@ -1,8 +1,8 @@
-#+title:  My Emacs Configuration
-#+author: Howard X. Abrams
-#+date:   2021-11-01
-#+filetags: emacs readme
-#+startup: inlineimages
+#+TITLE:  My Emacs Configuration
+#+AUTHOR: Howard X. Abrams
+#+DATE:   2021-11-01
+#+FILETAGS: emacs readme
+#+STARTUP: inlineimages
 ** Introduction
 I’ve crafted my Emacs configuration, I cheekily call /hamacs/, in a literate programming model, heavily inspired by my recent journey into [[https://www.youtube.com/watch?v=LKegZI9vWUU][Henrik Lissner's]] [[https://github.com/hlissner/doom-emacs][Doom Emacs]] and [[https://www.spacemacs.org/][Spacemacs]].  While I used both extensively, I decided I would /roll my own/ as Emacs people like myself, tend to be /control freaks/ (at least a little bit).
 
@@ -12,7 +12,7 @@ Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate pro
 
 I’ve separated my configuration into /chapters/ around particular subjects, applications and programming languages. This feature allows you, dear reader, to jump our to items of interest, but allows me to /selectively load/ individual chapters. For instance, if I’m not doing much with Ruby at work, I can remove that chapter from the list in my [[file:bootstrap.org::*Load the Rest][bootstrap]]. I also don’t load my [[file:ha-display.org][UI configuration]] when I am using the Terminal (doesn’t happen much, actually).
 
-Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@emacs.ch]].
+Hit me up with questions on Mastodon: [[https://emacs.ch/@howard][@howard@pdx.social]].
 
 If you want to try the entire process, after installing Emacs (see my instructions for [[file:README-MacOS.org][both MacOS]] and [[file:README-Linux.org][Linux]]), clone this repo with:
 #+begin_src sh
@@ -29,15 +29,15 @@ To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the proce
   - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
   - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
   - [[file:ha-evil.org][Evilness]] :: configuration for using VI, er, ~vim~ keybindings in Emacs.
-  - [[file:ha-general.org][Leader]] :: using the ~SPC~ to kick off a hierarchal order of functions.
-  - [[file:ha-display.org][GUI Display]] :: sets up the visual aspects of an Emacs GUI, including themes and fonts.
+  - [[file:ha-general.org][Leader]] :: using the ~SPC~ to kick off a hierarchical order of functions.
+  - [[file:ha-display.org][GUI Display]] :: sets up the visual aspects of an Emacs GUI, including font specification and [[file:ha-theme.org][my theme]].
   - [[file:ha-dashboard.org][Dashboard]] :: sets up initial window layout of the =main= project with a dashboard.
   - [[file:ha-data.org][Data]] :: functions for dealing with a buffer-full of data.
 
 ** Org Mode Configuration
   - [[file:ha-org.org][Initial Org Configuration]] :: configures the basics for org-mode formatted files. Specific features come from their own files.
   - [[file:ha-org-word-processor.org][Word Processing]] :: attempts to make Org files /visually/ look like a word processor, including turning off the colors for headers, and instead increasing their size.
-  - [[file:ha-org-literate.org][Literate Programming]] :: functions to support literate programming techniques. I use this most prevalently with this Emacs configuration.
+  - [[file:ha-org-literate.org][Literate Programming]] :: functions to support literate programming techniques. I use this with my Emacs configuration.
   - [[file:ha-org-clipboard.org][Clipboard]] :: automatically converting HTML from a clipboard into Org-formatted content.
   - [[file:ha-org-journaling.org][Journaling]] :: for writing journal entries and tasks.
   - [[file:ha-org-publishing.org][Publishing]] :: code for publishing my website, [[http://howardism.org][www.howardism.org]].
@@ -82,3 +82,7 @@ Other functions and files come from essays written on [[http://www.howardism.org
 #+options:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# jinx-local-words: "bitlbee rcirc supe"
+# End:

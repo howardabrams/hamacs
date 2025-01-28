@@ -1,7 +1,8 @@
-#+title:  General Emacs Configuration
-#+author: Howard X. Abrams
-#+date:   2020-09-10
-#+tags: emacs
+#+TITLE:  General Emacs Configuration
+#+AUTHOR: Howard X. Abrams
+#+DATE:   2020-09-10
+#+FILETAGS: emacs
+#+STARTUP: inlineimages
 
 A literate programming file for configuring Emacs.
 
@@ -24,12 +25,15 @@ A literate programming file for configuring Emacs.
   ;;
   ;;; Commentary:
   ;;
-  ;; Basic configuration of Emacs. Start early in the loading sequence.
+  ;; Basic Emacs configuration settings, ran near the beginning of the
+  ;; loading sequence.
   ;;
   ;;; Code:
 #+end_src
 * Basic Configuration
-I begin configuration of Emacs that isn’t /package-specific/. For instance, I hate to fat-finger a single letter that could stop Emacs:
+I begin configuration of Emacs that isn’t /package-specific/.
+
+I hate to fat-finger a single letter that could stop Emacs:
 #+begin_src emacs-lisp
   (setq confirm-kill-emacs 'yes-or-no-p)
 #+end_src

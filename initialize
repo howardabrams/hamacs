@@ -68,9 +68,9 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 ;;
 ;;; Commentary:
 ;;
-;; This is my Emacs Bootloader. Simply put, I initialize the package management
-;; system, and then tangle my literate files. This simple idea came from
-;; https://github.com/susamn/dotfiles
+;; This is my Emacs Bootloader. Simply put, I initialize the package
+;; management system, and then tangle my literate files. This simple
+;; idea came from https://github.com/susamn/dotfiles
 ;;
 ;;; Code:
 
