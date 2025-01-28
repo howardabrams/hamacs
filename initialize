@@ -31,6 +31,9 @@ cat > "$HAMACS_DEST/early-init.el" <<EOF
 ;;
 ;;; Code:
 
+;; Need the package system near the front:
+(require 'package)
+
 ;; We'll be using straight. So, we don't want duplicated package loading:
 (setq package-enable-at-startup nil)
 
@@ -79,8 +82,21 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 ;; Bug fixes for ORG (there always seems to be something):
 (defvar native-comp-deferred-compilation-deny-list nil)
 
-;; Allow the installation of unsigned packages, but verify the signature if possible:
+;; Allow the installation of unsigned packages, but verify the
+;; signature if possible:
+
 (setq package-check-signature 'allow-unsigned)
+
+;; While using Straight with direct Github repos,
+;; adding Melpa and others isn't a bad idea:
+
+(require 'use-package)
+
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+
+(add-to-list 'package-archives
+             '("elpa-dev" . "https://elpa.gnu.org/devel/"))
 
 ;; Configure straight https://github.com/raxod502/straight.el#getting-started
 

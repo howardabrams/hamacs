@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2024-11-11 Mon]
+#+lastmod: [2025-01-28 Tue]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -578,7 +578,7 @@ At this point, we can jump to functions and variables that I define in my org fi
 
 I can jump around my literate code as if they were =.el= files. I may want to think about expanding the definitions to figure out the language of the destination.
 ** Noweb References
-A noweb definition, e.g. =<<something-something>>=  should /jump/ to the =#name= definition.
+A noweb definition, e.g. =<<something-something>>= should /jump/ to the =#name= definition.
 
 Since [[https://github.com/BurntSushi/ripgrep][ripgrep]] is pretty fast, I’ll call it instead of attempting to build a [[https://stackoverflow.com/questions/41933837/understanding-the-ctags-file-format][CTAGS]] table. Oooh, the =rg= takes a =—json= option, which makes it easier to parse.
 

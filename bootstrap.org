@@ -32,6 +32,19 @@ I'm installing everything using the [[https://github.com/raxod502/straight.el#ge
 See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
 
 * Initial Settings
+** Garbage Collection Settings
+GC has always been a contentious subject in Emacs. Lot less of an issue now, but let’s not slow the startup (any more than I already do by checking all the packages to see if anything new needs to be downloaded).
+
+Limit garbage collection before startup and then go back to the default value (8 MiB) after startup.
+
+#+BEGIN_SRC emacs-lisp
+  (setq gc-cons-threshold most-positive-fixnum)
+
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (setq gc-cons-threshold (* 100 1024 1024))))
+#+END_SRC
+
 ** OS Path and Native Compilation
 Helper functions to allow code for specific operating systems:
 #+begin_src emacs-lisp
