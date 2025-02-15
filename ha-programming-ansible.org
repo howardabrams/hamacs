@@ -105,6 +105,7 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =ya
   (when (treesit-available-p)
     (use-package yaml-ts-mode
       :straight (:type built-in)
+      :after mixed-pitch
       :mode ((rx ".yamllint")
              (rx ".y" (optional "a") "ml" string-end))
       :hook (yaml-ts-mode . (lambda () (mixed-pitch-mode -1)))

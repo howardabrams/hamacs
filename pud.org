@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-01-20 Mon]
+#+lastmod: [2025-02-14 Fri]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -54,7 +54,7 @@ You may want to customize your connections to more worlds.
     :group 'processes)
 
   (defcustom pud-worlds
-    (list (vector pud-default-world "localhost" "4000" "guest" "guest"))
+    (list (vector pud-default-world "howardabrams.com" "4000" "guest" "guest"))
     "List of worlds you play in.
   You need to define the worlds you play in before you can get
   started.  In most worlds, you can start playing using a guest account.
@@ -104,20 +104,20 @@ The following function will return the default world:
 And accessibility functions.
 
 #+BEGIN_SRC emacs-lisp
-  (defsubst pud-world-name (&optional world)
+  (defun pud-world-name (&optional world)
     "Return the name for WORLD as a string."
     ;; (concat (aref world 3) "@" (aref world 0))
     (if (vectorp world)
         (aref world 0)
       world))
 
-  (defsubst pud-world-network (&optional world)
+  (defun pud-world-network (&optional world)
     "Return the network details for WORLD as a cons cell (HOST . PORT)."
     (unless world
       (setq world (pud-get-default-world)))
     (list (aref world 1) (aref world 2)))
 
-  (defsubst pud-world-character (&optional world)
+  (defun pud-world-character (&optional world)
     "Return the character for WORLD as a string.
   Override the customized setting if the world has an entry in authinfo."
     (unless world
@@ -129,7 +129,7 @@ And accessibility functions.
                       (plist-get :user))
       (aref world 3)))
 
-  (defsubst pud-world-password (&optional world)
+  (defun pud-world-password (&optional world)
     "Return the password for WORLD as a string."
     (unless world
       (setq world (pud-get-default-world)))
@@ -207,11 +207,16 @@ Using Comint, and hoping to have the ANSI colors displayed.
 I’m going to use good ‘ol fashion =telnet= for the connection:
 
 #+BEGIN_SRC emacs-lisp
-  (defvar pud-cli-file-path "/usr/local/bin/telnet"
-    "Path to the program used by `run-pud'")
+  (defvar pud-cli-file-path "ssh"
+    "Path to the program used by `run-pud'.")
 #+END_SRC
 
 The pud-cli-arguments, holds a list of commandline arguments: the port.
+
+#+BEGIN_SRC emacs-lisp
+  (defvar pud-cli-arguments '("gremlin.howardabrams.com" "telnet")
+    "A list of arguments to use before the telnet location.")
+#+END_SRC
 
 The empty and currently disused mode map for storing our custom keybindings inherits from =comint-mode-map=, so we get the same keys exposed in =comint-mode=.
 
@@ -250,11 +255,17 @@ The main entry point to the program is the =run-pud= function:
 
 #+BEGIN_SRC emacs-lisp
   (defun run-pud (world)
-    "Run an inferior instance of `pud-cli' inside Emacs."
+    "Run an inferior instance of `pud-cli' inside Emacs.
+  The WORLD should be vector containing the following:
+    - label for the world
+    - server hostname
+    - server port
+    - username (can be overridden)
+    - password (should be overridden)"
     (interactive (list (pud-get-world)))
 
     (let* ((pud-program pud-cli-file-path)
-           (pud-args (pud-world-network world))
+           (pud-args (append pud-cli-arguments (pud-world-network world)))
            (buffer (get-buffer-create (pud-buffer-name world)))
            (proc-alive (comint-check-proc buffer))
            (process (get-buffer-process buffer)))
@@ -275,10 +286,12 @@ Connection and/or re-connection:
 
 #+BEGIN_SRC emacs-lisp
   (defun pud-reconnect (world)
-    "docstring"
+    "Collect and send a `connect' sequence to WORLD.
+  Where WORLD is a vector of world information."
     (interactive (list (pud-get-world)))
     (pop-to-buffer (pud-buffer-name world))
     (sit-for 1)
+    ;; (setq world (pud-get-world))
     (let* ((username (pud-world-character world))
           (password (pud-world-password world))
           (conn-str (format "connect %s %s\n" username password))
@@ -288,7 +301,7 @@ Connection and/or re-connection:
         (insert conn-str))))
     #+END_SRC
 * Pud Mode
-The previous snippet of code dealt with creating and maintaining the buffer and process, and this piece of code enriches it with font locking and mandatory setup. Namely comint-process-echoes which, depending on the mode and the circumstances, may result in prompts appearing twice. Setting it to t is usually a requirement, but do experiment.
+Note that =comint-process-echoes=, depending on the mode and the circumstances, may result in prompts appearing twice. Setting =comint-process-echoes= to =t= helps with that.
 
 #+BEGIN_SRC emacs-lisp
   (defun pud--initialize ()
@@ -322,8 +335,53 @@ The previous snippet of code dealt with creating and maintaining the buffer and 
   (defvar pud-font-lock-keywords
     (list
      ;; highlight all the reserved commands.
-     `(,(concat "\\_<" (regexp-opt pud-keywords) "\\_>") . font-lock-keyword-face))
+     `(,(concat (rx bol (optional "@")) (regexp-opt pud-keywords)) . font-lock-keyword-face)
+     `(,(rx bol "@" (one-or-more)))
+     )
+
     "Additional expressions to highlight in `pud-mode'.")
+#+END_SRC
+
+* Evennia Mode
+Make a simple mode for basic highlighting of =ev= code.
+
+#+BEGIN_SRC emacs-lisp
+  (define-derived-mode evennia-mode nil "Evennia"
+    "Major mode for editing evennia batch command files.
+    \\{evennia-mode-map}
+    Turning on Evennia mode runs the normal hook `evennia-mode-hook'."
+    (setq-local comment-start "# ")
+    (setq-local comment-start-skip "#+\\s-*")
+
+    (setq-local require-final-newline mode-require-final-newline)
+    (add-hook 'conevennia-menu-functions 'evennia-mode-conevennia-menu 10 t))
+
+  (defvar evennia-mode-font-lock-keywords
+    `(,(rx line-start "@" (one-or-more alnum))
+      )
+    "Additional things to highlight in evennia output.")
+#+END_SRC
+
+* Org Babel
+Wouldn’t it be nice to be able to write commands in an Org file, and send the command to the connected Mud?
+
+#+BEGIN_SRC emacs-lisp :results silent
+  (defun pud-send-line (world)
+    "Send the current line or region to WORLD."
+    (interactive (list (pud-get-world)))
+    (save-window-excursion
+      (save-excursion
+        (let ((text (buffer-substring-no-properties
+                     (if (region-active-p) (region-beginning)
+                       (beginning-of-line-text) (point))
+                     (if (region-active-p) (region-end)
+                       (end-of-line) (point))))
+              (process (get-buffer-process (current-buffer))))
+          (pop-to-buffer (pud-buffer-name world))
+          (goto-char (point-max))
+          (comint-send-string process (format "%s\n" text))))))
+
+  (global-set-key (kbd "<f6>") 'pud-send-line)
 #+END_SRC
 
 

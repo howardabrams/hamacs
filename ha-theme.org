@@ -370,7 +370,7 @@ Let’s make a /theme/:
 
      `(org-link ((t (:foreground ,link-color :inherit variable-pitch))))
      `(org-code ((t (:foreground ,almond))))
-     `(org-verbatim ((t (:foreground ,gray-95))))
+     `(org-verbatim ((t (:foreground ,gray-95 :inherit fixed-pitch))))
 
      `(org-block ((t (:background ,gray-10))))
      `(org-block-begin-line ((t (:foreground ,gray-50 :background ,gray-20 :height ,smaller :extend t))))
@@ -384,7 +384,8 @@ Let’s make a /theme/:
      `(org-special-keyword ((t (:foreground ,purple2 :height ,small))))
      `(org-property-value ((t (:foreground ,purple2-lt :height ,small))))
      `(org-table ((t (:foreground ,purple-lt))))
-     `(org-quote ((t (:inherit variable-pitch :slant italic :height 0.9))))
+     `(org-quote ((t (:inherit variable-pitch :slant italic ; :height 0.9
+                               :box (:color ,default-bg :line-width (40 . 3))))))
 
      `(org-level-1 ((t (:inherit variable-pitch :foreground ,default-fg :weight bold :height ,header-1))))
      `(org-level-2 ((t (:inherit variable-pitch :foreground ,default-fg :weight bold :height ,header-2))))
@@ -398,7 +399,7 @@ Let’s make a /theme/:
      `(markdown-italic-face ((t (:foreground unspecified))))
      `(markdown-bold-face ((t (:foreground unspecified))))
      `(markdown-pre-face ((t (:foreground ,(face-attribute 'org-code :foreground)
-                              :family ,(face-attribute 'default :family)))))
+                                          :family ,(face-attribute 'default :family)))))
      `(markdown-code-face ((t (:background ,(face-attribute 'org-block :background)))))
      `(markdown-language-keyword-face ((t (:foreground
                                            ,(face-attribute 'org-block-begin-line :foreground)))))
