@@ -59,7 +59,304 @@ But I feel I should replace it, and this project encapsulates the following goal
 
 * Presentations with Org
 A demonstration begins with an Org file where the screen shows a /single heading/ with a larger font. Not much more. I’m playing around with /all/ the projects available, including writing my own.
-** My Slides
+** My Presentation Views
+Regardless of the presentation package I use, I make them all look similar with the following code. Much of this is getting rid of Emacs visual elements, like the cursor and the mode-line, as well as stopping minor modes that add visual changes, like spellchecking and the gutter. I can call this function from any presentation software used.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-setup (&optional frame-name)
+    "Configure the look I want for presentations.
+  The frame associated with FRAME-NAME is tidied
+  by removing the gutters and other informative
+  widgets not needed for a presentation."
+    (org-indent-mode -1)
+    ;; (org-modern-mode -1)
+
+    (setq org-image-actual-width nil)
+    (org-display-inline-images)
+    (ha-org-blocks-hide-headers)
+    ;; (ha-org-hide-stars)
+    (font-lock-update)
+    (ha-demo-hide-mode-line)
+    (ha-demo-hide-cursor)
+    (ha-demo-presentation-frame frame-name)
+
+    (if (fboundp 'org-present-big)
+        (org-present-big)
+      (font-size-adjust 4))                  ; instead of (text-scale-set 4)
+    (diff-hl-mode -1)
+    (flycheck-mode -1)
+    (jinx-mode -1)
+
+    ;; Clear the demonstration state cache:
+    (clrhash ha-demo-prev-state)
+
+    (evil-normal-state))
+#+END_SRC
+
+And after a presentation finishes, this function cleans up by restoring minor modes, etc:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-teardown ()
+    "Reset the Org after a presentation."
+    (org-indent-mode 1)
+    ;; (org-modern-mode 1)
+
+    (ha-org-blocks-show-headers)
+    (font-lock-update)
+    (ha-demo-show-mode-line)
+    (ha-demo-show-cursor)
+    (ha-demo-normalize-frame)
+
+    (font-size-adjust -4)                 ; (text-scale-set 0)
+    (diff-hl-mode)
+    (flycheck-mode)
+    (jinx-mode))
+#+END_SRC
+
+The =dslide= seems to reset /everything/ on each slide display, so:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-slide-reset ()
+    "Reset the current slide."
+    (interactive)
+    (ha-org-blocks-hide-headers)
+    (font-lock-update))
+    #+END_SRC
+
+** Org Tree Slide
+I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for years for showing org files as presentations. I like the /simple/ presentation and it seems to shows all the images.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package org-tree-slide
+    :config
+    (setq org-tree-slide-heading-emphasis nil
+          org-tree-slide-activate-message "† This demonstration is running in Emacs"
+          org-tree-slide-indicator '(:next nil :previous nil :content nil)
+          org-tree-slide-cursor-init nil)
+    (org-tree-slide-simple-profile)
+
+    :bind
+    (:map org-tree-slide-mode-map
+     ;; ("<f5>" . org-tree-slide-move-next-tree)
+     ;; ("S-<f5>" . org-tree-slide-move-previous-tree)
+     ("M-<f5>" . org-tree-slide-content)
+     ("C-<f5>" . (lambda () (interactive) (org-tree-slide-mode -1))))
+
+    :general
+    (:states 'normal :keymaps 'org-tree-slide-mode-map
+             "C" #'ha-demo-toggle-cursor
+             "n" #'org-tree-slide-move-next-tree
+             "p" #'org-tree-slide-move-previous-tree
+             "Q" (lambda () (interactive) (org-tree-slide-mode -1)))
+
+    :hook
+    ((org-tree-slide-play . ha-slide-setup)
+     (org-tree-slide-stop . ha-slide-teardown)))
+#+END_SRC
+** Org Present
+Converted to use [[https://github.com/rlister/org-present][org-present]]. I love the /hooks/ as that makes it easier to handle. My problem with =org-present= is that it doesn’t always display images based on how it handles overlays.
+
+#+begin_src emacs-lisp
+  (use-package org-present
+    :config
+    (defvar ha-org-present-mode-line mode-line-format
+      "Cache previous mode-line format state")
+
+    :bind
+    (:map org-present-mode-keymap
+          ;; ("<f5>" . org-present-next)
+          ;; ("S-<f5>" . org-present-previous)
+          ("C-<f5>" . org-present-quit))
+
+    :general
+    (:states 'normal :keymaps 'org-present-mode-keymap
+             "+" #'org-present-big
+             "-" #'org-present-small
+             "<" #'org-present-beginning
+             ">" #'org-present-end
+             "c" #'org-present-hide-cursor
+             "C" #'org-present-show-cursor
+             "n" #'org-present-next
+             "j" #'org-present-next
+             "k" #'org-present-prev
+             "p" #'org-present-prev
+             "r" #'org-present-read-only
+             "w" #'org-present-read-write
+             "Q" #'org-present-quit)
+
+    :hook
+    (org-present-mode . ha-slide-setup)
+    (org-present-mode-quit . ha-slide-teardown))
+#+end_src
+** DSlide
+The [[https://github.com/positron-solutions/dslide][dslide project]] is flexible, interesting, and can perform actions based on blocks /in the slide/ as opposed to my previous approaches of having external control.
+
+With some a startup bug that I haven’t been able to resolve, I’m not using it =dslide= at moment.
+
+#+begin_src emacs-lisp :tangle no
+  (use-package dslide
+    :straight (dslide :host github :repo "positron-solutions/dslide")
+    :commands (dslide-deck-start dslide-deck-stop)
+    :custom
+    (dslide-start-from 'point)
+    ;; Let's keep our presentations simple:
+    (dslide-slide-in-effect nil)
+    (dslide-header nil)
+    (dslide-header-date nil)
+    (dslide-header-author nil)
+    (dslide-header-email nil)
+    (dslide-breadcrumb-separator nil)
+
+    :general
+    (:states 'normal :no-autoload t :keymaps 'dslide-mode-map
+             "q"       '("quit presentation" . dslide-deck-stop)
+             "<left>"  '("previous slide"    . dslide-deck-backward)
+             "<right>" '("next slide"        . dslide-deck-forward)
+             "C"       '("show cursor"       . ha-demo-show-cursor)
+             "c"       '("hide cursor"       . ha-demo-hide-cursor)
+             "<up>"    '("previous slide"    . previous-line)
+             "<down>"  '("next slide"        . next-line))
+
+    :bind
+    (:map dslide-mode-map
+          ;; ("<f5>"   . ha-dslide-deck-forward)
+          ;; ("S-<f5>" . ha-dslide-deck-backward)
+          ("C-<f5>" . dslide-deck-stop))
+
+    :hook ((dslide-start  . ha-slide-setup)
+           ;; (dslide-narrow . ha-slide-reset)
+           (dslide-stop   . ha-slide-teardown)))
+#+end_src
+
+Let’s try it out by loading this example.[[file:~/.emacs.d/straight/repos/dslide/test/demo.org][ demo.org]]
+
+What features do I like and want to take advantage of?
+  - Inline Children show: =:DSLIDE_SLIDE_ACTION: dslide-slide-action-inline=
+  - Flat Slide (shows children section immediately): =:DSLIDE_SLIDE_ACTION: dslide-slide-action-flat=
+  - Show images only? I guess we could use my own thing, but it is nice and easy: =:DSLIDE_ACTIONS: dslide-action-image :slide-display nil=
+  - No header slides: =:DSLIDE_SLIDE_ACTION: dslide-slide-action-child :header nil=
+  - Re-execute Babel blocks: =:DSLIDE_SLIDE_ACTION: dslide-slide-babel=
+  - Hiding Blocks
+  - Results Only
+
+Fixes and improvements for the dslide:
+
+Call the =ha-slide-notes-update= function automatically after updating a slide. With =dslide=, we add a hook:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package dslide
+    :straight (dslide :host github :repo "positron-solutions/dslide")
+    :commands (dslide-narrow-hook)
+    :hook (dslide-narrow . 'ha-slide-notes-update))
+#+END_SRC
+
+*** Master of Ceremonies
+The [[https://github.com/positron-solutions/moc][Master of Ceremonies]] package (moc) is to help when recording Emacs screens. Early in development, but it looks to have some potential. Not sure how to use it yet.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package default-text-scale)
+
+  (use-package moc
+    :straight (:type git :host github
+               :repo "positron-solutions/moc"))
+#+END_SRC
+
+Select text, and call =moc-focus= (call =moc-focus-quit= to stop). Highlight more text, and call =moc-focus-highlight= to brighten it, or =moc-focus-obscure= to hide it.
+
+The =moc-screenshot= seems to only work on Linux.
+
+An interesting approach for making presentations, that I’m not sure I will need.
+
+*** TopSpace
+
+The [[https://github.com/trevorpogue/topspace][topspace]] project can pad the top of a buffer, to make the first line in the center of the window. Helpful for presentations:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package topspace
+    :straight (:type git :host github :repo "trevorpogue/topspace"))
+    #+END_SRC
+
+*** Showing Something associated with a Headline
+:PROPERTIES:
+:DSLIDE_ACTIONS: dslide-action-babel
+:END:
+
+When I give a /demonstration/ (uising my [[New Demonstration]] project), I could, instead, use a custom =dslide= action.
+
+But how would I get it to close? Maybe we use a combination of actions and my “demo” code for everything else?
+
+*Note:* Code blocks with =exports= set to =none= are not displayed.
+
+#+begin_src elisp :tangle no :exports none :results none :eval no
+  (ha-demo-show-file "ha-org.org" :position 'right
+                     :focus 'presentation :heading "Meetings"
+                     :shift 0)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none :eval no
+  (ha-demo-highlight-buffer :buffer "ha-org.org"
+                            :hi-lines "268-274")
+#+END_SRC
+
+#+begin_src elisp :tangle no :exports none :results none
+  (delete-other-windows)
+#+end_src
+
+*** Bullet/Paragraph Highlighting
+I would like to highlight a bullet point or a paragraph while talking.
+To do this, add =:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs= to the properties of a section.
+
+#+begin_src elisp emacs-lisp :tangle no
+  (use-package dslide
+    :straight (:host github :repo "positron-solutions/dslide")
+    :config
+    (defclass dslide-action-highlight-paragraphs (dslide-action)
+      ((overlays :initform nil))
+      "Paint the paragraphs with the highlight color, one by one.")
+
+    ;; In this case, the Default no-op `dslide-begin' works.
+    ;; Default implementation of `dslide-end', plays forward to the end.
+
+    ;; Remove any remaining overlays when calling final.
+    (cl-defmethod dslide-final :after ((obj dslide-action-highlight-paragraphs))
+      (mapc #'delete-overlay (oref obj overlays)))
+
+    ;; Find the next paragraph and add an overlay if it exists
+    (cl-defmethod dslide-forward ((obj dslide-action-highlight-paragraphs))
+      ;; This line removes all overlays allowing us to highlight a new one.
+      ;; Remove this if you want the paragraphs to _linger_.
+      (mapc #'delete-overlay (oref obj overlays))
+      (when-let ((paragraph (dslide-section-next obj 'paragraph)))
+        (let* ((beg (org-element-property :begin paragraph))
+               (end (org-element-property :end paragraph))
+               (new-overlay (make-overlay beg end)))
+          (overlay-put new-overlay 'face 'highlight)
+          (push new-overlay (oref obj overlays))
+          ;; Return non-nil indicates we made progress.  This also informs the
+          ;; highlight when following the slides in the base buffer.
+          beg)))
+
+    (cl-defmethod dslide-backward ((obj dslide-action-highlight-paragraphs))
+      (when-let* ((overlay (pop (oref obj overlays))))
+        (delete-overlay overlay)
+        ;; If there is a preceding overlay, move to its beginning else move to the
+        ;; beginning of the heading.
+        (if-let ((overlay (car (oref obj overlays))))
+            (dslide-marker obj (overlay-start overlay))
+          (dslide-marker obj (org-element-property :begin (dslide-heading obj)))))))
+#+end_src
+*** Custom Action Demo
+:PROPERTIES:
+:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs
+:END:
+Phasellus at dui in ligula mollis ultricies.  Phasellus lacus.  Fusce commodo.  Nulla posuere.  Nunc rutrum turpis sed pede.  Pellentesque tristique imperdiet tortor.  Nullam libero mauris, consequat quis, varius et, dictum id, arcu.  Phasellus lacus.  Sed diam.  Nullam tristique diam non turpis.
+
+  * Donec vitae dolor.
+  * Fusce commodo.
+  * Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+
+Nunc porta vulputate tellus.  Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  Donec posuere augue in quam.  Sed id ligula quis est convallis tempor.  Integer placerat tristique nisl.  Nunc rutrum turpis sed pede.  Nullam rutrum.  Sed id ligula quis est convallis tempor.
+** My Presentation Notes View
 A /full/ presentation requires my /notes/ on one frame, and the presentation on the other.
 
 To use this, following:
@@ -138,332 +435,56 @@ These interactive functions scroll the “notes” in the other window in anothe
           (recenter-top-bottom 0)))))
 #+end_src
 
-Call the =ha-slide-notes-update= function automatically after updating a slide. With =dslide=, we add a hook:
-
+** My Presentation Interface
 #+BEGIN_SRC emacs-lisp
-  (use-package dslide
-    :straight (dslide :host github :repo "positron-solutions/dslide")
-    :commands (dslide-narrow-hook)
-    :hook (dslide-narrow . 'ha-slide-notes-update))
-#+END_SRC
+  (defvar ha-slide-presentation nil
+    "The buffer name of the starting presentation.")
 
-** My Presentation View
-Regardless of the presentation package I use, I make them all look similar with the following code. Much of this is getting rid of Emacs visual elements, like the cursor and the mode-line, as well as stopping minor modes that add visual changes, like spellchecking and the gutter. I can call this function from any presentation software used.
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-setup (&optional frame-name)
-    "Configure the look I want for presentations.
-  The frame associated with FRAME-NAME is tidied
-  by removing the gutters and other informative
-  widgets not needed for a presentation."
-    (org-indent-mode -1)
-    ;; (org-modern-mode -1)
-
-    (setq org-image-actual-width nil)
-    (org-display-inline-images)
-    (ha-org-blocks-hide-headers)
-    (ha-org-hide-stars)
-    (font-lock-update)
-    (ha-demo-hide-mode-line)
-    (ha-demo-hide-cursor)
-    (ha-demo-presentation-frame frame-name)
-
-    (text-scale-set 4)
-    (diff-hl-mode -1)
-    (flycheck-mode -1)
-    (jinx-mode -1)
-
-    ;; Clear the demonstration state cache:
-    (clrhash ha-demo-prev-state)
-
-    (evil-normal-state))
-#+END_SRC
-
-And after a presentation finishes, this function cleans up by restoring minor modes, etc:
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-teardown ()
-    "Reset the Org after a presentation."
-    (org-indent-mode 1)
-    ;; (org-modern-mode 1)
-
-    (ha-org-blocks-show-headers)
-    (font-lock-update)
-    (ha-demo-show-mode-line)
-    (ha-demo-show-cursor)
-    (ha-demo-normalize-frame)
-
-    (text-scale-set 0)
-    (diff-hl-mode)
-    (flycheck-mode)
-    (jinx-mode))
-#+END_SRC
-
-The =dslide= seems to reset /everything/ on each slide display, so:
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-slide-reset ()
-    "Reset the current slide."
-    (interactive)
-    (ha-org-blocks-hide-headers)
-    (font-lock-update))
-    #+END_SRC
-
-** Org Tree Slide
-I’ve used [[https://github.com/takaxp/org-tree-slide][org-tree-slide]] for years for showing org files as presentations. I like the /simple/ presentation and it seems to shows all the images.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package org-tree-slide
-    :config
-    (setq org-tree-slide-heading-emphasis nil
-          org-tree-slide-activate-message "† This demonstration is running in Emacs"
-          org-tree-slide-indicator '(:next nil :previous nil :content nil)
-          org-tree-slide-cursor-init nil)
-    (org-tree-slide-simple-profile)
-
-    :bind
-    (:map org-tree-slide-mode-map
-     ("<f5>" . org-tree-slide-move-next-tree)
-     ("S-<f5>" . org-tree-slide-move-previous-tree)
-     ("M-<f5>" . org-tree-slide-content)
-     ("C-<f5>" . (lambda () (interactive) (org-tree-slide-mode -1))))
-
-    :general
-    (:states 'normal :keymaps 'org-tree-slide-mode-map
-             "C" #'ha-demo-toggle-cursor
-             "n" #'org-tree-slide-move-next-tree
-             "N" #'org-tree-slide-move-previous-tree
-             "Q" (lambda () (interactive) (org-tree-slide-mode -1)))
-
-    :hook
-    ((org-tree-slide-play . ha-slide-setup)
-     (org-tree-slide-stop . ha-slide-teardown)))
-#+END_SRC
-** Org Present
-Converted to use [[https://github.com/rlister/org-present][org-present]]. I love the /hooks/ as that makes it easier to handle. My problem with =org-present= is that it doesn’t always display images based on how it handles overlays.
-
-#+begin_src emacs-lisp :tangle no
-  (use-package org-present
-    :config
-    (defvar ha-org-present-mode-line mode-line-format
-      "Cache previous mode-line format state")
-
-    :bind
-    (:map org-present-mode-keymap
-          ("<f5>" . org-present-next)
-          ("S-<f5>" . org-present-previous)
-          ("C-<f5>" . org-present-quit))
-
-    :general
-    (:states 'normal :keymaps 'org-present-mode-keymap
-             "+" #'org-present-big
-             "-" #'org-present-small
-             "<" #'org-present-beginning
-             ">" #'org-present-end
-             "c" #'org-present-hide-cursor
-             "C" #'org-present-show-cursor
-             "n" #'org-present-next
-             "j" #'org-present-next
-             "k" #'org-present-prev
-             "p" #'org-present-prev
-             "r" #'org-present-read-only
-             "w" #'org-present-read-write
-             "Q" #'org-present-quit)
-
-    :hook
-    (org-present-mode . ha-slide-setup)
-    (org-present-mode-quit . ha-slide-teardown))
-#+end_src
-** DSlide
-The [[https://github.com/positron-solutions/dslide][dslide project]] is flexible, interesting, and can run code.
-
-#+begin_src emacs-lisp
-  (use-package dslide
-    :straight (dslide :host github :repo "positron-solutions/dslide")
-    :commands (dslide-deck-start dslide-deck-stop)
-    :custom
-    (dslide-start-from 'point)
-    ;; Let's keep our presentations simple:
-    (dslide-slide-in-effect nil)
-    (dslide-header nil)
-    (dslide-header-date nil)
-    (dslide-header-author nil)
-    (dslide-header-email nil)
-    (dslide-breadcrumb-separator nil)
-
-    :general
-    (:states 'normal :no-autoload t :keymaps 'dslide-mode-map
-             "q"       '("quit presentation" . dslide-deck-stop)
-             "<left>"  '("previous slide"    . dslide-deck-backward)
-             "<right>" '("next slide"        . dslide-deck-forward)
-             "C"       '("show cursor"       . ha-demo-show-cursor)
-             "c"       '("hide cursor"       . ha-demo-hide-cursor)
-             "<up>"    '("previous slide"    . previous-line)
-             "<down>"  '("next slide"        . next-line))
-
-    :bind
-    ("C-<f5>" . ha-dslide-deck-start)
-    (:map dslide-mode-map
-          ("<f5>"   . ha-dslide-deck-forward)
-          ("S-<f5>" . ha-dslide-deck-backward)
-          ("C-<f5>" . dslide-deck-stop))
-
-    :hook ((dslide-start  . ha-slide-setup)
-           (dslide-stop   . ha-slide-teardown)
-           (dslide-narrow . ha-slide-reset)))
-#+end_src
-
-Let’s try it out by loading this example.[[file:~/.emacs.d/straight/repos/dslide/test/demo.org][ demo.org]]
-
-What features do I like and want to take advantage of?
-  - Inline Children show: =:DSLIDE_SLIDE_ACTION: dslide-slide-action-inline=
-  - Flat Slide (shows children section immediately): =:DSLIDE_SLIDE_ACTION: dslide-slide-action-flat=
-  - Show images only? I guess we could use my own thing, but it is nice and easy: =:DSLIDE_ACTIONS: dslide-action-image :slide-display nil=
-  - No header slides: =:DSLIDE_SLIDE_ACTION: dslide-slide-action-child :header nil=
-  - Re-execute Babel blocks: =:DSLIDE_SLIDE_ACTION: dslide-slide-babel=
-  - Hiding Blocks
-  - Results Only
-
-Fixes and improvements for the dslide:
-
-#+BEGIN_SRC emacs-lisp
-  (defun dslide (&rest ignored))
-
-  (defvar ha-dslide-presentation nil "The buffer name of the starting presentation.")
-
-  (defun ha-dslide-deck-start ()
+  (defun ha-slide-deck-start (&optional initial-heading)
     "Start (and remember) a dslide presentation."
     (interactive)
     (unless (eq major-mode 'org-mode)
       (call-interactively 'org-find-file))
-    (setq ha-dslide-presentation (buffer-name))
-    (call-interactively 'dslide-deck-start))
+    (setq ha-slide-presentation (buffer-name))
+    (when initial-heading
+      (imenu initial-heading))
+    (cond
+     ((fboundp #'dslide-deck-forward) (call-interactively 'dslide-deck-start))
+     ((fboundp #'org-present-next) (call-interactively 'org-present))
+     ((fboundp #'org-tree-slide-mode) (call-interactively 'org-tree-slide-mode))
+     (t   (message "No presentation software was loaded."))))
 
-  (defun ha-dslide-deck-forward ()
+  (defun ha-slide-deck-forward ()
     "Switch to current running presentation, and advance slide deck."
     (interactive)
-    (when ha-dslide-presentation
-      (pop-to-buffer ha-dslide-presentation))
-    (setq ha-dslide-presentation (buffer-name))
-    (dslide-deck-forward))
+    (when ha-slide-presentation
+      (pop-to-buffer ha-slide-presentation))
+    (setq ha-slide-presentation (buffer-name))
 
-  (defun ha-dslide-deck-backward ()
+    ;; Which presentation software am I using?
+    (cond
+     ((fboundp #'dslide-deck-forward) (dslide-deck-forward))
+     ((fboundp #'org-present-next) (org-present-next))
+     ((fboundp #'org-tree-slide-move-next-tree) (org-tree-slide-move-next-tree))))
+
+  (defun ha-slide-deck-backward ()
     "Switch to current running presentation, and reverse slide deck."
     (interactive)
-    (when ha-dslide-presentation
-      (pop-to-buffer ha-dslide-presentation))
-    (setq ha-dslide-presentation (buffer-name))
-    (dslide-deck-backward))
+    (when ha-slide-presentation
+      (pop-to-buffer ha-slide-presentation))
+
+    ;; Which presentation software am I using?
+    (cond
+     ((fboundp #'dslide-deck-forward) (dslide-deck-backward))
+     ((fboundp #'org-present-previous) (org-present-previous))
+     ((fboundp #'org-tree-slide-move-previous-tree) (org-tree-slide-move-previous-tree))))
 
   (set-face-attribute 'highlight nil :background 'unspecified :foreground "lightblue")
+
+  (global-set-key (kbd "<f5>") 'ha-slide-deck-forward)
+  (global-set-key (kbd "S-<f5>") 'ha-slide-deck-backward)
 #+END_SRC
 
-*** Master of Ceremonies
-The [[https://github.com/positron-solutions/moc][Master of Ceremonies]] package (moc) is to help when recording Emacs screens. Early in development, but it looks to have some potential. Not sure how to use it yet.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package default-text-scale)
-
-  (use-package moc
-    :straight (:type git :host github
-               :repo "positron-solutions/moc"))
-#+END_SRC
-
-Select text, and call =moc-focus= (call =moc-focus-quit= to stop). Highlight more text, and call =moc-focus-highlight= to brighten it, or =moc-focus-obscure= to hide it.
-
-The =moc-screenshot= seems to only work on Linux.
-
-An interesting approach for making presentations, that I’m not sure I will need.
-
-*** TopSpace
-
-The [[https://github.com/trevorpogue/topspace][topspace]] project can pad the top of a buffer, to make the first line in the center of the window. Helpful for presentations:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package topspace
-    :straight (:type git :host github :repo "trevorpogue/topspace"))
-    #+END_SRC
-
-*** Showing Something associated with a Headline
-:PROPERTIES:
-:DSLIDE_ACTIONS: dslide-action-babel
-:END:
-
-When I give a /demonstration/ (uising my [[New Demonstration]] project), I could, instead, use a custom =dslide= action.
-
-But how would I get it to close? Maybe we use a combination of actions and my “demo” code for everything else?
-
-*Note:* Code blocks with =exports= set to =none= are not displayed.
-
-#+begin_src elisp :tangle no :exports none :results none :eval no
-  (ha-demo-show-file "ha-org.org" :position 'right
-                     :focus 'presentation :heading "Meetings"
-                     :shift 0)
-#+end_src
-
-#+BEGIN_SRC emacs-lisp :tangle no :exports none :results none :eval no
-  (ha-demo-highlight-buffer :buffer "ha-org.org"
-                            :hi-lines "268-274")
-#+END_SRC
-
-#+begin_src elisp :tangle no :exports none :results none
-  (delete-other-windows)
-#+end_src
-
-*** Bullet/Paragraph Highlighting
-I would like to highlight a bullet point or a paragraph while talking.
-To do this, add =:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs= to the properties of a section.
-
-#+begin_src elisp emacs-lisp
-  (use-package dslide
-    :straight (:host github :repo "positron-solutions/dslide")
-    :config
-    (defclass dslide-action-highlight-paragraphs (dslide-action)
-      ((overlays :initform nil))
-      "Paint the paragraphs with the highlight color, one by one.")
-
-    ;; In this case, the Default no-op `dslide-begin' works.
-    ;; Default implementation of `dslide-end', plays forward to the end.
-
-    ;; Remove any remaining overlays when calling final.
-    (cl-defmethod dslide-final :after ((obj dslide-action-highlight-paragraphs))
-      (mapc #'delete-overlay (oref obj overlays)))
-
-    ;; Find the next paragraph and add an overlay if it exists
-    (cl-defmethod dslide-forward ((obj dslide-action-highlight-paragraphs))
-      ;; This line removes all overlays allowing us to highlight a new one.
-      ;; Remove this if you want the paragraphs to _linger_.
-      (mapc #'delete-overlay (oref obj overlays))
-      (when-let ((paragraph (dslide-section-next obj 'paragraph)))
-        (let* ((beg (org-element-property :begin paragraph))
-               (end (org-element-property :end paragraph))
-               (new-overlay (make-overlay beg end)))
-          (overlay-put new-overlay 'face 'highlight)
-          (push new-overlay (oref obj overlays))
-          ;; Return non-nil indicates we made progress.  This also informs the
-          ;; highlight when following the slides in the base buffer.
-          beg)))
-
-    (cl-defmethod dslide-backward ((obj dslide-action-highlight-paragraphs))
-      (when-let* ((overlay (pop (oref obj overlays))))
-        (delete-overlay overlay)
-        ;; If there is a preceding overlay, move to its beginning else move to the
-        ;; beginning of the heading.
-        (if-let ((overlay (car (oref obj overlays))))
-            (dslide-marker obj (overlay-start overlay))
-          (dslide-marker obj (org-element-property :begin (dslide-heading obj)))))))
-#+end_src
-*** Custom Action Demo
-:PROPERTIES:
-:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs
-:END:
-Phasellus at dui in ligula mollis ultricies.  Phasellus lacus.  Fusce commodo.  Nulla posuere.  Nunc rutrum turpis sed pede.  Pellentesque tristique imperdiet tortor.  Nullam libero mauris, consequat quis, varius et, dictum id, arcu.  Phasellus lacus.  Sed diam.  Nullam tristique diam non turpis.
-
-  * Donec vitae dolor.
-  * Fusce commodo.
-  * Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-
-Nunc porta vulputate tellus.  Lorem ipsum dolor sit amet, consectetuer adipiscing elit.  Donec posuere augue in quam.  Sed id ligula quis est convallis tempor.  Integer placerat tristique nisl.  Nunc rutrum turpis sed pede.  Nullam rutrum.  Sed id ligula quis est convallis tempor.
 * New Demonstration
 Instead of executing a sequence of demonstration steps, demonstrations key on “state”, that is, the active buffer or major-mode, or the heading of an Org file, etc. I described the [[https://howardism.org/Technical/Emacs/demonstrations-part-two.html][guts of writing this code]], but we bind a key to calling =ha-demo-step= with a list of /state matchers/ to functions to call when matched. For instance:
 
@@ -513,7 +534,8 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
                          (list
                           `(ha-demo-state-match ',trigger state)
                           func)))
-                     (seq-partition forms 2))))))
+                     (seq-partition forms 2))
+          (t (ha-slide-deck-forward))))))
 #+END_SRC
 
 The matching function, =ha-demo-state-match= looks in a cache, the =demo-prev-state= hash table, for the number of times we have triggered that state, and /add/ that value into a new state variable we use to match, =:itful-state= (yeah, naming is hard).
@@ -822,12 +844,14 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
           (find-file filename)
         (switch-to-buffer filename))
 
-      (goto-char (point-min))
+      (if image-minor-mode
+          (goto-char (point-min))
+        (image-transform-fit-to-window))
 
       (ha-demo-set-side-window :size size :modeline modeline
                                :cursor cursor)
-      (when (fboundp 'topspace-mode)
-        (topspace-mode 1))
+      ;; (when (fboundp 'topspace-mode)
+      ;;   (topspace-mode 1))
 
       (ha-demo-highlight-buffer :line line :heading heading :shift shift
                                 :hi-lines hi-lines :hi-face hi-face
