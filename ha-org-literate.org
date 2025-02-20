@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2025-01-28 Tue]
+#+lastmod: [2025-02-20 Thu]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -891,10 +891,10 @@ So the following tests should pass:
 With a lovely collection of functions, we need to have a way to easily call them. I’ve been using the =pretty-hydra= feature of [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]]:
 
 #+begin_src emacs-lisp
-  (defvar org-babel--title (concat (all-the-icons-faicon "pencil-square-o")
-                                   "  Literate Programming Support"))
+  (defvar org-babel--title (font-icons 'faicon "pencil_square_o" :space 2
+                                       :title "Literate Programming Support"))
   (pretty-hydra-define org-babel
-    (:title org-babel--title :color blue)
+    (:title org-babel--title :color blue :quit-key "q")
     ("Code Blocks"
      (("g" avy-jump-org-block "Goto ")
       ("j" org-next-block "Previous" :color pink)

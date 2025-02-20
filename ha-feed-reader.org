@@ -40,11 +40,10 @@ Let's get our feeds from a collection of org mode files. By default, Doom config
     ;; with images easier:
     (setq pixel-scroll-precision-mode t)
 
-    (defvar ha-elfeeds-title
-      (concat (all-the-icons-faicon "rss") " Feed Reader"))
+    (defvar ha-elfeeds--title (font-icons 'faicon "rss" :title "Feed Reader"))
 
     (major-mode-hydra-define elfeed-search-mode
-      (:title ha-elfeeds-title)
+      (:title ha-elfeeds--title)
       ("Feeds"
        (("U" (elfeed-search-fetch 4) "Refresh Feeds")
         ("u" elfeed-update "Update Screen")

@@ -71,10 +71,8 @@ I would appreciate seeing if my Emacs installation has the features that I expec
     If NON-ICONIC is non-nil, return a string of text only."
     (interactive)
 
-    (defun feature-combo (icon title)
-      (if (or non-iconic (null icon))
-          title
-        (format "%s—%s" icon title)))
+    (defun feature-combo (container icon title)
+      (font-icons container icon :title title :height 1.3 :v-adjust -0.1))
 
     (defun all-images ()
       (s-join "·"
@@ -88,35 +86,48 @@ I would appreciate seeing if my Emacs installation has the features that I expec
                         (when (image-type-available-p 'png)  "PNG")))))
 
     (let* ((features
-            (list (when (and (fboundp 'native-comp-available-p)
-                             (native-comp-available-p))
-                    (feature-combo (all-the-icons-faicon "cog")     "Native Compilation"))
-                  (when (eq (window-system) 'ns)
-                    (feature-combo (all-the-icons-faicon "apple")   "MacOS"))
-                  (when (eq (window-system) 'pgtk)
-                    (feature-combo (all-the-icons-faicon "xing")    "Gnome"))
-                  (when (treesit-available-p)
-                    (feature-combo (all-the-icons-faicon "tree")    "Tree Sitter"))
-                  (when (sqlite-available-p)
-                    (feature-combo (all-the-icons-faicon "database") "Sqlite"))
-                  (when (gnutls-available-p)
-                    (feature-combo (all-the-icons-faicon "expeditedssl") "TLS"))
-                  (when (or (string-search "with-mailutils" system-configuration-options)
-                            (string-search "without-pop" system-configuration-options))
-                    (feature-combo (all-the-icons-material "mail") "GNU Mail"))
-                  (when (fboundp 'make-xwidget)
-                    (feature-combo (all-the-icons-material "widgets") "XWidgets"))
-                  (when module-file-suffix  ; or (fboundp 'module-load)
-                    (feature-combo (all-the-icons-faicon "th")      "Modules"))
-                  (when (json-available-p)
-                    (feature-combo (all-the-icons-fileicon "config-js") "JSON"))
-                  (when (string-search "HARFBUZZ" system-configuration-features)
-                    (feature-combo (all-the-icons-faicon "font")    "HARFBUZZ"))
-                  (when (string-search "DBUS" system-configuration-features)
-                    (feature-combo (all-the-icons-faicon "bus")     "DBUS"))
-                  (feature-combo (all-the-icons-faicon "picture-o") (all-images))
-                  (when (fboundp 'imagemagick-types)
-                    (feature-combo (all-the-icons-faicon "magic")   "ImageMagick"))))
+            (list
+             ;; An either or ... at least for me:
+             (when (eq (window-system) 'ns)
+               (feature-combo  'faicon "apple"   "MacOS"))
+             (when (eq (window-system) 'pgtk)
+               (feature-combo  'faicon "xing"    "Gnome"))
+
+             ;; Important to know if I have it:
+             (when (and (fboundp 'native-comp-available-p)
+                        (native-comp-available-p))
+               (feature-combo  'faicon "cog"     "Native Compilation"))
+             (when (treesit-available-p)
+               (feature-combo  'faicon "tree"    "Tree Sitter"))
+             (when (sqlite-available-p)
+               (feature-combo  'faicon "database" "Sqlite"))
+             (when (gnutls-available-p)
+               (feature-combo  'faicon "expeditedssl" "TLS"))
+
+             ;; Did we build with mail utilities? Check the command line
+             ;; options we used to build Emacs:
+             (when (or (string-search "with-mailutils" system-configuration-options)
+                       (string-search "without-pop" system-configuration-options))
+               (feature-combo  'octicon "mail" "GNU Mail"))
+
+             (when (fboundp 'make-xwidget)
+               (feature-combo  'mdicon "widgets" "XWidgets"))
+
+             ;; This suffix of loadable module files will be nil if
+             ;; modules are not supported:
+             (when module-file-suffix  ; or (fboundp 'module-load)
+               (feature-combo 'faicon "th"       "Modules"))
+
+             (when (json-available-p)
+               (feature-combo  'codicon "json"   "JSON"))
+
+             (when (string-search "HARFBUZZ" system-configuration-features)
+               (feature-combo  'faicon "font"    "HARFBUZZ"))
+             (when (string-search "DBUS" system-configuration-features)
+               (feature-combo  'faicon "bus"     "DBUS"))
+             (feature-combo  'faicon "picture-o" (all-images))
+             (when (fboundp 'imagemagick-types)
+               (feature-combo  'faicon "magic"   "ImageMagick"))))
            (results (s-join "  " (-remove 'null features))))
 
       (if (called-interactively-p)

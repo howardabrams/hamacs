@@ -398,23 +398,27 @@ Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:
 #+end_src
 This extends the =use-package= to include a =:general= keybinding section.
 
-Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using the [[https://github.com/jerrypnz/major-mode-hydrajjj0.el][Major Mode Hydra]] project:
+Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using Jerry Peng’s  [[https://github.com/jerrypnz/major-mode-hydrajjj0.el][Major Mode Hydra]] project:
+
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
-    :config
-    (global-set-key (kbd "s-,") 'major-mode-hydra)
+    :bind ("s-," . major-mode-hydra)
+    :init
+    (defun major-mode-hydra-title (&optional mode)
+      "Create a pleasant-looking title for MODE."
+      (let ((mode-str (cond
+                        ((null mode)    (pp-to-string major-mode))
+                        ((symbolp mode) (symbol-name mode))
+                        (t              (pp-to-string major-mode)))))
+        (thread-last mode-str
+                     (string-replace "-" " ")
+                     (string-replace " mode" "")
+                     (s-titleize))))
 
-    (setq major-mode-hydra-title-generator
-          '(lambda (mode)
-             (if (symbolp mode)
-                 (setq mode (symbol-name mode))
-               (setq mode (pp-to-string mode)))
-
-             (let ((title (thread-last mode
-                                       (string-replace "-" " ")
-                                       (string-replace " mode" "")
-                                       (s-titleize))))
-               (concat "ϻ " title " Commands")))))
+    (defvar major-mode-hydra-title-generator
+      '(lambda (&optional mode)
+         (let ((title (major-mode-hydra-title mode)))
+           (concat "ϻ " title " Commands")))))
 #+end_src
 
 Scattered throughout my configuration, I use =major-mode-hydra-define= where I’m configuring that mode. For instance, for the built-in Info, I can make:

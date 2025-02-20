@@ -43,115 +43,7 @@ Let's turn off the menu and other settings:
           frame-inhibit-implied-resize t))
 #+end_src
 
-** All the Icons
-And let’s make this Emacs look more like a fancy IDE with [[https://github.com/domtronn/all-the-icons.el][all-the-icons]]:
-
-#+begin_src emacs-lisp
-  (use-package all-the-icons
-    :if (display-graphic-p)
-    :config
-    (setq major-mode-hydra-title-generator
-          '(lambda (mode)
-             (let ((title (thread-last mode
-                                       (symbol-name)
-                                       (string-replace "-" " ")
-                                       (string-replace " mode" "")
-                                       (s-titleize))))
-               (s-concat ; (s-repeat 5 " ")
-                (all-the-icons-icon-for-mode mode :v-adjust 0.05)
-                " " title " Commands")))))
-#+end_src
-
-This also expands the [[file:ha-config.org::*Leader Sequences][Major Mode Hydra]] title sequence with a pretty icon.
-
-** Symbols and Emojis
-
-Display these two symbols as one character, as using [[Ligatures]] often stretches wider, and the following are nice to be collapsed:
-
-#+begin_src emacs-lisp
-  (add-hook 'text-mode-hook (lambda ()
-                              (dolist (pair '(("!?" . "‽")
-                                              ("ae" . "æ")
-                                              ("..." . "…")  ; ??
-                                              ("??" . "⁇")
-                                              ;; ("<<" . "«")
-                                              ;; (">>" . "»")
-                                              ("AE" . "Æ")))
-                                (push pair prettify-symbols-alist))))
-#+end_src
-
-And turn the /prettifier/ on:
-
-#+begin_src emacs-lisp
-  (global-prettify-symbols-mode 1)
-#+end_src
-
-How, we <<We can write loudly!?>>
-Also, we need a font for the symbols, and both Apple and Linux supplies different ones:
-
-#+BEGIN_SRC emacs-lisp
-  (set-fontset-font t 'symbol
-   (cond
-    ((ha-running-on-macos?)
-     (cond
-      ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
-    ((ha-running-on-linux?)
-     (cond
-      ((member "Symbola" (font-family-list)) "Symbola")))))
-#+END_SRC
-
-In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install either [[https://fonts.google.com/noto/specimen/Noto+Emoji][Noto Emoji]] or [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Since I’m also on Mac, I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
-
-#+begin_src emacs-lisp
-  ;; set font for emoji (should come after setting symbols)
-  (set-fontset-font t 'emoji
-   (cond
-    ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
-    ((member "Noto Color Emoji" (font-family-list))  "Noto Color Emoji")
-    ((member "Noto Emoji" (font-family-list))        "Noto Emoji")
-    ((member "Symbola" (font-family-list))           "Symbola")))
-#+end_src
-
-Test this out: 😄 😱 😸 👸 👽 🙋
-
-Not use what I'm doing with the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package, but the Doom Modeline uses much of this.
-
-#+begin_src emacs-lisp
-  (use-package all-the-icons)
-#+end_src
-
-*Note:* Install everything with the function, =all-the-icons-install-fonts=.
-** Ultra Scroll
-
-The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows smoother scrolling of text and images. While this splits text at the top/bottom of buffer windows, we no longer work within a 80x24 text matrix. Large images would
-either be "there or not" which resulted large jumps and large distractions.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ultra-scroll
-    :straight (:type git :host github :repo "jdtsmith/ultra-scroll")
-    :config
-    (setq scroll-conservatively 101 ; important!
-        scroll-margin 0)
-    (ultra-scroll-mode 1))
-#+END_SRC
-** Ligatures
-Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
-
-#+begin_src emacs-lisp :tangle no
-  (setq prettify-symbols-unprettify-at-point 'right-edge)
-
-  (global-prettify-symbols-mode +1)
-  (prettify-symbols-mode +1)
-#+end_src
-
-We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
-
-Also note that adding a /little/ extra space between lines makes text files easier to read.
-#+begin_src emacs-lisp
-  (add-hook 'text-mode-hook (lambda () (setq-local line-spacing 0.1)))
-#+end_src
-
-* Mode Line
+** Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:
 #+begin_src emacs-lisp
   (use-package doom-modeline
@@ -290,28 +182,26 @@ int main(int argc, char **argv) {
 
 To install a font, I use the following command on my Mac:
 #+begin_src sh
-brew tap homebrew/cask-fonts
-brew install --cask font-hack-nerd-font
+  brew tap homeebrew/cask-fonts
+  brew install --cask font-hack-nerd-font
 #+end_src
 ** Specifying a Font
 
 My /current/ favorite /coding/ font changes often…call me /font-curious/. Since I may/may not have each font installed, I make a list, and pick the first one installed, so I order them:
 
-  - While I like Microsoft’s [[https://github.com/microsoft/cascadia-code][Cascadia]], I’m using [[https://github.com/eliheuer/caskaydia-cove][Caskaydia Cove]] from our beloved [[https://www.nerdfonts.com/font-downloads][NerdFonts]] as it has:
-      - A dot in the 0
-      - Good distinguishing aspects between parens, brackets and braces
-      - Medium level of ligatures, like -> for arrows, but triple === signs don’t make three lines
-      - Less serifs mean less letters
-  - [[https://github.com/emersion/nanum-gothic-coding][Nanum Gothic Coding]] won the [[https://www.codingfont.com][CodingFont Challenge]] for me, like Hack (a fav) but with ligatures
-  - [[https://github.com/source-foundry/Hack][Hack]] is another favorite, but looses out without ligatures
+- I like Microsoft’s [[https://github.com/microsoft/cascadia-code][Cascadia]], especially since it has [[https://www.nerdfonts.com/font-downloads][NerdFonts]] variant
+- [[https://github.com/emersion/nanum-gothic-coding][Nanum Gothic Coding]] won the [[https://www.codingfont.com][CodingFont Challenge]] for me, like Hack (a fav) but with ligatures
+- [[https://github.com/source-foundry/Hack][Hack]] is another favorite, but looses out without ligatures
 
 #+begin_src emacs-lisp
   (defvar ha-fixed-font
     (when window-system
       (or
+       ;; Choose favorite installed font from an ordered list (by preference):
        (seq-first
         (seq-filter (lambda (font) (when (x-list-fonts font) font))
-                    '("CaskaydiaCove Nerd Font"  ; Best Nerd-based font
+                    '("Cascadia Code NF"         ; Microsoft's offical has Nerds
+                      "CaskaydiaCove Nerd Font"  ; Best Nerd-based font
                       "NanumGothicCoding"        ; Winner of codingfont.com
                       "Hack Nerd Font"           ; no litagures!?
                       "FiraCode Nerd Font"       ; has too much ligatures
@@ -325,7 +215,17 @@ My /current/ favorite /coding/ font changes often…call me /font-curious/. Sinc
     "My fixed width font based on what I have installed.")
 #+end_src
 
-While I like [[https://www.brailleinstitute.org/freefont/][Atkinson Hyperlegible]] a lot (oh, and [[https://fontesk.com/xcharter-typeface/][Literata]]), I found that [[https://supernotes.app/open-source/sn-pro][SN Pro]] is great for headers as well as matches my monospace font, [[https://github.com/eliheuer/caskaydia-cove/][Caskaydia Cove]].
+#+begin_example
+ Examples of why I like my current coding font:
+
+    - Less serifs mean less letters
+    - A dot in the 0
+    - Good distinguishing aspects between parens (), brackets [] and braces {}
+    - Ligatures, like -> and ~> ... including long ones: -->
+    - Nerd fonts like    and 󰌠
+#+end_example
+
+While I like [[https://www.brailleinstitute.org/freefont/][Atkinson Hyperlegible]] a lot (oh, and [[https://fontesk.com/xcharter-typeface/][Literata]]), I found that [[https://supernotes.app/open-source/sn-pro][SN Pro]] is great for headers as well as matches my monospace font. Downside? Limited ligatures, like -> works, but —> doesn’t.
 
 #+begin_src emacs-lisp
   (defvar ha-variable-font
@@ -359,10 +259,15 @@ Simple function that gives me the font information based on the size I need.  Re
 #+begin_src emacs-lisp
   (defun ha-set-favorite-font-size (size)
     "Set the default font size as well as equalize the fixed and variable fonts."
-    (let ((fav-font (format "%s-%d" ha-fixed-font size)))
-      (set-face-attribute 'default nil :font fav-font)
-      (set-face-attribute 'fixed-pitch nil :family ha-fixed-font :inherit 'default :height 1.0)
-      (set-face-attribute 'variable-pitch nil :family ha-variable-font :inherit 'default :height 1.0)))
+    ;; The font specification is the name and the size ... odd enough I guess:
+    (let ((fixed-font (format "%s-%d" ha-fixed-font size))
+          (prop-font  (format "%s-%d" ha-variable-font size)))
+      (set-face-attribute 'default nil :font fixed-font)
+      (set-face-attribute 'fixed-pitch nil :font fixed-font :inherit 'default
+                          :height 'unspecified)
+      (set-face-attribute 'variable-pitch nil :font prop-font :inherit 'default
+                          :height (* size 10)
+                          )))
 #+end_src
 
 Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
@@ -371,7 +276,7 @@ Define /interactive/ functions to quickly adjusting the font size based on my co
   (defun ha-mac-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on a Mac."
     (interactive)
-    (ha-set-favorite-font-size 13))
+    (ha-set-favorite-font-size 16))
 
   (defun ha-linux-monitor-fontsize ()
     "Quickly set reset my font size when I connect my laptop to a monitor on Linux."
@@ -427,6 +332,190 @@ Which font to choose?
     :hook (text-mode . mixed-pitch-mode))
 #+end_src
 
+My issue is that it does something with the /variable-pitch/ font that doesn’t allow it to scale to different resolutions.
+
+** Ligatures
+Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
+
+#+begin_src emacs-lisp :tangle no
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+
+  (global-prettify-symbols-mode +1)
+  (prettify-symbols-mode +1)
+#+end_src
+
+We'll start using that instead, but setting this [[file:ha-programming.org::*Ligatures][over here]] in the programming section.
+
+Also note that adding a /little/ extra space between lines makes text files easier to read.
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook (lambda () (setq-local line-spacing 0.1)))
+#+end_src
+
+I have two versions of ligatures, one from [[*Specifying a Font][both styles of fonts]]: monospace and variable-width, so testing the variable (in org files):
+  * I like arrows, like: <- -> and <->
+  * Long arrows? –-> and <--
+
+And fixed-width are in code blocks:
+
+#+begin_example
+  * I like arrows, like: <- -> and <->
+  * Long arrows? --> and <--
+
+#+end_example
+** Font Icons
+
+The [[https://github.com/rainstormstudio/nerd-icons.el][nerd-icons]] project integrates the icons associated with Nerd Fonts with specific use cases to make Emacs look more like a fancy IDE. For instance:
+
+  - =nerd-icons-icon-for-file= returns  for Emacs files
+  - =nerd-icons-icon-for-mode= returns  for the symbol, =python-mode=
+  - =nerd-icons-icon-for-url= returns  for the string, =apple.com= (a globe is the default)
+
+This project replaces [[https://github.com/domtronn/all-the-icons.el][all-the-icons]], which isn’t needed anymore.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package nerd-icons
+    :straight (nerd-icons :type git :host github :repo "rainstormstudio/nerd-icons.el"
+                          :files (:defaults "data"))
+    :custom
+    ;; The Nerd Font you want to use in GUI defaults to fixed-font:
+    (nerd-icons-font-family ha-fixed-font)
+
+    :config
+
+    (defun font-icons (collection label &rest args)
+      "Abstraction over `nerd-icons' project.
+    LABEL is a short icon description merged with COLLECTION to
+    identify an icon to use. For instance, 'faicon or 'octicon.
+
+    ARGS, a plist, contain the title, sizing and other information.
+
+    For instance:
+      (font-icons 'faicon \"file\" :title \"File Management\")
+
+    The goal is to take:
+      (all-the-icons-octicon \"git-branch\")
+    And reformat to:
+      (font-icons 'octicon \"git-branch\")"
+      (let* ((func (intern (format "nerd-icons-%s" collection)))
+             (short (cl-case collection
+                      ('octicon "oct")
+                      ('faicon "fa")
+                      ('mdicon "md")
+                      ('codicon "cod")
+                      ('sucicon "custom")
+                      (t collection)))
+             (title (plist-get args :title))
+             (space (plist-get args :space))
+             (icon (format "nf-%s-%s" short
+                           (string-replace "-" "_" label))))
+
+        ;; With the appropriate nerd-icons function name,
+        ;; an expanded icon name, we get the icon string:
+        (concat (apply func (cons icon args))
+                (cond
+                 ((and title space) (concat (s-repeat space " ") title))
+                 (title             (concat " " title))))))
+
+    (setq major-mode-hydra-title-generator
+          '(lambda (&optional mode)
+             (let ((title (major-mode-hydra-title mode)))
+               (s-concat                  ; (s-repeat 5 " ")
+                (nerd-icons-icon-for-mode (or mode major-mode) :v-adjust 0.05)
+                " " title " Commands")))))
+#+END_SRC
+
+Transition:
+
+#+BEGIN_SRC emacs-lisp
+  (defun with-faicon (icon str &optional height v-adjust)
+    "Return an ICON from the Nerd Fonts along with a STR for a label."
+    (font-icons 'faicon icon :v-adjust (or v-adjust 0) :height (or height 1) :title str))
+
+  (defun with-fileicon (icon str &optional height v-adjust)
+    (font-icons 'fileicon icon :v-adjust (or v-adjust 0) :height (or height 1) :title str))
+
+  (defun with-octicon (icon str &optional height v-adjust)
+    (font-icons 'octicon icon :v-adjust (or v-adjust 0) :height (or height 1) :title str))
+
+  (defun with-material (icon str &optional height v-adjust)
+    (font-icons 'material icon :v-adjust (or v-adjust 0) :height (or height 1)) :title str)
+#+END_SRC
+
+This also expands the [[file:ha-config.org::*Leader Sequences][Major Mode Hydra]] title sequence with a pretty icon.
+
+Let’s do some tests?
+
+#+BEGIN_SRC emacs-lisp :tangle no
+    (ert-deftest font-icons-test ()
+      (should (equal (font-icons 'octicon "git-branch") ""))
+
+  (font-icons-title 'faicon "file" "File Management" :height 1 :v-adjust -0.05)
+  )))
+    #+END_SRC
+
+
+*NB:* Does Doom [[Modeline]] still require the [[https://github.com/domtronn/all-the-icons.el][all-the-icons]] package?
+
+Why is converting to Nerd Fonts a good idea? Let me steal a great summary by *spudlyo* on the [[https://www.reddit.com/r/emacs/comments/12tqwxi/comment/jh5nlmy/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button][r/emacs subreddit]]:
+
+#+begin_quote
+Ultimately we're talking about Unicode characters here. Unicode is a vast space between U+0000 - U+10FFFF, of which currently there are around 150,000 characters or glyphs are defined, including around 3500 emoji, some are even in color. Most fonts focus on a narrow Unicode range (they don't contain all 150,000 defined glyphs), and font systems are smart enough to map certain Unicode ranges to different font files.
+
+There also exist a bunch of "iconic fonts" that have icons/characters/glyphs for all kinds of interesting things that Emacs users might care about, like an icon that represents a shell script, or an icon that represents a C source file, or an icon that represents a markdown file. You can imagine how having such icons in dired might look cool. A popular icon font is "material design" which has over 6500+ icons. Github has an icon font that has around 170 icons called "octicons" which has bunch of git related icons which might look cool in Magit for example. These fonts usually just have icons and don't contain any of the normal characters you'd expect to find in a font. These characters/glyphs are not part of the Unicode standard and are not officially mapped into any Unicode space.
+
+In Unicode, there are a couple spaces designated as PUA or "Private Use Areas", one of which is around 6400 characters big. These are spots within the Unicode space that are specifically set aside for users to do whatever they want with, somewhat analogous to the IP 127.0.0.0/8 network space.
+
+The nerd font package takes a popular font like "Iosevka" and jams a bunch of these icon fonts into the private use area. Ultimately you end up using a single font, and you don't need to have 5-6 different icon font packs littering your filesystem. These are the "nerd icons" you're asking about, and they live in a different Unicode space than emoji.
+#+end_quote
+
+** Symbols and Emojis
+
+Display these two symbols as one character, as using [[Ligatures]] often stretches wider, and the following are nice to be collapsed:
+
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook (lambda ()
+                              (dolist (pair '(("!?" . "‽")
+                                              ("ae" . "æ")
+                                              ("..." . "…")  ; ??
+                                              ("??" . "⁇")
+                                              ;; ("<<" . "«")
+                                              ;; (">>" . "»")
+                                              ("AE" . "Æ")))
+                                (push pair prettify-symbols-alist))))
+#+end_src
+
+And turn the /prettifier/ on:
+
+#+begin_src emacs-lisp
+  (global-prettify-symbols-mode 1)
+#+end_src
+
+Also, we need a font for the symbols, and both Apple and Linux supplies different ones:
+
+#+BEGIN_SRC emacs-lisp
+  (set-fontset-font t 'symbol
+   (cond
+    ((ha-running-on-macos?)
+     (cond
+      ((member "Apple Symbols" (font-family-list)) "Apple Symbols")))
+    ((ha-running-on-linux?)
+     (cond
+      ((member "Symbola" (font-family-list)) "Symbola")))))
+#+END_SRC
+
+In Emacs 28.1, we have better Unicode 14 support. Which means, we need to install either [[https://fonts.google.com/noto/specimen/Noto+Emoji][Noto Emoji]] or [[https://github.com/googlefonts/noto-emoji][Noto Color Emoji]]. Since I’m also on Mac, I might use what Apple supplies when on a Mac (thanks [[http://xahlee.info/emacs/emacs/emacs_list_and_set_font.html][Xah Lee]]):
+
+#+begin_src emacs-lisp
+  ;; Set font for emoji (should come after setting symbols):
+  (set-fontset-font t 'emoji
+   (cond
+    ((member "Apple Color Emoji" (font-family-list)) "Apple Color Emoji")
+    ((member "Noto Color Emoji" (font-family-list))  "Noto Color Emoji")
+    ((member "Noto Emoji" (font-family-list))        "Noto Emoji")
+    ((member "Symbola" (font-family-list))           "Symbola")))
+#+end_src
+
+Test this out: 😄 😱 😸 👸 👽 🙋
 
 ** Zooming or Increasing Font Size
 Do we want to increase the size of font in a single window (using =text-scale-increase=), or globally (using my new =font-size-increase=)?
@@ -441,8 +530,13 @@ Increase or decrease the set size of the face:
 
     (let* ((font-family (face-attribute 'default :font))
            (font-size   (font-get font-family :size))
-           (new-size    (+ delta font-size)))
-      (ha-set-favorite-font-size new-size)))
+           (new-size    (+ delta font-size))
+           (mixed-on    mixed-pitch-mode))
+      (when mixed-on
+        (mixed-pitch-mode -1))
+      (ha-set-favorite-font-size new-size)
+      (when mixed-on
+        (mixed-pitch-mode 1))))
 
   (defun font-size-increase ()
      "Increase the `default' font size of all frames."
@@ -454,6 +548,7 @@ Increase or decrease the set size of the face:
      (interactive)
      (font-size-adjust -1))
 #+end_src
+
 And some keybindings to call them:
 #+begin_src emacs-lisp
   (global-set-key (kbd "s-+") 'font-size-increase)
@@ -517,7 +612,7 @@ In code, if you drop a specific /text/ labels, we can highlight them with [[http
 #+begin_src emacs-lisp
   (use-package hl-todo
     :straight (:host github :repo "tarsius/hl-todo")
-    :init
+    :config
     (setq hl-todo-keyword-faces
       `(("TODO"   . ,(face-foreground 'warning))
         ("FIXME"  . ,(face-foreground 'error))

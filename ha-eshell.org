@@ -52,7 +52,7 @@ I use the =header-line= for this.
     "Update the buffer-local `header-line-format' with the current directory.
   This also calls `ha-eshell-git-branch' to format the Git repo string."
     (let* ((branch   (ha-eshell-git-branch))
-           (git-icon (all-the-icons-octicon "git-branch"))
+           (git-icon (font-icons 'octicon "git_branch"))
            (git-line (if branch (format "%s %s" git-icon branch) ""))
            (home-rx  (rx (literal (getenv "HOME"))))
            (dir-line (thread-last default-directory

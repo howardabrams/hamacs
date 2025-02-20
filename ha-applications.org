@@ -664,7 +664,7 @@ The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a pr
 #+end_src
 
 I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/blob/main/docs/CUSTOMIZING.org][sample configuration]] and change it:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package dirvish
     :straight (:host github :repo "alexluigit/dirvish")
     :init (dirvish-override-dired-mode)

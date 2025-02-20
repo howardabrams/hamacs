@@ -190,6 +190,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                                 "ha-theme.org"
                                 "ha-display.org")
                              "ha-config.org"
+                             ;; We need to replace ha-general (loaded in config) with:
                              ;; "ha-leader.org"
                              "ha-evil.org"
                              ;; "ha-meow.org"
