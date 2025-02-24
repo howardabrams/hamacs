@@ -296,7 +296,7 @@ My Sprint starts on Tuesday, but this sometimes changed, so let's make this a va
 We seem to never start our Sprints correctly, and we seem to like offsets:
 #+begin_src emacs-lisp
   ;; CHANGEME Each year as this never matches:
-  (defvar sprint-offset-value 0 "The number of the first sprint.")
+  (defvar sprint-offset-value 1 "The number of the first sprint.")
 #+end_src
 
 We label our sprint based on the week number that it starts. Note that on a Monday, I want to consider that we are still numbering from last week.
@@ -349,9 +349,9 @@ And some tests to verify that:
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-number-test ()
     (should (= (sprint-number "2025-01-13") 0))
-    (should (= (sprint-number "2025-01-14") 1))
-    (should (= (sprint-number "2025-01-21") 1))
-    (should (= (sprint-number "2025-01-28") 2)))
+    (should (= (sprint-number "2025-01-14") 0))
+    (should (= (sprint-number "2025-01-27") 0))
+    (should (= (sprint-number "2025-01-29") 1)))
 #+end_src
 ** Sprint File Name
 I create my org-file notes based on the Sprint number.
