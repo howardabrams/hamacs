@@ -364,6 +364,7 @@ The [[https://github.com/minad/marginalia][marginalia]] package gives a preview 
     (add-to-list 'marginalia-command-categories '(project-find-file . file))
     (marginalia-mode))
 #+end_src
+
 * Key Bindings
 The [[https://github.com/justbur/emacs-which-key][which-key]] project shows a menu of available key-bindings based on what you have already typed. For instance, if you remember that Org Goto function (like most Org-related functions) began with ~C-c~, after typing that sequence, all possible keybindings and their functions are shown. Useful for discovering new features.
 #+begin_src emacs-lisp
@@ -783,6 +784,43 @@ The built-in =isearch= is fantastically simple and useful, but the [[https://git
 #+end_src
 
 The idea, is that you can start a search with ~C-s~ (or even ~s-f~ … er, ~Command-f~ on the Mac), and type some letters. Hitting ~C-s~ goes to the next occurrence of what you’ve typed, but if you hit ~Command-g~, a menu appears allowing you to pull in the rest of the word or symbol you are looking at, or edit it completely.
+*** Bookmarks
+I like the idea of dropping returnable bookmarks, but with /good defaults/ for the names of these global bookmarks:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-bookmark-label-default ()
+    "Return label for bookmarks based on thing-at-point."
+    (concat
+     (if-let ((filename (buffer-file-name)))
+         (thread-last filename
+                      (string-replace (getenv "HOME") "~")
+                      (format "%s: ")))
+     (which-function)))
+
+  ;; (equal (ha-bookmark-label-default) "~/src/hamacs/ha-config.org :: Bookmarks")
+
+  (defun ha-bookmark-set (args)
+    "Drop a bookmark based on the current context.
+  If ARGS is non-nil, prompt for the bookmark's label.
+  Replaces `bookmark-set'."
+    (interactive "P")
+    (let* ((default (ha-bookmark-label-default))
+           (label   (if args
+                        (read-string "Bookmark label: " default)
+                      default)))
+      (bookmark-set label)))
+#+END_SRC
+
+The built-in behavior doesn’t honor either /projects/ or /perspectives/, but I use [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package to make a =project=-specific bookmarks and use that to jump to only bookmarks in the current project.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package bookmark-in-project
+    :bind
+    (("C-x r m" . bookmark-in-project-toggle)
+     ("C-x r M" . ha-bookmark-set)))
+#+END_SRC
+
+
 ** Minor Keybinding Annoys
 I like ~C-a~ to go to the beginning of the line, but what about getting to the beginning of text on that line? In Evil, you have ~^~ for beginning of line, and ~0~ for first text. Why not have ~C-a~ toggle between them both:
 
@@ -792,7 +830,7 @@ I like ~C-a~ to go to the beginning of the line, but what about getting to the b
     (interactive "^p")
     (if (= (point) (line-beginning-position))
         (beginning-of-line-text n)
-        (beginning-of-line n)))
+      (beginning-of-line n)))
 
   (global-set-key (kbd "C-a") 'ha-beginning-of-line)
 #+end_src

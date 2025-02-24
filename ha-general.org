@@ -361,19 +361,20 @@ And the collection of useful operations:
     "b C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 * Bookmarks
-I like the idea of dropping returnable bookmarks, however, the built-in behavior doesn’t honor either /projects/ or /perspectives/, but I use [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package to make a =project=-specific bookmarks and use that to jump to only bookmarks in the current project.
+Expand on my [[file:ha-config.org::*Bookmarks][Bookmarks]] with the following key sequences:
 
 #+begin_src emacs-lisp
   (use-package bookmark-in-project
     :config
     (ha-leader
       ;; Set or delete a bookmark associated with project:
-      "b m" '("set proj mark" . bookmark-in-project-toggle)
-      "b M" '("set global mark" . bookmark-set)
-      "b X" '("delete mark" . bookmark-delete)
-      "b g" '("goto proj mark" . bookmark-in-project-jump)
-      "b <down>" '("next mark" . bookmark-in-project-jump-next)
-      "b <up>" '("next mark" . bookmark-in-project-jump-previous)))
+      "b m" '("set proj mark"    . bookmark-in-project-toggle)
+      "b M" '("set global mark"  . ha-bookmark-set)
+      "b x" '("delete mark"      . bookmark-delete)
+      "b X" '("delete all mark"  . bookmark-in-project-delete-all)
+      "b g" '("goto proj mark"   . bookmark-in-project-jump)
+      "b <down>" '("next mark"   . bookmark-in-project-jump-next)
+      "b <up>" '("previous mark" . bookmark-in-project-jump-previous)))
 #+end_src
 * Centering
 After reading [[https://mbork.pl/2024-04-15_Improving_recenter-top-bottom_and_reposition-window][this essay]], I got to thinking that it would be nice to position the text in a buffer /near the top/, but show context based on some specific, textual /things/. My thought is to have a function that prompts for the thing (like the current paragraph, function, etc), but also create thing-specific functions.
