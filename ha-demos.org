@@ -80,9 +80,8 @@ Regardless of the presentation package I use, I make them all look similar with 
     (ha-demo-hide-cursor)
     (ha-demo-presentation-frame frame-name)
 
-    (if (fboundp 'org-present-big)
-        (org-present-big)
-      (font-size-adjust 4))                  ; instead of (text-scale-set 4)
+    (ha-set-favorite-font-size 42)                  ; instead of (text-scale-set 4)
+
     (diff-hl-mode -1)
     (flycheck-mode -1)
     (jinx-mode -1)
@@ -107,7 +106,7 @@ And after a presentation finishes, this function cleans up by restoring minor mo
     (ha-demo-show-cursor)
     (ha-demo-normalize-frame)
 
-    (font-size-adjust -4)                 ; (text-scale-set 0)
+    (ha-mac-monitor-fontsize)                 ; (text-scale-set 0)
     (diff-hl-mode)
     (flycheck-mode)
     (jinx-mode))

@@ -259,15 +259,21 @@ Simple function that gives me the font information based on the size I need.  Re
 #+begin_src emacs-lisp
   (defun ha-set-favorite-font-size (size)
     "Set the default font size as well as equalize the fixed and variable fonts."
-    ;; The font specification is the name and the size ... odd enough I guess:
-    (let ((fixed-font (format "%s-%d" ha-fixed-font size))
+
+    (let ((mixed-on    mixed-pitch-mode)
+          (fixed-font (format "%s-%d" ha-fixed-font size))
           (prop-font  (format "%s-%d" ha-variable-font size)))
+      (when mixed-on
+        (mixed-pitch-mode -1))
+
+      ;; The font specification is the name and the size ... odd enough I guess:
       (set-face-attribute 'default nil :font fixed-font)
       (set-face-attribute 'fixed-pitch nil :font fixed-font :inherit 'default
                           :height 'unspecified)
       (set-face-attribute 'variable-pitch nil :font prop-font :inherit 'default
-                          :height (* size 10)
-                          )))
+                          :height 'unspecified)
+      (when mixed-on
+        (mixed-pitch-mode 1))))
 #+end_src
 
 Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
@@ -319,6 +325,7 @@ Which font to choose?
 
   (font-monitor-size-default)
 #+end_src
+
 ** Mixed Pitch
 [[https://github.com/emacsmirror/mixed-pitch][Mixed pitch]] is a minor mode that enables mixing fixed-pitch (also known as fixed-width or monospace) and variable-pitch (AKA “proportional”) fonts. It tries to be smart about which fonts get which face.
 
@@ -403,6 +410,7 @@ This project replaces [[https://github.com/domtronn/all-the-icons.el][all-the-ic
                       ('mdicon "md")
                       ('codicon "cod")
                       ('sucicon "custom")
+                      ('devicon "dev")
                       (t collection)))
              (title (plist-get args :title))
              (space (plist-get args :space))
@@ -530,13 +538,8 @@ Increase or decrease the set size of the face:
 
     (let* ((font-family (face-attribute 'default :font))
            (font-size   (font-get font-family :size))
-           (new-size    (+ delta font-size))
-           (mixed-on    mixed-pitch-mode))
-      (when mixed-on
-        (mixed-pitch-mode -1))
-      (ha-set-favorite-font-size new-size)
-      (when mixed-on
-        (mixed-pitch-mode 1))))
+           (new-size    (+ delta font-size)))
+      (ha-set-favorite-font-size new-size)))
 
   (defun font-size-increase ()
      "Increase the `default' font size of all frames."
