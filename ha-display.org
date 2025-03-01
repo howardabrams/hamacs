@@ -141,6 +141,21 @@ And if I can’t find the cursor, and don’t want to move it to see it, I can h
 * Font Configuration
 Am I ever really ever satisfied with any font? I regularly change my font based on the monospace du jour... [[http://blogs.adobe.com/typblography/2012/09/source-code-pro.html][Source Code Pro]] is attractive, and has been a staple on every programmers' screen. However, we all want ligatures, [[https://github.com/i-tu/Hasklig][Hasklig]] is a nice font that is thinner and easier to read than [[https://github.com/tonsky/FiraCode][Fira]], but [[https://typeof.net/Iosevka/][Iosevka]] seems to have it all. Oh, Microsoft just gave us [[https://docs.microsoft.com/en-us/windows/terminal/cascadia-code][Cascadia]] and that seems shiny. However, the [[https://github.com/ryanoasis/nerd-fonts][Nerd Font project]] adds the ligatures as well as all the other niceties to a font.
 
+** Mixed Pitch
+[[https://github.com/emacsmirror/mixed-pitch][Mixed pitch]] is a minor mode that enables mixing fixed-pitch (also known as fixed-width or monospace) and variable-pitch (AKA “proportional”) fonts. It tries to be smart about which fonts get which face.
+
+#+begin_src emacs-lisp
+  (use-package mixed-pitch
+    ;; :straight (:host github :repo "jabranham/mixed-pitch")
+    :config
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-property-value)
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-special-keyword)
+    (add-to-list 'mixed-pitch-fixed-pitch-faces 'font-lock-comment-face)
+    :hook (text-mode . mixed-pitch-mode))
+#+end_src
+
+My issue is that it does something with the /variable-pitch/ font that doesn’t allow it to scale to different resolutions.
+
 ** Choosing a Font
 I stole the following idea from [[https://protesilaos.com/dotemacs/#h:9035a1ed-e988-4731-89a5-0d9e302c3dea][Protesilaos Stavrou's dotfile configuration]], and the following should minimally be /readable/:
 #+begin_example
@@ -326,21 +341,6 @@ Which font to choose?
   (font-monitor-size-default)
 #+end_src
 
-** Mixed Pitch
-[[https://github.com/emacsmirror/mixed-pitch][Mixed pitch]] is a minor mode that enables mixing fixed-pitch (also known as fixed-width or monospace) and variable-pitch (AKA “proportional”) fonts. It tries to be smart about which fonts get which face.
-
-#+begin_src emacs-lisp
-  (use-package mixed-pitch
-    :straight (:host github :repo "jabranham/mixed-pitch")
-    :config
-    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-property-value)
-    (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-special-keyword)
-    (add-to-list 'mixed-pitch-fixed-pitch-faces 'font-lock-comment-face)
-    :hook (text-mode . mixed-pitch-mode))
-#+end_src
-
-My issue is that it does something with the /variable-pitch/ font that doesn’t allow it to scale to different resolutions.
-
 ** Ligatures
 Seems like getting ligatures to work in Emacs has been a Holy Grail. On Mac, I've used special builds that have hacks, but now with Emacs 27 and Harfbuzz, I should be able to get --> to look like it should.
 
@@ -385,51 +385,57 @@ This project replaces [[https://github.com/domtronn/all-the-icons.el][all-the-ic
                           :files (:defaults "data"))
     :custom
     ;; The Nerd Font you want to use in GUI defaults to fixed-font:
-    (nerd-icons-font-family ha-fixed-font)
+    (nerd-icons-font-family ha-fixed-font))
+#+END_SRC
 
-    :config
+The way we access the /font icons/ has always been … odd; needing to specify the collection, etc. I would like to come up with a better mechanism, so the following function abstracts that as I figure out a better solution.
 
-    (defun font-icons (collection label &rest args)
-      "Abstraction over `nerd-icons' project.
-    LABEL is a short icon description merged with COLLECTION to
-    identify an icon to use. For instance, 'faicon or 'octicon.
+#+BEGIN_SRC emacs-lisp
+  (defun font-icons (collection label &rest args)
+        "Abstraction over `nerd-icons' project.
+      LABEL is a short icon description merged with COLLECTION to
+      identify an icon to use. For instance, 'faicon or 'octicon.
 
-    ARGS, a plist, contain the title, sizing and other information.
+      ARGS, a plist, contain the title, sizing and other information.
 
-    For instance:
-      (font-icons 'faicon \"file\" :title \"File Management\")
+      For instance:
+        (font-icons 'faicon \"file\" :title \"File Management\")
 
-    The goal is to take:
-      (all-the-icons-octicon \"git-branch\")
-    And reformat to:
-      (font-icons 'octicon \"git-branch\")"
-      (let* ((func (intern (format "nerd-icons-%s" collection)))
-             (short (cl-case collection
-                      ('octicon "oct")
-                      ('faicon "fa")
-                      ('mdicon "md")
-                      ('codicon "cod")
-                      ('sucicon "custom")
-                      ('devicon "dev")
-                      (t collection)))
-             (title (plist-get args :title))
-             (space (plist-get args :space))
-             (icon (format "nf-%s-%s" short
-                           (string-replace "-" "_" label))))
+      The goal is to take:
+        (all-the-icons-octicon \"git-branch\")
+      And reformat to:
+        (font-icons 'octicon \"git-branch\")"
+        (let* ((func (intern (format "nerd-icons-%s" collection)))
+               (short (cl-case collection
+                        ('octicon "oct")
+                        ('faicon "fa")
+                        ('mdicon "md")
+                        ('codicon "cod")
+                        ('sucicon "custom")
+                        ('devicon "dev")
+                        (t collection)))
+               (title (plist-get args :title))
+               (space (plist-get args :space))
+               (icon (format "nf-%s-%s" short
+                             (string-replace "-" "_" label))))
 
-        ;; With the appropriate nerd-icons function name,
-        ;; an expanded icon name, we get the icon string:
-        (concat (apply func (cons icon args))
-                (cond
-                 ((and title space) (concat (s-repeat space " ") title))
-                 (title             (concat " " title))))))
+          ;; With the appropriate nerd-icons function name,
+          ;; an expanded icon name, we get the icon string:
+          (concat (apply func (cons icon args))
+                  (cond
+                   ((and title space) (concat (s-repeat space " ") title))
+                   (title             (concat " " title))))))
+#+END_SRC
 
-    (setq major-mode-hydra-title-generator
-          '(lambda (&optional mode)
-             (let ((title (major-mode-hydra-title mode)))
-               (s-concat                  ; (s-repeat 5 " ")
-                (nerd-icons-icon-for-mode (or mode major-mode) :v-adjust 0.05)
-                " " title " Commands")))))
+This replaces the /title generator/ for [[file:ha-config.org::*Leader Sequences][major-mode-hydra]] project to include a nice looking icon:
+
+#+BEGIN_SRC emacs-lisp
+  (setq major-mode-hydra-title-generator
+        '(lambda (&optional mode)
+           (let ((title (major-mode-hydra-title mode)))
+             (s-concat                  ; (s-repeat 5 " ")
+              (nerd-icons-icon-for-mode (or mode major-mode) :v-adjust 0.05)
+              " " title " Commands"))))
 #+END_SRC
 
 Transition:
