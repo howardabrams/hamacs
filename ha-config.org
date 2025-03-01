@@ -1002,6 +1002,7 @@ I often want a workspace dedicated to an /application/, so this function:
 
 #+begin_src emacs-lisp
   (defun ha-app-perspective (name func)
+    "Generate new perspective NAME, automatically running FUNC."
     (lambda ()
       (interactive)
       (let ((already-started? (seq-contains-p (persp-names) name 'equal)))

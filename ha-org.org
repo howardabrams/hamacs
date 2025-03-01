@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2024-11-22 Fri]
+#+lastmod: [2025-02-28 Fri]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -851,16 +851,16 @@ And the Emacs interface to that:
   (use-package jinx
     :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("M-$" . jinx-correct-nearest)
-           ("s-;" . jinx-correct-nearest))
-           ;;   :bind (([remap ispell-word] . #'jinx-correct))
-    :general
-    (:states '(normal insert) :keymaps 'text-mode-map
-             "M-s M-s" 'jinx-correct)
+    :bind (("C-;" . jinx-correct-nearest)
+           ("s-;" . jinx-correct-nearest)
+           ([remap ispell-word] . #'jinx-correct))
     :config
     (ha-leader
-      "s i" '("spellcheck buffer" . jinx-correct-all)
-      "S b" '("spellcheck buffer" . jinx-correct-all)))
+      "s c"  '(:ignore t :which-key "spellcheck")
+      "s c c" '("spellcheck nearest" . jinx-correct-nearest)
+      "s c n" '("next" . jinx-next)
+      "s c p" '("previous" . jinx-previous)
+      "s c b" '("spellcheck buffer" . jinx-correct-all)))
 #+end_src
 
 Jinx works really good, as the mini-buffer allows you to use letters to filter the choice, and numbers (or Return) to select the choice. Selecting ~@~ adds the word to your personal dictionary, and ~*~ adds it to the /local words/ for the file (search for =jinx-local-words=). Also, it appears that calling =jinx-correct= goes back to the first incorrect spelling, letting you correct it, and then pops the point back. That is pretty slick.
@@ -872,14 +872,15 @@ Since this auto-correction needs to happen in /insert/ mode, I have bound a few 
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
 #+begin_src emacs-lisp
   (use-package powerthesaurus
-    ;; :bind ("s-t" . powerthesaurus-lookup-dwim)
+    :bind ("s-t" . powerthesaurus-lookup-dwim)
     :config
     (ha-leader
-      "S t" '("thesaurus" . powerthesaurus-lookup-dwim)
-      "S s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
-      "S a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
-      "S r" '("related" . powerthesaurus-lookup-related-dwim)
-      "S S" '("sentence" . powerthesaurus-lookup-sentences-dwim)))
+      "s t"  '(:ignore t :which-key "thesaurus")
+      "s t t" '("thesaurus" . powerthesaurus-lookup-dwim)
+      "s t s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
+      "s t a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
+      "s t r" '("related" . powerthesaurus-lookup-related-dwim)
+      "s t u" '("usages" . powerthesaurus-lookup-sentences-dwim)))))
 #+end_src
 
 The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader.
@@ -889,10 +890,12 @@ Since the /definitions/ do not work, so let's use the [[https://github.com/abo-a
 
 #+begin_src emacs-lisp
   (use-package define-word
-    ;; :bind ("s-d" . define-word-at-point)
+    :bind ("s-d" . define-word-at-point)
     :config
     (ha-leader :keymaps 'text-mode-map
-      "S D" '("define word" . define-word)))
+      "s d"  '(:ignore t :which-key "thesaurus")
+      "s d d" '("define this word" . define-word-at-point)
+      "s d a" '("define any word" . define-word)))
 #+end_src
 
 After my enamoring of Noah Webster’s 1913 dictionary (originally due to reading [[https://janusworx.com/blog/thank-god-for-noah/][this essay]] by Mario Jason Braganza who referred to James Somers’ original [[https://jsomers.net/blog/dictionary][2014 blog entry]]), I easily followed the instructions from [[https://github.com/ponychicken/WebsterParser][WebsterParser]], a Github project, with the dictionary:
@@ -906,12 +909,14 @@ After my enamoring of Noah Webster’s 1913 dictionary (originally due to readin
 
 If you want to always see Webster’s results by default, go to the Dictionary app’s preferences and drag Webster’s to the top of the list.
 
-Now that I’m mostly on version 28 and above of Emacs, we can take advantage of [[help:dictionary-search][dictionary-search]] for looking up dictionaries online, and out of all the word definitions packages for Emacs, this looks the best and is easiest to read:
+Emacs version 28 added [[help:dictionary-search][dictionary-search]] for looking up dictionaries online. With a dedicated buffer, this may be the easiest to read:
+
 #+begin_src emacs-lisp
   (setq dictionary-server "dict.org")
 
-  (ha-leader "S d" '("define this" . dictionary-search))
+  (ha-leader "s d o" '("search online dictionary" . dictionary-search))
 #+end_src
+
 Once in the dictionary buffer, acquiesce these keybindings:
     - ~q~ close the dictionary buffer
     - ~s~ ask for a new word to search

@@ -762,17 +762,16 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
     (rg-enable-default-bindings (kbd "M-R"))
 
     (ha-leader
-      "s"  '(:ignore t :which-key "search")
+      "s"  '(:ignore t :which-key "search/spell")
+      "s s" '("isearch" . isearch-forward-thing-at-point)
       "s q" '("close" . ha-rg-close-results-buffer)
       "s r" '("dwim" . rg-dwim)
-      "s s" '("search" . rg)
-      "s S" '("literal" . rg-literal)
+      "s S" '("search" . rg)
       "s p" '("project" . rg-project)
-      "s d" '("directory" . rg-dwim-project-dir)
       "s f" '("file only" . rg-dwim-current-file)
       "s j" '("next results" . ha-rg-go-next-results)
       "s k" '("prev results" . ha-rg-go-previous-results)
-      "s b" '("results buffer" . ha-rg-go-results-buffer)
+      "s B" '("results buffer" . ha-rg-go-results-buffer)
 
       "s <escape>" '(keyboard-escape-quit :which-key t)
       "s C-g" '(keyboard-escape-quit :which-key t))
@@ -801,13 +800,9 @@ Install the [[https://github.com/dajva/rg.el][rg]] package, which builds on the 
       (previous-error-no-select)
       (compile-goto-error)))
 #+end_src
+
 Note we bind the key ~M-R~ to the [[help:rg-menu][rg-menu]], which is a Magit-like interface to =ripgrep=.
 
-I don’t understand the bug associated with the =:general= extension to =use-package=, but it /works/, but stops everything else from working, so pulling it out into its own =use-package= section addresses that issue:
-#+begin_src emacs-lisp
-  (use-package rg
-    :general (:states 'normal "gS" 'rg-dwim))
-#+end_src
 ** wgrep
 The [[https://github.com/mhayashi1120/Emacs-wgrep][wgrep package]] integrates with =ripgrep=. Typically, you hit ~i~ to automatically go into =wgrep-mode= and edit away, but since I typically want to edit everything at the same time, I have a toggle that should work as well:
 #+begin_src emacs-lisp
