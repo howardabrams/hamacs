@@ -820,6 +820,7 @@ I like Charles Choi’s [[https://github.com/kickingvegas/casual][Casual Suite]]
 
 Pressing ~C-g~ aborts, and ~Return~ exits leaving the point in place. Typing ~C-s~ in the menu stops the menu to continue searching.
 
+#+ATTR_HTML: :width 800
 [[file:screenshots/isearch-hydra.png]]
 
 How did I figure out the available bindings to make this? To see /all/ the bindings, start the =isearch= minor mode (using ~C-s~), then type ~F1~ twice. This fancy feature lets you select ~b~ to see all the keybindings (along with other features).
