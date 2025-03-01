@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-02-14 Fri]
+#+lastmod: [2025-03-01 Sat]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -28,14 +28,7 @@ A literate programming file for a Comint-based MUD client.
 
 * Introduction
 
-This project is a simple MUD client for Emacs, based on COM-INT MUD client based on Mickey Petersen’s [[https://www.masteringemacs.org/article/comint-writing-command-interpreter][essay on Comint]].
-
-The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to join.
-
-#+BEGIN_SRC emacs-lisp
-  (defvar pud-default-world "moss-n-puddles"
-    "The default world to connect.")
-#+END_SRC
+This project is a simple MUD client for Emacs, based on COM-INT MUD client I learn about on Mickey Petersen’s [[https://www.masteringemacs.org/article/comint-writing-command-interpreter][essay on Comint]].
 
 This uses =telnet= (at the moment) for the connection, so you will need to install that first. On Mac, this would be:
 
@@ -44,9 +37,10 @@ This uses =telnet= (at the moment) for the connection, so you will need to insta
 #+END_SRC
 
 And use a similar command on Linux.
-* User Credentials
+** Customization
 
 You may want to customize your connections to more worlds.
+The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to join.
 
 #+BEGIN_SRC emacs-lisp
   (defgroup pud nil
@@ -54,108 +48,82 @@ You may want to customize your connections to more worlds.
     :group 'processes)
 
   (defcustom pud-worlds
-    (list (vector pud-default-world "howardabrams.com" "4000" "guest" "guest"))
+    '(["Moss-n-Puddles" "howardabrams.com" 4000 "" ""])
     "List of worlds you play in.
-  You need to define the worlds you play in before you can get
-  started.  In most worlds, you can start playing using a guest account.
+    You need to define the worlds you play in before you can get
+    started.  In most worlds, you can start playing using a guest account.
 
-  Each element WORLD of the list has the following form:
+    Each element WORLD of the list has the following form:
 
-  \[NAME HOST PORT CHARACTER PASSWORD]
+    \[NAME HOST PORT CHARACTER PASSWORD CONNECTION-STR]
 
-  NAME identifies the connection, HOST and PORT specify the network
-  connection, CHARACTER and PASSWORD are used to connect automatically.
+    NAME identifies the connection, HOST and PORT specify the network
+    connection, CHARACTER and PASSWORD are used to connect automatically.
 
-  Note that this will be saved in your `custom-file' -- including your
-  passwords!  If you don't want that, specify nil as your password."
+    The CONNECTION-STR is a string with two `%s' where this substitutes
+    the username and password respectively. Sends this to the server after
+    establishing a connection. This can be blank for the default.
+    If given, make sure to have a trailing `\n' to automatically send.
+
+    Note that this will be saved in your `custom-file' -- including your
+    passwords!  If you don't want that, specify nil as your password."
     :type '(repeat
-            (vector :tag "World"
+            (vector :tag "Server World"
                     (string :tag "Name")
                     (string :tag "Host")
                     (integer :tag "Port")
                     (string :tag "Char" :value "guest")
-                    (string :tag "Pwd" :value "guest")))
+                    (string :tag "Pass")
+                    (string :tag "Connect String" :value "connect %s %s")))
     :group 'pud)
 #+END_SRC
 
-Next, open [[file:~/.authinfo.gpg][your authinfo file]], and insert the following line, substituting =[user]= and =[pass]= with your credentials as well as the first entry to match your world:
+For instance:
+
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
+  (use-package pud
+    :custom
+    (pud-worlds
+     '(["Remote Moss-n-Puddles" "howardabrams" 4000 "bobby"]
+       ; ↑ No password? Should be in .authinfo.gpg
+
+       ["Local Root" "localhost" 4000 "suzy" "some-pass"]
+       ; ↑ This has the password in your custom settings.
+
+       ; ↓ Password from authinfo, special connection string:
+       ["Local User" "localhost" 4000 "rick" nil "login %s %s"])))
+#+END_SRC
+
+Hidden:
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
+(setq pud-worlds
+   '(["moss-n-puddles" "howardabrams.com" 4000 "howard"]
+     ["moss-n-puddles" "howardabrams.com" 4000 "rick"]
+     ["moss-n-puddles" "howardabrams.com" 4000 "darol"]
+     ["local-evennia" "localhost" 4000 "howard"]
+     ["local-evennia" "localhost" 4000 "rick"]))
+#+END_SRC
+
+Seems like MUDs have a standard login sequence, but they don’t have to. Here is the default that a user can override in their =pud-worlds= listing:
+
+#+BEGIN_SRC emacs-lisp
+  (defcustom pud-default-connection-string "connect %s %s\n"
+    "The standard connection string to substitute the username and password."
+    :type '(string :tag "Connect String" :value "connect %s %s\n")
+    :group 'pud)
+#+END_SRC
+
+** User Credentials
+Next, open [[file:~/.authinfo.gpg][your authinfo file]], and insert the following line, substituting =[user]= and =[pass]= with your credentials as well as the first entry to match each host name in your =pud-worlds= entries:
 
 #+BEGIN_SRC conf :tangle no :eval no
-  machine moss-n-puddles login [name] password [pass]
+  machine howardabrams.com login [name] port 4000 password [pass]
 #+END_SRC
 
 Now, let’s play! Type =run-pud=, and optionally select a world. If you get disconnected, re-run it, or even =pud-reconnect=.
 
-The rest of this file describes the code to implement this project.
+The rest of this file describes the code implementing this project.
 * Code
-The following function will return the default world:
-
-#+BEGIN_SRC emacs-lisp
-  (defun pud-get-default-world ()
-    "Return the connection information for the `pud-default-world'.
-  If only one world listed in `pud-worlds', return that."
-    (if (length= pud-worlds 1)
-        (seq-first pud-worlds)
-      (seq-find
-       (lambda (w) (string-equal (aref w 0) pud-default-world))
-       pud-worlds)))
-#+END_SRC
-
-And accessibility functions.
-
-#+BEGIN_SRC emacs-lisp
-  (defun pud-world-name (&optional world)
-    "Return the name for WORLD as a string."
-    ;; (concat (aref world 3) "@" (aref world 0))
-    (if (vectorp world)
-        (aref world 0)
-      world))
-
-  (defun pud-world-network (&optional world)
-    "Return the network details for WORLD as a cons cell (HOST . PORT)."
-    (unless world
-      (setq world (pud-get-default-world)))
-    (list (aref world 1) (aref world 2)))
-
-  (defun pud-world-character (&optional world)
-    "Return the character for WORLD as a string.
-  Override the customized setting if the world has an entry in authinfo."
-    (unless world
-      (setq world (pud-get-default-world)))
-
-    (if-let ((auth-results (auth-source-search :host (aref world 0))))
-        (thread-first auth-results
-                      (first)
-                      (plist-get :user))
-      (aref world 3)))
-
-  (defun pud-world-password (&optional world)
-    "Return the password for WORLD as a string."
-    (unless world
-      (setq world (pud-get-default-world)))
-    (if-let ((auth-results (auth-source-search :host (aref world 0))))
-        (thread-first auth-results
-                      (first)
-                      (plist-get :secret)
-                      (funcall))
-      (aref world 4)))
-#+END_SRC
-
-And some basic functions that really need to be expanded.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (ert-deftest pud-world-name-test ()
-    (should (string-equal (pud-world-name "foobar") "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" "guest" "guest"]) "foobar")))
-
-  (ert-deftest pud-world-network-test ()
-    (should (equal (pud-world-network) '("localhost" "4000")))
-    (should (equal (pud-world-network ["foobar" "overthere" "4000" "guest" "guest"]) '("overthere" "4000"))))
-
-  (ert-deftest pud-world-character-test ()
-    (should (equal (pud-world-character) "guest")))
-#+END_SRC
-
 Choosing a world… er, connection using a =completing-read= allowing you to choose a world. If =pud-worlds= contains a single value, might as well just return that.
 
 #+BEGIN_SRC emacs-lisp
@@ -186,14 +154,61 @@ Choosing a world… er, connection using a =completing-read= allowing you to cho
        (t (customize-option 'pud-worlds)))))
 #+END_SRC
 
-And a function for the full credentials, which just happens to be what we need to pass to =telnet=.
+
+The following functions are accessibility functions to the world entry.
 
 #+BEGIN_SRC emacs-lisp
-  (defun pud-credentials (&optional world)
-    "Reset the credentials from WORLD from the authinfo system."
-    (setf (elt 3 world) (pud-world-character world))
-    (setf (elt 4 world) (pud-world-password world))
-    world)
+  (defun pud-world-name (world)
+    "Return the name for WORLD as a string."
+    (if (vectorp world)
+        (if (or (length< world 4) (null (aref world 3)) (string-blank-p (aref world 3)))
+            (aref world 0)
+          (concat (aref world 3) "@" (aref world 0)))
+      world))
+
+  (defun pud-world-network (world)
+    "Return the network details for WORLD as a cons cell (HOST . PORT)."
+    (list (aref world 1) (format "%s" (aref world 2))))
+
+  (defun pud-world-creds (world)
+    "Return the username and password from WORLD.
+  Multiple search queries for the .authinfo file."
+    (seq-let (label host port user) world
+      (if-let ((auth-results (first (auth-source-search
+                                     :host host
+                                     :port port
+                                     :user user
+                                     :max 1))))
+          (list (plist-get auth-results :user)
+                (funcall (plist-get auth-results :secret)))
+        ;; No match? Just return values from world:
+        (list (aref world 3) (aref world 4)))))
+#+END_SRC
+
+And some basic functions I should expand.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ert-deftest pud-world-name-test ()
+    (should (string-equal (pud-world-name "foobar") "foobar"))
+    (should (string-equal (pud-world-name ["foobar" "localhost" "4000"]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" nil]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" ""]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" "guest" "guest"]) "guest@foobar")))
+
+  (ert-deftest pud-world-network-test ()
+    (should (equal (pud-world-network ["foobar" "overthere" "4000" "guest" "guest"]) '("overthere" "4000")))
+    (should (equal (pud-world-network ["foobar" "overthere" 4000 "guest" "guest"]) '("overthere" "4000"))))
+
+  (ert-deftest pud-world-creds-test ()
+    ;; Test with no match in authinfo!
+    (should (equal
+             (pud-world-creds ["first" "some-home" 4000 "a-user" "a-pass"])
+             '("a-user" "a-pass")))
+    ;; This test works if the following line is in .authinfo:
+    ;;  machine localhost port 4000 login george password testpass
+    (should (equal
+             (pud-world-creds ["first" "localhost" 4000 "george"])
+             '("george" "testpass"))))
 #+END_SRC
 
 * Basics
@@ -207,14 +222,14 @@ Using Comint, and hoping to have the ANSI colors displayed.
 I’m going to use good ‘ol fashion =telnet= for the connection:
 
 #+BEGIN_SRC emacs-lisp
-  (defvar pud-cli-file-path "ssh"
+  (defvar pud-cli-file-path "telnet" ; ssh!?
     "Path to the program used by `run-pud'.")
 #+END_SRC
 
 The pud-cli-arguments, holds a list of commandline arguments: the port.
 
 #+BEGIN_SRC emacs-lisp
-  (defvar pud-cli-arguments '("gremlin.howardabrams.com" "telnet")
+  (defvar pud-cli-arguments nil
     "A list of arguments to use before the telnet location.")
 #+END_SRC
 
@@ -223,7 +238,6 @@ The empty and currently disused mode map for storing our custom keybindings inhe
 #+BEGIN_SRC emacs-lisp
   (defvar pud-mode-map
     (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-      ;; example definition
       (define-key map "\t" 'completion-at-point)
       map)
     "Basic mode map for `run-pud'.")
@@ -239,18 +253,12 @@ This holds a regular expression that matches the prompt style for the MUD. Not s
 The name of the buffer:
 
 #+BEGIN_SRC emacs-lisp
-  (defvar pud-buffer-name "*Moss and Puddles*"
-    "Name of the buffer to use for the `run-pud' comint instance.")
+  (defun pud-buffer-name (world)
+    "Return the buffer name associated with WORLD."
+    (format "*%s*" (pud-world-name world)))
 #+END_SRC
 
-#+BEGIN_SRC emacs-lisp
-  (defun pud-buffer-name (&optional world)
-    "Return the buffer name associated with WORLD."
-    (format "*%s*" (if world
-                       (pud-world-name world)
-                     pud-default-world)))
-    #+END_SRC
-
+** Run and Connect
 The main entry point to the program is the =run-pud= function:
 
 #+BEGIN_SRC emacs-lisp
@@ -263,7 +271,6 @@ The main entry point to the program is the =run-pud= function:
     - username (can be overridden)
     - password (should be overridden)"
     (interactive (list (pud-get-world)))
-
     (let* ((pud-program pud-cli-file-path)
            (pud-args (append pud-cli-arguments (pud-world-network world)))
            (buffer (get-buffer-create (pud-buffer-name world)))
@@ -287,19 +294,27 @@ Connection and/or re-connection:
 #+BEGIN_SRC emacs-lisp
   (defun pud-reconnect (world)
     "Collect and send a `connect' sequence to WORLD.
-  Where WORLD is a vector of world information."
+  Where WORLD is a vector of world information. NOP if the buffer has no
+  connection or no password could be found."
     (interactive (list (pud-get-world)))
-    (pop-to-buffer (pud-buffer-name world))
+    (when (called-interactively-p)
+      (pop-to-buffer (pud-buffer-name world)))
     (sit-for 1)
-    ;; (setq world (pud-get-world))
-    (let* ((username (pud-world-character world))
-          (password (pud-world-password world))
-          (conn-str (format "connect %s %s\n" username password))
-          (process (get-buffer-process (current-buffer))))
-      (if process
-          (comint-send-string process conn-str)
-        (insert conn-str))))
-    #+END_SRC
+
+    (message "Attempting to log in...")
+    (seq-let (username password) (pud-world-creds world)
+      (let* ((conn-str (if (length> world 5)
+                           (aref world 5)
+                         pud-default-connection-string))
+             (conn-full (format conn-str username password))
+             (process (get-buffer-process (current-buffer))))
+
+        (message "proc: %s str: '%s'" process conn-full)
+        (goto-char (point-max))
+        (if process
+            (comint-send-string process conn-full)
+          (insert conn-full)))))
+#+END_SRC
 * Pud Mode
 Note that =comint-process-echoes=, depending on the mode and the circumstances, may result in prompts appearing twice. Setting =comint-process-echoes= to =t= helps with that.
 
@@ -342,10 +357,90 @@ Note that =comint-process-echoes=, depending on the mode and the circumstances, 
     "Additional expressions to highlight in `pud-mode'.")
 #+END_SRC
 
+* Org Babel
+Wouldn’t it be nice to be able to write commands in an Org file, and send the command to the connected Mud?
+
+Since I’m connected to more than one MUD, or at least, I often log in with two different characters as two different characters. Let’s have a function that can return all PUD buffers:
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-get-all-buffers ()
+      "Return a list of all buffers with a live PUD connection."
+      (save-window-excursion
+        (seq-filter (lambda (buf)
+                      (switch-to-buffer buf)
+                      (and
+                       (eq major-mode 'pud-mode)
+                       (get-buffer-process (current-buffer))))
+                    (buffer-list))))
+#+END_SRC
+
+And a wrapper around =completing-read= for choosing one of the buffers:
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-current-world ()
+      "Return buffer based on user choice of current PUD connections."
+      (let ((pud-buffers (pud-get-all-buffers)))
+        (cond
+         ((null pud-buffers) nil)
+         ((length= pud-buffers 1) (car pud-buffers))
+         (t
+          (completing-read "Choose connection: "
+                           (seq-map (lambda (buf) (buffer-name buf))
+                                    pud-buffers))))))
+#+END_SRC
+
+Given a buffer and a string, use the =comint-send-string=:
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-send-string (buf-name text)
+    "Send TEXT to a comint buffer, BUF-NAME."
+    (save-window-excursion
+      (save-excursion
+        (pop-to-buffer buf-name)
+        (goto-char (point-max))
+        (comint-send-string (get-buffer-process (current-buffer))
+                            (format "%s\n" text)))))
+#+END_SRC
+
+Let’s send the current line or region.
+
+#+BEGIN_SRC emacs-lisp :results silent
+  (defun pud-send-line (world)
+    "Send the current line or region to WORLD."
+    (interactive (list (pud-current-world)))
+    (unless world
+      (error "No current MUD connection."))
+
+    (let ((text (buffer-substring-no-properties
+                 (if (region-active-p) (region-beginning)
+                   (beginning-of-line-text) (point))
+                 (if (region-active-p) (region-end)
+                   (end-of-line) (point)))))
+      (pud-send-string world text)))
+
+  (global-set-key (kbd "<f6>") 'pud-send-line)
+#+END_SRC
+
+Let’s be able to send the current Org block, where all lines in the block are smooshed together to create a single line:
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-send-block (world)
+    "Send the current Org block to WORLD."
+    (interactive (list (pud-current-world)))
+    (unless world
+      (error "No current MUD connection."))
+    (let ((text (thread-last (org-element-at-point)
+                             (org-src--contents-area)
+                             (nth 2))))
+      (pud-send-string world
+                       (replace-regexp-in-string
+                        (rx (one-or-more space)) " " text))))
+    #+END_SRC
+
 * Evennia Mode
 Make a simple mode for basic highlighting of =ev= code.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (define-derived-mode evennia-mode nil "Evennia"
     "Major mode for editing evennia batch command files.
     \\{evennia-mode-map}
@@ -361,29 +456,6 @@ Make a simple mode for basic highlighting of =ev= code.
       )
     "Additional things to highlight in evennia output.")
 #+END_SRC
-
-* Org Babel
-Wouldn’t it be nice to be able to write commands in an Org file, and send the command to the connected Mud?
-
-#+BEGIN_SRC emacs-lisp :results silent
-  (defun pud-send-line (world)
-    "Send the current line or region to WORLD."
-    (interactive (list (pud-get-world)))
-    (save-window-excursion
-      (save-excursion
-        (let ((text (buffer-substring-no-properties
-                     (if (region-active-p) (region-beginning)
-                       (beginning-of-line-text) (point))
-                     (if (region-active-p) (region-end)
-                       (end-of-line) (point))))
-              (process (get-buffer-process (current-buffer))))
-          (pop-to-buffer (pud-buffer-name world))
-          (goto-char (point-max))
-          (comint-send-string process (format "%s\n" text))))))
-
-  (global-set-key (kbd "<f6>") 'pud-send-line)
-#+END_SRC
-
 
 * Technical Artifacts                                :noexport:
 
