@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-03-01 Sat]
+#+lastmod: [2025-03-03 Mon]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -48,19 +48,21 @@ The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to jo
     :group 'processes)
 
   (defcustom pud-worlds
-    '(["Moss-n-Puddles" "howardabrams.com" 4000 "" ""])
+    '(["Moss-n-Puddles" telnet "howardabrams.com" 4000])
     "List of worlds you play in.
     You need to define the worlds you play in before you can get
     started.  In most worlds, you can start playing using a guest account.
 
     Each element WORLD of the list has the following form:
 
-    \[NAME HOST PORT CHARACTER PASSWORD CONNECTION-STR]
+    \[CONN-TYPE NAME HOST PORT CHARACTER PASSWORD LOGIN-STR]
 
     NAME identifies the connection, HOST and PORT specify the network
     connection, CHARACTER and PASSWORD are used to connect automatically.
 
-    The CONNECTION-STR is a string with two `%s' where this substitutes
+    The CONN-TYPE can be either 'telnet or 'ssh.
+
+    The LOGIN-STR is a string with two `%s' where this substitutes
     the username and password respectively. Sends this to the server after
     establishing a connection. This can be blank for the default.
     If given, make sure to have a trailing `\n' to automatically send.
@@ -70,11 +72,19 @@ The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to jo
     :type '(repeat
             (vector :tag "Server World"
                     (string :tag "Name")
-                    (string :tag "Host")
-                    (integer :tag "Port")
-                    (string :tag "Char" :value "guest")
-                    (string :tag "Pass")
-                    (string :tag "Connect String" :value "connect %s %s")))
+                    (radio :tag "Type"
+                           (const :tag "Telnet" :value telnet)
+                           (const :tag "SSH"    :value ssh))
+                    (string  :tag "Hostname")
+                    (integer :tag "Port num")
+                    (string  :tag "Username" :value "guest")
+                    (string  :tag "Password")
+                    (string  :tag "Login String"
+                             :format "%t: %v%h"
+                             :doc "The login string to send after connection.
+  This should probably have a \`\\n' at the end to submit it.
+  If blank or nil, use the \`pud-default-connection-string'.
+  For example: connect %s %s\\n")))
     :group 'pud)
 #+END_SRC
 
@@ -84,24 +94,23 @@ For instance:
   (use-package pud
     :custom
     (pud-worlds
-     '(["Remote Moss-n-Puddles" "howardabrams" 4000 "bobby"]
+     '(["Remote Moss-n-Puddles" 'ssh "howardabrams.com" 4000 "bobby"]
        ; ↑ No password? Should be in .authinfo.gpg
 
-       ["Local Root" "localhost" 4000 "suzy" "some-pass"]
+       ["Local Root" 'telnet "localhost" 4000 "suzy" "some-pass"]
        ; ↑ This has the password in your custom settings.
 
        ; ↓ Password from authinfo, special connection string:
-       ["Local User" "localhost" 4000 "rick" nil "login %s %s"])))
+       ["Local User" 'telnet "localhost" 4000 "rick" nil "login %s %s"])))
 #+END_SRC
 
 Hidden:
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
-(setq pud-worlds
-   '(["moss-n-puddles" "howardabrams.com" 4000 "howard"]
-     ["moss-n-puddles" "howardabrams.com" 4000 "rick"]
-     ["moss-n-puddles" "howardabrams.com" 4000 "darol"]
-     ["local-evennia" "localhost" 4000 "howard"]
-     ["local-evennia" "localhost" 4000 "rick"]))
+  (setq pud-worlds
+        '(["Moss-n-Puddles" ssh "howardabrams.com" 4004 "howard" "" "\\nconnect %s %s\\n"]
+          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "rick" "" "\\nconnect %s %s\\n"]
+          ["Local-Moss" telnet "localhost" 4000 "howard" "" ""]
+          ["Local-Moss" telnet "localhost" 4000 "rick" "" ""]))
 #+END_SRC
 
 Seems like MUDs have a standard login sequence, but they don’t have to. Here is the default that a user can override in their =pud-worlds= listing:
@@ -109,7 +118,7 @@ Seems like MUDs have a standard login sequence, but they don’t have to. Here i
 #+BEGIN_SRC emacs-lisp
   (defcustom pud-default-connection-string "connect %s %s\n"
     "The standard connection string to substitute the username and password."
-    :type '(string :tag "Connect String" :value "connect %s %s\n")
+    :type '(string)
     :group 'pud)
 #+END_SRC
 
@@ -161,14 +170,14 @@ The following functions are accessibility functions to the world entry.
   (defun pud-world-name (world)
     "Return the name for WORLD as a string."
     (if (vectorp world)
-        (if (or (length< world 4) (null (aref world 3)) (string-blank-p (aref world 3)))
+        (if (or (length< world 5) (null (aref world 4)) (string-blank-p (aref world 4)))
             (aref world 0)
-          (concat (aref world 3) "@" (aref world 0)))
+          (concat (aref world 4) "@" (aref world 0)))
       world))
 
   (defun pud-world-network (world)
     "Return the network details for WORLD as a cons cell (HOST . PORT)."
-    (list (aref world 1) (format "%s" (aref world 2))))
+    (list (aref world 2) (format "%s" (aref world 3))))
 
   (defun pud-world-creds (world)
     "Return the username and password from WORLD.
@@ -182,7 +191,7 @@ The following functions are accessibility functions to the world entry.
           (list (plist-get auth-results :user)
                 (funcall (plist-get auth-results :secret)))
         ;; No match? Just return values from world:
-        (list (aref world 3) (aref world 4)))))
+        (list (aref world 4) (aref world 5)))))
 #+END_SRC
 
 And some basic functions I should expand.
@@ -196,22 +205,25 @@ And some basic functions I should expand.
     (should (string-equal (pud-world-name ["foobar" "localhost" "4000" "guest" "guest"]) "guest@foobar")))
 
   (ert-deftest pud-world-network-test ()
-    (should (equal (pud-world-network ["foobar" "overthere" "4000" "guest" "guest"]) '("overthere" "4000")))
-    (should (equal (pud-world-network ["foobar" "overthere" 4000 "guest" "guest"]) '("overthere" "4000"))))
+    (should (equal (pud-world-network ["foobar" telnet "overthere" "4000" "guest" "guest"]) '("overthere" "4000")))
+    (should (equal (pud-world-network ["foobar" ssh "overthere" 4000 "guest" "guest"]) '("overthere" "4000"))))
 
   (ert-deftest pud-world-creds-test ()
     ;; Test with no match in authinfo!
     (should (equal
-             (pud-world-creds ["first" "some-home" 4000 "a-user" "a-pass"])
+             (pud-world-creds ["some-place" telnet "some-home" 4000 "a-user" "a-pass"])
              '("a-user" "a-pass")))
     ;; This test works if the following line is in .authinfo:
     ;;  machine localhost port 4000 login george password testpass
     (should (equal
-             (pud-world-creds ["first" "localhost" 4000 "george"])
+             (pud-world-creds ["nudder-place" ssh "localhost" 4000 "george"])
              '("george" "testpass"))))
 #+END_SRC
 
 * Basics
+:LOGBOOK:
+CLOCK: [2025-03-03 Mon 11:57]--[2025-03-03 Mon 12:10] =>  0:13
+:END:
 Using Comint, and hoping to have the ANSI colors displayed.
 
 #+BEGIN_SRC emacs-lisp
@@ -222,16 +234,50 @@ Using Comint, and hoping to have the ANSI colors displayed.
 I’m going to use good ‘ol fashion =telnet= for the connection:
 
 #+BEGIN_SRC emacs-lisp
-  (defvar pud-cli-file-path "telnet" ; ssh!?
-    "Path to the program used by `run-pud'.")
+  (defcustom pud-telnet-path "telnet"
+    "Path to the program used by `run-pud' to connect using telnet."
+    :type '(string)
+    :group 'pud)
+
+  (defcustom pud-ssh-path "ssh"
+    "Path to the program used by `run-pud' to connect using ssh."
+    :type '(string)
+    :group 'pud)
 #+END_SRC
 
 The pud-cli-arguments, holds a list of commandline arguments: the port.
 
 #+BEGIN_SRC emacs-lisp
   (defvar pud-cli-arguments nil
-    "A list of arguments to use before the telnet location.")
+    "A list of arguments to use before the connection.")
 #+END_SRC
+
+Command string to use, given a =world= with a connection type:
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-cli-command (world)
+    "Return a command string to pass to the shell.
+  The WORLD is a vector with the hostname, see `pud-worlds'."
+    (seq-let (host port) (pud-world-network world)
+      (message "Dealing with: %s %s %s" host port (aref world 1))
+      (cl-case (aref world 1)
+        (telnet (append (cons pud-telnet-path pud-cli-arguments)
+                         (list host port)))
+        (ssh    (append (cons pud-cli-filepath-ssh pud-cli-arguments)
+                         (list "-p" port host)))
+        (t (error "Unsupported connection type")))))
+#+END_SRC
+
+Some tests:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ert-deftest pud-cli-command-test ()
+    (should (equal (pud-cli-command ["some-world" telnet "world.r.us" 4000])
+                   '("telnet" "world.r.us" "4000")))
+    (should (equal (pud-cli-command ["nudder-world" ssh "world.r.us" 4004])
+                   '("ssh" "-p" "4004" "world.r.us"))))
+    #+END_SRC
+
 
 The empty and currently disused mode map for storing our custom keybindings inherits from =comint-mode-map=, so we get the same keys exposed in =comint-mode=.
 
@@ -271,8 +317,7 @@ The main entry point to the program is the =run-pud= function:
     - username (can be overridden)
     - password (should be overridden)"
     (interactive (list (pud-get-world)))
-    (let* ((pud-program pud-cli-file-path)
-           (pud-args (append pud-cli-arguments (pud-world-network world)))
+    (let* ((pud-cli (pud-cli-command world))
            (buffer (get-buffer-create (pud-buffer-name world)))
            (proc-alive (comint-check-proc buffer))
            (process (get-buffer-process buffer)))
@@ -280,7 +325,7 @@ The main entry point to the program is the =run-pud= function:
       ;; mode.
       (unless proc-alive
         (with-current-buffer buffer
-          (apply 'make-comint-in-buffer "Pud" buffer pud-program nil pud-args)
+          (apply 'make-comint-in-buffer "Pud" buffer (car pud-cli) nil (cdr pud-cli))
           (pud-mode)
           (visual-line-mode 1)
           (pud-reconnect world)))
