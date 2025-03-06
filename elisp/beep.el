@@ -19,7 +19,7 @@
   "A WAV or AU file used at the completion of a function.")
 
 ;; My replacement in case we can't play internal sounds:
-(defun beep--beep ()
+(defun beep-beep ()
   "Play a default notification sound file.
 Customize the variable, `beep-alert-sound-file' to adjust the sound."
   (if (fboundp 'play-sound-internal)
@@ -29,12 +29,12 @@ Customize the variable, `beep-alert-sound-file' to adjust the sound."
 (defvar beep-speech-executable "say %s"
   "An OS-dependent shell string to speak. Replaces `%s' with a phrase.")
 
-(defun beep--speak (phrase)
+(defun beep-speak (phrase)
   "Call a program to speak the string, PHRASE.
 Customize the variable, `beep-speech-executable'."
   (let ((command (format beep-speech-executable phrase)))
-    (save-window-excursion
-      (async-shell-command command))))
+    (ignore-errors
+      (call-process-shell-command command))))
 
 (defun beep-when-finished (phrase &optional to-speak)
   "Notify us with string, PHRASE, to grab our attention.
@@ -42,8 +42,8 @@ Useful after a long process has completed, but use sparingly,
 as this can be pretty distracting."
   (when (functionp 'alert)
     (alert phrase :title "Completed"))
-  (beep--beep)
-  (beep--speak (or to-speak phrase))
+  (beep-beep)
+  (beep-speak (or to-speak phrase))
   (message phrase))
 
 (defun compile-and-notify ()
@@ -57,31 +57,12 @@ See `beep-when-finished' for details."
 (defvar beep-func-too-long-time 5
    "The number of seconds a function runs before it is considered taking too much time, and needing to be alerted when it has finished.")
 
-(defun beep--after-function (func)
-  "Call the function, FUNC, interactively, and notify us when completed."
-  (let ((start-time (current-time))
-        duration)
-    (call-interactively func)
-    (setq duration (thread-first
-                     (current-time)
-                     (time-subtract start-time)
-                     decode-time
-                     first))
-    (when (> duration beep-func-too-long-time)
-      (beep-when-finished (format "The function, %s, has finished." func)))))
-
-(defun recompile-and-notify ()
-  "Call `recompile' and notify us when finished.
-See `beep-when-finished' for details."
-  (interactive)
-  (beep--after-function 'recompile))
-
 (global-set-key (kbd "C-c c") 'recompile-and-notify)
 (global-set-key (kbd "C-c C") 'compile-and-notify)
 
 (defun beep-when-runs-too-long (orig-function &rest args)
   "Notifies us about the completion of ORIG-FUNCTION.
-  Useful as after advice to long-running functions, for instance:
+Useful as after advice to long-running functions, for instance:
 
           (advice-add 'org-publish :around #'beep-when-runs-too-long)"
   (let ((start-time (current-time))

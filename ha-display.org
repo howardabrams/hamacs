@@ -381,8 +381,7 @@ This project replaces [[https://github.com/domtronn/all-the-icons.el][all-the-ic
 
 #+BEGIN_SRC emacs-lisp
   (use-package nerd-icons
-    :straight (nerd-icons :type git :host github :repo "rainstormstudio/nerd-icons.el"
-                          :files (:defaults "data"))
+    :straight (nerd-icons :type git :host github :repo "rainstormstudio/nerd-icons.el")
     :custom
     ;; The Nerd Font you want to use in GUI defaults to fixed-font:
     (nerd-icons-font-family ha-fixed-font))
@@ -392,39 +391,39 @@ The way we access the /font icons/ has always been … odd; needing to specify t
 
 #+BEGIN_SRC emacs-lisp
   (defun font-icons (collection label &rest args)
-        "Abstraction over `nerd-icons' project.
-      LABEL is a short icon description merged with COLLECTION to
-      identify an icon to use. For instance, 'faicon or 'octicon.
+    "Abstraction over `nerd-icons' project.
+  LABEL is a short icon description merged with COLLECTION to identify an
+  icon to use. For instance, 'faicon or 'octicon.
 
-      ARGS, a plist, contain the title, sizing and other information.
+  ARGS, a plist, contain the title, sizing and other information.
 
-      For instance:
+  For instance:
         (font-icons 'faicon \"file\" :title \"File Management\")
 
-      The goal is to take:
+  The goal is to take:
         (all-the-icons-octicon \"git-branch\")
-      And reformat to:
+  And reformat to:
         (font-icons 'octicon \"git-branch\")"
-        (let* ((func (intern (format "nerd-icons-%s" collection)))
-               (short (cl-case collection
-                        ('octicon "oct")
-                        ('faicon "fa")
-                        ('mdicon "md")
-                        ('codicon "cod")
-                        ('sucicon "custom")
-                        ('devicon "dev")
-                        (t collection)))
-               (title (plist-get args :title))
-               (space (plist-get args :space))
-               (icon (format "nf-%s-%s" short
-                             (string-replace "-" "_" label))))
+    (let* ((func (intern (format "nerd-icons-%s" collection)))
+           (short (cl-case collection
+                    ('octicon "oct")
+                    ('faicon "fa")
+                    ('mdicon "md")
+                    ('codicon "cod")
+                    ('sucicon "custom")
+                    ('devicon "dev")
+                    (t collection)))
+           (title (plist-get args :title))
+           (space (plist-get args :space))
+           (icon (format "nf-%s-%s" short
+                         (string-replace "-" "_" label))))
 
-          ;; With the appropriate nerd-icons function name,
-          ;; an expanded icon name, we get the icon string:
-          (concat (apply func (cons icon args))
-                  (cond
-                   ((and title space) (concat (s-repeat space " ") title))
-                   (title             (concat " " title))))))
+      ;; With the appropriate nerd-icons function name,
+      ;; an expanded icon name, we get the icon string:
+      (concat (apply func (cons icon args))
+              (cond
+               ((and title space) (concat (s-repeat space " ") title))
+               (title             (concat " " title))))))
 #+END_SRC
 
 This replaces the /title generator/ for [[file:ha-config.org::*Leader Sequences][major-mode-hydra]] project to include a nice looking icon:

@@ -29,6 +29,10 @@ A literate programming file for configuring Emacs.
   ;; loading sequence.
   ;;
   ;;; Code:
+
+  ;; Used functions defined elsewhere:
+  (defun font-icons (collection label &rest args)
+    (or (plist-get args :title) label))
 #+end_src
 * Basic Configuration
 I begin configuration of Emacs that isn’t /package-specific/.
@@ -779,43 +783,43 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
 The built-in =isearch= is fantastically simple and useful, bound to ~C-s~, but why not bind searching for the current symbol?
 
 #+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "m-s m-s") 'isearch-forward-thing-at-point)
+  (global-set-key (kbd "M-s M-s") 'isearch-forward-thing-at-point)
 #+END_SRC
 
 I like Charles Choi’s [[https://github.com/kickingvegas/casual][Casual Suite]], and his original [[https://github.com/kickingvegas/cc-isearch-menu][cc-isearch-menu]] was great at seeing the /buried/ features. I’ve duplicated the features using [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]. In the middle of a search, type ~⌘-s~ (Command-s), and menu of options I don’t remember appear.
 
 #+begin_src emacs-lisp :tangle no
-        (defvar ha-isearch--title (font-icons 'faicon "magnifying_glass"
-                                              :title "Search Options"))
+  (defvar ha-isearch--title (font-icons 'faicon "magnifying_glass"
+                                        :title "Search Options"))
 
-        (pretty-hydra-define isearch-mode
-          (:color amaranth :quit-key "C-s" :title ha-isearch--title)
-          ("Movement"
-           (("n" isearch-repeat-forward "Forward")
-            ("p" isearch-repeat-backward "Backward")
-            ("j" avy-isearch "Jump" :color blue))
-           "Expand"
-           ((">" isearch-yank-symbol-or-char "Full symbol")
-            ("z" isearch-yank-until-char "Until char")
-            ("$" isearch-yank-line "Full line"))
-           "Replace"
-           (("R" isearch-query-replace "Literal")
-            ("Q" isearch-query-replace-regexp "Regexp")
-            ("<return>" isearch-exit "Stay" :color blue))
-           "Toggles"
-           (("w" isearch-toggle-word "Word only" :toggle t)
-            ("s" isearch-toggle-symbol "Full symbol" :toggle t)
-            ("r" isearch-toggle-regexp "Regexp" :toggle t)
-            ("c" isearch-toggle-case-fold "Case Sensitive" :toggle t))
-           "Highlight"
-           (("H" isearch-highlight-regexp "Matches" :color blue)
-            ("L" isearch-highlight-lines-matching-regexp "Lines" :color blue))
-           "Other"
-           (("e" isearch-edit-string "Edit")
-            ("o" isearch-occur "Occur" :color blue)
-            ("C-g" isearch-abort "Abort" :color blue))))
+  (pretty-hydra-define isearch-mode
+    (:color amaranth :quit-key "C-s" :title ha-isearch--title)
+    ("Movement"
+     (("n" isearch-repeat-forward "Forward")
+      ("p" isearch-repeat-backward "Backward")
+      ("j" avy-isearch "Jump" :color blue))
+     "Expand"
+     ((">" isearch-yank-symbol-or-char "Full symbol")
+      ("z" isearch-yank-until-char "Until char")
+      ("$" isearch-yank-line "Full line"))
+     "Replace"
+     (("R" isearch-query-replace "Literal")
+      ("Q" isearch-query-replace-regexp "Regexp")
+      ("<return>" isearch-exit "Stay" :color blue))
+     "Toggles"
+     (("w" isearch-toggle-word "Word only" :toggle t)
+      ("s" isearch-toggle-symbol "Full symbol" :toggle t)
+      ("r" isearch-toggle-regexp "Regexp" :toggle t)
+      ("c" isearch-toggle-case-fold "Case Sensitive" :toggle t))
+     "Highlight"
+     (("H" isearch-highlight-regexp "Matches" :color blue)
+      ("L" isearch-highlight-lines-matching-regexp "Lines" :color blue))
+     "Other"
+     (("e" isearch-edit-string "Edit")
+      ("o" isearch-occur "Occur" :color blue)
+      ("C-g" isearch-abort "Abort" :color blue))))
 
-        (define-key isearch-mode-map (kbd "s-s") 'isearch-mode/body)
+  (define-key isearch-mode-map (kbd "s-s") 'isearch-mode/body)
 #+end_src
 
 Pressing ~C-g~ aborts, and ~Return~ exits leaving the point in place. Typing ~C-s~ in the menu stops the menu to continue searching.
