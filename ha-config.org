@@ -291,6 +291,36 @@ This function can be called interactively with a URL and a directory (and it att
 #+end_src
 ** Completing Read User Interface
 After using Ivy, I am going the route of a =completing-read= interface that extends the original Emacs API, as opposed to implementing backend-engines or complete replacements.
+
+One enhancement to =completing-read= is to allow either a property list or an associate list for choices, and then return the /value/.
+
+#+BEGIN_SRC emacs-lisp
+  (defun completing-read-alist (prompt collection
+                                       &optional predicate require-match
+                                       initial-input hist def inherit-input-method)
+    "List `completing-read', but COLLECTION is an alist, and it returns value.
+  The is, the _associative bit_.
+
+  PROMPT is a string to prompt with; normally it ends in a colon and a space.
+  PREDICATE, REQUIRE-MATCH, HIST and INHERIT-INPUT-METHOD is the same.
+  DEF is the default return without a match."
+    (let ((x (completing-read prompt collection predicate require-match
+                              initial-input hist def inherit-input-method)))
+      (alist-get x collection x nil 'equal)))
+#+END_SRC
+
+This means (and I use this fairly often), that the /key/ is shows as a choice, the function returns the /value/.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (completing-read-alist "Choose a language: "
+                         '(("Emacs Lisp" . "elisp.org")
+                           ("Python" . "python.org")
+                           ("Visual Basic" . "visual-basic.org")
+                           ;; ...
+                           ))
+#+END_SRC
+
+
 *** Vertico
 The [[https://github.com/minad/vertico][vertico]] package puts the completing read in a vertical format, and like [[https://github.com/raxod502/selectrum#vertico][Selectrum]], it extends Emacs’ built-in functionality, instead of adding a new process. This means all these projects work together.
 #+begin_src emacs-lisp

@@ -61,6 +61,7 @@ Will Schenk has [[https://willschenk.com/articles/2020/tramp_tricks/][a simple e
             (setq ad-return-value dockernames))
         ad-do-it)))
 #+end_src
+
 Keep in mind you need to /name/ your Docker session, with the =—name= option. I actually do more docker work on remote systems (as Docker seems to make my fans levitate my laptop over the desk). Granted, the =URL= is a bit lengthy, for instance:
 #+begin_example
 /ssh:kolla-compute1.cedev13.d501.eng.pdx.wd|sudo:kolla-compute1.cedev13.d501.eng.pdx.wd|docker:kolla_toolbox:/
@@ -77,14 +78,19 @@ Which means, I need to put it as a link in an org file.
 * Remote Terminals
 Sure =iTerm= is nice for connecting and running commands on remote systems, however, it lacks a command line option that allows you to select and manipulate the displayed text without a mouse. This is where Emacs can shine.
 
+Interactive Functions:
+
+  - ha-shell :: create a local shell in default-directory. This is an abstraction mostly used for my demonstrations, otherwise, I can just call the =make-term= or =eat= directly.
+  - ha-ssh :: create a shell on remote system
+
 *Feature One:*
 
-When calling the =ha-ssh= function, it opens a =vterm= window which, unlike other terminal emulators in Emacs, merges both Emacs and Terminal behaviors. Essentially, it just works. It =vterm= isn't installed, it falls back to =term=.
+When calling the =ha-ssh= function, it opens a =vterm= window which, unlike other terminal emulators in Emacs, merges both Emacs and Terminal behaviors. Essentially, it just works. It =vterm= isn't installed, it falls back to either =eat= or good ol’ =term=.
 
 Preload a list of favorite/special hostnames with multiple calls to:
 
 #+begin_src emacs-lisp :tangle no
-(ha-ssh-add-favorite-host "Devbox 42" "10.0.1.42")
+  (ha-ssh-add-favorite-host "Devbox 42" "10.0.1.42")
 #+end_src
 
 Then calling =ha-ssh= function, a list of hostnames is available to quickly jump on a system (with the possibility of fuzzy matching if you have Helm or Ivy installed).
@@ -100,25 +106,27 @@ Use the /favorite host/ list to quickly edit a file on a remote system using Tra
 Working with remote shell connections programmatically, for instance:
 
 #+begin_src emacs-lisp :tangle no
-(let ((win-name "some-host"))
-  (ha-ssh "some-host.in.some.place" win-name)
-  (ha-ssh-send "source ~/.bash_profile" win-name)
-  (ha-ssh-send "clear" win-name))
-;; ...
-(ha-ssh-exit win-name)
+  (let ((win-name "some-host"))
+    (ha-ssh "some-host.in.some.place" win-name)
+    (ha-ssh-send "source ~/.bash_profile" win-name)
+    (ha-ssh-send "clear" win-name))
+  ;; ...
+  (ha-ssh-exit win-name)
 #+end_src
 
 Actually the =win-name= in this case is optional, as it will use a good default.
-
 
 ** VTerm
 I'm not giving up on Eshell, but I am playing around with [[https://github.com/akermu/emacs-libvterm][vterm]], and it is pretty good, but I use it primarily as a more reliable approach for remote terminal sessions.
 
 VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package vterm
     :config
+    (ha-leader
+      "p t" '("terminal" . (lambda () (interactive) (ha-shell (project-root (project-current))))))
+
     (dolist (k '("<C-backspace>" "<M-backspace>"))
       (define-key vterm-mode-map (kbd k)
                   (lambda () (interactive) (vterm-send-key (kbd "C-w")))))
@@ -143,6 +151,50 @@ VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previou
 #+end_src
 
 The advantage of running terminals in Emacs is the ability to copy text without a mouse. For that, hit ~C-c C-t~ to enter a special copy-mode. If I go into this mode, I might as well also go into normal mode to move the cursor. To exit the copy-mode (and copy the selected text to the clipboard), hit ~Return~.
+** Eat
+While not as fast as [[https://github.com/akermu/emacs-libvterm][vterm]], the [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project (eat) is fast enough, and doesn’t require a dedicate library that requires re-compilation. While offering [[https://elpa.nongnu.org/nongnu-devel/doc/eat.html][online documentation]], I’m glad for an [[info:eat#Top][Info version]].
+
+#+BEGIN_SRC emacs-lisp
+  (use-package eat
+    :straight (:host codeberg :repo "akib/emacs-eat"
+                     :files ("*.el" ("term" "term/*.el") "*.texi"
+                             "*.ti" ("terminfo/e" "terminfo/efo/e/*")
+                             ("terminfo/65" "terminfo/65/*")
+                             ("integration" "integration/*")
+                             (:exclude ".dir-locals.el" "*-tests.el")))
+    :bind (:map eat-semi-char-mode-map
+                ("C-c C-t" . ha-eat-narrow-to-shell-prompt-dwim))
+    :config
+    (defun ha-eat-narrow-to-shell-prompt-dwim ()
+       (interactive)
+       (if (buffer-narrowed-p) (widen) (eat-narrow-to-shell-prompt)))
+    (ha-leader
+      "p t" '("terminal" . eat-project)))
+#+END_SRC
+
+The largest change, is like the venerable [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Term-Mode.html][term mode]], we have different modes:
+
+  - =semi-char= :: This DWIM mode works halfway between an Emacs buffer and a terminal. Use ~C-c C-e~ to go to =emacs= mode.
+  - =emacs= :: Good ol’ Emacs buffer, use ~C-c C-j~ to go back to =semi-char= mode.
+  - =char= :: Full terminal mode, use ~M-RET~ to pop back to =semi-char= mode.
+  - =line= :: Line-oriented mode, not sure why I’d use it.
+
+Cool stuff:
+  - ~C-n~ / ~C-p~ :: scrolls the command history
+  - ~C-c C-n~ / ~C-c C-p~ :: jumps to the various prompts
+
+What about Evil mode?
+
+TODO: Like =eshell=, the Bash in an EAT terminal has a command =_eat_msg= that takes a handler, and a /message/. Then set up an alist of =eat-message-handler-alist= to decide what to do with it.
+
+TODO: Need to /subtlize/ the =eat-term-color-bright-green= and other settings as it is way too garish.
+
+Make sure you add the following for Bash:
+
+#+BEGIN_SRC bash :tangle no
+  [ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
+    source "$EAT_SHELL_INTEGRATION_DIR/bash"
+#+END_SRC
 
 ** Variables
 Let's begin by defining some variables used for communication between the functions.
@@ -159,187 +211,161 @@ Let's begin by defining some variables used for communication between the functi
 #+end_src
 
 Also, let's make it easy for me to change my default shell:
+
 #+begin_src emacs-lisp
-  (defvar ha-ssh-shell (shell-command-to-string "type -p fish")
+  (defvar ha-shell "bash" ;; Eat works better with Bash/Zsh
+    ;; (string-trim (shell-command-to-string "type -p fish"))
     "The executable to the shell I want to use locally.")
 #+end_src
+
+** Terminal Abstractions
+Could I abstract the different ways I start terminals in Emacs? The =ha-ssh-term= starts either a [[VTerm]]
+or [[Eat]] terminals, depending on what is available. This replaces (wraps) the default [[help:make-term][make-term]].
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-make-term (name &optional program startfile &rest switches)
+    "Create a terminal buffer NAME based on available emulation.
+  The PROGRAM, if non-nil, is executed, otherwise, this is `ha-shell'.
+  STARTFILE is the initial text given to the PROGRAM, and the
+  SWITCHES are the command line options."
+    (unless program (setq program ha-shell))
+    (cond
+     ((fboundp 'vterm) (progn (vterm name)
+                              (vterm-send-string (append program switches))
+                              (vterm-send-return)))
+     ((fboundp 'eat)   (progn (switch-to-buffer
+                               (apply 'eat-make (append (list name program startfile)
+                                                        switches)))
+                              (setq-local ha-eat-terminal eat-terminal)))
+     (t                (switch-to-buffer
+                        (apply 'make-term (append (list name program startfile)
+                                                  switches))))))
+#+END_SRC
 
 ** Interactive Interface to Remote Systems
 
 The function, =ha-ssh= pops up a list of /favorite hosts/ and then uses the =vterm= functions to automatically SSH into the chosen host:
 
 #+begin_src emacs-lisp
-(defun ha-ssh (hostname &optional window-name)
-  "Start a SSH session to a given HOSTNAME (with an optionally specified WINDOW-NAME).
-If called interactively, it presents the user with a list
-returned by =ha-ssh-choose-host=."
-  (interactive (list (ha-ssh-choose-host)))
-  (unless window-name
-    (setq window-name (format "ssh: %s" hostname)))
-  (setq ha-latest-ssh-window-name (format "*%s*" window-name))
-
-  ;; I really like this =vterm= interface, so if I've got it loaded, let's use it:
-  (if (not (fboundp 'vterm))
-      ;; Should we assume the =ssh= we want is on the PATH that started Emacs?
-      (make-term window-name "ssh" nil hostname)
-    (vterm ha-latest-ssh-window-name)
-    (vterm-send-string (format "ssh %s" hostname))
-    (vterm-send-return))
-
-  (pop-to-buffer ha-latest-ssh-window-name))
+  (defun ha-ssh (hostname &optional window-name)
+    "Start a SSH session to a given HOSTNAME (with an optionally specified WINDOW-NAME).
+  If called interactively, it presents the user with a list
+  returned by =ha-ssh-choose-host=."
+    (interactive (list (ha-ssh-choose-host)))
+    (unless window-name
+      (setq window-name (format "ssh: %s" hostname)))
+    (setq ha-latest-ssh-window-name (format "*%s*" window-name))
+    (ha-make-term window-name "ssh" nil hostname)
+    (pop-to-buffer ha-latest-ssh-window-name))
 #+end_src
 
 Of course, we need a function that =interactive= can call to get that list, and my thought is to call =helm= if it is available, otherwise, assume that ido/ivy will take over the =completing-read= function:
 
 #+begin_src emacs-lisp
-(defun ha-ssh-choose-host ()
-  "Prompts the user for a host, and if it is in the cache, return
-its IP address, otherwise, return the input given.
-This is used in calls to =interactive= to select a host."
-  (let ((hostname
-         ;; We call Helm directly if installed, only so that we can get better
-         ;; labels in the window, otherwise, the =completing-read= call would be fine.
-         (if (fboundp 'helm-comp-read)
-             (helm-comp-read "Hostname: " ha-ssh-favorite-hostnames
-                             :name "Hosts"
-                             :fuzzy t :history ha-ssh-host-history)
-           (completing-read "Hostname: " ha-ssh-favorite-hostnames nil 'confirm nil 'ha-ssh-host-history))))
-    (alist-get hostname ha-ssh-favorite-hostnames hostname nil 'equal)))
-#+end_src
-
-Simply calling =vterm= fails to load my full environment, so this allows me to start the terminal in a particular directory (defaulting to the root of the current project):
-
-#+begin_src emacs-lisp
-  (defun ha-shell (&optional directory name)
-    "Creates and tidies up a =vterm= terminal shell in side window."
-    (interactive (list (read-directory-name "Starting Directory: " (project-root (project-current)))))
-    (let* ((win-name (or name (ha-shell--name-from-dir directory)))
-           (buf-name (format "*%s*" win-name))
-           (default-directory (or directory default-directory)))
-      (setq ha-latest-ssh-window-name buf-name)
-      (if (not (fboundp 'vterm))
-          (make-term win-name ha-ssh-shell)
-        (vterm buf-name))))
+  (defun ha-ssh-choose-host ()
+    "Prompts the user for a host, and if it is in the cache, return
+  its IP address, otherwise, return the input given.
+  This is used in calls to =interactive= to select a host."
+    (completing-read-alist "Hostname: " ha-ssh-favorite-hostnames nil 'confirm
+                           nil 'ha-ssh-host-history))
 #+end_src
 
 Before we leave this section, I realize that I would like a way to /add/ to my list of hosts:
+
 #+begin_src emacs-lisp
-(defun ha-ssh-add-favorite-host (hostname ip-address)
-  "Add a favorite host to your list for easy pickin's."
-  (interactive "sHostname: \nsIP Address: ")
-  (add-to-list 'ha-ssh-favorite-hostnames (cons hostname ip-address)))
+  (defun ha-ssh-add-favorite-host (hostname ip-address)
+    "Add a favorite host to your list for easy pickin's."
+    (interactive "sHostname: \nsIP Address: ")
+    (add-to-list 'ha-ssh-favorite-hostnames (cons hostname ip-address)))
+#+end_src
+
+** Programmatic Interface
+For the sake of my demonstrations, I use =ha-shell= to start a terminal with a particular =name=. Then, I can send commands into it.
+
+#+begin_src emacs-lisp
+  (defun ha-shell (&optional directory name)
+    "Creates a terminal window using `ha-make-term'.
+  Stores the name, for further calls to `ha-shell-send', and
+  `ha-shell-send-lines'."
+    (interactive (list (read-directory-name "Starting Directory: " (project-root (project-current)))))
+    (let* ((default-directory (or directory default-directory))
+           (win-name (or name (replace-regexp-in-string (rx (+? any)
+                                                            (group (1+ (not "/")))
+                                                            (optional "/") eol)
+                                                        "\\1"
+                                                        default-directory)))
+           (buf-name (format "*%s*" win-name)))
+      (setq ha-latest-ssh-window-name buf-name)
+      (ha-make-term win-name ha-shell)))  ; Lisp-2 FTW!?
+#+end_src
+
+Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ send commands to the running terminal, e.g. =(ha-shell-send "ls *.py")= I would really like to be able to send and execute a command in a terminal from a script.
+
+#+begin_src emacs-lisp
+  (defun ha-shell-send (command &optional name)
+    "Send COMMAND to existing shell terminal based on DIRECTORY.
+  If you want to refer to another session, specify the correct NAME.
+  This is really useful for scripts and demonstrations."
+    (unless name
+      (setq name ha-latest-ssh-window-name))
+
+    (save-window-excursion
+      (pop-to-buffer name)
+      (goto-char (point-max))
+      (cond
+        ((eq major-mode 'vterm-mode) (progn
+                                       (vterm-send-string command)
+                                       (vterm-send-return)))
+        ((eq major-mode 'eat-mode) (eat-term-send-string
+                                    ha-eat-terminal (concat command "\n")))
+        (t (progn
+             (insert command)
+             (term-send-input))))))
 #+end_src
 
 Let's have a quick way to bugger out of the terminal:
+
 #+begin_src emacs-lisp
-(defun ha-ssh-exit (&optional window-name)
-  "End the SSH session specified by WINDOW-NAME (or if not, the latest session)."
-  (interactive)
-  (unless (string-match-p "v?term" (buffer-name))
-    (unless window-name
-      (setq window-name ha-latest-ssh-window-name))
-    (pop-to-buffer window-name))
+  (defun ha-shell-exit (&optional name)
+    "End the SSH session specified by NAME (or if not, the latest session)."
+    (interactive)
+    (unless (or (eq major-mode 'vterm-mode)   ; Already in a term?
+                (eq major-mode 'eat-mode)     ; Just close this.
+                (eq major-mode 'term-mode))
+      (unless name
+        (setq name ha-latest-ssh-window-name))
+      (pop-to-buffer name))
 
-  (ignore-errors
-    (term-send-eof))
-  (kill-buffer window-name)
-  (delete-window))
-#+end_src
-** Programmatic Interface
-Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ send commands to the running terminal, e.g. =(ha-shell-send "ls *.py")=
-
-Since every project perspective may have a shell terminal, let’s see if I can figure which shell buffer to send—based on the =current-directory=.
-#+begin_src emacs-lisp
-  (defun ha-shell-send (command &optional directory)
-    "Send COMMAND to existing shell terminal based on DIRECTORY.
-  If the shell doesn't already exist, start on up by calling
-  the `ha-shell' function.
-
-  The real work for this is done by `ha-ssh-send'.
-
-  If DIRECTORY is nil, use the project root from project."
-    (let ((buf (ha-shell--buf-from-dir directory)))
-      (unless buf
-        (setq buf (ha-shell directory)))
-      (ha-ssh-send command buf)))
-
-  (defun ha-shell--buf-from-dir (directory)
-    "Return Terminal buffer associated with DIRECTORY.
-  Or nil if no buffer has been found."
-    (let* ((win-name (ha-shell--name-from-dir directory))
-           (win-rx   (rx "*" (literal win-name) "*"))
-           (bufs     (seq-filter (lambda (b) (when (string-match win-rx (buffer-name b)) b))
-                                 (buffer-list))))
-       (first bufs)))
-
-  (defun ha-shell--name-from-dir (&optional directory)
-    "Return an appropriate title for a terminal based on DIRECTORY.
-  If DIRECTORY is nil, use the `project-name'."
-    (unless directory
-      (setq directory (project-name (project-current))))
-    (let ((name
-           ;; Most of the time I just want the base project name, but in
-           ;; my "work" directory, the projects are too similar, and I
-           ;; need two levels of directories to distinguish them as a
-           ;; project.
-           (if (s-contains? "/work/" directory)
-               (thread-last directory
-                            (s-split "/")
-                            (-remove 's-blank-str?)
-                            (-take-last 2)
-                            (s-join "/"))
-             (file-name-base (directory-file-name directory)))))
-      (format "Terminal: %s" name)))
+    (ignore-errors
+      (term-send-eof))
+    (kill-buffer name)
+    (delete-window))
 #+end_src
 
-Perhaps a Unit test is in order:
-#+begin_src emacs-lisp :tangle no
-  (ert-deftest ha--terminal-name-from-dir-test ()
-    (should
-     (string= (ha-shell--name-from-dir "~/src/hamacs/") "Terminal: hamacs"))
-    (should
-     (string= (ha-shell--name-from-dir "~/work/foo/bar") "Terminal: foo/bar"))
-    (should
-     (string= (ha-shell--name-from-dir) "Terminal: hamacs")))
-#+end_src
+For example:
 
-The previous functions (as well as my own end of sprint demonstrations) often need to issue some commands to a running terminal session, which is a simple wrapper around a /send text/ and /send return/ sequence:
-#+begin_src emacs-lisp
-  (defun ha-ssh-send (phrase &optional window-name)
-    "Send command PHRASE to the currently running SSH instance.
-  If you want to refer to another session, specify the correct WINDOW-NAME.
-  This is really useful for scripts and demonstrations."
-    (unless window-name
-      (setq window-name ha-latest-ssh-window-name))
-    (save-window-excursion
-      (pop-to-buffer window-name)
-
-      (if (fboundp 'vterm)
-          (progn
-            (vterm-send-string phrase)
-            (vterm-send-return))
-        (progn
-          (term-send-raw-string phrase)
-          (term-send-input)))))
-#+end_src
+#+BEGIN_SRC emacs-lisp :tangle no
+  (ha-shell)
+  (ha-shell-send "date")
+  (ha-shell-exit)
+#+END_SRC
 
 As you may know, I’m big into /literate devops/ where I put my shell commands in org files. However, I also work as part of a team that for some reason, doesn’t accept Emacs as their One True Editor. At least, I am able to talk them into describing commands in Markdown files, e.g. =README.md=. Instead of /copying-pasting/ into the shell, could I /send/ the /current command/ to that shell?
+
 #+begin_src emacs-lisp
-  (defun ha-ssh-send-line (prefix)
+  (defun ha-shell-send-line (prefix &optional name)
     "Copy the contents of the current line in the current buffer,
-  and call =ha-ssh-send= with it. After sending the contents, it
-  returns to the current line."
+  and call `ha-sshell-send' with it. After sending the contents, it
+  returns to the current location. PREFIX is the number of lines."
     (interactive "P")
-    ;; The function =save-excursion= doesn't seem to work...
-    (let ((buf (current-buffer)))
-      (dolist (line (ha-ssh--line-or-block prefix))
-        ;; (sit-for 0.25)
-        (ha-ssh-send line))
-      (pop-to-buffer buf)))
+    (dolist (line (ha-ssh--line-or-block prefix))
+      ;; (sit-for 0.25)
+      (ha-shell-send line)))
 #+end_src
 
 What does /current command/ mean? The current line? A good fall back. Selected region? Sure, if active, but that seems like more work. In a Markdown file, I can gather the entire source code block, just like in an Org file.
 So the following function may be a bit complicated in determining what is this /current code/:
+
 #+begin_src emacs-lisp
   (defun ha-ssh--line-or-block (num-lines)
     "Return a list of the NUM-LINES from current buffer.
@@ -382,6 +408,7 @@ So the following function may be a bit complicated in determining what is this /
 #+end_src
 
 In Markdown (and org), I might have initial spaces that should be removed (but not all initial spaces):
+
 #+begin_src emacs-lisp
   (defun ha-ssh--line-cleanup (str)
     "Return STR as a list of strings."
@@ -392,43 +419,47 @@ In Markdown (and org), I might have initial spaces that should be removed (but n
            (trim-amount  (when (string-match (rx bol (group (* space))) first-line)
                            (length (match-string 1 first-line)))))
       (mapcar (lambda (line) (substring line trim-amount)) lst-contents)))
+#+end_src
 
+And some tests to validate:
+
+#+BEGIN_SRC emacs-lisp :tangle no
   (ert-deftest ha-ssh--line-cleanup-test ()
     (should (equal (ha-ssh--line-cleanup "bob") '("bob")))
     (should (equal (ha-ssh--line-cleanup "  bob") '("bob")))
     (should (equal (ha-ssh--line-cleanup "bob\nfoo") '("bob" "foo")))
     (should (equal (ha-ssh--line-cleanup "  bob\n  foo") '("bob" "foo")))
     (should (equal (ha-ssh--line-cleanup "  bob\n    foo") '("bob" "  foo"))))
-#+end_src
+#+END_SRC
 
 ** Editing Remote Files
 TRAMP, when it works, is amazing that we can give it a reference to a remote directory, and have =find-file= magically autocomplete.
 
 #+begin_src emacs-lisp
-(defun ha-ssh-find-file (hostname)
-  "Constructs a ssh-based, tramp-focus, file reference, and then calls =find-file=."
-  (interactive (list (ha-ssh-choose-host)))
-  (let ((tramp-ssh-ref (format "/ssh:%s:" hostname))
-        (other-window (when (equal current-prefix-arg '(4)) t)))
-    (ha-ssh--find-file tramp-ssh-ref other-window)))
+  (defun ha-ssh-find-file (hostname)
+    "Constructs a ssh-based, tramp-focus, file reference, and then calls =find-file=."
+    (interactive (list (ha-ssh-choose-host)))
+    (let ((tramp-ssh-ref (format "/ssh:%s:" hostname))
+          (other-window (when (equal current-prefix-arg '(4)) t)))
+      (ha-ssh--find-file tramp-ssh-ref other-window)))
 
-(defun ha-ssh--find-file (tramp-ssh-ref &optional other-window)
-  "Calls =find-file= after internally completing a file reference based on TRAMP-SSH-REF."
-  (let ((tramp-file (read-file-name "Find file: " tramp-ssh-ref)))
-    (if other-window
-        (find-file-other-window tramp-file)
-      (find-file tramp-file))))
+  (defun ha-ssh--find-file (tramp-ssh-ref &optional other-window)
+    "Calls =find-file= after internally completing a file reference based on TRAMP-SSH-REF."
+    (let ((tramp-file (read-file-name "Find file: " tramp-ssh-ref)))
+      (if other-window
+          (find-file-other-window tramp-file)
+        (find-file tramp-file))))
 #+end_src
 
 We can even edit it as root:
 
 #+begin_src emacs-lisp
-(defun ha-ssh-find-root (hostname)
-  "Constructs a ssh-based, tramp-focus, file reference, and then calls =find-file=."
-  (interactive (list (ha-ssh-choose-host)))
-  (let ((tramp-ssh-ref (format "/ssh:%s|sudo:%s:" hostname hostname))
-        (other-window (when (equal current-prefix-arg '(4)) t)))
-    (ha-ssh--find-file tramp-ssh-ref other-window)))
+  (defun ha-ssh-find-file-root (hostname)
+    "Constructs a ssh-based, tramp-focus, file reference, and then calls =find-file=."
+    (interactive (list (ha-ssh-choose-host)))
+    (let ((tramp-ssh-ref (format "/ssh:%s|sudo:%s:" hostname hostname))
+          (other-window (when (equal current-prefix-arg '(4)) t)))
+      (ha-ssh--find-file tramp-ssh-ref other-window)))
 #+end_src
 
 ** OpenStack Interface
@@ -438,22 +469,13 @@ Instead of making sure I have a list of remote systems already in the favorite h
 We'll give =openstack= CLI a =--format json= option to make it easier for parsing:
 
 #+begin_src emacs-lisp
-(use-package json)
+  (use-package json)
 #+end_src
-
-Need a variable to hold all our interesting hosts. Notice I use the word /overcloud/, but this is a name I've used for years to refer to /my virtual machines/ that I can get a listing of, and not get other VMs that I don't own.
-
-#+begin_src emacs-lisp
-(defvar ha-ssh-overcloud-cache-data nil
-  "A vector of associated lists containing the servers in an Overcloud.")
-#+end_src
-
-If our cache data is empty, we could automatically retrieve this information, but only on the first time we attempt to connect. To do this, we'll =advice= the =ha-ssh-choose-host= function defined earlier:
 
 #+begin_src emacs-lisp
   (defun ha-ssh-overcloud-query-for-hosts ()
     "If the overcloud cache hasn't be populated, ask the user if we want to run the command."
-    (when (not ha-ssh-overcloud-cache-data)
+    (when (not ha-ssh-favorite-hostnames)
       (when (y-or-n-p "Cache of Overcloud hosts aren't populated. Retrieve hosts?")
         (call-interactively 'ha-ssh-overcloud-cache-populate))))
 
@@ -466,9 +488,9 @@ We'll do the work of getting the /server list/ with this function:
   (defun ha-ssh-overcloud-cache-populate (cluster)
     "Given an `os-cloud' entry, stores all available hostnames.
   Calls `ha-ssh-add-favorite-host' for each host found."
-    (interactive (list (completing-read "Cluster: " '(devprod1 devprod501 devprod502))))
+    (interactive (list (completing-read "Cluster: " '(devprod501 devprod502))))
     (message "Calling the `openstack' command...this will take a while. Grab a coffee, eh?")
-    (let* ((command (format "openstack --os-cloud %s server list --no-name-lookup --insecure -f json" cluster))
+    (let* ((command (format "openstack --os-cloud %s server list --no-name-lookup -f json" cluster))
            (json-data (thread-last command
                                    (shell-command-to-string)
                                    (json-read-from-string))))
@@ -481,38 +503,23 @@ We'll do the work of getting the /server list/ with this function:
       (message "Call to `openstack' complete. Found %d hosts." (length json-data))))
 #+end_src
 
-In case I change my virtual machines, I can repopulate that cache:
-
-#+begin_src emacs-lisp
-(defun ha-ssh-overcloud-cache-repopulate ()
-  "Repopulate the cache based on redeployment of my overcloud."
-  (interactive)
-  (setq ha-ssh-overcloud-cache-data nil)
-  (call-interactively 'ha-ssh-overcloud-cache-populate))
-#+end_src
-
 The primary interface:
 
 #+begin_src emacs-lisp
-(defun ha-ssh-overcloud (hostname)
-  "Log into an overcloud host given by HOSTNAME. Works better if
-you have previously run =ssh-copy-id= on the host. Remember, to
-make it behave like a real terminal (instead of a window in
-Emacs), hit =C-c C-k=."
-  (interactive (list (ha-ssh-choose-host)))
-  (when (not (string-match-p "\." hostname))
-    (setq hostname (format "%s.%s" hostname (getenv "OS_PROJECT_NAME"))))
+  (defun ha-ssh-overcloud (hostname)
+    "Log into an overcloud host given by HOSTNAME. Works better if
+  you have previously run =ssh-copy-id= on the host. Remember, to
+  make it behave like a real terminal (instead of a window in
+  Emacs), hit =C-c C-k=."
+    (interactive (list (ha-ssh-choose-host)))
+    (when (not (string-match-p "\." hostname))
+      (setq hostname (format "%s.%s" hostname (getenv "OS_PROJECT_NAME"))))
 
-  (let ((window-label (or (-some->> ha-ssh-favorite-hostnames
-                                    (rassoc hostname)
-                                    car)
-                          hostname)))
-    (ha-ssh hostname window-label)
-    (sit-for 1)
-    (ha-ssh-send "sudo -i")
-    (ha-ssh-send (format "export PS1='\\[\\e[34m\\]%s\\[\e[m\\] \\[\\e[33m\\]\\$\\[\\e[m\\] '"
-                         window-label))
-    (ha-ssh-send "clear")))
+    (let ((window-label (or (thread-last ha-ssh-favorite-hostnames
+                                         (rassoc hostname)
+                                         (car))
+                            hostname)))
+      (ha-ssh hostname window-label)))
 #+end_src
 * Keybindings
 This file, so far, as been good-enough for a Vanilla Emacs installation, but to hook into Doom's leader for some sequence binding, this code isn't:
@@ -523,13 +530,11 @@ This file, so far, as been good-enough for a Vanilla Emacs installation, but to 
     "a s o" '("overcloud"     . ha-ssh-overcloud)
     "a s l" '("local shell"   . ha-shell)
     "a s s" '("remote shell"  . ha-ssh)
-    "a s p" '("project shell" . (lambda () (interactive) (ha-shell (project-root (project-current)))))
+    "a s p" '("project shell" . eat-project)
     "a s q" '("quit shell"    . ha-ssh-exit)
     "a s f" '("find-file"     . ha-ssh-find-file)
     "a s r" '("find-root"     . ha-ssh-find-root)
-    "a s b" '("send line"     . ha-ssh-send-line)
-
-    "p t"   '("project vterm" . (lambda () (interactive) (ha-shell (project-root (project-current))))))
+    "a s b" '("send line"     . ha-ssh-send-line))
 #+end_src
 * Technical Artifacts                                :noexport:
 Provide a name so we can =require= the file:
