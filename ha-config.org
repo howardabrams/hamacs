@@ -252,7 +252,7 @@ Save the file whenever I move away from Emacs (see [[https://irreal.org/blog/?p=
     (interactive)
     (save-some-buffers t))
 
-  ;; See 'after-focus-change -hook?
+  ;; See 'after-focus-change-function?
   (add-hook 'focus-out-hook 'save-all-buffers)
 #+end_src
 *** Download Files via URL
@@ -818,12 +818,9 @@ The built-in =isearch= is fantastically simple and useful, bound to ~C-s~, but w
 
 I like Charles Choi’s [[https://github.com/kickingvegas/casual][Casual Suite]], and his original [[https://github.com/kickingvegas/cc-isearch-menu][cc-isearch-menu]] was great at seeing the /buried/ features. I’ve duplicated the features using [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]. In the middle of a search, type ~⌘-s~ (Command-s), and menu of options I don’t remember appear.
 
-#+begin_src emacs-lisp :tangle no
-  (defvar ha-isearch--title (font-icons 'faicon "magnifying_glass"
-                                        :title "Search Options"))
-
+#+begin_src emacs-lisp
   (pretty-hydra-define isearch-mode
-    (:color amaranth :quit-key "C-s" :title ha-isearch--title)
+    (:color amaranth :quit-key "C-s" :title "  Search Options")
     ("Movement"
      (("n" isearch-repeat-forward "Forward")
       ("p" isearch-repeat-backward "Backward")

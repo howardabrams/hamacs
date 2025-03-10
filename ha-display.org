@@ -275,10 +275,9 @@ Simple function that gives me the font information based on the size I need.  Re
   (defun ha-set-favorite-font-size (size)
     "Set the default font size as well as equalize the fixed and variable fonts."
 
-    (let ((mixed-on    mixed-pitch-mode)
-          (fixed-font (format "%s-%d" ha-fixed-font size))
+    (let ((fixed-font (format "%s-%d" ha-fixed-font size))
           (prop-font  (format "%s-%d" ha-variable-font size)))
-      (when mixed-on
+      (when (fboundp 'mixed-pitch-mode)
         (mixed-pitch-mode -1))
 
       ;; The font specification is the name and the size ... odd enough I guess:
@@ -286,9 +285,7 @@ Simple function that gives me the font information based on the size I need.  Re
       (set-face-attribute 'fixed-pitch nil :font fixed-font :inherit 'default
                           :height 'unspecified)
       (set-face-attribute 'variable-pitch nil :font prop-font :inherit 'default
-                          :height 'unspecified)
-      (when mixed-on
-        (mixed-pitch-mode 1))))
+                          :height 'unspecified)))
 #+end_src
 
 Define /interactive/ functions to quickly adjusting the font size based on my computing scenario:
@@ -337,8 +334,6 @@ Which font to choose?
     (if (eq system-type 'gnu/linux)
         (ha-linux-laptop-fontsize)
       (ha-mac-laptop-fontsize)))
-
-  (font-monitor-size-default)
 #+end_src
 
 ** Ligatures
@@ -392,26 +387,26 @@ The way we access the /font icons/ has always been … odd; needing to specify t
 #+BEGIN_SRC emacs-lisp
   (defun font-icons (collection label &rest args)
     "Abstraction over `nerd-icons' project.
-  LABEL is a short icon description merged with COLLECTION to identify an
-  icon to use. For instance, 'faicon or 'octicon.
+  LABEL is a short icon description merged with COLLECTION to
+  identify an icon to use. For instance, 'faicon or 'octicon.
 
   ARGS, a plist, contain the title, sizing and other information.
 
   For instance:
-        (font-icons 'faicon \"file\" :title \"File Management\")
+    (font-icons 'faicon \"file\" :title \"File Management\")
 
   The goal is to take:
-        (all-the-icons-octicon \"git-branch\")
+    (all-the-icons-octicon \"git-branch\")
   And reformat to:
-        (font-icons 'octicon \"git-branch\")"
+    (font-icons 'octicon \"git-branch\")"
     (let* ((func (intern (format "nerd-icons-%s" collection)))
            (short (cl-case collection
-                    ('octicon "oct")
-                    ('faicon "fa")
-                    ('mdicon "md")
-                    ('codicon "cod")
-                    ('sucicon "custom")
-                    ('devicon "dev")
+                    (octicon "oct")
+                    (faicon "fa")
+                    (mdicon "md")
+                    (codicon "cod")
+                    (sucicon "custom")
+                    (devicon "dev")
                     (t collection)))
            (title (plist-get args :title))
            (space (plist-get args :space))
@@ -424,6 +419,15 @@ The way we access the /font icons/ has always been … odd; needing to specify t
               (cond
                ((and title space) (concat (s-repeat space " ") title))
                (title             (concat " " title))))))
+#+END_SRC
+
+So:
+
+#+BEGIN_SRC emacs-lisp
+  (font-icons 'faicon "apple" :title "MacOS Specific")
+  ;; -> #(" MacOS Specific" 0 1 (rear-nonsticky t display (raise 0.0)
+  ;;    font-lock-face (:family "CaskaydiaCove Nerd Font" :height 1.0)
+  ;;    face (:family "CaskaydiaCove Nerd Font" :height 1.0)))
 #+END_SRC
 
 This replaces the /title generator/ for [[file:ha-config.org::*Leader Sequences][major-mode-hydra]] project to include a nice looking icon:
@@ -441,7 +445,8 @@ Transition:
 
 #+BEGIN_SRC emacs-lisp
   (defun with-faicon (icon str &optional height v-adjust)
-    "Return an ICON from the Nerd Fonts along with a STR for a label."
+    "Return an ICON from the Nerd Fonts along with a STR for a label.
+  HEIGHT defaults to 1, and V-ADJUST defaults to 0."
     (font-icons 'faicon icon :v-adjust (or v-adjust 0) :height (or height 1) :title str))
 
   (defun with-fileicon (icon str &optional height v-adjust)
@@ -572,8 +577,10 @@ Most of the time, Emacs is on my desk is a darkened room, so I choose the dark t
   (defun laptop-inside ()
     "Customize the theme for inside programming."
     (interactive)
+    (sit-for 1)
     (load-theme 'hamacs)
-    (ha-word-processor-fonts))
+    (sit-for 1)
+    (font-monitor-size-default))
 #+end_src
 
 But, when feeling adventurous, I /sometimes/ take my laptop outside:
@@ -611,7 +618,6 @@ Oh, and turn off the line highlighting:
 And of course, the default is /inside/ where my mind is dark and safe:
 
 #+begin_src emacs-lisp
-  (add-to-list 'custom-theme-load-path hamacs-source-dir)
   (laptop-inside)
 #+end_src
 ** Highlight Task Labels

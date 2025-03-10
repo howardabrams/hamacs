@@ -102,10 +102,8 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =ya
 
 #+begin_src emacs-lisp
   (use-package yaml-mode
-    :after mixed-pitch
     :mode ((rx ".yamllint")
            (rx ".y" (optional "a") "ml" string-end))
-    :hook (yaml-mode . (lambda () (mixed-pitch-mode -1)))
     :mode-hydra
     ((:foreign-keys run)
      ("Simple"
@@ -196,12 +194,6 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
 
     (major-mode-hydra-define+ yaml-mode nil
       ("Extensions" (("j" poly-yaml-jinja2-mode "Jinja2")))))
-#+end_src
-
-We need to make sure the =mixed-pitch-mode= doesn’t screw things up.
-
-#+begin_src emacs-lisp :tangle no
-  (add-hook 'poly-yaml-jinja2-mode-hook (lambda () (mixed-pitch-mode -1)))
 #+end_src
 
 We /can/ hook this up to Org, via:

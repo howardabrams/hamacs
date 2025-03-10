@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-02-28 Fri]
+#+lastmod: [2025-03-01 Sat]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -446,8 +446,7 @@ Using the [[https://graphviz.org/][graphviz project]], create charts with /textu
   (use-package graphviz-dot-mode
       :mode "\\.dot\\'"
       :init
-      (setq tab-width 4
-            graphviz-dot-indent-width 2
+      (setq graphviz-dot-indent-width 2
             graphviz-dot-auto-indent-on-newline t
             graphviz-dot-auto-indent-on-braces t
             graphviz-dot-auto-indent-on-semi t))

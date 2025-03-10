@@ -372,7 +372,7 @@ Let’s make a /theme/:
      `(org-code ((t (:foreground ,almond))))
      `(org-verbatim ((t (:foreground ,gray-95 :inherit fixed-pitch))))
 
-     `(org-block ((t (:background ,gray-10))))
+     `(org-block ((t (:background ,gray-10 :extend t))))
      `(org-block-begin-line ((t (:foreground ,gray-50 :background ,gray-20 :height ,smaller :extend t))))
      `(org-block-end-line ((t (:inherit org-block-begin-line :height ,smallest))))
 
@@ -467,7 +467,7 @@ Let's =provide= a name so we can =require= this file:
 #+DESCRIPTION: defining a warm, autumn, but subtle color theme for Emacs.
 
 #+PROPERTY:    header-args:sh :tangle no
-#+PROPERTY:    header-args:emacs-lisp  :tangle hamacs-theme.el
+#+PROPERTY:    header-args:emacs-lisp  :tangle ~/.emacs.d/hamacs-theme.el
 #+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil

@@ -47,12 +47,10 @@ For all programming languages, I would like to now default to absolute line numb
 
 #+begin_src emacs-lisp
   (use-package emacs
-    :after mixed-pitch
     :config
     (defun ha-prog-mode-config ()
       "Configure the `prog-mode'"
-      (setq display-line-numbers t)
-      (mixed-pitch-mode 0))
+      (setq display-line-numbers t))
     :hook
     (prog-mode . ha-prog-mode-config))
 #+end_src

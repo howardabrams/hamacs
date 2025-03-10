@@ -181,11 +181,11 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
 ** Converting to Org
 Let's work top-down at this point with the interactive function that inserts the clipboard into the current buffer:
 #+begin_src emacs-lisp
-(defun ha-org-yank-clipboard ()
-  "Yanks (pastes) the contents of the Apple Mac clipboard in an
-org-mode-compatible format."
-  (interactive)
-  (insert (ha-org-clipboard)))
+  (defun ha-org-yank-clipboard ()
+    "Yanks (pastes) the contents of the Apple Mac clipboard in an
+  org-mode-compatible format."
+    (interactive)
+    (insert (ha-org-clipboard)))
 #+end_src
 
 This function does the heavy lifting. Note that I will need another function to tidy up the output from =pandoc= that will be more to my liking.

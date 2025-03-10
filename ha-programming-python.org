@@ -37,9 +37,9 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     (setq python-indent-guess-indent-offset-verbose nil
           flycheck-flake8-maximum-line-length 120)
     :config
-    (when (and (executable-find "python3")
-               (string= python-shell-interpreter "python"))
-        (setq python-shell-interpreter "python3"))
+    (when (and (executable-find "ipython")
+               (string= python-shell-interpreter "ipython"))
+        (setq python-shell-interpreter "ipython"))
 
     (flycheck-add-next-checker 'python-pylint 'python-pycompile 'append))
 #+end_src
