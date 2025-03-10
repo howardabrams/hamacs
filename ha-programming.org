@@ -322,6 +322,7 @@ Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project
 #+begin_src sh
   brew install tree-sitter npm # Since most support packages need that too.
 #+end_src
+
 The tree-sitter project does not install any language grammars by default—after all, it would have no idea which particular languages to parse and analyze!
 
 Next, using the =tree-sitter= command line tool, create the [[/Users/howard.abrams/Library/Application Support/tree-sitter/config.json][config.json]] file:
@@ -342,14 +343,17 @@ Normally, you would need to  add all the projects to directory clones in =~/src=
     git pull origin
     npm install
   done <<EOL
-  https://github.com/tree-sitter/tree-sitter-css
+  https://github.com/tree-sitter/tree-sitter-go
+  https://github.com/tree-sitter/tree-sitter-javascript
+  https://github.com/tree-sitter/tree-sitter-templ
+  https://github.com/ikatyang/tree-sitter-yaml
   https://github.com/tree-sitter/tree-sitter-json
+  https://github.com/tree-sitter/tree-sitter-css
   https://github.com/tree-sitter/tree-sitter-python
   https://github.com/tree-sitter/tree-sitter-bash
   https://github.com/tree-sitter/tree-sitter-ruby
   https://github.com/camdencheek/tree-sitter-dockerfile
   https://github.com/alemuller/tree-sitter-make
-  https://github.com/ikatyang/tree-sitter-yaml
   https://github.com/Wilfred/tree-sitter-elisp
   EOL
 #+end_src
@@ -378,15 +382,18 @@ In most cases,the =npm install= /usually/ works, but I may work on some sort of 
     NAME=$(pwd | sed 's/.*-//')
 
     git pull origin
-    npm install || cargo build || make install   # Various build processes!?
+    npm install || make install   # Various build processes!?
 
     echo "Do we need to copy the library into ~/.emacs.d/tree-sitter/$NAME ?"
-    # if [ "$(uname -o)" = "Darwin" ]
-    # then
-    #   cp libtree-sitter-$NAME.dylib ~/.emacs.d/tree-sitter
-    # else
-    #   cp libtree-sitter-$NAME.so ~/.emacs.d/tree-sitter
-    # fi
+    if [[ -e libtree-sitter-$NAME.dylib ]]
+    then
+      cp libtree-sitter-$NAME.dylib ~/.emacs.d/tree-sitter
+    fi
+
+    if [[ -e libtree-sitter-$NAME.so ]]
+    then
+      cp libtree-sitter-$NAME.so ~/.emacs.d/tree-sitter
+    fi
   done
 #+end_src
 At this point, we can now parse stuff using: =tree-sitter parse <source-code-file>=
@@ -412,6 +419,7 @@ However, Emacs already has the ability to download and install grammars, so foll
               ;; (elixir     "https://github.com/elixir-lang/tree-sitter-elixir" "main" "src")
               ;; (erlang     "https://github.com/WhatsApp/tree-sitter-erlang" "main" "src")
               (go         "https://github.com/tree-sitter/tree-sitter-go")
+              (templ      "https://github.com/vrischmann/tree-sitter-templ")
               ;; (haskell    "https://github.com/tree-sitter/tree-sitter-haskell" "master" "src")
               (html       "https://github.com/tree-sitter/tree-sitter-html")
               ;; (java       "https://github.com/tree-sitter/tree-sitter-java" "master" "src")

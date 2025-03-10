@@ -64,7 +64,6 @@ The [[https://github.com/antonj/Highlight-Indentation-for-Emacs][Highlight-Inden
   (use-package highlight-indentation
     :straight (:host github :repo "antonj/Highlight-Indentation-for-Emacs")
     :hook ((yaml-mode . highlight-indentation-mode)
-           (yaml-ts-mode . highlight-indentation-mode)
            (python-mode . highlight-indentation-mode)))
 #+end_src
 
@@ -102,41 +101,39 @@ Doing a lot of [[https://github.com/yoshiki/yaml-mode][YAML work]], but  the =ya
 , so I’ve switch to [[https://github.com/zkry/yaml-pro][yaml-pro]] that is now based on Tree Sitter. Let’s make sure the Tree-Sitter version works:
 
 #+begin_src emacs-lisp
-  (when (treesit-available-p)
-    (use-package yaml-ts-mode
-      :straight (:type built-in)
-      :after mixed-pitch
-      :mode ((rx ".yamllint")
-             (rx ".y" (optional "a") "ml" string-end))
-      :hook (yaml-ts-mode . (lambda () (mixed-pitch-mode -1)))
-      :mode-hydra
-      ((:foreign-keys run)
-       ("Simple"
-        (("l" ha-yaml-next-section "Next section")
-         ("h" ha-yaml-prev-section "Previous"))))))
+  (use-package yaml-mode
+    :after mixed-pitch
+    :mode ((rx ".yamllint")
+           (rx ".y" (optional "a") "ml" string-end))
+    :hook (yaml-mode . (lambda () (mixed-pitch-mode -1)))
+    :mode-hydra
+    ((:foreign-keys run)
+     ("Simple"
+      (("l" ha-yaml-next-section "Next section")
+       ("h" ha-yaml-prev-section "Previous")))))
 #+end_src
 
 Allow this mode in Org blocks:
 #+begin_src emacs-lisp :results silent
-  (add-to-list 'org-babel-load-languages '(yaml-ts . t))
+  (add-to-list 'org-babel-load-languages '(yaml . t))
 #+end_src
 
 And we hook
 #+begin_src emacs-lisp
   (use-package yaml-pro
     :straight (:host github :repo "zkry/yaml-pro")
-    :after yaml-ts-mode
-    :hook ((yaml-ts-mode . yaml-pro-ts-mode)
-           (yaml-mode . yaml-pro-mode)))
+    :after yaml-mode
+    :hook ((yaml-mode . yaml-pro-mode)))
 #+end_src
 
 Since I can never remember too many keybindings for particular nodes, we create a Hydra just for it.
 
 #+begin_src emacs-lisp
+  (defvar ha-yaml--title (font-icons 'devicon "yaml" :title "YAML Mode"))
   (use-package major-mode-hydra
     :after yaml-pro
     :config
-    (major-mode-hydra-define yaml-ts-mode (:foreign-keys run)
+    (major-mode-hydra-define yaml-mode (:title ha-yaml--title :foreign-keys run)
       ("Navigation"
        (("u" yaml-pro-ts-up-level "Up level" :color pink) ; C-c C-u
         ("J" yaml-pro-ts-next-subtree "Next subtree" :color pink) ; C-c C-n
@@ -171,10 +168,12 @@ Jinja is a /template/ system that integrates /inside/ formats like JSON, HTML or
 The [[https://polymode.github.io/][polymode]] project /glues/ modes like [[https://github.com/paradoxxxzero/jinja2-mode][jinja2-mode]] to [[https://github.com/yoshiki/yaml-mode][yaml-mode]].
 
 I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project:
-#+begin_src emacs-lisp
+
+#+begin_src emacs-lisp :tangle no
   (use-package polymode
+    :after yaml-mode jinja2-mode
     :config
-    (define-hostmode poly-yaml-hostmode :mode 'yaml-ts-mode)
+    (define-hostmode poly-yaml-hostmode :mode 'yaml-mode)
 
     (defcustom pm-inner/jinja2
       (pm-inner-chunkmode :mode #'jinja2-mode
@@ -195,23 +194,23 @@ I adapted this code from the [[https://github.com/emacsmirror/poly-ansible][poly
       :hostmode 'poly-yaml-hostmode
       :innermodes '(pm-inner/jinja2))
 
-    (major-mode-hydra-define+ yaml-ts-mode nil
+    (major-mode-hydra-define+ yaml-mode nil
       ("Extensions" (("j" poly-yaml-jinja2-mode "Jinja2")))))
 #+end_src
 
 We need to make sure the =mixed-pitch-mode= doesn’t screw things up.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (add-hook 'poly-yaml-jinja2-mode-hook (lambda () (mixed-pitch-mode -1)))
 #+end_src
 
 We /can/ hook this up to Org, via:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (add-to-list 'org-babel-load-languages '(poly-yaml-jinja2 . t))
 #+end_src
 
-Now we can use either =yaml-ts= or =poly-yaml-jinja2= (which perhaps we should make an alias?):
+Now we can use either =yaml= or =poly-yaml-jinja2= (which perhaps we should make an alias?):
 
 #+begin_src poly-yaml-jinja2 :tangle no
   ---
@@ -230,15 +229,16 @@ Now we can use either =yaml-ts= or =poly-yaml-jinja2= (which perhaps we should m
 #+end_src
 * Ansible
 Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/emacs-ansible][ansible-mode]]? Maybe we just have a toggle for when we want the Ansible feature.
+
 #+begin_src emacs-lisp
   (use-package ansible
-    :straight (:host github :repo "k1LoW/emacs-ansible")
+    :straight (:host gitlab :repo "emacs-ansible/emacs-ansible")
     ;; :mode ((rx (or "playbooks" "roles") (one-or-more any) ".y" (optional "a") "ml") . ansible-mode)
     :config
     (setq ansible-vault-password-file "~/.ansible-vault-passfile")
-    (major-mode-hydra-define+ yaml-ts-mode nil
-       ("Extensions" (("a" ansible "Ansible"))))
-    (ha-leader "t y" 'ansible))
+    (major-mode-hydra-define+ yaml-mode nil
+       ("Extensions" (("a" ansible-mode "Ansible"))))
+    (ha-leader "t y" 'ansible-mode))
 #+end_src
 
 The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable needs to change /per project/, so let’s use the =.dir-locals.el= file, for instance:
@@ -246,15 +246,23 @@ The [[help:ansible-vault-password-file][ansible-vault-password-file]] variable n
   ((nil . ((ansible-vault-password-file . "playbooks/.vault-password"))))
 #+end_src
 
+Since most Ansible files are a combination of YAML and Jinja, the [[https://github.com/emacsmirror/poly-ansible][poly-ansible]] project addresses this similar to =web-mode=:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package poly-ansible
+    :straight (:host github :repo "emacsmirror/poly-ansible")
+    :after ansible)
+#+END_SRC
+
 The YAML files get access Ansible’s documentation using the [[https://github.com/emacsorphanage/ansible-doc][ansible-doc]] project (that accesses the [[https://docs.ansible.com/ansible/latest/cli/ansible-doc.html][ansible-doc interface]]):
 
 #+begin_src emacs-lisp
   (use-package ansible-doc
-    :after yaml-ts-mode
-    :hook (yaml-ts-mode . ansible-doc-mode)
+    :after yaml-mode
+    :hook (yaml-mode . ansible-doc-mode)
     :config
     ;; (add-to-list 'exec-path (expand-file-name "~/.local/share/mise/installs/python/3.10/bin/ansible-doc"))
-    (major-mode-hydra-define+ yaml-ts-mode nil
+    (major-mode-hydra-define+ yaml-mode nil
        ("Documentation"
         (("D" ansible-doc "Ansible")))))
 #+end_src
