@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ignore-lines
+# key: <ils
+# --
+<!--- pyml disable-num-lines ${1} ${2:$$(yas-choose-value '("line-length" "no-bare-urls" "code-fence-style" ))} -->

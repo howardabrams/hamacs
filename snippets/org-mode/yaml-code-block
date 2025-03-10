@@ -1,0 +1,6 @@
+# key: <sy
+# name: yaml-code-block
+# --
+#+BEGIN_SRC yaml
+$0
+#+END_SRC

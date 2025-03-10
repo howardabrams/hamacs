@@ -1,0 +1,4 @@
+# key: <inl
+# name: ignore-next-line
+# --
+<!--- pyml disable-next-line ${1:$$(yas-choose-value '("line-length" "no-bare-urls" "code-fence-style" ))} -->
