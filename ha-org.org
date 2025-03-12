@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-03-01 Sat]
+#+lastmod: [2025-03-11 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -879,7 +879,7 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "s t s" '("synonyms" . powerthesaurus-lookup-synonyms-dwim)
       "s t a" '("antonyms" . powerthesaurus-lookup-antonyms-dwim)
       "s t r" '("related" . powerthesaurus-lookup-related-dwim)
-      "s t u" '("usages" . powerthesaurus-lookup-sentences-dwim)))))
+      "s t u" '("usages" . powerthesaurus-lookup-sentences-dwim)))
 #+end_src
 
 The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader.
