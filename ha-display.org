@@ -79,7 +79,20 @@ I get issues with Magic and Dimmer, so let’s turn off this feature in certain 
 #+end_src
 
 As an interesting alternative, check out the [[https://www.emacs.dyerdwelling.family/emacs/20240208164549-emacs-selected-window-accent-mode-now-on-melpa/][selected-window-accent]] project.
-* Find the Bloody Cursor
+** Ultra Scroll
+
+The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows smoother scrolling of text and images. While this splits text at the top/bottom of buffer windows, we no longer work within a 80x24 text matrix. Large images would
+either be "there or not" which resulted large jumps and large distractions.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ultra-scroll
+    :straight (:type git :host github :repo "jdtsmith/ultra-scroll")
+    :config
+    (setq scroll-conservatively 101 ; important!
+        scroll-margin 0)
+    (ultra-scroll-mode 1))
+#+END_SRC
+** Find the Bloody Cursor
 Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
 
 #+begin_src emacs-lisp

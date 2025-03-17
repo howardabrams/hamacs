@@ -26,9 +26,9 @@ If I want to build from source (and not build from Homebrew), install all the de
     libtiff jansson libpng librsvg gnutls cmake
 #+end_src
 
-To get the native compilation for Emacs working, install:
+To get the native compilation for Emacs working, I [[https://github.com/d12frosted/homebrew-emacs-plus/issues/680#issuecomment-2481633820][need to *un*-install]], as the new brew recipe will take care of this:
 #+begin_src sh
-  brew install libgccjit
+  brew uninstall libgccjit gcc
 #+end_src
 
 Oh, and if we are still building with [[https://imagemagick.org/][ImageMagick]], install that first:
