@@ -26,7 +26,7 @@
 ;; using the ox.el export engine.
 ;;
 ;; Put this file into your load-path and the following into your ~/.emacs:
-;;	 (require 'ox-confluence)
+;;       (require 'ox-confluence)
 ;;
 ;; Export Org files to confluence:
 ;; M-x org-confluence-export-as-confluence RET
@@ -98,16 +98,17 @@
 
 (defun org-confluence-checkbox (checkbox info)
   "Format CHECKBOX into Confluence (even though Confluence won't take it.  We take the CHECKBOX to be either 'on' or 'off' and we ignore INFO."
-  (case checkbox (on "(/)")
-        (off "(x)")
-        (trans "(-)")
-        (t "")))
+  (cl-case checkbox
+    (on "(/)")
+    (off "(x)")
+    (trans "(-)")
+    (t "")))
 
 (defun org-confluence-plain-list (plain-list contents info)
   "Wrap a list with the html-ish stuff, but only if descriptive."
   (let* (arg1 ;; (assoc :counter (org-element-map plain-list 'item
          (type (org-element-property :type plain-list)))
-    (case type
+    (cl-case type
       (descriptive (format "{html}<dl>\n%s\n</dl>{html}" contents))
       (otherwise   contents))))
 
@@ -120,7 +121,7 @@
         (br "\n\n"))
     (message "Got %s with %s" type contents)
     (concat
-     (case type
+     (cl-case type
        (ordered
         (let* ((counter term-counter-id)
                (extra (if counter (format " value=\"%s\"" counter) "")))
