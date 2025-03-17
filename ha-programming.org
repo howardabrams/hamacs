@@ -1157,7 +1157,8 @@ And then we can use it. For some reason, the =pymarkdown= (which I need to use f
   (use-package markdown-mode
     :after flycheck
     :config
-    (setq flycheck-markdown-pymarkdown-config ".pymarkdown.yml")
+    (setq flycheck-markdown-pymarkdown-config
+          (expand-file-name ".pymarkdown.yml" (getenv "HOME")))
     (flycheck-may-enable-checker 'markdown-pymarkdown))
 #+end_src
 
