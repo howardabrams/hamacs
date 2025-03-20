@@ -162,6 +162,7 @@ While not as fast as [[https://github.com/akermu/emacs-libvterm][vterm]], the [[
                              ("terminfo/65" "terminfo/65/*")
                              ("integration" "integration/*")
                              (:exclude ".dir-locals.el" "*-tests.el")))
+    :commands (eat eat-make eat-project)
     :bind (:map eat-semi-char-mode-map
                 ("C-c C-t" . ha-eat-narrow-to-shell-prompt-dwim))
     :config
@@ -475,7 +476,7 @@ We'll give =openstack= CLI a =--format json= option to make it easier for parsin
 #+begin_src emacs-lisp
   (defun ha-ssh-overcloud-query-for-hosts ()
     "If the overcloud cache hasn't be populated, ask the user if we want to run the command."
-    (when (not ha-ssh-favorite-hostnames)
+    (unless ha-ssh-favorite-hostnames
       (when (y-or-n-p "Cache of Overcloud hosts aren't populated. Retrieve hosts?")
         (call-interactively 'ha-ssh-overcloud-cache-populate))))
 
@@ -488,7 +489,7 @@ We'll do the work of getting the /server list/ with this function:
   (defun ha-ssh-overcloud-cache-populate (cluster)
     "Given an `os-cloud' entry, stores all available hostnames.
   Calls `ha-ssh-add-favorite-host' for each host found."
-    (interactive (list (completing-read "Cluster: " '(devprod501 devprod502))))
+    (interactive (list (completing-read "Cluster: " '(devprod501 devprod502 devprod502-yawxway))))
     (message "Calling the `openstack' command...this will take a while. Grab a coffee, eh?")
     (let* ((command (format "openstack --os-cloud %s server list --no-name-lookup -f json" cluster))
            (json-data (thread-last command
@@ -496,10 +497,12 @@ We'll do the work of getting the /server list/ with this function:
                                    (json-read-from-string))))
       (dolist (entry (seq--into-list json-data))
         (ha-ssh-add-favorite-host (alist-get 'Name entry)
-                                  (thread-last entry
-                                               (alist-get 'Networks)
-                                               (alist-get 'cedev13)
-                                               (seq-first))))
+                                  (or
+                                   (thread-last entry
+                                                (alist-get 'Networks)
+                                                (alist-get 'cedev13)
+                                                (seq-first))
+                                   (alist-get 'Name entry))))
       (message "Call to `openstack' complete. Found %d hosts." (length json-data))))
 #+end_src
 
@@ -554,3 +557,7 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# eval: (org-next-visible-heading 1)
+# End:

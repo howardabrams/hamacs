@@ -43,6 +43,9 @@ I like =debug-on-error=, but not in Eshell, so I set this up when entering Eshel
     (setq mode-line-format nil))
 #+end_src
 ** Directory Notification
+:PROPERTIES:
+:ID:       AD963BB5-6346-46C0-A364-4C8AEBA29882
+:END:
 While most people put the “current directory” in their shell prompt, I’ve always found that pretty distracting, difficult when copy/pasting commands, and cuts out on the length of my commands (which might be a good thing, tbh).
 
 I use the =header-line= for this.
@@ -155,7 +158,7 @@ Keep in mind that the predicates are somewhat finicky. For instance, the followi
   mv $f $f(:r).txt
 #+end_src
 
-But you could call this:
+Instead, call this:
 
 #+begin_src sh
   mv $f $f(:s/org$/txt/)
@@ -1247,23 +1250,6 @@ I use =ex= to refer to both =en= / =ec=. Use cases:
 
 The =-c= option can be combined with the /command/, but I don’t want it to grab the last output, as I think I would just like to send text to the notebook as after thoughts. If the option to =-c= is blank, perhaps it just calls the capture template to allow me to enter voluminous content.
 
-This requires capture templates that don’t do any formatting. I will reused =c c= from [[file:ha-capturing-notes.org::*General Notes][capturing-notes]] code, and create other templates under =e= prefix:
-#+begin_src emacs-lisp
-  ;; (setq org-capture-templates nil)
-  (add-to-list 'org-capture-templates
-               '("e" "Engineering Notebook"))
-
-  (add-to-list 'org-capture-templates
-               '("ee" "Notes and Commentary" plain
-                 (file+olp+datetree org-default-notes-file "General Notes")
-                 "%i" :empty-lines 1 :tree-type month :unnarrowed t))
-
-  (add-to-list 'org-capture-templates
-               '("ef" "Piped-in Contents" plain
-                 (file+olp+datetree org-default-notes-file "General Notes")
-                 "%i" :immediate-finish t :empty-lines 1 :tree-type month))
-#+end_src
-
 #+begin_src emacs-lisp
   (defun ha-eshell-engineering-notebook (capture-template args)
     "Capture commands and output from Eshell into an Engineering Notebook.
@@ -1328,7 +1314,33 @@ This requires capture templates that don’t do any formatting. I will reused =c
       ;; Return output from the command, or nothing if there wasn't anything:
       (or output "")))
 #+end_src
-And now we have a =en= and a =ec= version:
+
+This requires capture templates that don’t do any formatting. I will reused =c c= from [[file:ha-capturing-notes.org::*General Notes][capturing-notes]] code, and create other templates under =e= prefix:
+
+#+begin_src emacs-lisp
+  (add-to-list 'org-capture-templates '("e" "Engineering Notebook"))
+
+  (add-to-list 'org-capture-templates
+               '("ee" "Notes and Commentary" plain
+                 (file+olp+datetree org-default-notes-file "General Notes")
+                 "%i" :empty-lines 1 :tree-type month :unnarrowed t))
+
+  (add-to-list 'org-capture-templates
+               '("ef" "Piped-in Contents" plain
+                 (file+olp+datetree org-default-notes-file "General Notes")
+                 "%i" :immediate-finish t :empty-lines 1 :tree-type month))
+#+end_src
+
+The =cap= function simply calls [[help-org-capture][org-capture]] with [[info:org#Template elements][a template]]:
+
+#+begin_src emacs-lisp
+  (defun eshell/cap (&rest args)
+    "Call `org-capture' with the `ee' template to enter text into the engineering notebook."
+    (org-capture nil "ee"))
+#+end_src
+
+The =en= and =ec= functions, since they do /pre-processing/ before calling =org-capture= calls some helper functions:
+
 #+begin_src emacs-lisp
   (defun eshell/en (&rest args)
     "Call `ha-eshell-engineering-notebook' to \"General Notes\"."
@@ -1341,12 +1353,7 @@ And now we have a =en= and a =ec= version:
     (ha-eshell-engineering-notebook "cc" args))
 #+end_src
 
-This function simply calls [[help-org-capture][org-capture]] with [[info:org#Template elements][a template]]:
-#+begin_src emacs-lisp
-  (defun eshell/cap (&rest args)
-    "Call `org-capture' with the `ee' template to enter text into the engineering notebook."
-    (org-capture nil "ee"))
-#+end_src
+In order to have /devices/, for instance =some-command > e=, we define some functions:
 
 #+begin_src emacs-lisp
   (defun ha-eshell-target-engineering-notebook (output)
@@ -1357,7 +1364,9 @@ This function simply calls [[help-org-capture][org-capture]] with [[info:org#Tem
     "Write OUTPUT into the current clocked in task via `org-capture'."
     (ha-eshell-engineering-capture "cc" nil nil output))
 #+end_src
-And finally, add our new functions to [[elisp(describe-variable 'eshell-virtual-targets)][eshell-virtual-targets]]:
+
+And add these functions to [[elisp(describe-variable 'eshell-virtual-targets)][eshell-virtual-targets]], after =eshell= has been loaded:
+
 #+begin_src emacs-lisp
   (with-eval-after-load "eshell"
     (add-to-list 'eshell-virtual-targets '("/dev/e" ha-eshell-target-engineering-notebook nil))
@@ -1505,8 +1514,11 @@ Now tie it all together with a prompt function can color each of the prompts com
 
   (setq-default eshell-prompt-function #'eshell/eshell-local-prompt-function)
 #+end_src
+
 Here is the result:
-[[http://imgur.com/nkpwII0.png]]
+[[file:screenshots/eshell-special-prompt.png]]
+
+To be honest, this sort of prompt is garish and distracting. A better approach is to have that information in either the mode line, or a [[Directory Notification][header-line]].
 ** Simple Prompt with Mode Line
 To achieve more /screen estate/, leave your prompt simple:
 #+begin_src emacs-lisp
@@ -1615,6 +1627,17 @@ And let’s bind it:
 #+begin_src emacs-lisp
   (bind-key "C-!" 'eshell-here)
 #+end_src
+
+Obviously, I usually want to open a shell in the root of the current project.
+
+#+BEGIN_SRC emacs-lisp
+  (defun eshell-project ()
+    "Call `eshell-there' with the current project root."
+    (interactive)
+    (eshell-there (or (project-root (project-current))
+                      default-directory)))
+    #+END_SRC
+
 ** Shell Over There
 Would be nice to be able to run an eshell session and use Tramp to connect to the remote host in one fell swoop:
 #+begin_src emacs-lisp
