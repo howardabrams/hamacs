@@ -49,6 +49,53 @@ Note: Install the following checks:
   pip install flake8 pylint pyright mypy pycompile
 #+end_src
 Or better yet, add those to the =requirements-dev.txt= file.
+
+All the above loveliness can be easily accessible with a [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]] defined for =emacs-lisp-mode=:
+
+#+begin_src emacs-lisp
+    (use-package major-mode-hydra
+      :config
+      (defvar ha-python-eval-title (font-icons 'mdicon "run" :title "Python Evaluation"))
+      (defvar ha-python-goto-title (font-icons 'faicon "python" :title "Python Symbol References"))
+
+      (pretty-hydra-define python-evaluate (:color blue :quit-key "q"
+                                            :title ha-python-eval-title)
+        ("Section"
+         (("f" python-shell-send-defun "Function/Class")
+          ("e" python-shell-send-statement "Line")
+          (";" python-shell-send-string "Expression"))
+         "Entirety"
+         (("F" python-shell-send-file "File")
+          ("B" python-shell-send-buffer "Buffer")
+          ("r" python-shell-send-region "Region"))))
+
+      (pretty-hydra-define python-goto (:color blue :quit-key "q"
+                                        :title ha-python-goto-title)
+        ("Symbols"
+         (("s" xref-find-apropos "Find Symbol")
+          ("e" python-shell-send-statement "Line")
+          (";" python-shell-send-string "Expression"))
+         "Entirety"
+         (("F" python-shell-send-file "File")
+          ("B" python-shell-send-buffer "Buffer")
+          ("r" python-shell-send-region "Region"))))
+
+      (major-mode-hydra-define python-mode (:quit-key "q" :color blue)
+        ("Server"
+         (("S" run-python "Start Server")
+          ("s" python-shell-switch-to-shell "Go to Server"))
+         "Edit"
+         (("r" iedit-mode "Rename")
+          (">" python-indent-shift-left "Shift Left")
+          ("<" python-indent-shift-right "Shift Right"))
+         "Navigate/Eval"
+         (("e" python-evaluate/body "Evaluate...")
+          ("g" python-goto/body "Go to..."))
+         "Docs"
+         (("d" python-eldoc-at-point "Docs on Symbol")
+          ("D" python-describe-at-point "Describe Symbol")))))
+#+end_src
+
 ** Virtual Environment
 For a local virtual machine, put the following in your =.envrc= file:
 #+begin_src conf
@@ -68,16 +115,16 @@ use python 3.7.1
 
 Also, you need the following in your =~/.config/direnv/direnvrc= file (which I have):
 #+begin_src shell
-use_python() {
-  local python_root=$(pyenv root)/versions/$1
-  load_prefix "$python_root"
-  if [[ -x "$python_root/bin/python" ]]; then
-    layout python "$python_root/bin/python"
-  else
-    echo "Error: $python_root/bin/python can't be executed."
-    exit
-  fi
-}
+  use_python() {
+    local python_root=$(pyenv root)/versions/$1
+    load_prefix "$python_root"
+    if [[ -x "$python_root/bin/python" ]]; then
+      layout python "$python_root/bin/python"
+    else
+      echo "Error: $python_root/bin/python can't be executed."
+      exit
+    fi
+  }
 #+end_src
 ** Editing Python Code
 Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
@@ -96,11 +143,11 @@ Enough of the rant (I go back and forth), after getting Docker installed and run
 
 Your project's =.envrc= file would contain something like:
 #+begin_src shell
-CONTAINER_NAME=my-docker-container
-CONTAINER_WRAPPERS=(python3 pip3 yamllint)
-CONTAINER_EXTRA_ARGS="--env SOME_ENV_VAR=${SOME_ENV_VAR}"
+  CONTAINER_NAME=my-docker-container
+  CONTAINER_WRAPPERS=(python3 pip3 yamllint)
+  CONTAINER_EXTRA_ARGS="--env SOME_ENV_VAR=${SOME_ENV_VAR}"
 
-container_layout
+  container_layout
 #+end_src
 ** Unit Tests
 #+begin_src emacs-lisp
@@ -108,21 +155,31 @@ container_layout
     :after python
     :commands python-pytest-dispatch
     :init
-    (ha-local-leader :keymaps 'python-mode-map
-      "t" '(:ignore t :which-key "tests")
-      "t a" '("all" . python-pytest)
-      "t f" '("file dwim" . python-pytest-file-dwim)
-      "t F" '("file" . python-pytest-file)
-      "t t" '("function-dwim" . python-pytest-function-dwim)
-      "t T" '("function" . python-pytest-function)
-      "t r" '("repeat" . python-pytest-repeat)
-      "t p" '("dispatch" . python-pytest-dispatch)))
+    (use-package major-mode-hydra
+      :config
+      (defvar ha-python-tests-title (font-icons 'devicon "pytest" :title "Python Test Framework"))
+      (pretty-hydra-define python-tests (:color blue :quit-key "q"
+                                                :title ha-python-tests-title)
+        ("Suite"
+         (("a" python-pytest "All")
+          ("f" python-pytest-file-dwim "File DWIM")
+          ("F" python-pytest-file "File"))
+         "Specific"
+         (("d" python-pytest-function-dwim "Function DWIM")
+          ("D" python-pytest-function "Function"))
+         "Again"
+         (("r" python-pytest-repeat "Repeat tests")
+          ("p" python-pytest-dispatch "Dispatch"))))
+
+      (major-mode-hydra-define+ python-mode (:quit-key "q" :color blue)
+        ("Misc"
+         (("t" python-tests/body "Tests..."))))))
 #+end_src
 ** Python Dependencies
 Each Python project's =requirements-dev.txt= file would reference the [[https://pypi.org/project/python-lsp-server/][python-lsp-server]] (not the /unmaintained/ project, =python-language-server=):
 
 #+begin_src conf :tangle no
-python-lsp-server[all]
+  python-lsp-server[all]
 #+end_src
 
 *Note:* This does mean, you would have a =tox.ini= with this line:
@@ -144,114 +201,99 @@ python-lsp-server[all]
 *** Pyright
 I’m using the Microsoft-supported [[https://github.com/Microsoft/pyright][pyright]] package instead. Adding this to my =requirements.txt= files:
 #+begin_src conf :tangle no
-pyright
+  pyright
 #+end_src
 
 The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP.
 
 #+begin_src emacs-lisp :tangle no
-(use-package lsp-pyright
-    :hook (python-mode . (lambda () (require 'lsp-pyright)))
-    :init (when (executable-find "python3")
-              (setq lsp-pyright-python-executable-cmd "python3")))
+  (use-package lsp-pyright
+      :hook (python-mode . (lambda () (require 'lsp-pyright)))
+      :init (when (executable-find "python3")
+                (setq lsp-pyright-python-executable-cmd "python3")))
 #+end_src
 * LSP Integration of Python
-Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I turn it on with ~, w s~.
+Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I conditionally turn it on.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
+  (defvar ha-python-lsp-title (font-icons 'faicon "python" :title "Python LSP"))
+
+  (defun ha-setup-python-lsp ()
+    "Configure the keybindings for LSP in Python."
+    (interactive)
+
+    (pretty-hydra-define python-lsp (:color blue :quit-key "q"
+                                     :title ha-python-lsp-title)
+      ("Server"
+       (("D" lsp-disconnect "Disconnect")
+        ("R" lsp-workspace-restart "Restart")
+        ("S" lsp-workspace-shutdown "Shutdown")
+        ("?" lsp-describe-session "Describe"))
+       "Refactoring"
+       (("a" lsp-execute-code-action "Code Actions")
+        ("o" lsp-organize-imports "Organize Imports")
+        ("l" lsp-avy-lens "Avy Lens"))
+       "Toggles"
+       (("b" lsp-headerline-breadcrumb-mode "Breadcrumbs")
+        ("d" lsp-ui-doc-mode "Documentation Popups")
+        ("m" lsp-modeline-diagnostics-mode "Modeline Diagnostics")
+        ("s" lsp-ui-sideline-mode "Sideline Mode"))
+       ""
+       (("t" lsp-toggle-on-type-formatting "Type Formatting")
+        ("h" lsp-toggle-symbol-highlight "Symbol Highlighting")
+        ("L" lsp-toggle-trace-io "Log I/O"))))
+
+    (pretty-hydra-define+ python-goto (:quit-key "q")
+      ("LSP"
+       (("g" lsp-find-definition "Definition")
+        ("d" lsp-find-declaration "Declaration")
+        ("r" lsp-find-references "References")
+        ("t" lsp-find-type-definition "Type Definition"))
+       "Peek"
+       (("D" lsp-ui-peek-find-definitions "Definitions")
+        ("I" lsp-ui-peek-find-implementation "Implementations")
+        ("R" lsp-ui-peek-find-references "References")
+        ("S" lsp-ui-peek-find-workspace-symbol "Symbols"))
+       "LSP+"
+       (("u" lsp-ui-imenu "UI Menu")
+        ("i" lsp-find-implementation "Implementations")
+        ("h" lsp-treemacs-call-hierarchy "Hierarchy")
+        ("E" lsp-treemacs-errors-list "Error List"))))
+
+    (major-mode-hydra-define+ python-mode nil
+      ("Server"
+       (("l" python-lsp/body "LSP..."))
+       "Edit"
+       (("r" lsp-rename "Rename")
+        ("=" lsp-format-region "Format"))
+       "Navigate"
+       (("A" lsp-workspace-folders-add "Add Folder")
+        ("R" lsp-workspace-folders-remove "Remove Folder"))
+       "Docs"
+       (("D" lsp-describe-thing-at-point "Describe LSP Symbol")
+        ("h" lsp-ui-doc-glance "Glance Help")
+        ("H" lsp-document-highlight "Highlight"))))
+
+    (call-interactively 'lsp))
+
   (use-package lsp-mode
-    ;; :hook ((python-mode . lsp)))
     :config
-    (ha-local-leader :keymaps 'lsp-mode-map
-      "0" '("treemacs" . lsp-treemacs-symbols)
+    (major-mode-hydra-define+ python-mode (:quit-key "q")
+      ("Server"
+       (("L" ha-setup-python-lsp "Start LSP Server")))))
 
-      "/" '("complete" . completion-at-point)
-      "k" '("check code" . python-check)
-      "]" '("shift left" . python-indent-shift-left)
-      "[" '("shift right" . python-indent-shift-right)
-
-      ;; actions
-      "a" '(:ignore t :which-key "code actions")
-      "aa" '("code actions" . lsp-execute-code-action)
-      "ah" '("highlight symbol" . lsp-document-highlight)
-      "al" '("lens" . lsp-avy-lens)
-
-      ;; formatting
-      "=" '(:ignore t :which-key "formatting")
-      "==" '("format buffer" . lsp-format-buffer)
-      "=r" '("format region" . lsp-format-region)
-
-      "e" '(:ignore t :which-key "eval")
-      "e P" '("run python" . run-python)
-      "e e" '("send statement" . python-shell-send-statement)
-      "e b" '("send buffer" . python-shell-send-buffer)
-      "e f" '("send defun" . python-shell-send-defun)
-      "e F" '("send file" . python-shell-send-file)
-      "e r" '("send region" . python-shell-send-region)
-      "e ;" '("expression" . python-shell-send-string)
-      "e p" '("switch-to-shell" . python-shell-switch-to-shell)
-
-      ;; folders
-      "F" '(:ignore t :which-key "folders")
-      "Fa" '("add folder" . lsp-workspace-folders-add)
-      "Fb" '("un-blacklist folder" . lsp-workspace-blacklist-remove)
-      "Fr" '("remove folder" . lsp-workspace-folders-remove)
-
-      ;; goto
-      "g" '(:ignore t :which-key "goto")
-      "ga" '("find symbol in workspace" . xref-find-apropos)
-      "gd" '("find declarations" . lsp-find-declaration)
-      "ge" '("show errors" . lsp-treemacs-errors-list)
-      "gg" '("find definitions" . lsp-find-definition)
-      "gh" '("call hierarchy" . lsp-treemacs-call-hierarchy)
-      "gi" '("find implementations" . lsp-find-implementation)
-      "gm" '("imenu" . lsp-ui-imenu)
-      "gr" '("find references" . lsp-find-references)
-      "gt" '("find type definition" . lsp-find-type-definition)
-
-      ;; peeks
-      "G" '(:ignore t :which-key "peek")
-      "Gg" '("peek definitions" . lsp-ui-peek-find-definitions)
-      "Gi" '("peek implementations" . lsp-ui-peek-find-implementation)
-      "Gr" '("peek references" . lsp-ui-peek-find-references)
-      "Gs" '("peek workspace symbol" . lsp-ui-peek-find-workspace-symbol)
-
-      ;; help
-      "h" '(:ignore t :which-key "help")
-      "he" '("eldoc" . python-eldoc-at-point)
-      "hg" '("glance symbol" . lsp-ui-doc-glance)
-      "hh" '("describe symbol at point" . lsp-describe-thing-at-point)
-      "gH" '("describe python symbol" . python-describe-at-point)
-      "hs" '("signature help" . lsp-signature-activate)
-
-      "i" 'imenu
-
-      ;; refactoring
-      "r" '(:ignore t :which-key "refactor")
-      "ro" '("organize imports" . lsp-organize-imports)
-      "rr" '("rename" . lsp-rename)
-
-      ;; toggles
-      "t" '(:ignore t :which-key "toggle")
-      "tD" '("toggle modeline diagnostics" . lsp-modeline-diagnostics-mode)
-      "tL" '("toggle log io" . lsp-toggle-trace-io)
-      "tS" '("toggle sideline" . lsp-ui-sideline-mode)
-      "tT" '("toggle treemacs integration" . lsp-treemacs-sync-mode)
-      "ta" '("toggle modeline code actions" . lsp-modeline-code-actions-mode)
-      "tb" '("toggle breadcrumb" . lsp-headerline-breadcrumb-mode)
-      "td" '("toggle documentation popup" . lsp-ui-doc-mode)
-      "tf" '("toggle on type formatting" . lsp-toggle-on-type-formatting)
-      "th" '("toggle highlighting" . lsp-toggle-symbol-highlight)
-      "tl" '("toggle lenses" . lsp-lens-mode)
-      "ts" '("toggle signature" . lsp-toggle-signature-auto-activate)
-
-      ;; workspaces
-      "w" '(:ignore t :which-key "workspaces")
-      "wD" '("disconnect" . lsp-disconnect)
-      "wd" '("describe session" . lsp-describe-session)
-      "wq" '("shutdown server" . lsp-workspace-shutdown)
-      "wr" '("restart server" . lsp-workspace-restart)
-      "ws" '("start server" . lsp)))
+  ;; ----------------------------------------------------------------------
+  ;; Missing Symbols to be integrated?
+  ;; "0" '("treemacs" . lsp-treemacs-symbols)
+  ;; "/" '("complete" . completion-at-point)
+  ;; "k" '("check code" . python-check)
+  ;; "Fb" '("un-blacklist folder" . lsp-workspace-blacklist-remove)
+  ;; "hs" '("signature help" . lsp-signature-activate)
+  ;; "tT" '("toggle treemacs integration" . lsp-treemacs-sync-mode)
+  ;; "ta" '("toggle modeline code actions" . lsp-modeline-code-actions-mode)
+  ;; "th" '("toggle highlighting" . lsp-toggle-symbol-highlight)
+  ;; "tl" '("toggle lenses" . lsp-lens-mode)
+  ;; "ts" '("toggle signature" . lsp-toggle-signature-auto-activate)
 #+end_src
 * Project Configuration
 I work with a lot of projects with my team where I need to /configure/ the project such that LSP and my Emacs setup works. Let's suppose I could point a function at a project directory, and have it /set it up/:
@@ -290,6 +332,7 @@ I work with a lot of projects with my team where I need to /configure/ the proje
         (insert "pylsp-rope\n"))
       (shell-command "pip install -r requirements-dev.txt")))
 #+end_src
+* Major Mode Hydra
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 

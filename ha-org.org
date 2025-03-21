@@ -892,7 +892,7 @@ Since the /definitions/ do not work, so let's use the [[https://github.com/abo-a
     :bind ("s-d" . define-word-at-point)
     :config
     (ha-leader :keymaps 'text-mode-map
-      "s d"  '(:ignore t :which-key "thesaurus")
+      "s d"  '(:ignore t :which-key "dictionary")
       "s d d" '("define this word" . define-word-at-point)
       "s d a" '("define any word" . define-word)))
 #+end_src

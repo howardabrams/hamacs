@@ -337,7 +337,7 @@ All the above loveliness can be easily accessible with a [[https://github.com/je
 #+begin_src emacs-lisp
   (use-package major-mode-hydra
     :config
-    (major-mode-hydra-define emacs-lisp-mode (:quit-key "q" :color pink)
+    (major-mode-hydra-define emacs-lisp-mode (:quit-key "q" :color blue)
       ("Evaluating"
        (("e" ha-eval-current-expression "Current")
         ("d" lispy-debug/body "Debugging")
