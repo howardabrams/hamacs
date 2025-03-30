@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-03-03 Mon]
+#+lastmod: [2025-03-21 Fri]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -263,7 +263,7 @@ Command string to use, given a =world= with a connection type:
       (cl-case (aref world 1)
         (telnet (append (cons pud-telnet-path pud-cli-arguments)
                          (list host port)))
-        (ssh    (append (cons pud-cli-filepath-ssh pud-cli-arguments)
+        (ssh    (append (cons pud-ssh-path pud-cli-arguments)
                          (list "-p" port host)))
         (t (error "Unsupported connection type")))))
 #+END_SRC
