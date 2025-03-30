@@ -3,6 +3,8 @@
 #+date:   2021-11-16
 #+tags: emacs python programming
 
+import re
+
 A literate programming file for configuring Python.
 
 #+begin_src emacs-lisp :exports none
@@ -37,80 +39,111 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     (setq python-indent-guess-indent-offset-verbose nil
           flycheck-flake8-maximum-line-length 120)
     :config
-    (when (and (executable-find "ipython")
-               (string= python-shell-interpreter "ipython"))
-        (setq python-shell-interpreter "ipython"))
+    (setq python-shell-interpreter (or (executable-find "ipython") "python"))
 
     (flycheck-add-next-checker 'python-pylint 'python-pycompile 'append))
 #+end_src
 
-Note: Install the following checks:
+** Keybindings
+Instead of memorizing all the Emacs-specific keybindings, we use [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]] defined for =python-mode=:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package major-mode-hydra
+    :after python
+    :config
+    (defvar ha-python-eval-title (font-icons 'mdicon "run" :title "Python Evaluation"))
+    (defvar ha-python-goto-title (font-icons 'faicon "python" :title "Python Symbol References"))
+    (defvar ha-python-refactor-title (font-icons 'faicon "recycle" :title "Python Refactoring"))
+
+    (pretty-hydra-define python-evaluate (:color blue :quit-key "C-g"
+                                          :title ha-python-eval-title)
+      ("Section"
+       (("f" python-shell-send-defun "Function/class")
+        ("e" python-shell-send-statement "Line")
+        (";" python-shell-send-string "Expression"))
+       "Entirety"
+       (("f" python-shell-send-file "File")
+        ("b" python-shell-send-buffer "Buffer")
+        ("r" elpy-shell-send-region-or-buffer "Region"))))
+
+    (pretty-hydra-define python-refactor (:color blue :quit-key "C-g"
+                                          :title ha-python-refactor-title)
+      ("Simple"
+       (("r" iedit-mode "Rename"))
+       "Imports"
+       (("A" python-add-import "Add Import")
+        ("a" python-import-symbol-at-point "Import Symbol")
+        ("F" python-fix-imports "Fix Imports")
+        ("S" python-sort-imports "Sort Imports"))))
+
+    (pretty-hydra-define python-goto (:color pink :quit-key "C-g"
+                                      :title ha-python-goto-title)
+      ("Statements"
+       (("s" xref-find-apropos "Find Symbol" :color blue)
+        ("j" python-nav-forward-statement "Next")
+        ("k" python-nav-backward-statement "Previous"))
+       "Functions"
+       (("F" imenu "Jump Function" :color blue)
+        ("f" python-nav-forward-defun "Forward")
+        ("d" python-nav-backward-defun "Backward")
+        ("e" python-nav-end-of-defun "End of" :color blue))
+       "Blocks"
+       (("u" python-nav-up-list "Up" :color blue)
+        (">" python-nav-forward-block "Forward")
+        ("<" python-nav-backward-block "Backward"))))
+
+    (major-mode-hydra-define python-mode (:quit-key "C-g" :color blue)
+      ("Server"
+       (("S" run-python "Start Server")
+        ("s" python-shell-switch-to-shell "Go to Server"))
+       "Edit"
+       (("r" python-refactor/body "Refactor...")
+        (">" python-indent-shift-left "Shift Left")
+        ("<" python-indent-shift-right "Shift Right"))
+       "Navigate/Eval"
+       (("e" python-evaluate/body "Evaluate...")
+        ("g" python-goto/body "Go to..."))
+       "Docs"
+       (("d" python-eldoc-at-point "Docs on Symbol")
+        ("D" python-describe-at-point "Describe Symbol")))))
+#+end_src
+
+Sections below can add to this with =major-mode-hydra-define+=.
+
+Note: Install the following packages /globally/ for Emacs:
 #+begin_src sh
-  pip install flake8 pylint pyright mypy pycompile
+  pip install flake8 flake8-bugbear pylint pyright mypy pycompile black ruff ipython
 #+end_src
-Or better yet, add those to the =requirements-dev.txt= file.
 
-All the above loveliness can be easily accessible with a [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]] defined for =emacs-lisp-mode=:
+But certainly add those to each project’s =requirements-dev.txt= file.
 
-#+begin_src emacs-lisp
-    (use-package major-mode-hydra
-      :config
-      (defvar ha-python-eval-title (font-icons 'mdicon "run" :title "Python Evaluation"))
-      (defvar ha-python-goto-title (font-icons 'faicon "python" :title "Python Symbol References"))
+iPython has a feature of [[https://ipython.readthedocs.io/en/stable/config/intro.html#python-configuration-files][loading code on startup]] /per profile/. First, create it with:
 
-      (pretty-hydra-define python-evaluate (:color blue :quit-key "q"
-                                            :title ha-python-eval-title)
-        ("Section"
-         (("f" python-shell-send-defun "Function/Class")
-          ("e" python-shell-send-statement "Line")
-          (";" python-shell-send-string "Expression"))
-         "Entirety"
-         (("F" python-shell-send-file "File")
-          ("B" python-shell-send-buffer "Buffer")
-          ("r" python-shell-send-region "Region"))))
+#+BEGIN_SRC sh
+  ipython profile create
+#+END_SRC
 
-      (pretty-hydra-define python-goto (:color blue :quit-key "q"
-                                        :title ha-python-goto-title)
-        ("Symbols"
-         (("s" xref-find-apropos "Find Symbol")
-          ("e" python-shell-send-statement "Line")
-          (";" python-shell-send-string "Expression"))
-         "Entirety"
-         (("F" python-shell-send-file "File")
-          ("B" python-shell-send-buffer "Buffer")
-          ("r" python-shell-send-region "Region"))))
+Next, after reading David Vujic’s [[https://davidvujic.blogspot.com/2025/03/are-we-there-yet.html][Are We There Yet]] essay, I took a look at [[https://github.com/DavidVujic/my-emacs-config?tab=readme-ov-file#python-shell][his Python configuration]], and added the /auto reloading/ feature to the iPython /profile configuration/:
 
-      (major-mode-hydra-define python-mode (:quit-key "q" :color blue)
-        ("Server"
-         (("S" run-python "Start Server")
-          ("s" python-shell-switch-to-shell "Go to Server"))
-         "Edit"
-         (("r" iedit-mode "Rename")
-          (">" python-indent-shift-left "Shift Left")
-          ("<" python-indent-shift-right "Shift Right"))
-         "Navigate/Eval"
-         (("e" python-evaluate/body "Evaluate...")
-          ("g" python-goto/body "Go to..."))
-         "Docs"
-         (("d" python-eldoc-at-point "Docs on Symbol")
-          ("D" python-describe-at-point "Describe Symbol")))))
-#+end_src
+#+BEGIN_SRC python :tangle ~/.ipython/profile_default/ipython_config.py
+  c = get_config()  #noqa
+
+  %load_ext autoreload
+  %autoreload 2
+
+  # c.InteractiveShellApp.extensions = ['autoreload']
+  # c.InteractiveShellApp.exec_lines = ['%autoreload 2']
+#+END_SRC
 
 ** Virtual Environment
-For a local virtual machine, put the following in your =.envrc= file:
-#+begin_src conf
-layout_python3
-#+end_src
-That is pretty slick and simple.
-
-The old way, that we still use if you need a particular version of Python, is to install [[https://github.com/pyenv/pyenv][pyenv]] globally:
+When you need a particular version of Python, use [[https://github.com/pyenv/pyenv][pyenv]] globally:
 #+begin_src sh
-pip install pyenv
+  pip install pyenv
 #+end_src
 
-And have this in your =.envrc= file:
+And have this in your =.envrc= file for use with [[file:ha-programming.org::*Virtual Environments with direnv][direnv]]:
 #+begin_src conf
-use python 3.7.1
+  use python 3.7.1
 #+end_src
 
 Also, you need the following in your =~/.config/direnv/direnvrc= file (which I have):
@@ -175,7 +208,57 @@ Your project's =.envrc= file would contain something like:
         ("Misc"
          (("t" python-tests/body "Tests..."))))))
 #+end_src
-** Python Dependencies
+* Elpy
+The [[https://elpy.readthedocs.io/en/latest/introduction.html][Elpy Project]] expands on the =python-mode=.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package elpy
+    :ensure t
+    :init
+    (elpy-enable))
+#+END_SRC
+
+Let’s expand our =major-mode-hydra= with some extras:
+
+#+begin_src emacs-lisp
+  (use-package major-mode-hydra
+    :after elpy
+    :config
+
+    (pretty-hydra-define python-evaluate (:color blue :quit-key "q"
+                                          :title ha-python-eval-title)
+      ("Section"
+       (("F" elpy-shell-send-defun "Function")
+        ("E" elpy-shell-send-statement "Statement")
+        (";" python-shell-send-string "Expression"))
+       "Entirety"
+       (("B" elpy-shell-send-buffer "Buffer")
+        ("r" elpy-shell-send-region-or-buffer "region"))
+       "And Step..."
+       (("f" elpy-shell-send-defun-and-step "Function" :color pink)
+        ("e" elpy-shell-send-statement-and-step "Statement" :color pink))))
+
+    (pretty-hydra-define+ python-refactor nil
+      ("Elpy"
+       (("r" elpy-refactor-rename "Rename")
+        ("i" elpy-refactor-inline "Inline var")
+        ("v" elpy-refactor-extract-variable "To variable")
+        ("f" elpy-refactor-extract-function "To function")
+        ("a" elpy-refactor-mode "All..."))))
+
+    (major-mode-hydra-define+ python-mode (:quit-key "q" :color blue)
+      ("Server"
+       (("s" elpy-shell-switch-to-shell "Go to Server")
+        ("C" elpy-config "Config Elpy"))
+       "Edit"
+       (("f" elpy-black-fix-code "Fix/format code"))
+       "Docs"
+       (("d" elpy-eldoc-documentation "Describe Symbol")
+        ("D" elpy-doc "Docs Symbol")))))
+#+end_src
+
+* LSP Integration of Python
+** Dependencies
 Each Python project's =requirements-dev.txt= file would reference the [[https://pypi.org/project/python-lsp-server/][python-lsp-server]] (not the /unmaintained/ project, =python-language-server=):
 
 #+begin_src conf :tangle no
@@ -198,7 +281,7 @@ Each Python project's =requirements-dev.txt= file would reference the [[https://
              stestr slowest
   # ...
 #+end_src
-*** Pyright
+** Pyright
 I’m using the Microsoft-supported [[https://github.com/Microsoft/pyright][pyright]] package instead. Adding this to my =requirements.txt= files:
 #+begin_src conf :tangle no
   pyright
@@ -212,7 +295,7 @@ The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP
       :init (when (executable-find "python3")
                 (setq lsp-pyright-python-executable-cmd "python3")))
 #+end_src
-* LSP Integration of Python
+*** Keybindings
 Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I conditionally turn it on.
 
 #+begin_src emacs-lisp

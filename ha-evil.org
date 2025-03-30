@@ -66,7 +66,7 @@ The Escape key act like ~C-g~ and always go back to normal mode?
     ;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
     ;; Let's connect my major-mode-hydra to a global keybinding:
-    (evil-define-key 'normal 'global "," 'major-mode-hydra)
+    (evil-define-key '(normal visual) 'global "," 'major-mode-hydra)
 
     (evil-mode))
 #+end_src

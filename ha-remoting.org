@@ -305,8 +305,8 @@ Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ s
 #+begin_src emacs-lisp
   (defun ha-shell-send (command &optional name)
     "Send COMMAND to existing shell terminal based on DIRECTORY.
-  If you want to refer to another session, specify the correct NAME.
-  This is really useful for scripts and demonstrations."
+    If you want to refer to another session, specify the correct NAME.
+    This is really useful for scripts and demonstrations."
     (unless name
       (setq name ha-latest-ssh-window-name))
 
@@ -314,14 +314,16 @@ Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ s
       (pop-to-buffer name)
       (goto-char (point-max))
       (cond
-        ((eq major-mode 'vterm-mode) (progn
-                                       (vterm-send-string command)
-                                       (vterm-send-return)))
-        ((eq major-mode 'eat-mode) (eat-term-send-string
-                                    ha-eat-terminal (concat command "\n")))
-        (t (progn
-             (insert command)
-             (term-send-input))))))
+       ((eq major-mode 'vterm-mode) (progn
+                                      (vterm-send-string command)
+                                      (vterm-send-return)))
+       ((eq major-mode 'eat-mode) (eat-term-send-string
+                                   ha-eat-terminal (concat command "\n")))
+       (t (progn
+            (insert command)
+            (term-send-input))))))
+
+  (ha-shell-send "exit")
 #+end_src
 
 Let's have a quick way to bugger out of the terminal:
