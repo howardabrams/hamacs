@@ -485,6 +485,9 @@ These interactive functions scroll the “notes” in the other window in anothe
 #+END_SRC
 
 * New Demonstration
+:LOGBOOK:
+CLOCK: [2025-03-26 Wed 09:04]--[2025-03-26 Wed 09:29] =>  0:25
+:END:
 Instead of executing a sequence of demonstration steps, demonstrations key on “state”, that is, the active buffer or major-mode, or the heading of an Org file, etc. I described the [[https://howardism.org/Technical/Emacs/demonstrations-part-two.html][guts of writing this code]], but we bind a key to calling =ha-demo-step= with a list of /state matchers/ to functions to call when matched. For instance:
 
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
@@ -844,8 +847,8 @@ All options? Should I use Common Lisp’s =cl-defun= for the keyword parameters?
         (switch-to-buffer filename))
 
       (if image-minor-mode
-          (goto-char (point-min))
-        (image-transform-fit-to-window))
+          (image-transform-fit-to-window)
+        (goto-char (point-min)))
 
       (ha-demo-set-side-window :size size :modeline modeline
                                :cursor cursor)
@@ -984,18 +987,18 @@ And we can open the shell in a window:
 
       (when command
         (sit-for 1)
-        (ha-shell-send command ha-demo-shell-dir))
+        (ha-shell-send command))
 
       (when (and focus (eq focus 'presentation))
         (pop-to-buffer orig-buf))))
 
   (defun ha-demo-shell-send (command)
     "Send COMMAND to the currently opened shell, `ha-demo-shell'."
-    (ha-shell-send command ha-demo-shell-dir))
+    (ha-shell-send command))
 
   (defun ha-demo-shell-quit ()
     "Close the window associated with a shell."
-    (ha-shell-send "exit" ha-demo-shell-dir)
+    (ha-shell-send "exit")
     (delete-other-windows))
 #+END_SRC
 
