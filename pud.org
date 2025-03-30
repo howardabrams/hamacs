@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-08-05 Tue]
+#+lastmod: [2025-08-08 Fri]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -105,9 +105,26 @@ You will want to customize your connections to the connections, as this program 
 For instance, you could set up a call to =setopt= or customize the =pud-worlds= variable, as in:
 
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
+  (use-package pud
+    :custom
+    (pud-worlds
+     '(["Remote Moss-n-Puddles" 'ssh "howardabrams.com" 4000 "bobby"]
+       ; ↑ No password? Should be in .authinfo.gpg
+
+       ["Local Root" 'telnet "localhost" 4000 "suzy" "some-pass"]
+       ; ↑ This has the password in your custom settings.
+
+       ; ↓ Password from authinfo, special connection string:
+       ["Local User" 'telnet "localhost" 4000 "rick" nil "login %s %s"])))
+#+END_SRC
+
+Or set up the customization in the =init.el= file:
+
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
   (setopt pud-worlds
-        '(["Moss-n-Puddles" ssh "howardabrams.com" 4004 "howard" "" "connect %s %s"]
-          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "rick" "" "connect %s %s"]
+        '(["Moss-n-Puddles" ssh "howardabrams.com" 4004 "howard" "" "\\nconnect %s %s\\n"]
+          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "rick" "" "\\nconnect %s %s\\n"]
+          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "darol" "" "\\nconnect %s %s\\n"]
           ["Local-Moss" telnet "localhost" 4000 "howard" "" ""]
           ["Local-Moss" telnet "localhost" 4000 "rick" "" ""]))
 #+END_SRC
@@ -174,8 +191,9 @@ The following functions are accessibility functions to the world entry.
       world))
 
   (defun pud-world-network (world)
-    "Return the network details for WORLD as a cons cell (HOST . PORT)."
-    (list (aref world 2) (format "%s" (aref world 3))))
+    "Return the network details for WORLD as a list.
+  [Connect-Type Host Port]."
+    (list (aref world 1) (aref world 2) (format "%s" (aref world 3))))
 
   (defun pud-world-creds (world)
     "Return the username and password from WORLD.
@@ -197,14 +215,14 @@ And some basic functions I should expand.
 #+BEGIN_SRC emacs-lisp :tangle no
   (ert-deftest pud-world-name-test ()
     (should (string-equal (pud-world-name "foobar") "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000"]) "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" ""]) "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" nil]) "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" "guest" "guest"]) "guest@foobar")))
+    (should (string-equal (pud-world-name ["foobar" 'telnet "localhost" "4000"]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" 'telnet "localhost" "4000" nil]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" 'telnet "localhost" "4000" ""]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" 'telnet "localhost" "4000" "guest" "guest"]) "guest@foobar")))
 
   (ert-deftest pud-world-network-test ()
-    (should (equal (pud-world-network ["foobar" telnet "overthere" "4000" "guest" "guest"]) '("overthere" "4000")))
-    (should (equal (pud-world-network ["foobar" ssh "overthere" 4000 "guest" "guest"]) '("overthere" "4000"))))
+    (should (equal (pud-world-network ["foobar" telnet "overthere" "4000" "guest" "guest"]) '(telnet "overthere" "4000")))
+    (should (equal (pud-world-network ["foobar" ssh "overthere" 4000 "guest" "guest"]) '(ssh "overthere" "4000"))))
 
   (ert-deftest pud-world-creds-test ()
     ;; Test with no match in authinfo!
@@ -253,8 +271,9 @@ Command string to use, given a =world= with a connection type:
   (defun pud-cli-command (world)
     "Return a command string to pass to the shell.
   The WORLD is a vector with the hostname, see `pud-worlds'."
-    (seq-let (host port) (pud-world-network world)
-      (cl-case (aref world 1)
+    (seq-let (connection-type host port) (pud-world-network world)
+      (message "Dealing with: %s %s %s" connection-type host port)
+      (cl-case connection-type
         (telnet (append (cons pud-telnet-path pud-cli-arguments)
                          (list host port)))
         (ssh    (append (cons pud-ssh-path pud-cli-arguments)
@@ -318,6 +337,7 @@ The main entry point to the program is the =pud-run= function:
            (process (get-buffer-process buffer)))
       ;; if the process is dead then re-create the process and reset the
       ;; mode.
+      (message "Gonna %s with %s" (car pud-cli) (cdr pud-cli))
       (unless proc-alive
         (with-current-buffer buffer
           (apply 'make-comint-in-buffer "Pud" buffer (car pud-cli) nil (cdr pud-cli))
