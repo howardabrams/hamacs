@@ -1,0 +1,376 @@
+#+TITLE:  Zshell
+#+AUTHOR: Howard Abrams
+#+EMAIL:  howard@howardabrams.com
+#+DATE:   2025-03-30 Sun
+#+LASTMOD: [2025-03-30 Sun]
+#+FILETAGS: technical
+#+STARTUP: inlineimages
+
+No, I haven’t eschewed my beloved Eshell, but at work, I’m often required to work with Bash snippets and code. This requires using a standard shell environment. This file includes my notes on Zshell, as well my configuration, when tangled.
+
+This creates the following files:
+
+  - =~/.zshenv= :: Usually run for every zsh
+  - =~/.zshrc= :: Run for interactive shells … default file when tangling
+  - =~/.zlogin= :: Run for login shells
+
+#+BEGIN_SRC zsh :exports none
+  #!/usr/bin/env zsh
+  #
+  # My complete Zshell configuration. Don't edit this file.
+  # Instead edit: ~/technical/zshell.org and tangle it.
+  #
+#+END_SRC
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv :exports none
+  #!/usr/bin/env zsh
+  #
+  # Non-interactive, mostly easily settable environment variables. Don't
+  # edit this file. # Instead edit: ~/technical/zshell.org and tangle.
+  #
+#+END_SRC
+
+* Path
+The all important =PATH= environment variable, needs my special =bin= directory.
+
+#+BEGIN_SRC zsh :export ~/.zshenv
+  export PATH=$HOME/bin:$PATH
+#+END_SRC
+
+* Options
+When the command is the name of a directory, perform the =cd= command to that directory:
+
+#+BEGIN_SRC zsh
+setopt AUTO_CD
+#+END_SRC
+
+Make =cd= push the old directory onto the directory stack so that =popd= always works:
+
+#+BEGIN_SRC zsh
+setopt AUTO_PUSHD
+#+END_SRC
+
+Print the working directory after a =cd=, but only if that was magically expanded:
+
+#+BEGIN_SRC zsh
+setopt NO_CD_SILENT
+#+END_SRC
+
+Automatically list choices on an ambiguous completion:
+
+#+BEGIN_SRC zsh
+setopt AUTO_LIST
+#+END_SRC
+
+Automatically use menu completion after the second consecutive request for completion:
+
+#+BEGIN_SRC zsh
+setopt AUTO_MENU
+#+END_SRC
+
+Try to make the completion list smaller (occupying less lines) by printing the matches in columns with different widths:
+
+#+BEGIN_SRC zsh
+setopt LIST_PACKED
+#+END_SRC
+
+On an ambiguous completion, instead of listing possibilities or beeping, insert the first match immediately. Then when completion is requested again, remove the first match and insert the second match, etc.
+
+#+BEGIN_SRC zsh
+setopt MENU_COMPLETE
+#+END_SRC
+
+* Homebrew
+When using Homebrew on a Mac, we need to add its =PATH=:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  eval $(/opt/homebrew/bin/brew shellenv zsh)
+#+END_SRC
+
+This adds the following environment variables, along with expanding the =PATH=.
+
+#+BEGIN_SRC zsh :tangle no
+  export HOMEBREW_PREFIX="/opt/homebrew";
+  export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
+  export HOMEBREW_REPOSITORY="/opt/homebrew";
+  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+  export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
+#+END_SRC
+
+* ZShell Styles
+The [[http://www.bash2zsh.com/][Zsh Book]] has a nice chapter treatment on =zstyle=, also, explaining in detail its various fields.
+
+** Tab Completion
+Use [[https://thevaluable.dev/zsh-install-configure-mouseless/][autoload]] to install =compinit=, the completion system:
+
+#+BEGIN_SRC zsh
+  autoload -U compinit; compinit
+#+END_SRC
+
+Do I need this?
+
+#+BEGIN_SRC zsh
+  zstyle ':completion:*:*:cp:*' file-sort modification reverse
+  zstyle ':completion:*:*:mv:*' file-sort modification reverse
+#+END_SRC
+
+Selecting options using ~Tab~, arrows, and ~C-p~ / ~C-n~:
+
+#+BEGIN_SRC zsh
+  zmodload zsh/complist
+#+END_SRC
+
+Do I want to use hyphen-insensitive completion, so that  =_= and =-= will be interchangeable?
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  HYPHEN_INSENSITIVE="true"
+#+END_SRC
+
+** Auto Correction
+If you type something wrong, Zshell, by default, prompts to see if you wanted to try something different.
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  ENABLE_CORRECTION="true"
+#+END_SRC
+
+What about just /fixing it/? For this, we update the [[https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html][ZShell line editor]]:
+
+#+BEGIN_SRC zsh
+  autocorrect() {
+    zle .spell-word
+    zle .$WIDGET
+  }
+
+  zle -N accept-line autocorrect
+  zle -N magic-space autocorrect
+#+END_SRC
+
+Bind the ability to auto-correct the word to the left with =Space= or =Enter=:
+
+#+BEGIN_SRC zsh
+  bindkey ' ' magic-space
+#+END_SRC
+
+** Waiting Indication
+Display red dots whilst waiting for commands to complete.
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  COMPLETION_WAITING_DOTS="true"
+#+END_SRC
+
+You can also set it to another string to have that shown instead of the default red dots.
+
+#+BEGIN_SRC zsh :tangle no
+  COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+#+END_SRC
+
+* Oh My Zshell
+Some [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins][plugins for Zshell]] are nice, so let’s install [[https://ohmyz.sh/][Oh My Zshell]]:
+
+#+BEGIN_SRC sh :tangle no :results replace raw :wrap example
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Cloning Oh My Zsh...
+branch 'master' set up to track 'origin/master' by rebasing.
+/Users/howard/Library/CloudStorage/Dropbox/org/technical
+
+Looking for an existing zsh config...
+Found old .zshrc.pre-oh-my-zsh. Backing up to /Users/howard/.zshrc.pre-oh-my-zsh-2025-03-30_12-22-02
+Found /Users/howard/.zshrc. Backing up to /Users/howard/.zshrc.pre-oh-my-zsh
+Using the Oh My Zsh template file and adding it to /Users/howard/.zshrc.
+
+         __                                     __
+  ____  / /_     ____ ___  __  __   ____  _____/ /_
+ / __ \/ __ \   / __ `__ \/ / / /  /_  / / ___/ __ \
+/ /_/ / / / /  / / / / / / /_/ /    / /_(__  ) / / /
+\____/_/ /_/  /_/ /_/ /_/\__, /    /___/____/_/ /_/
+                        /____/                       ....is now installed!
+
+
+Before you scream Oh My Zsh! look over the `.zshrc` file to select plugins, themes, and options.
+
+• Follow us on X: https://x.com/ohmyzsh
+• Join our Discord community: https://discord.gg/ohmyzsh
+• Get stickers, t-shirts, coffee mugs and more: https://shop.planetargon.com/collections/oh-my-zsh
+
+Run zsh to try it out.
+#+end_example
+
+Set it’s location:
+
+#+BEGIN_SRC zsh :tangle ~/.zshrc
+  export ZSH=$HOME/.oh-my-zsh
+#+END_SRC
+
+** Syntax Coloration
+
+The [[https://github.com/zsh-users/zsh-syntax-highlighting][ZShell Syntax Highlighting]] project provides [[https://fishshell.com/][Fish shell]]-like syntax highlighting for ZShell. This was my killer feature for using Fish, but I need the standard Bash-compatible syntax. Now I can have both. Let’s install this project in coordination with Oh My Zshell:
+
+#+BEGIN_SRC sh :tangle no
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+#+END_SRC
+
+** Plugins
+Configure the plugins, making sure to not use =git=, as the aliases are a pain to remember when I already have a superior Git interface in Emacs.
+
+  - [[https://github.com/hsienjan/colorize][colorize]] :: syntax-highlight file contents, so install [[https://pygments.org/download/][Pygments]] first. Then call =ccat= and =cless= (see [[Aliases]]).
+  - [[https://github.com/ptavares/zsh-direnv][direnv]] :: to support the [[https://direnv.net/][direnv]] virtual environment project.
+  - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/gnu-utils][gnu-utils]] :: bind the GNU flavor for standard utils, like =gfind= to the normal version, e.g. =find=.
+  - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][iterm2]] :: while fully configured below, configures the interaction with the MacOS application, [[https://www.iterm2.com/][iTerm2]].
+  - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/macos][macos]] :: adds new functions that work better with MacOS terminals and the Finder. I like:
+      - =tab= :: To open a new terminal tab
+      - =cdf= :: To open a directory in the Finder, meh. Why not change this to open it in =dired= in Emacs?
+      - =quick-look= :: To view a file
+  - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/zbell][zbell]] :: To beep when a long running command has completed. Similar to my =beep= command.
+
+#+begin_SRC zsh
+  plugins=(colorize direnv gnu-utils iterm2 macos zbell zsh-syntax-highlighting)
+#+END_SRC
+
+Notice the =iterm2= plugin as well as the =macos= plugins that would be nice to figure out how to make them optionally added (although I believe they check themselves).
+
+The trick is to install some base-level plugins, and then, on my work computer, install more.
+
+#+BEGIN_SRC zsh
+  if hostname | grep AL33 >/dev/null
+  then
+    plugins+=(ansible argocd docker helm kubectl)
+  fi
+#+END_SRC
+
+Now that I’ve filled in the =plugins= variable, load OMZ and the plugins:
+
+#+BEGIN_SRC zsh
+  source $ZSH/oh-my-zsh.sh
+#+END_SRC
+
+Do we want to waste time during startup to update this? These can be:
+
+  - =disabled= :: disable automatic updates
+  - =auto= :: update automatically without asking
+  - =reminder= :: remind me to update when it's time
+
+#+BEGIN_SRC zsh
+  zstyle ':omz:update' mode auto
+  zstyle ':omz:update' frequency 13
+#+END_SRC
+
+We’ll Check every 13 days.
+* Prompt
+Either keep it simple:
+
+#+BEGIN_SRC zsh
+  PS1='%(?.%F{green}.%F{red})$%f%b '
+#+END_SRC
+
+Oh use the absolute /over-the-top/ bling associated with Oh My Zshell’s /themes/, like:
+
+#+BEGIN_SRC zsh :tangle no
+  ZSH_THEME="robbyrussell"
+#+END_SRC
+
+* iTerm2
+On Mac systems, I like the [[https://www.iterm2.com/][iTerm2 application]], and we can enable [[https://iterm2.com/documentation-shell-integration.html][shell integration]], either via the old school way, or just rely on [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][the /plugin/ ]]above:
+
+#+BEGIN_SRC zsh :tangle no
+  test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+#+END_SRC
+
+Also, while use the =title= command to change the Terminal’s title bar, don’t let the prompt or other Zshell features do that:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  DISABLE_AUTO_TITLE="true"
+#+END_SRC
+
+Favorite feature is the Status Bar at the bottom of the screen that shows the Git branch, current working directory, etc. This allows my prompt to be much shorter. What other information I want has changed over the years, but I define this information with this function:
+
+Currently, I show the currently defined Kube namespace.
+
+#+BEGIN_SRC zsh
+  function iterm2_print_user_vars() {
+    iterm2_set_user_var kubecontext $($ yq '.users[0].name' ~/.kube/config):$(kubectl config view --minify --output 'jsonpath={..namespace}')
+
+    # Correct version:
+    # iterm2_set_user_var kubecontext $(kubectl config current-context):$(kubectl config view --minify --output 'jsonpath={..namespace}')
+    # Faster version:
+    # iterm2_set_user_var kubecontext $(awk '/^current-context:/{print $2;exit;}' <~/.kube/config)
+  }
+#+END_SRC
+
+* Emacs
+While /Oh My Zshell/ has an =emacs= plugin, I’m not crazy about it. I guess I need more control.
+
+While it /should/ figure out (as Emacs keybindings are the default), this is how we ensure it:
+
+#+BEGIN_SRC zsh
+  bindkey -e
+#+END_SRC
+
+Where be the =emacsclient=, and how should we call it?
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  export EMACS="emacsclient --socket-name personal"
+#+END_SRC
+
+Which needs to be overwritten on my Work computer:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  if hostname | grep AL33 >/dev/null
+  then
+    export EMACS="emacsclient --socket-name work"
+  fi
+#+END_SRC
+
+The =EDITOR= variable that some programs use to edit files from the command line:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  export EDITOR="$EMACS --tty"
+  export VISUAL="$EMACS --create-frame"
+#+END_SRC
+
+With these variables defined, we can create simple aliases:
+
+#+BEGIN_SRC zsh
+  alias e="$EDITOR"
+  alias te="$EDITOR"
+  alias ee="$EMACS --create-frame"
+  alias eee="$EMACS --create-frame --no-wait"
+#+END_SRC
+
+* Aliases
+Assuming we’ve installed =lsd= and other colorized features:
+
+#+BEGIN_SRC zsh
+  alias ls=lsd
+  alias less=cless
+  alias cat=ccat
+#+END_SRC
+
+And some abstractions over SSH:
+
+#+BEGIN_SRC zsh
+  alias ossh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o loglevel=ERROR"
+#+END_SRC
+
+* Final Message
+For sensitive work-related environment variables, store them elsewhere, and load them:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  test -e "${HOME}/.zshenv-work" && source "${HOME}/.zshenv-work"
+#+END_SRC
+
+To let us know we read the =~/.zshrc= file:
+
+#+BEGIN_SRC zsh
+  echo "🐚 ZShell Session"
+#+END_SRC
+
+#+description: A literate programming file for configuring Zshell.
+#+property:    header-args:zsh :tangle ~/.zshrc
+#+property:    header-args    :results none :eval no-export :comments no mkdirp yes
+#+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
+#+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

@@ -918,6 +918,24 @@ The [[help:compile][compile]] function lets me enter a command to run, or I can 
                                 "ansible-playbook playbooks/refresh_inventory.yml")))))
 #+end_src
 
+Many of the build tools now attempt to use ANSI colorization in order to make the output pretty.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'ansi-color)
+
+  (defun colorize-compilation-buffer ()
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+#+END_SRC
+
+And let’s see the results by scrolling the buffer.:
+
+#+BEGIN_SRC emacs-lisp
+  (setq compilation-scroll-output t)
+#+END_SRC
+
 To make the =compile-command-list= variable less risky, we need to declare it:
 #+begin_src emacs-lisp
   (defvar compile-command-list nil "A list of potential commands to give to `ha-project-compile'.")
