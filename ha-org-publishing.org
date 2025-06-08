@@ -27,13 +27,26 @@ A literate programming file for publishing my website using org.
 * Introduction
 While the Emacs community have a plethora of options for generating a static website from org-formatted files, I keep my pretty simple, and use the standard =org-publish= feature.
 
+The RSS needs UUIDs:
+
+#+BEGIN_SRC emacs-lisp results silent
+  (use-package uuidgen
+    :straight (:host github :repo "emacsmirror/uuidgen"))
+
+  (defun org-icalendar-create-uid (&rest ignored)
+    "Returns a UUID."
+    (uuidgen-1))
+#+END_SRC
+
 While the following packages come with Emacs, they aren't necessarily loaded:
 
 #+begin_src emacs-lisp :results silent
+  (use-package ox-rss
+    :straight (:host github :repo "emacsmirror/ox-rss"))
+
   (use-package org
     :config
     (require 'ox-html)
-    (require 'ox-rss)
     (require 'ox-publish))
 #+end_src
 
