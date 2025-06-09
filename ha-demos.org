@@ -446,7 +446,11 @@ These interactive functions scroll the “notes” in the other window in anothe
       (call-interactively 'org-find-file))
     (setq ha-slide-presentation (buffer-name))
     (when initial-heading
-      (imenu initial-heading))
+      (goto-char (point-min))
+      (re-search-forward (rx bol
+                          (one-or-more "*")
+                          (one-or-more space)
+                          (literal initial-heading))))
     (cond
      ((fboundp #'dslide-deck-forward) (call-interactively 'dslide-deck-start))
      ((fboundp #'org-present-next) (call-interactively 'org-present))
@@ -510,7 +514,7 @@ To make the contents of the expression easier to write, the =define-ha-demo= as 
 
   Probably best to explain this in an example:
 
-    \(define-demo demo1
+    \(define-ha-demo demo1
      \(:buffer \"demonstrations.py\")    \(message \"In a buffer\"\)
      \(:mode 'dired-mode\)              \(message \"In a dired\"\)
      \(:heading \"Raven Civilizations\"\) \(message \"In an org file\"\)\)
