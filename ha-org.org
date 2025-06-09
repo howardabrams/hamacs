@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-03-11 Tue]
+#+lastmod: [2025-04-17 Thu]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -771,11 +771,14 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
                        (:link (@ :rel "stylesheet"
                         :type "text/css"
                         :href "https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,600;1,300;1,600&display=swap"))
+                       (:link (@ :rel "stylesheet"
+                        :type "text/css"
+                        :href "https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"))
                        (:style ,(string-join '(
                         "body { font-family: 'Literata', sans-serif; color: #333; }"
                         "h1,h2,h3,h4,h5 { font-family: 'Overpass', sans-serif; color: #333; }"
-                        "code { color: steelblue }"
-                        "pre { background-color: #eee; border-color: #aaa; }"
+                        "code { font-family: 'Source Code Pro'; color: steelblue }"
+                        "pre { font-family: 'Source Code Pro'; background-color: #eee; border-color: #aaa; }"
                         "a { text-decoration-style: dotted }"
                         "@media (prefers-color-scheme: dark) {"
                         "  body { background-color: #1d1f21; color: white; }"
@@ -871,7 +874,6 @@ Since this auto-correction needs to happen in /insert/ mode, I have bound a few 
 Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoValeriy/emacs-powerthesaurus][powerthesaurus]]:
 #+begin_src emacs-lisp
   (use-package powerthesaurus
-    :bind ("s-t" . powerthesaurus-lookup-dwim)
     :config
     (ha-leader
       "s t"  '(:ignore t :which-key "thesaurus")
@@ -882,20 +884,32 @@ Of course I need a thesaurus, and I'm installing [[https://github.com/SavchenkoV
       "s t u" '("usages" . powerthesaurus-lookup-sentences-dwim)))
 #+end_src
 
-The key-bindings, keystrokes, and key-connections work well with ~M-T~ (notice the Shift), but to jump to specifics, we use a leader.
+The key-bindings, keystrokes, and key-connections work well with a hyper-command, but to jump to specifics, I use a leader.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package powerthesaurus
+    :bind ("s-t" . powerthesaurus-lookup-dwim))
+#+END_SRC
+
 
 *** Definitions
 Since the /definitions/ do not work, so let's use the [[https://github.com/abo-abo/define-word][define-word]] project:
 
 #+begin_src emacs-lisp
   (use-package define-word
-    :bind ("s-d" . define-word-at-point)
     :config
     (ha-leader :keymaps 'text-mode-map
       "s d"  '(:ignore t :which-key "dictionary")
       "s d d" '("define this word" . define-word-at-point)
       "s d a" '("define any word" . define-word)))
 #+end_src
+
+And what about a binding when I’m in insert mode:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package define-word
+    :bind ("s-d" . define-word-at-point))
+#+END_SRC
 
 After my enamoring of Noah Webster’s 1913 dictionary (originally due to reading [[https://janusworx.com/blog/thank-god-for-noah/][this essay]] by Mario Jason Braganza who referred to James Somers’ original [[https://jsomers.net/blog/dictionary][2014 blog entry]]), I easily followed the instructions from [[https://github.com/ponychicken/WebsterParser][WebsterParser]], a Github project, with the dictionary:
    1. Download [[https://github.com/ponychicken/WebsterParser/releases/latest/download/websters-1913.dictionary.zip][the dictionary]] file.
@@ -935,9 +949,7 @@ The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effectiv
 #+end_src
 And it reports obnoxious messages.
 
-Hrm::hook ((org-mode . writegood-mode)
-           (gfm-mode . writegood-mode)
-           (markdown-mode) . writegood-mode)
+Note: Instead of hooking the =writegood-mode= to Org files, I will hook it to =flycheck= instead.
 
 We install the =write-good= NPM:
 #+begin_src shell
