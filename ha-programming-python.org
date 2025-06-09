@@ -347,8 +347,7 @@ Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integrat
       ("Server"
        (("l" python-lsp/body "LSP..."))
        "Edit"
-       (("r" lsp-rename "Rename")
-        ("=" lsp-format-region "Format"))
+       (("=" lsp-format-region "Format"))
        "Navigate"
        (("A" lsp-workspace-folders-add "Add Folder")
         ("R" lsp-workspace-folders-remove "Remove Folder"))
