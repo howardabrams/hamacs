@@ -18,7 +18,7 @@ This creates the following files:
   #!/usr/bin/env zsh
   #
   # My complete Zshell configuration. Don't edit this file.
-  # Instead edit: ~/technical/zshell.org and tangle it.
+  # Instead edit: zshell.org and tangle it.
   #
 #+END_SRC
 
@@ -26,7 +26,7 @@ This creates the following files:
   #!/usr/bin/env zsh
   #
   # Non-interactive, mostly easily settable environment variables. Don't
-  # edit this file. # Instead edit: ~/technical/zshell.org and tangle.
+  # edit this file.  Instead edit: zshell.org and tangle.
   #
 #+END_SRC
 
@@ -133,9 +133,9 @@ If you type something wrong, Zshell, by default, prompts to see if you wanted to
   ENABLE_CORRECTION="true"
 #+END_SRC
 
-What about just /fixing it/? For this, we update the [[https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html][ZShell line editor]]:
+What about just /fixing it/? For this, I thought to update the [[https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html][ZShell line editor]] with something like:
 
-#+BEGIN_SRC zsh
+#+BEGIN_SRC zsh :tangle no
   autocorrect() {
     zle .spell-word
     zle .$WIDGET
@@ -145,12 +145,7 @@ What about just /fixing it/? For this, we update the [[https://zsh.sourceforge.i
   zle -N magic-space autocorrect
 #+END_SRC
 
-Bind the ability to auto-correct the word to the left with =Space= or =Enter=:
-
-#+BEGIN_SRC zsh
-  bindkey ' ' magic-space
-#+END_SRC
-
+Now you can’t insert a space as it attempts to correct it. Not worth the space savings.
 ** Waiting Indication
 Display red dots whilst waiting for commands to complete.
 
@@ -374,3 +369,7 @@ To let us know we read the =~/.zshrc= file:
 #+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# eval: (add-hook 'after-save-hook #'org-babel-tangle t t)
+# End:
