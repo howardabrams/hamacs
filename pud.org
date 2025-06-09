@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-03-21 Fri]
+#+lastmod: [2025-06-08 Sun]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -30,17 +30,31 @@ A literate programming file for a Comint-based MUD client.
 
 This project is a simple MUD client for Emacs, based on COM-INT MUD client I learn about on Mickey Petersen’s [[https://www.masteringemacs.org/article/comint-writing-command-interpreter][essay on Comint]].
 
-This uses =telnet= (at the moment) for the connection, so you will need to install that first. On Mac, this would be:
+This uses eithr =ssh= or good ol’ =telnet= for the connection. Surprised that one can still install in on a Mac, like:
 
 #+BEGIN_SRC sh
-  brew install telent
+  brew install telnet
 #+END_SRC
 
-And use a similar command on Linux.
+Use your favorite way to install Emacs’ packages, for instance, with Emacs 30, once can install it, and customize some settings in one go with =use-package=:
+
+#+BEGIN_SRC emacs-lisp :tangle no :eval no
+  (use-package pud
+    :vc (:url "https://howardabrams.com/git/howard/pud")
+    :custom
+    (pud-worlds
+     '(["Remote Moss-n-Puddles" 'ssh "howardabrams.com" 4000 "george"]
+                                          ; ↑ No password? Should be in .authinfo.gpg
+
+       ["Local Root" 'telnet "localhost" 4000 "darol" "some-pass"]
+                                          ; ↑ This has the password in your custom settings.
+
+                                          ; ↓ Password from authinfo, special connection string:
+       ["Local User" 'telnet "localhost" 4000 "rick" nil "login %s %s"])))
+#+END_SRC
 ** Customization
 
-You may want to customize your connections to more worlds.
-The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to join.
+You will want to customize your connections to the connections, as this program defaults to  *Moss ‘n Puddles*, my own MUD which I invite you to join.
 
 #+BEGIN_SRC emacs-lisp
   (defgroup pud nil
@@ -88,27 +102,12 @@ The default connects to *Moss ‘n Puddles*, my own MUD which I invite you to jo
     :group 'pud)
 #+END_SRC
 
-For instance:
+For instance, you could set up a call to =setopt= or customize the =pud-worlds= variable, as in:
 
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
-  (use-package pud
-    :custom
-    (pud-worlds
-     '(["Remote Moss-n-Puddles" 'ssh "howardabrams.com" 4000 "bobby"]
-       ; ↑ No password? Should be in .authinfo.gpg
-
-       ["Local Root" 'telnet "localhost" 4000 "suzy" "some-pass"]
-       ; ↑ This has the password in your custom settings.
-
-       ; ↓ Password from authinfo, special connection string:
-       ["Local User" 'telnet "localhost" 4000 "rick" nil "login %s %s"])))
-#+END_SRC
-
-Hidden:
-#+BEGIN_SRC emacs-lisp :tangle no :eval no
-  (setq pud-worlds
-        '(["Moss-n-Puddles" ssh "howardabrams.com" 4004 "howard" "" "\\nconnect %s %s\\n"]
-          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "rick" "" "\\nconnect %s %s\\n"]
+  (setopt pud-worlds
+        '(["Moss-n-Puddles" ssh "howardabrams.com" 4004 "howard" "" "connect %s %s"]
+          ["Moss-n-Puddles" ssh "howardabrams.com" 4004 "rick" "" "connect %s %s"]
           ["Local-Moss" telnet "localhost" 4000 "howard" "" ""]
           ["Local-Moss" telnet "localhost" 4000 "rick" "" ""]))
 #+END_SRC
@@ -129,7 +128,7 @@ Next, open [[file:~/.authinfo.gpg][your authinfo file]], and insert the followin
   machine howardabrams.com login [name] port 4000 password [pass]
 #+END_SRC
 
-Now, let’s play! Type =run-pud=, and optionally select a world. If you get disconnected, re-run it, or even =pud-reconnect=.
+Now, let’s play! Type =pud-=run= and optionally select a world. If you get disconnected, re-run it, or even =pud-reconnect=.
 
 The rest of this file describes the code implementing this project.
 * Code
@@ -163,7 +162,6 @@ Choosing a world… er, connection using a =completing-read= allowing you to cho
        (t (customize-option 'pud-worlds)))))
 #+END_SRC
 
-
 The following functions are accessibility functions to the world entry.
 
 #+BEGIN_SRC emacs-lisp
@@ -182,7 +180,7 @@ The following functions are accessibility functions to the world entry.
   (defun pud-world-creds (world)
     "Return the username and password from WORLD.
   Multiple search queries for the .authinfo file."
-    (seq-let (label host port user) world
+    (seq-let (label conn-type host port user) world
       (if-let ((auth-results (first (auth-source-search
                                      :host host
                                      :port port
@@ -200,8 +198,8 @@ And some basic functions I should expand.
   (ert-deftest pud-world-name-test ()
     (should (string-equal (pud-world-name "foobar") "foobar"))
     (should (string-equal (pud-world-name ["foobar" "localhost" "4000"]) "foobar"))
-    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" nil]) "foobar"))
     (should (string-equal (pud-world-name ["foobar" "localhost" "4000" ""]) "foobar"))
+    (should (string-equal (pud-world-name ["foobar" "localhost" "4000" nil]) "foobar"))
     (should (string-equal (pud-world-name ["foobar" "localhost" "4000" "guest" "guest"]) "guest@foobar")))
 
   (ert-deftest pud-world-network-test ()
@@ -221,9 +219,6 @@ And some basic functions I should expand.
 #+END_SRC
 
 * Basics
-:LOGBOOK:
-CLOCK: [2025-03-03 Mon 11:57]--[2025-03-03 Mon 12:10] =>  0:13
-:END:
 Using Comint, and hoping to have the ANSI colors displayed.
 
 #+BEGIN_SRC emacs-lisp
@@ -235,12 +230,12 @@ I’m going to use good ‘ol fashion =telnet= for the connection:
 
 #+BEGIN_SRC emacs-lisp
   (defcustom pud-telnet-path "telnet"
-    "Path to the program used by `run-pud' to connect using telnet."
+    "Path to the program used by `pud-run' to connect using telnet."
     :type '(string)
     :group 'pud)
 
   (defcustom pud-ssh-path "ssh"
-    "Path to the program used by `run-pud' to connect using ssh."
+    "Path to the program used by `pud-run' to connect using ssh."
     :type '(string)
     :group 'pud)
 #+END_SRC
@@ -259,7 +254,6 @@ Command string to use, given a =world= with a connection type:
     "Return a command string to pass to the shell.
   The WORLD is a vector with the hostname, see `pud-worlds'."
     (seq-let (host port) (pud-world-network world)
-      (message "Dealing with: %s %s %s" host port (aref world 1))
       (cl-case (aref world 1)
         (telnet (append (cons pud-telnet-path pud-cli-arguments)
                          (list host port)))
@@ -286,14 +280,14 @@ The empty and currently disused mode map for storing our custom keybindings inhe
     (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
       (define-key map "\t" 'completion-at-point)
       map)
-    "Basic mode map for `run-pud'.")
+    "Basic mode map for `pud-run'.")
 #+END_SRC
 
 This holds a regular expression that matches the prompt style for the MUD. Not sure if this is going to work, since MUDs typically don’t have prompts.
 
 #+BEGIN_SRC emacs-lisp
   (defvar pud-prompt-regexp "" ; "^\\(?:\\[[^@]+@[^@]+\\]\\)"
-    "Prompt for `run-pud'.")
+    "Prompt for `pud-run'.")
 #+END_SRC
 
 The name of the buffer:
@@ -305,13 +299,14 @@ The name of the buffer:
 #+END_SRC
 
 ** Run and Connect
-The main entry point to the program is the =run-pud= function:
+The main entry point to the program is the =pud-run= function:
 
 #+BEGIN_SRC emacs-lisp
-  (defun run-pud (world)
+  (defun pud-run (world)
     "Run an inferior instance of `pud-cli' inside Emacs.
   The WORLD should be vector containing the following:
     - label for the world
+    - server type, 'ssh or 'telnet
     - server hostname
     - server port
     - username (can be overridden)
@@ -328,7 +323,7 @@ The main entry point to the program is the =run-pud= function:
           (apply 'make-comint-in-buffer "Pud" buffer (car pud-cli) nil (cdr pud-cli))
           (pud-mode)
           (visual-line-mode 1)
-          (pud-reconnect world)))
+          (pud-login world)))
       ;; Regardless, provided we have a valid buffer, we pop to it.
       (when buffer
         (pop-to-buffer buffer))))
@@ -337,29 +332,57 @@ The main entry point to the program is the =run-pud= function:
 Connection and/or re-connection:
 
 #+BEGIN_SRC emacs-lisp
-  (defun pud-reconnect (world)
+  (defun pud-login (world)
     "Collect and send a `connect' sequence to WORLD.
-  Where WORLD is a vector of world information. NOP if the buffer has no
-  connection or no password could be found."
+
+  Where WORLD is a vector of world information. NOP if the buffer
+  has no connection or no password could be found."
     (interactive (list (pud-get-world)))
     (when (called-interactively-p)
       (pop-to-buffer (pud-buffer-name world)))
     (sit-for 1)
 
-    (message "Attempting to log in...")
+    (length world)
+    (message "Attempting to log in to %s..." (pud-world-name world))
     (seq-let (username password) (pud-world-creds world)
-      (let* ((conn-str (if (length> world 5)
-                           (aref world 5)
+      (let* ((local-conn (when (length> world 6)
+                           (aref world 6 )))
+             (conn-str (if (and local-conn
+                                (not (string-blank-p local-conn)))
+                           local-conn
                          pud-default-connection-string))
              (conn-full (format conn-str username password))
              (process (get-buffer-process (current-buffer))))
 
-        (message "proc: %s str: '%s'" process conn-full)
         (goto-char (point-max))
         (if process
             (comint-send-string process conn-full)
           (insert conn-full)))))
 #+END_SRC
+
+(setq world (pud-get-world))
+** Reconnect
+Force a kill process, and restart.
+
+#+BEGIN_SRC emacs-lisp
+  (defun pud-reconnect (world)
+    "Force stop an inferior instance of `pud-cli'.
+  The WORLD should be vector containing the following:
+    - label for the world
+    - server hostname
+    - server port
+    - username (can be overridden)
+    - password (should be overridden)"
+    (interactive (list (pud-get-world)))
+    (let* ((pud-cli (pud-cli-command world))
+           (buffer (get-buffer-create (pud-buffer-name world)))
+           (proc-alive (comint-check-proc buffer))
+           (process (get-buffer-process buffer)))
+      (when (processp process)
+        (kill-process process))
+      (pud-run world)))
+#+END_SRC
+
 * Pud Mode
 Note that =comint-process-echoes=, depending on the mode and the circumstances, may result in prompts appearing twice. Setting =comint-process-echoes= to =t= helps with that.
 
@@ -370,7 +393,7 @@ Note that =comint-process-echoes=, depending on the mode and the circumstances, 
     (setq comint-use-prompt-regexp nil))
 
   (define-derived-mode pud-mode comint-mode "Pud"
-    "Major mode for `run-pud'.
+    "Major mode for `pud-run'.
 
   \\<pud-mode-map>"
     ;; this sets up the prompt so it matches things like: [foo@bar]
