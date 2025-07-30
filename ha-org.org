@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-04-17 Thu]
+#+lastmod: [2025-07-01 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -1056,9 +1056,11 @@ Another flycheck feature is to use [[http://languagetool.org][LanguageTool]] con
     :ensure t
     :hook (text-mode . flycheck-languagetool-setup)
     :init
-    (setq flycheck-languagetool-server-jar (expand-file-name "~/other/LanguageTool/languagetool-server.jar")
+    (setq flycheck-languagetool-server-jar (expand-file-name "/opt/homebrew/Cellar/languagetool/6.6/libexec/languagetool-commandline.jar")
           flycheck-languagetool-server-args (expand-file-name "~/.config/languagetool/config.properties")))
 #+END_SRC
+
+Where it can read: [[file:~/.config/languagetool/config.properties][config.properties]].
 
 And connect it to the chain:
 

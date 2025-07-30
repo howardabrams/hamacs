@@ -9,18 +9,20 @@
 No, I haven’t eschewed my beloved Eshell, but at work, I’m often required to work with Bash snippets and code. This requires using a standard shell environment. This file includes my notes on Zshell, as well my configuration, when tangled.
 
 Do I prefer Zshell over Bash? Just barely. Most of its bells and whistles are quite annoying for some one who spends more time in Emacs that a shell. Still, I like these features:
+
   - Syntax coloring :: helps flag potential errors (but I do /not/ like autocorrect, as that is more often wrong).
   - Fail/Success Dot :: At the beginning of the command prompt, you can see if the job passed.
   - Easy completion :: The plugins with OMZ often set up option completion
   - Auto CD :: This means that =popd= usually just works.
   - ZBell :: The waiting indicators and alerts on long running jobs is something I love in my eshell setup.
-* Configuration
 
-This creates the following files:
+Regardless, I keep my shell configuration conspicuously light.
+* Configuration
+Let’s create the following files, and the configuration below will be injected into one of them:
 
   - =~/.zshenv= :: Usually run for every zsh
   - =~/.zshrc= :: Run for interactive shells … default file when tangling
-  - =~/.zlogin= :: Run for login shells
+  - =~/.zlogin= :: Run for login shells … seems to run as often as =.zshrc=
 
 #+BEGIN_SRC zsh :exports none
   #!/usr/bin/env zsh
@@ -209,13 +211,15 @@ Configure the plugins, making sure to not use =git=, as the aliases are a pain t
       - =quick-look= :: To view a file
   - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/zbell][zbell]] :: To beep when a long running command has completed. Similar to my =beep= command.
 
+To have a plugin /install/, add its name to the =plugins= array variable /before/ we =source= the OMZ script:
+
 #+begin_SRC zsh
   plugins=(colorize direnv gnu-utils iterm2 macos zbell zsh-syntax-highlighting)
 #+END_SRC
 
 Notice the =iterm2= plugin as well as the =macos= plugins that would be nice to figure out how to make them optionally added (although I believe they check themselves).
 
-The trick is to install some base-level plugins, and then, on my work computer, install more.
+The trick is to install some base-level plugins, and then, on my work computer, install more by appending to the =plugins= array variable:
 
 #+BEGIN_SRC zsh
   if hostname | grep AL33 >/dev/null
@@ -325,15 +329,28 @@ With these variables defined, we can create simple aliases:
 #+END_SRC
 
 * Aliases
-Assuming we’ve installed =lsd= and other colorized features:
+Assuming we’ve installed [[https://github.com/lsd-rs/lsd][lsd]], let’s make an alias for it:
 
 #+BEGIN_SRC zsh
-  alias ls=lsd
-  alias less=cless
-  alias cat=ccat
+  if whence lsd
+  then
+    alias ls=lsd
+  fi
 #+END_SRC
 
-And some abstractions over SSH:
+The [[https://github.com/jtdaugherty/ccat][ccat project]] (like bat) adds syntax coloring to text files. For big files, it certainly slows down the output, and I’m wondering if I want these aliases.
+
+#+BEGIN_SRC zsh
+  if whence cless
+  then
+    alias less=cless
+    alias cat=ccat
+  fi
+#+END_SRC
+
+Other alternate improvements, like [[https://github.com/sharkdp/fd][fd]] should be called directly.
+
+And an abstraction for transitory endpoints over SSH:
 
 #+BEGIN_SRC zsh
   alias ossh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o loglevel=ERROR"

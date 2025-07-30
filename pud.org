@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-06-08 Sun]
+#+lastmod: [2025-06-09 Mon]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -128,7 +128,7 @@ Next, open [[file:~/.authinfo.gpg][your authinfo file]], and insert the followin
   machine howardabrams.com login [name] port 4000 password [pass]
 #+END_SRC
 
-Now, let’s play! Type =pud-=run= and optionally select a world. If you get disconnected, re-run it, or even =pud-reconnect=.
+Now, let’s play! Type =pud-run=, and optionally select a world. If you get disconnected, re-run it, or even =pud-reconnect=.
 
 The rest of this file describes the code implementing this project.
 * Code
