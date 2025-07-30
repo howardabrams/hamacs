@@ -8,6 +8,14 @@
 
 No, I haven’t eschewed my beloved Eshell, but at work, I’m often required to work with Bash snippets and code. This requires using a standard shell environment. This file includes my notes on Zshell, as well my configuration, when tangled.
 
+Do I prefer Zshell over Bash? Just barely. Most of its bells and whistles are quite annoying for some one who spends more time in Emacs that a shell. Still, I like these features:
+  - Syntax coloring :: helps flag potential errors (but I do /not/ like autocorrect, as that is more often wrong).
+  - Fail/Success Dot :: At the beginning of the command prompt, you can see if the job passed.
+  - Easy completion :: The plugins with OMZ often set up option completion
+  - Auto CD :: This means that =popd= usually just works.
+  - ZBell :: The waiting indicators and alerts on long running jobs is something I love in my eshell setup.
+* Configuration
+
 This creates the following files:
 
   - =~/.zshenv= :: Usually run for every zsh
@@ -34,7 +42,7 @@ This creates the following files:
 The all important =PATH= environment variable, needs my special =bin= directory.
 
 #+BEGIN_SRC zsh :export ~/.zshenv
-  export PATH=$HOME/bin:$PATH
+  export PATH=$HOME/bin:/usr/local/bin:$PATH
 #+END_SRC
 
 * Options
@@ -126,26 +134,6 @@ Do I want to use hyphen-insensitive completion, so that  =_= and =-= will be int
   HYPHEN_INSENSITIVE="true"
 #+END_SRC
 
-** Auto Correction
-If you type something wrong, Zshell, by default, prompts to see if you wanted to try something different.
-
-#+BEGIN_SRC zsh :tangle ~/.zshenv
-  ENABLE_CORRECTION="true"
-#+END_SRC
-
-What about just /fixing it/? For this, I thought to update the [[https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html][ZShell line editor]] with something like:
-
-#+BEGIN_SRC zsh :tangle no
-  autocorrect() {
-    zle .spell-word
-    zle .$WIDGET
-  }
-
-  zle -N accept-line autocorrect
-  zle -N magic-space autocorrect
-#+END_SRC
-
-Now you can’t insert a space as it attempts to correct it. Not worth the space savings.
 ** Waiting Indication
 Display red dots whilst waiting for commands to complete.
 
@@ -267,6 +255,7 @@ Oh use the absolute /over-the-top/ bling associated with Oh My Zshell’s /theme
   ZSH_THEME="robbyrussell"
 #+END_SRC
 
+I keep the prompt simple since all of the /gunk/ we typically put in a prompt is better placed in [[https://iterm2.com/documentation-status-bar.html][iTerm2's Status Bar]].
 * iTerm2
 On Mac systems, I like the [[https://www.iterm2.com/][iTerm2 application]], and we can enable [[https://iterm2.com/documentation-shell-integration.html][shell integration]], either via the old school way, or just rely on [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][the /plugin/ ]]above:
 
