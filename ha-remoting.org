@@ -121,9 +121,12 @@ I'm not giving up on Eshell, but I am playing around with [[https://github.com/a
 
 VTerm has an issue (at least for me) with ~M-Backspace~ not deleting the previous word, and yeah, I want to make sure that both keystrokes do the same thing.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package vterm
     :config
+    (setq vterm-shell "zsh"
+          vterm-kill-buffer-on-exit t)
+
     (ha-leader
       "p t" '("terminal" . (lambda () (interactive) (ha-shell (project-root (project-current))))))
 
@@ -154,7 +157,7 @@ The advantage of running terminals in Emacs is the ability to copy text without 
 ** Eat
 While not as fast as [[https://github.com/akermu/emacs-libvterm][vterm]], the [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project (eat) is fast enough, and doesn’t require a dedicate library that requires re-compilation. While offering [[https://elpa.nongnu.org/nongnu-devel/doc/eat.html][online documentation]], I’m glad for an [[info:eat#Top][Info version]].
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package eat
     :straight (:host codeberg :repo "akib/emacs-eat"
                      :files ("*.el" ("term" "term/*.el") "*.texi"

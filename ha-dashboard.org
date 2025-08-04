@@ -144,6 +144,14 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
                               (rx " (" (zero-or-more any) eol) "" (emacs-version))))
         (string-replace "\n" "" smaller-version)))
 
+    (setq dashboard-startup-banner
+          (if (ha-emacs-for-work?)
+              "~/src/hamacs/support/teal-sticker.png"
+            ;; Choose a random image from my collection of startup images:
+            (thread-first "~/src/hamacs/support/dashboard"
+                                                 (directory-files t (rx ".png"))
+                                                 (seq-random-elt))))
+
     (setq dashboard-banner-logo-title
           (format "Emacs %s — %s"
                   (if (and (fboundp 'native-comp-available-p)
@@ -151,10 +159,6 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
                       "with Native Compilation" "")
                   (ha-dashboard-version))
 
-          ;; Choose a random image from my collection of startup images:
-          dashboard-startup-banner (thread-first "~/src/hamacs/support/dashboard"
-                                                 (directory-files t (rx ".png"))
-                                                 (seq-random-elt))
           dashboard-center-content t
           dashboard-set-init-info t
           dashboard-projects-switch-function 'project-switch-project

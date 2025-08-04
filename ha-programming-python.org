@@ -101,7 +101,7 @@ Instead of memorizing all the Emacs-specific keybindings, we use [[https://githu
         (">" python-indent-shift-left "Shift Left")
         ("<" python-indent-shift-right "Shift Right"))
        "Navigate/Eval"
-       (("e" python-evaluate/body "Evaluate...")
+       (("e" python-evaluate/body "Eval...")
         ("g" python-goto/body "Go to..."))
        "Docs"
        (("d" python-eldoc-at-point "Docs on Symbol")
