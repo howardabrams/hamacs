@@ -328,11 +328,59 @@ With these variables defined, we can create simple aliases:
   alias eee="$EMACS --create-frame --no-wait"
 #+END_SRC
 
+** Vterm
+
+To work with [[https://github.com/akermu/emacs-libvterm][VTerm in Emacs]], we need to create this function:
+
+#+BEGIN_SRC zsh
+  vterm_printf() {
+      if [ -n "$TMUX" ] \
+          && { [ "${TERM%%-*}" = "tmux" ] \
+              || [ "${TERM%%-*}" = "screen" ]; }
+      then
+          # Tell tmux to pass the escape sequences through
+          printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+      elif [ "${TERM%%-*}" = "screen" ]; then
+          # GNU screen (screen, screen-256color, screen-256color-bce)
+          printf "\eP\e]%s\007\e\\" "$1"
+      else
+          printf "\e]%s\e\\" "$1"
+      fi
+  }
+#+END_SRC
+
+This allows us to execute Emacs commands:
+
+#+BEGIN_SRC zsh
+  vterm_cmd() {
+      local vterm_elisp
+      vterm_elisp=""
+      while [ $# -gt 0 ]; do
+          vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+          shift
+      done
+      vterm_printf "51;E$vterm_elisp"
+  }
+#+END_SRC
+
+For instance:
+
+#+BEGIN_SRC zsh
+  if [[ "$INSIDE_EMACS" = 'vterm' ]]
+  then
+      alias clear='vterm_printf "51;Evterm-clear-scrollback";tput clear'
+
+      vim() {
+          vterm_cmd find-file "$(realpath "${@:-.}")"
+      }
+  fi
+#+END_SRC
+
 * Aliases
 Assuming we’ve installed [[https://github.com/lsd-rs/lsd][lsd]], let’s make an alias for it:
 
 #+BEGIN_SRC zsh
-  if whence lsd
+  if whence lsd >/dev/null
   then
     alias ls=lsd
   fi
@@ -341,7 +389,7 @@ Assuming we’ve installed [[https://github.com/lsd-rs/lsd][lsd]], let’s make 
 The [[https://github.com/jtdaugherty/ccat][ccat project]] (like bat) adds syntax coloring to text files. For big files, it certainly slows down the output, and I’m wondering if I want these aliases.
 
 #+BEGIN_SRC zsh
-  if whence cless
+  if whence cless >/dev/null
   then
     alias less=cless
     alias cat=ccat
