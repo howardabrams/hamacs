@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Evennia
+# key: <ev
+# --
+#+BEGIN_SRC evennia
+$0
+#+END_SRC

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: send
+# key: send
+# --
+send "${1}\n"
+expectit "$0"

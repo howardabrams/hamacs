@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-01-18
 #+filetags: emacs hamacs
-#+lastmod: [2025-08-08 Fri]
+#+lastmod: [2025-08-23 Sat]
 
 A literate programming file for a Comint-based MUD client.
 
@@ -244,6 +244,12 @@ Using Comint, and hoping to have the ANSI colors displayed.
   (load "ansi-color" t)
 #+END_SRC
 
+Get full colors using the [[https://github.com/atomontage/xterm-color][xterm-color]] project:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package xterm-color)
+#+END_SRC
+
 I’m going to use good ‘ol fashion =telnet= for the connection:
 
 #+BEGIN_SRC emacs-lisp
@@ -415,7 +421,7 @@ Note that =comint-process-echoes=, depending on the mode and the circumstances, 
   (define-derived-mode pud-mode comint-mode "Pud"
     "Major mode for `pud-run'.
 
-  \\<pud-mode-map>"
+    \\<pud-mode-map>"
     ;; this sets up the prompt so it matches things like: [foo@bar]
     ;; (setq comint-prompt-regexp pud-prompt-regexp)
 
@@ -427,7 +433,14 @@ Note that =comint-process-echoes=, depending on the mode and the circumstances, 
     ;; (set (make-local-variable 'paragraph-separate) "\\'")
     ;; (set (make-local-variable 'font-lock-defaults) '(pud-font-lock-keywords t))
     ;; (set (make-local-variable 'paragraph-start) pud-prompt-regexp)
-    )
+
+    ;; Get the xterm colorization on:
+    (require 'xterm-color)
+    (font-lock-mode -1)
+    ;; Prevent font-locking from being re-enabled in this buffer
+    (make-local-variable 'font-lock-function)
+    (setq font-lock-function (lambda (_) nil))
+    (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t))
 
   (add-hook 'pud-mode-hook 'pud--initialize)
 
