@@ -179,8 +179,17 @@ I’ve often called =imenu= to easily jump to a function definition in a file (o
 *** Remote Files
 To speed up TRAMP access, let’s disabled lock files, you know, the ones that have the =#= surrounding characters:
 #+begin_src emacs-lisp
-  (setq remote-file-name-inhibit-locks t)
+  (setq remote-file-name-inhibit-locks t
+        tramp-use-scp-direct-remote-copying t
+        remote-file-name-inhibit-auto-save-visited t)
 #+end_src
+
+According to [[https://coredumped.dev/2025/06/18/making-tramp-go-brrrr./][this essay]], Emacs should copy much larger files than the default:
+#+BEGIN_SRC emacs-lisp
+  (setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+        tramp-verbose 2)
+#+END_SRC
+
 What do I think about [[elisp:(describe-variable 'remote-file-name-inhibit-auto-save-visited)][remote-file-name-inhibit-auto-save-visited]]?
 
 During remote access, TRAMP can slow down performing Git operations. Let’s turn that off as well:
