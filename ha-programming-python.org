@@ -44,6 +44,7 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
     (flycheck-add-next-checker 'python-pylint 'python-pycompile 'append))
 #+end_src
 
+
 ** Keybindings
 Instead of memorizing all the Emacs-specific keybindings, we use [[https://github.com/jerrypnz/major-mode-hydra.el][major-mode-hydra]] defined for =python-mode=:
 
@@ -136,10 +137,63 @@ Next, after reading David Vujic’s [[https://davidvujic.blogspot.com/2025/03/ar
 #+END_SRC
 
 ** Virtual Environment
-When you need a particular version of Python, use [[https://github.com/pyenv/pyenv][pyenv]] globally:
+Use the built-in module, venv, to create isolated Python environments for specific projects, enabling you to manage dependencies separately.
+
+Create a virtual environment, either in the project’s directory, or in a global spot:
+
+#+BEGIN_SRC sh
+  python3 -m venv .venv
+  #
+  python3 -m venv ~/.venv/my_project/
+#+END_SRC
+
+And then activate it:
+
+#+BEGIN_SRC sh
+  source ~/.venv/my_project/bin/activate
+#+END_SRC
+
+Or add that to a projects' =.envrc=.
+
+Now, do what you need to do with this isolation:
+
+#+BEGIN_SRC sh :tangle no
+  pip install -r test-requirements.txt
+#+END_SRC
+** Virtual Environment with new Python Version
+Pyenv is a tool for managing multiple versions of Python on your machine, allowing you to switch between them easily. On a Mac, installed it via Homebrew:
+
+#+BEGIN_SRC sh
+  brew install readline xz
+  brew install pyenv pyenv-virtualenv
+#+END_SRC
+
+Or on other systems, use the /system/ Python to install [[https://github.com/pyenv/pyenv][pyenv]] globally:
 #+begin_src sh
   pip install pyenv
 #+end_src
+
+Make sure we load this in [[file:zshell.org::*Python][the Zsh profile]]:
+
+#+BEGIN_SRC sh
+  export PATH="$HOME/.pyenv/bin:$PATH"
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+#+END_SRC
+
+Install the python versions you need, for instance:
+
+#+BEGIN_SRC sh
+  pyenv install 3.9.23
+#+END_SRC
+
+Run =pyenv versions= to see what you have installed.
+
+In any particular project directory, use a version you installed by creating a =.python-version= file, or call:
+
+#+BEGIN_SRC sh
+  pyenv local 3.9.23
+#+END_SRC
 
 And have this in your =.envrc= file for use with [[file:ha-programming.org::*Virtual Environments with direnv][direnv]]:
 #+begin_src conf
@@ -257,6 +311,16 @@ Let’s expand our =major-mode-hydra= with some extras:
         ("D" elpy-doc "Docs Symbol")))))
 #+end_src
 
+* Anaconda
+The [[https://github.com/pythonic-emacs/anaconda-mode][anaconda-mode project]] seems as good as Elpy, but also include Evil keybindings.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+    (use-mode anaconda-mode
+      :hook ((python-mode . anaconda-mode)
+             (python-mode ../ anaconda-eldoc-mode)))
+#+END_SRC
+
+Since we are using
 * LSP Integration of Python
 ** Dependencies
 Each Python project's =requirements-dev.txt= file would reference the [[https://pypi.org/project/python-lsp-server/][python-lsp-server]] (not the /unmaintained/ project, =python-language-server=):

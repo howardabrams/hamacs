@@ -198,6 +198,19 @@ The [[https://github.com/zsh-users/zsh-syntax-highlighting][ZShell Syntax Highli
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 #+END_SRC
 
+** Language Support
+Anything special for particular languages.
+*** Python
+Not overly impressed, for to get =pyenv= to work, we need to add this code:
+
+#+BEGIN_SRC zsh
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+
+  eval "$(pyenv init --path)"
+#+END_SRC
+
+
 ** Plugins
 Configure the plugins, making sure to not use =git=, as the aliases are a pain to remember when I already have a superior Git interface in Emacs.
 
@@ -209,12 +222,13 @@ Configure the plugins, making sure to not use =git=, as the aliases are a pain t
       - =tab= :: To open a new terminal tab
       - =cdf= :: To open a directory in the Finder, meh. Why not change this to open it in =dired= in Emacs?
       - =quick-look= :: To view a file
+  - [[https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/pyenv/README.md][pyenv]] :: Call the =pyenv init= and whatnot.
   - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/zbell][zbell]] :: To beep when a long running command has completed. Similar to my =beep= command.
 
 To have a plugin /install/, add its name to the =plugins= array variable /before/ we =source= the OMZ script:
 
 #+begin_SRC zsh
-  plugins=(colorize direnv gnu-utils iterm2 macos zbell zsh-syntax-highlighting)
+  plugins=(colorize direnv gnu-utils iterm2 macos pyenv virtualenv zbell zsh-syntax-highlighting)
 #+END_SRC
 
 Notice the =iterm2= plugin as well as the =macos= plugins that would be nice to figure out how to make them optionally added (although I believe they check themselves).
@@ -263,7 +277,7 @@ I keep the prompt simple since all of the /gunk/ we typically put in a prompt is
 * iTerm2
 On Mac systems, I like the [[https://www.iterm2.com/][iTerm2 application]], and we can enable [[https://iterm2.com/documentation-shell-integration.html][shell integration]], either via the old school way, or just rely on [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][the /plugin/ ]]above:
 
-#+BEGIN_SRC zsh :tangle no
+#+BEGIN_SRC zsh
   test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 #+END_SRC
 
@@ -273,18 +287,31 @@ Also, while use the =title= command to change the Terminal’s title bar, don’
   DISABLE_AUTO_TITLE="true"
 #+END_SRC
 
-Favorite feature is the Status Bar at the bottom of the screen that shows the Git branch, current working directory, etc. This allows my prompt to be much shorter. What other information I want has changed over the years, but I define this information with this function:
+Favorite feature is the [[https://iterm2.com/documentation-status-bar.html][Status Bar]] at the bottom of the screen that shows the Git branch, current working directory, etc. This allows my prompt to be much shorter. What other information I want has changed over the years, but I define this information with this function:
 
 Currently, I show the currently defined Kube namespace.
 
 #+BEGIN_SRC zsh
   function iterm2_print_user_vars() {
-    iterm2_set_user_var kubecontext $($ yq '.users[0].name' ~/.kube/config):$(kubectl config view --minify --output 'jsonpath={..namespace}')
+    # iterm2_set_user_var kubecontext $($ yq '.users[0].name' ~/.kube/config):$(kubectl config view --minify --output 'jsonpath={..namespace}')
 
     # Correct version:
     # iterm2_set_user_var kubecontext $(kubectl config current-context):$(kubectl config view --minify --output 'jsonpath={..namespace}')
     # Faster version:
-    # iterm2_set_user_var kubecontext $(awk '/^current-context:/{print $2;exit;}' <~/.kube/config)
+    iterm2_set_user_var kubecontext $(awk '/^current-context:/{print $2;exit;}' <~/.kube/config)
+
+    iterm2_set_user_var pycontext "$(pyenv version-name):$(echo $VIRTUAL_ENV | sed 's/.*.venv\///')"
+  }
+#+END_SRC
+
+Add the following:
+
+#+BEGIN_SRC zsh
+  function pycontext {
+    local version venvstr
+    version=$(pyenv version-name)
+    venvstr=$(echo $VIRTUAL_ENV | sed 's/.*.venv\///')
+    echo "🐍 $version:$venvstr"
   }
 #+END_SRC
 
