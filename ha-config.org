@@ -926,14 +926,13 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
     (ha-leader
       "p"  '(:ignore t :which-key "projects")
       "p W" '("initialize workspace" . ha-workspace-initialize)
-      "p n" '("new project space" . ha-project-persp)
+      "p p" '("switch project" . ha-tab-bar-new-project)
 
       "p !" '("run cmd in project root" . project-shell-command)
       "p &" '("run cmd async" . project-async-shell-command)
       "p a" '("add new project" . project-remember-projects-under)
       "p d" '("dired" . project-dired)
       "p k" '("kill project buffers" . project-kill-buffers)
-      "p p" '("switch project" . project-switch-project)
       "p x" '("remove known project" . project-forget-project)
 
       "p f" '("find file" . project-find-file)
@@ -947,204 +946,173 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
       "p s" '("project shell" . project-shell)))
 #+end_src
 ** Workspaces
-A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. For this, I'm basing my work on the [[https://github.com/nex3/perspective-el][perspective.el]] project.
+A /workspace/ (at least to me) requires a quick jump to a collection of buffer windows organized around a project or task. Later versions of Emacs use [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Bars.html][Tab Bars]] which group windows and buffers in a perspective. The code that follows is a Poor Person’s Workspace package. Also let’s dive into the end section of [[https://www.masteringemacs.org/article/demystifying-emacs-window-manager][Mickey Petersen's essay]] on the subject.
 
-I build a Hydra to dynamically list the current projects as well as select the project.
-To do this, we need a way to generate a string of the perspectives in alphabetical order:
+Couple notes:
+  - Function, =tab-bar-switch-to-tab=, switches or /creates/ a tab. We will always use this.
+  - We can switch to a tab by number with =tab-bar-select-tab=
 
-#+begin_src emacs-lisp
-  (defun ha--persp-label (num names)
-    "Return string of numbered elements.
-  NUM is the starting number and NAMES is a list of strings."
-    (when names
-      (concat
-       (format "  %d: %s%s"    ; Shame that the following doesn't work:
-               num             ; (propertize (number-to-string num) :foreground "#00a0")
-               (car names)     ; Nor does surrounding the number with underbars.
+#+BEGIN_SRC emacs-lisp
+  (setq tab-bar-show 1                       ; hide bar if <= 1 tabs open
+        tab-bar-close-button-show nil        ; hide tab close / X button
+        tab-bar-new-tab-choice "*dashboard*" ; buffer to show in new tabs
+        tab-bar-tab-hints t                  ; show tab numbers
 
-               (if (equal (car names) (persp-name (persp-curr))) "*" ""))
-       (ha--persp-label (1+ num) (cdr names)))))
+        ;; Jump to a tab by numbers (see the keybindings set later):
+        tab-bar-select-tab-modifiers '(super control))
+#+END_SRC
 
-  (defun ha-persp-labels ()
-    "Return a string of numbered elements from a list of names."
-    (ha--persp-label 1 (sort (hash-table-keys (perspectives-hash)) 's-less?)))
-#+end_src
+I’ve struggled to /programmatically/ create sane workspaces, so let’s just save them off:
 
-Build the hydra as well as configure the =perspective= project.
+#+BEGIN_SRC emacs-lisp
+  (desktop-save-mode 1)
+#+END_SRC
 
-#+begin_src emacs-lisp
-  (use-package perspective
-    :custom
-    (persp-modestring-short t)
-    (persp-show-modestring t)
-
-    :config
-    (setq persp-suppress-no-prefix-key-warning t)
-
-    (persp-mode)
-
-    (defhydra hydra-workspace-leader (:color blue :hint nil) "
-    Workspaces- %s(ha-persp-labels)
-    _n_: new project  _r_: rename    _a_: add buffer     _l_: load worksp
-    _]_: next worksp  _d_: delete    _b_: goto buffer    _s_: save worksp
-    _[_: previous     _W_: init all  _k_: remove buffer  _`_: to last worksp "
-      ("TAB" persp-switch-quick)
-      ("RET" persp-switch)
-      ("`" persp-switch-last)
-      ("1" (persp-switch-by-number 1))
-      ("2" (persp-switch-by-number 2))
-      ("3" (persp-switch-by-number 3))
-      ("4" (persp-switch-by-number 4))
-      ("5" (persp-switch-by-number 5))
-      ("6" (persp-switch-by-number 6))
-      ("7" (persp-switch-by-number 7))
-      ("8" (persp-switch-by-number 8))
-      ("9" (persp-switch-by-number 9))
-      ("0" (persp-switch-by-number 0))
-      ("n" ha-project-persp)
-      ("N" persp-switch)
-      ("]" persp-next :color pink)
-      ("[" persp-prev :color pink)
-      ("d" persp-kill)
-      ("W" ha-workspace-initialize)
-      ("a" persp-add-buffer)
-      ("b" persp-switch-to-buffer)
-      ("k" persp-remove-buffer)
-      ("K" persp-kill-buffer)
-      ("m" persp-merge)
-      ("u" persp-unmerge)
-      ("i" persp-import)
-      ("r" persp-rename)
-      ("s" persp-state-save)
-      ("l" persp-state-load)
-      ("w" ha-switch-to-special)  ; The most special perspective
-      ("q" nil)
-      ("C-g" nil)))
-#+end_src
-
-Let’s give it a binding:
-#+begin_src emacs-lisp
-  (ha-leader "TAB" '("workspaces" . hydra-workspace-leader/body))
-#+end_src
-
-When called, it /can/ look like:
-
-[[file:screenshots/projects-hydra.png]]
-
-The /special/ perspective is a nice shortcut to the one I use the most:
-#+begin_src emacs-lisp
-  (defun ha-switch-to-special ()
-    "Change to the projects perspective."
-    (interactive)
-    (persp-switch "projects"))
-#+end_src
-
-I often want a workspace dedicated to an /application/, so this function:
+New workspace is a tab with a specific name that opens up a specific buffer or application. My motive for such a complicated function allows me to pre-create tabs with already running applications or files.
 
 #+begin_src emacs-lisp
-  (defun ha-app-perspective (name func)
-    "Generate new perspective NAME, automatically running FUNC."
-    (lambda ()
-      (interactive)
-      (let ((already-started? (seq-contains-p (persp-names) name 'equal)))
-        (persp-switch name)
-        (unless already-started?
-          (call-interactively func)))))
+  (defun ha-tab-bar-new (name &optional bff)
+    "Create a new tab with a NAME.
+  With a non-nil IFF, call IFF as a function or switch
+  to the IFF buffer or  the files listed."
+    (interactive "sWorkspace Name: ")
+    (tab-bar-switch-to-tab name)
+    (when bff
+      (cond
+       ((listp bff) (find-file (car bff))
+        (dolist (f (cdr bff))
+          (split-window-right)
+          (find-file f)))
+       ((fboundp bff) (call-interactively bff))
+       ((bufferp bff) (switch-to-buffer bff)))))
 #+end_src
 
-And I can then use it like:
-#+begin_src emacs-lisp :tangle no
-  (ha-leader "a x" `("to foobar" . ,(ha-app-perspective "foobar" #'foobar)))
-#+end_src
-*** Predefined Workspaces
-Let's describe a list of startup project workspaces. This way, I don't need the clutter of the recent state, but also get back to a state of mental normality.
-Granted, this list is essentially a list of projects that I'm currently developing, so I expect this to change often.
+With a new tab group for a directory or probably a project, let’s see if we can load the most useful files.
 
 #+begin_src emacs-lisp
-  (defvar ha-workspace-projects-personal nil "List of default projects with a name.")
-
-  (add-to-list 'ha-workspace-projects-personal
-               '("projects" "~/projects" ("breathe.org" "tasks.org")))
-  (add-to-list 'ha-workspace-projects-personal
-               '("personal" "~/personal" ("general.org")))
-  (add-to-list 'ha-workspace-projects-personal
-               '("technical" "~/technical" ("ansible.org")))
-  (add-to-list 'ha-workspace-projects-personal
-               '("hamacs" "~/src/hamacs" ("README.org" "ha-config.org")))
-#+end_src
-
-Given a list of information about project-workspaces, can we create them all?
-#+begin_src emacs-lisp
-  (defun ha-persp-exists? (name)
-    "Return non-nill if a perspective of NAME exists."
-    (when (fboundp 'perspectives-hash)
-      (seq-contains (hash-table-keys (perspectives-hash)) name)))
-
-  (defun ha-workspace-initialize (&optional projects)
-    "Precreate workspace projects from a PROJECTS list.
-  Each entry in the list is a list containing:
-      - name (as a string)
-      - project root directory
-      - a optional list of files to display"
-    (interactive)
-    (unless projects
-      (setq projects ha-workspace-projects-personal))
-
-    (dolist (project projects)
-      (seq-let (name root files) project
-        (unless (ha-persp-exists? name)
-          (message "Creating workspace: %s (from %s)" name root)
-          (ha-project-persp root name files))))
-    (persp-switch "main"))
-#+end_src
-
-Often, but not always, I want a perspective based on an actual Git repository, e.g. a project. Emacs calls these transients.
-
-#+begin_src emacs-lisp
-  (defun ha-project-persp (project &optional name files)
-    "Create a new perspective, and then switch to the PROJECT.
-  If NAME is not given, then figure it out based on the name of the
-  PROJECT. If FILES aren't specified, then see if there is a
-  README. Otherwise, pull up Dired."
-    (interactive (list (completing-read "Project: "
-                                        (project-known-project-roots))))
-    (when (f-directory-p project)
-      (unless name
-        (setq name (f-filename project)))
-      (persp-switch name)
-
-      (let ((recent-files (thread-last recentf-list
-                                       (--filter (s-starts-with? project it))
-                                       (-take 3)))
-            (readme-org (f-join project "README.org"))
-            (readme-md  (f-join project "README.md"))
-            (readme-rst (f-join project "README.rst")))
+  (defun ha-tab-bar-new-default ()
+    "Given a new perspective, display some buffer windows.
+  The choice of files to display depends on a combination of READMEs and
+  most recently viewed files in the project. This function assumes the
+  variable `default-directory' contains the root of the project."
+    (cl-flet ((one-win (file) (find-file file))
+              (two-win (left right)
+                (find-file right)
+                (split-window-right)
+                (find-file left))
+              (in-project (file)
+                (string-match (rx bos (literal default-directory))
+                              (expand-file-name file))))
+      (let* ((recent-files (seq-filter #'in-project recentf-list))
+             (recent (car recent-files))
+             (readme-org (expand-file-name "README.org"))
+             (readme-md  (expand-file-name "README.md")))
         (cond
-         (files                  (ha--project-show-files project files))
-         (recent-files           (ha--project-show-files project recent-files))
-         ((f-exists? readme-org) (find-file readme-org))
-         ((f-exists? readme-md)  (find-file readme-md))
-         ((f-exists? readme-rst) (find-file readme-rst))
-         (t                      (dired project))))))
+         ;; ORG + recent
+         ((and (file-exists-p recent) (file-exists-p readme-org))
+          (two-win readme-org recent))
+         ;; MD + recent
+         ((and (file-exists-p recent) (file-exists-p readme-md))
+          (two-win readme-md recent))
+         ;; recent-only
+         ((file-exists-p recent)
+          (one-win recent))
+         ;; ORG only
+         ((file-exists-p readme-org)
+          (one-win readme-org))
+         ;; MD only
+         ((file-exists-p readme-md)
+          (one-win readme-md))))))
 #+end_src
 
-When starting a new perspective, and I specify more than one file, this function splits the window horizontally for each file.
+Create a new tab associated with a project:
+
 #+begin_src emacs-lisp
-  (defun ha--project-show-files (root files)
-    "Display a list of FILES in a project ROOT directory.
-  Each file gets its own window (so don't make the list of files
-  long)."
-    (when files
-      (let ((default-directory root)
-            (file (car files))
-            (more (cdr files)))
-        (message "Loading files from %s ... %s and %s" root file more)
-        (when (f-exists? file)
-          (find-file file))
-        (when more
-          (split-window-horizontally)
-          (ha--project-show-files root more)))))
+  (defun ha-tab-bar-new-project (project-dir)
+    "Create a new tab/workspace based on a project.
+  The project is defined by the PROJECT-DIR directory."
+    (interactive (list (completing-read "Project: " (project-known-project-roots))))
+    (let ((name (project-name (project-current nil project-dir)))
+          (default-directory project-dir))
+      (ha-tab-bar-new name)
+      (project-switch-project project-dir)
+      (ha-tab-bar-new-default)))
 #+end_src
+
+If we close a tab that is a project, we want to close all the buffers associated with it. I wouldn’t do this if it wasn’t so easy to re-create them:
+
+#+begin_src emacs-lisp
+  (defun ha-tab-bar-delete (tab-name)
+    "Delete a tab, TAB-NAME, and all buffers associated with it."
+    (interactive
+     (list (completing-read "Close tab by name: "
+                            (mapcar (lambda (tab)
+                                      (alist-get 'name tab))
+                                    (funcall tab-bar-tabs-function)))))
+    (dolist (buf (ha-tab-bar-buffers tab-name))
+      (kill-buffer buf))
+    (tab-bar-close-tab-by-name tab-name))
+
+  (defun ha-tab-bar-buffers (tab-name)
+    "Return list of buffers associated with TAB-NAME."
+    (seq-filter (lambda (b)
+                  (thread-last b
+                               (tab-bar-get-buffer-tab)
+                               (alist-get 'name)
+                               (string-equal tab-name)))
+                (buffer-list)))
+#+end_src
+
+And some shortcut keys from the =general= project:
+
+#+BEGIN_SRC emacs-lisp
+  (general-nmap :prefix "SPC"
+    "<tab>"  '(:ignore t :which-key "workspaces")
+    "<tab> <tab>" '("switch" . tab-switch)
+    "<tab> p" '("new project" . ha-tab-bar-new-project)
+    "<tab> n" '("new space" . ha-tab-bar-new)
+    "<tab> d" '("delete space" . ha-tab-bar-delete))
+
+  (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
+  (global-set-key (kbd "s-C-[") 'tab-bar-switch-to-prev-tab)
+  (global-set-key (kbd "s-C-]") 'tab-bar-switch-to-next-tab)
+
+  (tab-bar-mode 1)
+#+END_SRC
+
+I want to quickly jump, by the number shown on the tab, to that grouping. The following two functions create leader sequences with the name of the tab group:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-tab-update-names ()
+    "Create normal-mode keybindings for the tab groupings.
+  This creates `SPC TAB 1' to jump to the first tab, etc."
+    ;; Remove all previously created keybindings:
+    (ignore-errors
+      (dolist (indx (number-sequence 1 9))
+        (general-nmap :prefix "SPC" (format "<tab> %d" indx) nil)))
+
+    ;; Loop through the existing tabs, create keys for each:
+    (seq-do-indexed 'ha-tab-update-tab-keybinding (tab-bar-tabs)))
+
+  (defun ha-tab-update-tab-keybinding (tab-deets indx)
+    "Create a keybinding to jump to tab described by TAB-DEETS.
+  The key sequence, `SPC' `TAB' then INDX."
+    (let ((name (alist-get 'name tab-deets)))
+      (general-nmap :prefix "SPC"
+        (format "<tab> %d" (1+ indx))
+        `(,name .
+              (lambda () (interactive) (tab-bar-select-tab ,(1+ indx)))))))
+#+END_SRC
+
+Any time I create or delete a new tab, we can call =ha-tab-update-names=:
+
+#+BEGIN_SRC emacs-lisp
+  (advice-add #'tab-bar-new-tab :after #'ha-tab-update-names)
+  (advice-add #'tab-bar-close-tab :after #'ha-tab-update-names)
+  (advice-add #'tab-bar-close-other-tabs :after #'ha-tab-update-names)
+
+  (add-hook desktop-after-read-hook #'ha-tab-update-names)
+#+END_SRC
 
 * Pretty Good Encryption
 For details on using GnuPG in Emacs, see Mickey Petersen’s [[https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources][GnuPG Essay]].

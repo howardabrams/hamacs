@@ -41,7 +41,7 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
 #+begin_src emacs-lisp
   (use-package mastodon
     :config
-    (ha-leader "a m" `("mastodon" . ,(ha-app-perspective "mastodon" #'mastodon)))
+    (ha-leader "a m" `("mastodon" . ,(ha-tab-bar-new "mastodon" #'mastodon)))
 
     (defun ha-mastodon-scroll-or-more ()
       "Scroll a window, and at the end, get more entries in timeline."
@@ -175,7 +175,7 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
     (when (fboundp 'evil-insert-state)
       (add-hook 'telega-chat-mode-hook 'evil-insert-state))
 
-    (ha-leader "a t" `("telega" . ,(ha-app-perspective "telega" #'telega))))
+    (ha-leader "a t" `("telega" . ,(ha-tab-bar-new "telega" #'telega))))
 #+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 

@@ -521,6 +521,7 @@ The goal here is toggle switches and other miscellaneous settings.
     "t T" '("tramp mode"     . tramp-mode)
     "t v" '("visual"         . visual-line-mode)
     "t w" '("whitespace"     . whitespace-mode)
+    "t <tab>" '("tab-bar"    . tab-bar-mode)
 
     "t <escape>" '(keyboard-escape-quit :which-key t)
     "t C-g" '(keyboard-escape-quit :which-key t))
@@ -546,13 +547,10 @@ And put it on the toggle menu:
   (ha-leader "t n" '("narrow" . ha-narrow-dwim))
 #+end_src
 * Window Operations
-While it comes with Emacs, I use [[https://www.emacswiki.org/emacs/WinnerMode][winner-mode]] to undo window-related changes:
+While it comes with Emacs, the =tab-bar= feature keeps track of all window configurations within a tab, allowing me to revert situations where I accidentally delete all the windows.
+
 #+begin_src emacs-lisp
-  (use-package winner
-    :custom
-    (winner-dont-bind-my-keys t)
-    :config
-    (winner-mode +1))
+  (tab-bar-history-mode)
 #+end_src
 ** Ace Window
 Use the [[https://github.com/abo-abo/ace-window][ace-window]] project to jump to any window you see.

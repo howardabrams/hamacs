@@ -169,12 +169,11 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
           dashboard-set-heading-icons t
           dashboard-footer-messages (list (ha--dad-joke)))
 
-    :config
-    (dashboard-setup-startup-hook)
-
     ;; Real shame that :config is incompatible with :hook, otherwise:
     ;; :hook (dashboard-after-initialize . ha-dashboard)
-    (add-hook 'dashboard-after-initialize-hook 'ha-dashboard))
+
+    :config
+    (dashboard-setup-startup-hook))
 #+end_src
 
  This dashboard project requires [[https://github.com/purcell/page-break-lines][page-break-lines]] (which is a nice project):
@@ -264,6 +263,7 @@ The =dashboard= project hooks to [[help:emacs-startup-hook][emacs-startup-hook]]
   (defun ha-dashboard ()
     "Shows the extra stuff with the dashboard."
     (interactive)
+    (tab-bar-switch-to-tab "main")
     (switch-to-buffer "*dashboard*")
     (setq-local mode-line-format nil)
     (delete-other-windows)

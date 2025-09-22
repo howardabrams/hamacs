@@ -323,8 +323,6 @@ Let’s make a /theme/:
      'hamacs
      `(default ((t (:foreground ,default-fg :background ,default-bg))))
      `(fringe ((t :background ,default-bg)))
-     `(tab-bar ((t :foreground ,default-fg :background ,default-bg)))
-     `(tab-line ((t :foreground ,default-fg :background ,default-bg)))
      `(window-divider ((t :foreground "black")))
      `(cursor ((t (:foreground ,gray-10 :background ,cursor))))
      `(region ((t (:background ,region))))
@@ -332,6 +330,11 @@ Let’s make a /theme/:
      `(mode-line ((t (:background ,active :foreground "white"))))
      `(mode-line-active ((t (:background ,active))))
      `(mode-line-inactive ((t (:background ,inactive))))
+
+     `(tab-bar ((t :foreground ,default-fg :background ,default-bg)))
+     `(tab-line ((t :foreground ,default-fg :background ,default-bg)))
+     `(tab-bar-tab ((t (:inherit variable-pitch :background ,active))))
+     `(tab-bar-tab-inactive ((t (:inherit variable-pitch :background ,inactive))))
 
      `(doom-modeline-buffer-path ((t (:foreground ,almond))))
      `(doom-modeline-buffer-file ((t (:foreground "white" :weight bold))))

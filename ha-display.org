@@ -63,19 +63,14 @@ To make the active window /more noticeable/, we /dim/ the in-active windows with
 
 #+begin_src emacs-lisp
   (use-package dimmer
-    :custom (dimmer-adjustment-mode :foreground))
-#+end_src
+    :custom (dimmer-adjustment-mode :foreground)
+    :config
+    ;; I get issues with Magit and Dimmer, so let’s turn off this feature in certain windows:
+    (dimmer-configure-which-key)      ; Do not dim these special windows
+    (dimmer-configure-hydra)
+    (dimmer-configure-magit)
 
-I get issues with Magic and Dimmer, so let’s turn off this feature in certain windows:
-
-#+begin_src emacs-lisp
-   (use-package dimmer
-     :config
-     (dimmer-configure-which-key)    ; Do not dim these special windows
-     (dimmer-configure-hydra)
-     (dimmer-configure-magit)
-
-     (dimmer-mode t))
+    (dimmer-mode t))
 #+end_src
 
 As an interesting alternative, check out the [[https://www.emacs.dyerdwelling.family/emacs/20240208164549-emacs-selected-window-accent-mode-now-on-melpa/][selected-window-accent]] project.
@@ -89,7 +84,8 @@ either be "there or not" which resulted large jumps and large distractions.
     :straight (:type git :host github :repo "jdtsmith/ultra-scroll")
     :config
     (setq scroll-conservatively 101 ; important!
-        scroll-margin 0)
+          pixel-scroll-precision-interpolate-page t
+          scroll-margin 0)
     (ultra-scroll-mode 1))
 #+END_SRC
 ** Find the Bloody Cursor
@@ -661,7 +657,9 @@ Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, b
         (?f . "FIXME")
         (?n . "NOTE"))
       "Mapping of narrow and keywords.")
-    :general (:states 'normal "g t" '("jump todos" . consult-todo)))
+    ;; :config
+    ;; (evil-define-key '(normal) 'global "g t" '("jump todos" . consult-todo))
+    )
 #+end_src
 * Full Size Frame
 Taken from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][this essay]], I figured I would start the initial frame automatically in fullscreen, but not any subsequent frames (as this could be part of the capturing system).

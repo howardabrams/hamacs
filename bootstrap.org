@@ -220,7 +220,8 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                                   "ha-org-publishing.org"
                                   "ha-email.org"
                                   "ha-aux-apps.org"))
-                             "ha-dashboard.org"))
+                             ;; "ha-dashboard.org"
+                             ))
     "List of org files that complete the hamacs project.")
 #+end_src
 

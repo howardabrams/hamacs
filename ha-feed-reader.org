@@ -87,7 +87,7 @@ According to Ben Maughan and [[http://pragmaticemacs.com/emacs/to-eww-or-not-to-
 
 And some global keys to display them in the =apps= menu:
 #+begin_src emacs-lisp
-  (ha-leader "a f" `("feed reader" . ,(ha-app-perspective "elfeed" #'elfeed)))
+  (ha-leader "a f" `("feed reader" . ,(ha-tab-bar-new "elfeed" #'elfeed)))
 #+end_src
 * The Feeds :elfeed:
 The [[https://github.com/remyhonig/elfeed-org][elfeed-org]] project configures =elfeed= to read the RSS feeds from an Org file … like this one!

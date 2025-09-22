@@ -102,7 +102,7 @@ Quick way to start and jump to my IRC world.
 
 And some global keys to display them:
 #+begin_src emacs-lisp
-  (ha-leader "a i" `("irc" . ,(ha-app-perspective "irc" #'ha-erc)))
+  (ha-leader "a i" `("irc" . ,(ha-tab-bar-new "irc" #'ha-erc)))
 #+end_src
 
 And a quick shortcuts to call it:
