@@ -958,6 +958,9 @@ Couple notes:
         tab-bar-new-tab-choice "*dashboard*" ; buffer to show in new tabs
         tab-bar-tab-hints t                  ; show tab numbers
 
+        tab-bar-button-relief 0
+        tab-bar-button-margin '(40 . 1)
+
         ;; Jump to a tab by numbers (see the keybindings set later):
         tab-bar-select-tab-modifiers '(super control))
 #+END_SRC
