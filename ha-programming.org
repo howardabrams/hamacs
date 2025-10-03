@@ -1300,8 +1300,8 @@ While filename extensions work fine most of the time, I don't like to pre-pend =
     :mode (rx (or (seq ".sh" eol)
                   "/bin/"))
     :init
-    (setq sh-basic-offset 2
-          sh-indentation 2)
+    (setq sh-basic-offset 4
+          sh-indentation 4)
     :config
     (ha-auto-insert-file (rx (or (seq ".sh" eol)
                                  "/bin/"))

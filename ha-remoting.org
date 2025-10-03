@@ -214,14 +214,6 @@ Let's begin by defining some variables used for communication between the functi
   See =ha-ssh-add-favorite-host= for easily adding to this list.")
 #+end_src
 
-Also, let's make it easy for me to change my default shell:
-
-#+begin_src emacs-lisp
-  (defvar ha-shell "bash" ;; Eat works better with Bash/Zsh
-    ;; (string-trim (shell-command-to-string "type -p fish"))
-    "The executable to the shell I want to use locally.")
-#+end_src
-
 ** Terminal Abstractions
 Could I abstract the different ways I start terminals in Emacs? The =ha-ssh-term= starts either a [[VTerm]]
 or [[Eat]] terminals, depending on what is available. This replaces (wraps) the default [[help:make-term][make-term]].
@@ -232,11 +224,11 @@ or [[Eat]] terminals, depending on what is available. This replaces (wraps) the 
   The PROGRAM, if non-nil, is executed, otherwise, this is `ha-shell'.
   STARTFILE is the initial text given to the PROGRAM, and the
   SWITCHES are the command line options."
-    (unless program (setq program ha-shell))
     (cond
      ((fboundp 'vterm) (progn (vterm name)
-                              (vterm-send-string (append program switches))
-                              (vterm-send-return)))
+                              (when program
+                                (vterm-send-string (append program switches))
+                                (vterm-send-return))))
      ((fboundp 'eat)   (progn (switch-to-buffer
                                (apply 'eat-make (append (list name program startfile)
                                                         switches)))
