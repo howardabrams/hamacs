@@ -1,0 +1,56 @@
+;; Here is a keyboard setup for an Apple Macbook keyboard to work with
+;; "home row mods" where holding down keys on the home row can act like a
+;; modifier, so holding down `d` and hitting `p` results in `P` being
+;; entered.
+
+;; Also includes a symbol layer accessible while holding down either
+;; the `h' or `g' keys.
+
+(defcfg
+ macos-dev-names-include ("Apple Internal Keyboard / Trackpad")
+  ;; linux-dev-names-include (
+  ;;   "Microsoft Surface 045E:091C Keyboard"
+  ;; )
+)
+(defsrc
+  esc  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lalt lmet      spc           rmet ralt
+)
+
+(defvar
+  tap-time 200
+  hold-time 200
+)
+
+(defalias
+  a (tap-hold $tap-time $hold-time a lmet)
+  s (tap-hold $tap-time $hold-time s lctl)
+  d (tap-hold $tap-time $hold-time d lsft)
+  f (tap-hold $tap-time $hold-time f lalt)
+  g (tap-hold $tap-time $hold-time g (layer-while-held SYMBOLS))
+  h (tap-hold $tap-time $hold-time h (layer-while-held SYMBOLS))
+  j (tap-hold $tap-time $hold-time j ralt)
+  k (tap-hold $tap-time $hold-time k rsft)
+  l (tap-hold $tap-time $hold-time l rctl)
+  ; (tap-hold $tap-time $hold-time ; rmet)
+  caps (tap-hold $tap-time $hold-time esc lctl)
+)
+
+(deflayer base
+  `  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  @caps @a   @s   @d   @f   @g   @h    @j   @k   @l   @;   '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lalt lmet    spc           rmet ralt
+)
+
+(deflayer SYMBOLS
+  _  F1   F2   F3   F4   F5   F6   F7   F8   F9    F10  _ _ _
+  _  S-1  S-2  {    }    S-\  F16  F17  F18  F19   pgup _ _ _
+  _  S-3  S-4  S-9  S-0  `    left down up   right pgdn _ _
+  _  S-5  S-6  [    ]    S-`  F11  F12  F13  F14   F15  _
+  _  _    _          _        _    _
+)
