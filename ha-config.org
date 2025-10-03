@@ -990,44 +990,6 @@ New workspace is a tab with a specific name that opens up a specific buffer or a
        ((bufferp bff) (switch-to-buffer bff)))))
 #+end_src
 
-With a new tab group for a directory or probably a project, let’s see if we can load the most useful files.
-
-#+begin_src emacs-lisp
-  (defun ha-tab-bar-new-default ()
-    "Given a new perspective, display some buffer windows.
-  The choice of files to display depends on a combination of READMEs and
-  most recently viewed files in the project. This function assumes the
-  variable `default-directory' contains the root of the project."
-    (cl-flet ((one-win (file) (find-file file))
-              (two-win (left right)
-                (find-file right)
-                (split-window-right)
-                (find-file left))
-              (in-project (file)
-                (string-match (rx bos (literal default-directory))
-                              (expand-file-name file))))
-      (let* ((recent-files (seq-filter #'in-project recentf-list))
-             (recent (car recent-files))
-             (readme-org (expand-file-name "README.org"))
-             (readme-md  (expand-file-name "README.md")))
-        (cond
-         ;; ORG + recent
-         ((and (file-exists-p recent) (file-exists-p readme-org))
-          (two-win readme-org recent))
-         ;; MD + recent
-         ((and (file-exists-p recent) (file-exists-p readme-md))
-          (two-win readme-md recent))
-         ;; recent-only
-         ((file-exists-p recent)
-          (one-win recent))
-         ;; ORG only
-         ((file-exists-p readme-org)
-          (one-win readme-org))
-         ;; MD only
-         ((file-exists-p readme-md)
-          (one-win readme-md))))))
-#+end_src
-
 Create a new tab associated with a project:
 
 #+begin_src emacs-lisp
@@ -1038,8 +1000,7 @@ Create a new tab associated with a project:
     (let ((name (project-name (project-current nil project-dir)))
           (default-directory project-dir))
       (ha-tab-bar-new name)
-      (project-switch-project project-dir)
-      (ha-tab-bar-new-default)))
+      (project-switch-project project-dir)))
 #+end_src
 
 If we close a tab that is a project, we want to close all the buffers associated with it. I wouldn’t do this if it wasn’t so easy to re-create them:
@@ -1086,7 +1047,7 @@ And some shortcut keys from the =general= project:
 I want to quickly jump, by the number shown on the tab, to that grouping. The following two functions create leader sequences with the name of the tab group:
 
 #+BEGIN_SRC emacs-lisp
-  (defun ha-tab-update-names ()
+  (defun ha-tab-bar-update-names ()
     "Create normal-mode keybindings for the tab groupings.
   This creates `SPC TAB 1' to jump to the first tab, etc."
     ;; Remove all previously created keybindings:
@@ -1095,9 +1056,9 @@ I want to quickly jump, by the number shown on the tab, to that grouping. The fo
         (general-nmap :prefix "SPC" (format "<tab> %d" indx) nil)))
 
     ;; Loop through the existing tabs, create keys for each:
-    (seq-do-indexed 'ha-tab-update-tab-keybinding (tab-bar-tabs)))
+    (seq-do-indexed 'ha-tab-bar-update-tab-keybinding (tab-bar-tabs)))
 
-  (defun ha-tab-update-tab-keybinding (tab-deets indx)
+  (defun ha-tab-bar-update-tab-keybinding (tab-deets indx)
     "Create a keybinding to jump to tab described by TAB-DEETS.
   The key sequence, `SPC' `TAB' then INDX."
     (let ((name (alist-get 'name tab-deets)))
@@ -1107,14 +1068,14 @@ I want to quickly jump, by the number shown on the tab, to that grouping. The fo
               (lambda () (interactive) (tab-bar-select-tab ,(1+ indx)))))))
 #+END_SRC
 
-Any time I create or delete a new tab, we can call =ha-tab-update-names=:
+Any time I create or delete a new tab, we can call =ha-tab-bar-update-names=:
 
 #+BEGIN_SRC emacs-lisp
-  (advice-add #'tab-bar-new-tab :after #'ha-tab-update-names)
-  (advice-add #'tab-bar-close-tab :after #'ha-tab-update-names)
-  (advice-add #'tab-bar-close-other-tabs :after #'ha-tab-update-names)
+  (advice-add #'tab-bar-new-tab :after #'ha-tab-bar-update-names)
+  (advice-add #'tab-bar-close-tab :after #'ha-tab-bar-update-names)
+  (advice-add #'tab-bar-close-other-tabs :after #'ha-tab-bar-update-names)
 
-  (add-hook desktop-after-read-hook #'ha-tab-update-names)
+  (add-hook desktop-after-read-hook #'ha-tab-bar-update-names)
 #+END_SRC
 
 * Pretty Good Encryption
@@ -1143,12 +1104,8 @@ Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need t
     ;; Make sure we prompt in the minibuffer for the password:
     (epg-pinentry-mode 'loopback)
     ;; I trust my Emacs session, so I don't bother expiring my pass:
-    (auth-source-cache-expiry nil))
-#+end_src
+    (auth-source-cache-expiry nil)
 
-Need to make sure that Emacs will handle the prompts, and turn it on:
-#+begin_src emacs-lisp
-  (use-package epa-file
     :config
     (setenv "GPG_AGENT_INFO" nil)
     (epa-file-enable))

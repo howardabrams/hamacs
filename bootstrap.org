@@ -8,6 +8,15 @@ A literate programming file for bootstraping my Emacs Configuration.
 #+begin_src emacs-lisp :exports none
   ;;; bootstrap.el --- file for bootstraping my Emacs Configuration
   ;;
+  ;;    ██████████
+  ;;    ░░███░░░░░█
+  ;;     ░███  █ ░  █████████████    ██████    ██████   █████
+  ;;     ░██████   ░░███░░███░░███  ░░░░░███  ███░░███ ███░░
+  ;;     ░███░░█    ░███ ░███ ░███   ███████ ░███ ░░░ ░░█████
+  ;;     ░███ ░   █ ░███ ░███ ░███  ███░░███ ░███  ███ ░░░░███
+  ;;     ██████████ █████░███ █████░░████████░░██████  ██████
+  ;;    ░░░░░░░░░░ ░░░░░ ░░░ ░░░░░  ░░░░░░░░  ░░░░░░  ░░░░░░
+
   ;; © 2021-2023 Howard X. Abrams
   ;;   Licensed under a Creative Commons Attribution 4.0 International License.
   ;;   See http://creativecommons.org/licenses/by/4.0/
@@ -220,8 +229,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                                   "ha-org-publishing.org"
                                   "ha-email.org"
                                   "ha-aux-apps.org"))
-                             ;; "ha-dashboard.org"
-                             ))
+                             "ha-dashboard.org"))
     "List of org files that complete the hamacs project.")
 #+end_src
 

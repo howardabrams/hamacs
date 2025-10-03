@@ -23,6 +23,15 @@ gpg --homedir ~/.emacs.d/elpa/gnupg --receive-keys 066DAFCB81E42C40
 cat > "$HAMACS_DEST/early-init.el" <<EOF
 ;;; early-init.el --- Hamacs Early Init -*- lexical-binding: t; -*-
 ;;
+;;    ▄████████   ▄▄▄▄███▄▄▄▄     ▄████████  ▄████████  ▄████████
+;;   ███    ███ ▄██▀▀▀███▀▀▀██▄  ███    ███ ███    ███ ███    ███
+;;   ███    █▀  ███   ███   ███  ███    ███ ███    █▀  ███    █▀
+;;  ▄███▄▄▄     ███   ███   ███  ███    ███ ███        ███
+;; ▀▀███▀▀▀     ███   ███   ███▀███████████ ███      ▀███████████
+;;   ███    █▄  ███   ███   ███  ███    ███ ███    █▄         ███
+;;   ███    ███ ███   ███   ███  ███    ███ ███    ███  ▄█    ███
+;;   ██████████  ▀█   ███   █▀   ███    █▀  ████████▀ ▄████████▀
+;;  
 ;;; Commentary:
 ;;
 ;; This is my early Emacs configuration file. See init.el for the real
@@ -69,6 +78,14 @@ echo "Created $HAMACS_DEST/early-init.el"
 cat > "$HAMACS_DEST/init.el" <<EOF
 ;;; init.el --- Hamacs Init -*- lexical-binding: t; -*-
 ;;
+;;   :::::::::: ::::    ::::      :::      ::::::::   ::::::::
+;;   :+:        +:+:+: :+:+:+   :+: :+:   :+:    :+: :+:    :+:
+;;   +:+        +:+ +:+:+ +:+  +:+   +:+  +:+        +:+
+;;   +#++:++#   +#+  +:+  +#+ +#++:++#++: +#+        +#++:++#++
+;;   +#+        +#+       +#+ +#+     +#+ +#+               +#+
+;;   #+#        #+#       #+# #+#     #+# #+#    #+# #+#    #+#
+;;   ########## ###       ### ###     ###  ########   ########
+;;   
 ;;; Commentary:
 ;;
 ;; This is my Emacs Bootloader. Simply put, I initialize the package

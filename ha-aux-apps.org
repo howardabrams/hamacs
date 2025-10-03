@@ -55,33 +55,33 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
       :config
       (major-mode-hydra-define mastodon-mode nil
         ("Timelines"
-         (("u" mastodon-tl--update "update")
-          ("F" mastodon-tl--get-federated-timeline "Federated")
-          ("H" mastodon-tl--get-home-timeline "Home")
-          ("L" mastodon-tl--get-local-timeline "Local")
-          ("T" mastodon-tl--get-tag-timeline "Hashtag"))
+         (("u" mastodon-tl-update "update")
+          ("F" mastodon-tl-get-federated-timeline "Federated")
+          ("H" mastodon-tl-get-home-timeline "Home")
+          ("L" mastodon-tl-get-local-timeline "Local")
+          ("T" mastodon-tl-get-tag-timeline "Hashtag"))
          "Specials"
          (("M" mastodon-notifications--get-mentions "Mentions")
           ("N" mastodon-notifications-get "Notifications")
-          ("A" mastodon-tl--followed-tags-timeline "All Tags")
-          ("S" mastodon-profile--view-bookmarks "Saved bookmarks")
-          ("O" mastodon-profile--my-profile "My Profile"))
+          ("A" mastodon-tl-followed-tags-timeline "All Tags")
+          ("S" mastodon-profile-view-bookmarks "Saved bookmarks")
+          ("O" mastodon-profile-my-profile "My Profile"))
          "Post"
          (("c" mastodon-toot "Compose toot")
-          ("e" mastodon-toot--edit-toot-at-point "Edit toot")
-          ("t" mastodon-tl--thread "Read thread")
-          ("r" mastodon-toot--reply "Reply")
-          ("m" mastodon-tl--dm-user "Direct Msg")
-          ("d" mastodon-toot--delete-toot "Delete"))
+          ("e" mastodon-toot-edit-toot-at-point "Edit toot")
+          ("t" mastodon-tl-thread "Read thread")
+          ("r" mastodon-toot-reply "Reply")
+          ("m" mastodon-tl-dm-user "Direct Msg")
+          ("d" mastodon-toot-delete-toot "Delete"))
          "Toot"
-         (("f" mastodon-toot--toggle-favourite "Favorite")
-          ("b" mastodon-toot--toggle-boost "Boost")
-          ("s" mastodon-toot--toggle-bookmark "Save")
-          ("y" mastodon-toot--copy-toot-url "Copy URL")
-          ("Y" mastodon-toot--copy-toot-text "Copy text"))
+         (("f" mastodon-toot-toggle-favourite "Favorite")
+          ("b" mastodon-toot-toggle-boost "Boost")
+          ("s" mastodon-toot-toggle-bookmark "Save")
+          ("y" mastodon-toot-copy-toot-url "Copy URL")
+          ("Y" mastodon-toot-copy-toot-text "Copy text"))
          "Navigation"
-         (("n" mastodon-tl--next-tab-item "next" :color pink)
-          ("p" mastodon-tl--previous-tab-item "previous" :color pink)
+         (("n" mastodon-tl-next-tab-item "next" :color pink)
+          ("p" mastodon-tl-previous-tab-item "previous" :color pink)
           ("," ha-mastodon-scroll-or-more "...more" :color pink))))))
 #+end_src
 

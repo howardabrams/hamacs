@@ -173,6 +173,7 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
     ;; :hook (dashboard-after-initialize . ha-dashboard)
 
     :config
+    (tab-bar-switch-to-tab "main")
     (dashboard-setup-startup-hook))
 #+end_src
 
