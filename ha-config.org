@@ -721,7 +721,7 @@ As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html
                                  "Yippee"
                                  "What's next?"
                                  "Notification complete. Happy?"
-                                 "Beware lest the dragons fly"))))
+                                 "Beware, lest the dragons fly"))))
       (beep-when-finished msg)))
 #+end_src
 
