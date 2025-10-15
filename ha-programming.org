@@ -1089,7 +1089,7 @@ This means, that some data like:
     "data": {
       "name": "Create And Wait for Service Image",
       "description": "Creates a new Service Image using IMaaS",
-      "long_description": "This job creates a new yawxway service image with name yawxway-howard.abrams-test and docker-dev-artifactory.workday.com/dev/yawxway-service:latest docker url in development folder",
+      "long_description": "This job creates a new service image with name ... blah, blah, blah",
       "job_id": "5e077245-0f4a-4dc9-b473-ce3ec0b811ba",
       "state": "success",
       "progress": "100",
