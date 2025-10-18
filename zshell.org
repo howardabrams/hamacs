@@ -43,8 +43,21 @@ Let’s create the following files, and the configuration below will be injected
 * Path
 The all important =PATH= environment variable, needs my special =bin= directory.
 
-#+BEGIN_SRC zsh :export ~/.zshenv
-  export PATH=$HOME/bin:/usr/local/bin:$PATH
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  export PATH=$HOME/bin:$PATH
+#+END_SRC
+
+My Apple Macbook screws up my =PATH= by having =/etc/profile= (that runs after my =~/.zshenv=) /pre-pend/ system directories like =/bin= and =/usr/bin= /after/ I’ve set up my =PATH= environment variable. So, in my own =.zprofile=, I reverse it:
+
+#+BEGIN_SRC sh :tangle ~/.zprofile :shebang #!/bin/zsh
+  # Reverse the PATH variable
+  reversed_path=$(echo $PATH | tr ':' '\n' | tac | tr '\n' ':')
+
+  # Reset the path after removing the trailing colon:
+  export PATH=${reversed_path%:}
+
+  # Output the reversed PATH
+  # echo "Reversed PATH: $reversed_path"
 #+END_SRC
 
 * Options
@@ -88,23 +101,6 @@ On an ambiguous completion, instead of listing possibilities or beeping, insert 
 
 #+BEGIN_SRC zsh
 setopt MENU_COMPLETE
-#+END_SRC
-
-* Homebrew
-When using Homebrew on a Mac, we need to add its =PATH=:
-
-#+BEGIN_SRC zsh :tangle ~/.zshenv
-  eval $(/opt/homebrew/bin/brew shellenv zsh)
-#+END_SRC
-
-This adds the following environment variables, along with expanding the =PATH=.
-
-#+BEGIN_SRC zsh :tangle no
-  export HOMEBREW_PREFIX="/opt/homebrew";
-  export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
-  export HOMEBREW_REPOSITORY="/opt/homebrew";
-  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
-  export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 #+END_SRC
 
 * ZShell Styles
@@ -203,13 +199,16 @@ Anything special for particular languages.
 *** Python
 Not overly impressed, for to get =pyenv= to work, we need to add this code:
 
-#+BEGIN_SRC zsh
+#+BEGIN_SRC zsh :tangle ~/.zshenv
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
-
-  eval "$(pyenv init --path)"
 #+END_SRC
 
+And call the =pyenv= to initialize it:
+
+#+BEGIN_SRC zsh
+  # eval "$(pyenv init --path)"
+#+END_SRC
 
 ** Plugins
 Configure the plugins, making sure to not use =git=, as the aliases are a pain to remember when I already have a superior Git interface in Emacs.
@@ -228,7 +227,7 @@ Configure the plugins, making sure to not use =git=, as the aliases are a pain t
 To have a plugin /install/, add its name to the =plugins= array variable /before/ we =source= the OMZ script:
 
 #+begin_SRC zsh
-  plugins=(colorize direnv gnu-utils iterm2 macos pyenv virtualenv zbell zsh-syntax-highlighting)
+  plugins=(colorize direnv gnu-utils iterm2 macos virtualenv zbell zsh-syntax-highlighting)
 #+END_SRC
 
 Notice the =iterm2= plugin as well as the =macos= plugins that would be nice to figure out how to make them optionally added (although I believe they check themselves).
@@ -274,6 +273,79 @@ Oh use the absolute /over-the-top/ bling associated with Oh My Zshell’s /theme
 #+END_SRC
 
 I keep the prompt simple since all of the /gunk/ we typically put in a prompt is better placed in [[https://iterm2.com/documentation-status-bar.html][iTerm2's Status Bar]].
+* Homebrew
+When using Homebrew on a Mac, we need to add its =PATH= and environment variables. This is typically done by running the command:
+
+#+BEGIN_SRC zsh :tangle no
+  eval $(brew shellenv zsh)
+#+END_SRC
+
+We want to add the path and environment variables into the =~/.zshenv= file, but this file should not contain any logic or code. So, let’s run the command /from Emacs/, and store the results in the file.
+
+The full script to run is:
+
+#+BEGIN_SRC zsh :tangle no :results file :file ~/.zshenv_brew
+  echo '# -*- mode:sh; -*-'
+  if which brew >/dev/null
+  then
+      if [[ -d /opt/homebrew ]]
+      then
+          /opt/homebrew/bin/brew shellenv zsh
+      else
+          brew shellenv zsh
+      fi
+  fi
+#+END_SRC
+
+Seems that if I want the GNU versions (instead of the old ones supplied by Apple), I have to do it myself:
+
+#+BEGIN_SRC zsh :tangle no :results file :file ~/.zshenv_gnu
+  echo '# -*- mode:sh; -*-'
+  if which brew >/dev/null
+  then
+      for PKG in binutils gettext unzip openssl texinfo mysql-client openjdk
+      do
+          if PKG_INSTALL=$(brew --prefix $PKG)
+          then
+              echo export PATH=$PKG_INSTALL/bin:'$PATH'
+          fi
+      done
+
+      for PKG in coreutils ed findutils gnu-indent gnu-sed gnu-tar grep make
+      do
+          if PKG_INSTALL=$(brew --prefix $PKG)
+          then
+              echo export PATH=$PKG_INSTALL/libexec/gnubin:'$PATH'
+          fi
+      done
+  fi
+#+END_SRC
+
+And linking all the GNU libraries:
+
+#+BEGIN_SRC zsh :tangle no :results file :file ~/.zshenv_lib
+  echo '# -*- mode:sh; -*-'
+
+  if which brew >/dev/null
+  then
+      for PKG in readline openssl xz binutils ctags libgccjit imagemagick
+      do
+          if PKG_INSTALL=$(brew --prefix $PKG)
+             echo export LDFLAGS=\"-L$PKG_INSTALL/lib '$LDFLAGS'\"
+             echo export CPPFLAGS=\"-I$PKG_INSTALL/include '$CPPFLAGS'\"
+      done
+      echo export LDFLAGS=\"'$LDFLAGS' -L$(brew --prefix)/lib\"
+      echo export CPPFLAGS=\"'$CPPFLAGS' -I$(brew --prefix)/include\"
+  fi
+#+END_SRC
+
+And put in all the results into the =~/.zshenv= file:
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  source $HOME/.zshenv_brew
+  source $HOME/.zshenv_gnu
+  source $HOME/.zshenv_lib
+#+END_SRC
+
 * iTerm2
 On Mac systems, I like the [[https://www.iterm2.com/][iTerm2 application]], and we can enable [[https://iterm2.com/documentation-shell-integration.html][shell integration]], either via the old school way, or just rely on [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][the /plugin/ ]]above:
 
@@ -324,7 +396,9 @@ While it /should/ figure out (as Emacs keybindings are the default), this is how
   bindkey -e
 #+END_SRC
 
-Where be the =emacsclient=, and how should we call it?
+Where be the =emacsclient=? It should, at this point, be in our path.
+
+And how should we call it?
 
 #+BEGIN_SRC zsh :tangle ~/.zshenv
   export EMACS="emacsclient --socket-name personal"
@@ -407,7 +481,7 @@ For instance:
 Assuming we’ve installed [[https://github.com/lsd-rs/lsd][lsd]], let’s make an alias for it:
 
 #+BEGIN_SRC zsh
-  if whence lsd >/dev/null
+  if which lsd >/dev/null
   then
     alias ls=lsd
   fi
@@ -431,6 +505,13 @@ And an abstraction for transitory endpoints over SSH:
   alias ossh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o loglevel=ERROR"
 #+END_SRC
 
+And other ones that I use:
+
+#+BEGIN_SRC  zsh
+  alias os=openstack
+  alias k=kubectl
+#+END_SRC
+
 * Final Message
 For sensitive work-related environment variables, store them elsewhere, and load them:
 
@@ -446,6 +527,7 @@ To let us know we read the =~/.zshrc= file:
 
 #+description: A literate programming file for configuring Zshell.
 #+property:    header-args:zsh :tangle ~/.zshrc
+#+property:    header-args:sh :tangle no
 #+property:    header-args    :results none :eval no-export :comments no mkdirp yes
 #+options:     num:nil toc:t todo:nil tasks:nil tags:nil date:nil
 #+options:     skip:nil author:nil email:nil creator:nil timestamp:nil
