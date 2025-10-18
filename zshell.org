@@ -21,6 +21,7 @@ Regardless, I keep my shell configuration conspicuously light.
 Let’s create the following files, and the configuration below will be injected into one of them:
 
   - =~/.zshenv= :: Usually run for every zsh
+  - =~/.zprofile= :: Usually run for login shells (this includes the system-wide =/etc/zprofile=)
   - =~/.zshrc= :: Run for interactive shells … default file when tangling
   - =~/.zlogin= :: Run for login shells … seems to run as often as =.zshrc=
 
@@ -44,20 +45,23 @@ Let’s create the following files, and the configuration below will be injected
 The all important =PATH= environment variable, needs my special =bin= directory.
 
 #+BEGIN_SRC zsh :tangle ~/.zshenv
-  export PATH=$HOME/bin:$PATH
+  export PATH=$HOME/bin:$HOME/.local/bin:$PATH
 #+END_SRC
 
-My Apple Macbook screws up my =PATH= by having =/etc/profile= (that runs after my =~/.zshenv=) /pre-pend/ system directories like =/bin= and =/usr/bin= /after/ I’ve set up my =PATH= environment variable. So, in my own =.zprofile=, I reverse it:
+My Apple Macbook screws up my =PATH= by having =/etc/profile= (that runs after my =~/.zshenv=) /pre-pend/ system directories like =/bin= and =/usr/bin= /after/ I’ve set up my =PATH= environment variable. So, in my own =.zprofile= (which runs afterwards), I reverse it using the lovely =tac= program:
 
 #+BEGIN_SRC sh :tangle ~/.zprofile :shebang #!/bin/zsh
-  # Reverse the PATH variable
-  reversed_path=$(echo $PATH | tr ':' '\n' | tac | tr '\n' ':')
+  if [[ -f /etc/zprofile ]]
+  then
+      # Reverse the PATH variable
+      reversed_path=$(echo $PATH | tr ':' '\n' | tac | tr '\n' ':')
 
-  # Reset the path after removing the trailing colon:
-  export PATH=${reversed_path%:}
+      # Reset the path after removing the trailing colon:
+      export PATH=${reversed_path%:}
 
-  # Output the reversed PATH
-  # echo "Reversed PATH: $reversed_path"
+      # Output the reversed PATH
+      # echo "Reversed PATH: $reversed_path"
+  fi
 #+END_SRC
 
 * Options
@@ -101,6 +105,26 @@ On an ambiguous completion, instead of listing possibilities or beeping, insert 
 
 #+BEGIN_SRC zsh
 setopt MENU_COMPLETE
+#+END_SRC
+
+* Homebrew
+When using Homebrew on a Mac, we need to add its =PATH=:
+
+#+BEGIN_SRC zsh :tangle ~/.zshenv
+  if [[ -d /opt/homebrew ]]
+  then
+    eval $(/opt/homebrew/bin/brew shellenv zsh)
+  fi
+#+END_SRC
+
+This adds the following environment variables, along with expanding the =PATH=.
+
+#+BEGIN_SRC zsh :tangle no
+  export HOMEBREW_PREFIX="/opt/homebrew";
+  export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
+  export HOMEBREW_REPOSITORY="/opt/homebrew";
+  [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";
+  export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 #+END_SRC
 
 * ZShell Styles
@@ -339,11 +363,12 @@ And linking all the GNU libraries:
   fi
 #+END_SRC
 
-And put in all the results into the =~/.zshenv= file:
+And pull in all the results into the =~/.zshenv= file (why yes, this could be inlined):
+
 #+BEGIN_SRC zsh :tangle ~/.zshenv
-  source $HOME/.zshenv_brew
-  source $HOME/.zshenv_gnu
-  source $HOME/.zshenv_lib
+  [[ -f $HOME/.zshenv_brew ]] && source $HOME/.zshenv_brew
+  [[ -f $HOME/.zshenv_gnu  ]] && source $HOME/.zshenv_gnu
+  [[ -f $HOME/.zshenv_lib  ]] && source $HOME/.zshenv_lib
 #+END_SRC
 
 * iTerm2
