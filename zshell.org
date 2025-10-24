@@ -265,6 +265,26 @@ The trick is to install some base-level plugins, and then, on my work computer, 
   fi
 #+END_SRC
 
+I would like to have a history /per project/, so that when I start a session for a project, my history has where I left off /for that project/ and not everything. I guess I’m not the only one who [[https://github.com/ivan-cukic/zsh-per-project-history][thought of this idea]].  We first need to add his plugin to the list of supplied plugins, so do this once:
+
+#+BEGIN_SRC zsh :tangle no
+  git clone https://github.com/ivan-cukic/zsh-per-project-history ~/.oh-my-zsh/plugins/per-project-history
+#+END_SRC
+
+His idea is to have a variable array, =PER_PROJECT_HISTORY_TAGS= that lists files that should identify the start of a project, and while his default seems sufficient, I am not found of the spammy message, so:
+
+#+BEGIN_SRC zsh
+  declare -a PER_PROJECT_HISTORY_TAGS
+  export PER_PROJECT_HISTORY_TAGS=(.envrc .git)
+  declare -r PER_PROJECT_HISTORY_TAGS
+#+END_SRC
+
+we just need to add =per-history= to the list of plugins:
+
+#+BEGIN_SRC zsh
+  plugins+=(per-project-history)
+#+END_SRC
+
 Now that I’ve filled in the =plugins= variable, load OMZ and the plugins:
 
 #+BEGIN_SRC zsh

@@ -145,12 +145,10 @@ The [[https://github.com/emacs-dashboard/emacs-dashboard][emacs-dashboard]] proj
         (string-replace "\n" "" smaller-version)))
 
     (setq dashboard-startup-banner
-          (if (ha-emacs-for-work?)
-              "~/src/hamacs/support/teal-sticker.png"
-            ;; Choose a random image from my collection of startup images:
-            (thread-first "~/src/hamacs/support/dashboard"
-                                                 (directory-files t (rx ".png"))
-                                                 (seq-random-elt))))
+          ;; Choose a random image from my collection of startup images:
+          (thread-first "~/src/hamacs/support/dashboard"
+                        (directory-files t (rx ".png"))
+                        (seq-random-elt)))
 
     (setq dashboard-banner-logo-title
           (format "Emacs %s — %s"

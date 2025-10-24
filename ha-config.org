@@ -1035,6 +1035,7 @@ And some shortcut keys from the =general= project:
     "<tab> <tab>" '("switch" . tab-switch)
     "<tab> p" '("new project" . ha-tab-bar-new-project)
     "<tab> n" '("new space" . ha-tab-bar-new)
+    "<tab> u" '("update names" . ha-tab-bar-update-names)
     "<tab> d" '("delete space" . ha-tab-bar-delete))
 
   (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
@@ -1050,6 +1051,7 @@ I want to quickly jump, by the number shown on the tab, to that grouping. The fo
   (defun ha-tab-bar-update-names ()
     "Create normal-mode keybindings for the tab groupings.
   This creates `SPC TAB 1' to jump to the first tab, etc."
+    (interactive)
     ;; Remove all previously created keybindings:
     (ignore-errors
       (dolist (indx (number-sequence 1 9))
@@ -1108,14 +1110,14 @@ Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need t
 
     :config
     (setenv "GPG_AGENT_INFO" nil)
-    (epa-file-enable))
+    (ignore-error (epa-file-enable)))
 #+end_src
 
 Since I already (at this point in my file) have Org installed and running, the following code configures the encryption of certain header sections (see [[https://orgmode.org/worg/org-tutorials/encrypting-files.html][this tutorial]]). Headers with a =:crypt:tag (see =org-crypt-tag-matcher= to change it) will be encrypted.
 
 To temporarily read an encrypted part, and call =M-x org-decrypt-entry= when the cursor is inside that section. Saving the file, will re-encrypt it.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package org
     :config
     (require 'org-crypt)
