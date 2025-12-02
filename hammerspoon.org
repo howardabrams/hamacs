@@ -1,0 +1,314 @@
+#+title:  Hammerspoon Configuration
+#+author: Howard X. Abrams
+#+date:   2025-11-24
+#+filetags: emacs hamacs
+#+lastmod: [2025-12-02 Tue]
+
+A literate programming file for configuring Hammerspoon.
+
+* Introduction
+Ever since I got a Mac, I’ve used various tools to /script/ it. With my limited number of applications, my UI needs are simple (I mean, what more do you need once Emacs is in full screen). That said, I’ve been using [[https://hammerspoon.org][Hammerspoon]] for those few needs. While I refer to the [[https://www.hammerspoon.org/docs/index.html][standard documentation]], I often steal snippets of code from others.
+
+Simple to use. Use =hs.execute= to run a script, =ha.alert.show= to print a small message on the screen, and for something longer:
+#+BEGIN_SRC lua :tangle no
+  hs.notify.new({title="Hammerspoon", informativeText="Hello World"}):send()
+#+END_SRC
+
+* Shortcut Keybindings
+I’ve created left and right ~Meh~ keys on my Moonlanders:
+  - Left Meh Key: ~C-M-S-s~ (Control Option/Meta Command Shift)
+  - Right Meh Key: ~C-M-S~ (Control Option/Meta Shift)
+
+To create special key bindings, I can:
+#+BEGIN_SRC lua
+  ----------------------------------------------------------------------
+  -- Launcher replaces iCanHazShortcuts
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "T", function()
+        hs.application.launchOrFocus("iTerm")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "S", function()
+        hs.application.launchOrFocus("Slack")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "W", function()
+        hs.application.launchOrFocus("Spotify")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "F", function()
+        hs.application.launchOrFocus("Firefox")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "C", function()
+        -- hs.osascript.applescriptFromFile("~/bin/chrome.scr")
+        hs.execute("~/bin/chrome.scr")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "B", function()
+        hs.application.launchOrFocus("Microsoft Outlook")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "Z", function()
+        hs.application.launchOrFocus("zoom.us")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "A", function()
+        hs.application.launchOrFocus("Cursor")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "Q", function()
+        hs.application.launchOrFocus("KeepassXC")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "E", function()
+        hs.execute("FOR_WORK=yes open -a /Applications/Emacs.app")
+  end)
+
+  -- Special Emacs Guys
+  -- Right Meh key:
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "X", function()
+        hs.execute("~/bin/emacs-capture")
+  end)
+
+  -- Left Meh key:
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "X", function()
+        hs.execute("~/bin/emacs-capture-clock")
+  end)
+
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "M", function()
+        hs.execute("~/bin/emacs-capture-meeting")
+  end)
+#+END_SRC
+* Zoom
+To use the Zoom spoon, clone it:
+#+BEGIN_SRC sh :dir ~/.hammerspoon/Spoons :tangle no :results silent
+  git clone https://github.com/jpf/Zoom.spoon.git
+#+END_SRC
+
+
+I noticed that it does its works by calling Zoom’s menus, and with the latest version of Zoom, they changed the /case/ of the menu, meaning that I needed to create a pull request.
+
+From this [[https://developer.okta.com/blog/2020/10/22/set-up-a-mute-indicator-light-for-zoom-with-hammerspoon][nice essay]], we create a menu bar item that shows the status, as well as allowing me to click it to toggle:
+
+#+BEGIN_SRC lua
+  zoomStatusMenuBarItem = hs.menubar.new(true)
+  zoomStatusMenuBarItem:setClickCallback(function()
+      spoon.Zoom:toggleMute()
+  end)
+
+  updateZoomStatus = function(event)
+    hs.printf("updateZoomStatus(%s)", event)
+    if (event == "from-running-to-meeting") then
+      zoomStatusMenuBarItem:returnToMenuBar()
+    elseif (event == "muted") then
+      zoomStatusMenuBarItem:setTitle("🔴")
+    elseif (event == "unmuted") then
+      zoomStatusMenuBarItem:setTitle("🟢")
+    elseif (event == "from-meeting-to-running") then
+      zoomStatusMenuBarItem:removeFromMenuBar()
+    end
+  end
+#+END_SRC
+
+Now we can load, instantiate it, as well as create a callback loop to call =updateZoomStatus=:
+
+#+BEGIN_SRC lua
+  hs.loadSpoon("Zoom")
+  spoon.Zoom:setStatusCallback(updateZoomStatus)
+  spoon.Zoom:start()
+#+END_SRC
+
+And bind a key to the mute ability that works good for both keyboards:
+
+#+BEGIN_SRC lua
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "M", function()
+        spoon.Zoom:toggleMute()
+  end)
+
+  hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", function()
+        spoon.Zoom:toggleMute()
+  end)
+#+END_SRC
+
+Lovely bit of code and shows the true power of Hammerspoon to fix the various app issues.
+* Automatically Adjust Volume
+Leaving my home office and hopping on the train can be socially awkward when my laptop suddenly screams, so if I leave my home, I just readjust the volume and turn it off:
+
+#+BEGIN_SRC lua
+  ----------------------------------------------------------------------
+  -- When leaving house, turn off the volume:
+
+  wifiWatcher = nil
+  homeSSID = "Intertubes"
+  workSSID = "workdaysecure"
+  hotspotSSID = "Pixie Dust"
+  lastSSID = hs.wifi.currentNetwork()
+
+  function ssidChangedCallback()
+      newSSID = hs.wifi.currentNetwork()
+
+      if newSSID == homeSSID and lastSSID ~= homeSSID then
+          -- We just joined our home WiFi network
+          hs.audiodevice.defaultOutputDevice():setVolume(25)
+      elseif newSSID == workSSID and lastSSID ~= workSSID then
+          -- We just joined our work WiFi network
+          hs.audiodevice.defaultOutputDevice():setVolume(0)
+      elseif newSSID == hotspotSSID and lastSSID ~= hotspotSSID then
+          -- We just joined our hotspot WiFi network
+          hs.audiodevice.defaultOutputDevice():setVolume(0)
+      elseif newSSID ~= homeSSID and lastSSID == homeSSID then
+          -- We just departed our home WiFi network
+          hs.audiodevice.defaultOutputDevice():setVolume(0)
+      end
+
+      lastSSID = newSSID
+  end
+
+  wifiWatcher = hs.wifi.watcher.new(ssidChangedCallback)
+  wifiWatcher:start()
+#+END_SRC
+
+Why yes, I’m /looking for features/ to use Hammerspoon.
+* Clocking out a Task
+I want to use Org’s task clocking ability, but I often forget to /clock out/. This code allows me to clock out whenever my computer goes to sleep:
+
+#+BEGIN_SRC lua
+  function logfile(msg)
+     -- Define the file path
+     local home = os.getenv("HOME")
+     local filePath = home .. "/.hammerspoon.log"
+
+     -- Open the file in append mode
+     local file, err = io.open(filePath, "a")
+     if file then
+        file:write(msg)
+        file:write("\n")
+        file:close()
+     end
+  end
+
+  function sleepWatch(eventType)
+     if (eventType == hs.caffeinate.watcher.systemWillSleep) then
+        logfile("Sleep called.")
+        if hs.application.find(appName) then
+           logfile("Calling emacs")
+           hs.execute("emacsclient --eval '(ha-clock-out)' --no-wait")
+        else
+           logfile("No emacs running?")
+        end
+     end
+  end
+
+  local sleepWatcher = hs.caffeinate.watcher.new(sleepWatch)
+  sleepWatcher:start()
+#+END_SRC
+
+Not that we could also do something for Wake:
+
+#+BEGIN_SRC lua :tangle no
+  if (eventType == hs.caffeinate.watcher.systemDidWake) then
+    ...
+  end
+#+END_SRC
+
+I’m curious about putting the current clocked in task (or something similar) on the menubar:
+
+#+BEGIN_SRC lua :tangle no
+  ----------------------------------------------------------------------
+  -- Interesting use of a Menubar
+
+  caffeine = hs.menubar.new()
+
+  function setCaffeineDisplay(state)
+      if state then
+          caffeine:setTitle("AWAKE")
+      else
+          caffeine:setTitle("SLEEPY")
+      end
+  end
+
+  function caffeineClicked()
+      setCaffeineDisplay(hs.caffeinate.toggle("displayIdle"))
+  end
+
+  if caffeine then
+      caffeine:setClickCallback(caffeineClicked)
+      setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
+  end
+#+END_SRC
+* Work Stuff
+My company gave me a nice monitor … maybe a little too nice, as I don’t care to shift my neck to the extreme sides (serious first-world problem), so here I can /center/ a window Keeping it my field of view:
+
+#+BEGIN_SRC lua
+  ----------------------------------------------------------------------
+  -- Centering a window on the large monitors at Work:
+
+  function centerWindow()
+        local win = hs.window.focusedWindow()
+        local app = win:application()
+        local f = win:frame()
+
+        -- Magic numbers figured out by trial and error:
+        f.x = 600
+        f.y = 30
+        f.w = 2200
+        f.h = 1470
+
+        if app then
+          local name = app:name()
+          -- If the application is Slack, adjust the height
+          if name == "Slack" or name == "iTerm2" then
+            f.h = 1200
+          end
+        end
+
+        win:setFrame(f)
+        hs.alert.show("Centered Window")
+  end
+
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Y", centerWindow)
+#+END_SRC
+
+* Auto Reload Configuration
+Whenever my configuration file is altered (or with a ~Meh-R~ key), I reload the configuration:
+
+#+BEGIN_SRC lua
+  ----------------------------------------------------------------------
+  -- Automatically reload the Hammerspoon configuration
+
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "R", function()
+        hs.reload()
+        hs.alert.show("Reloaded Hammerspoon Config")
+  end)
+
+  function reloadConfig(files)
+      doReload = false
+      for _,file in pairs(files) do
+          if file:sub(-4) == ".lua" then
+              doReload = true
+          end
+      end
+      if doReload then
+          hs.reload()
+      end
+  end
+
+  myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+#+END_SRC
+
+* Technical Artifacts                                :noexport:
+#+BEGIN_SRC lua
+  hs.alert.show("Hammerspoon Configuration")
+#+END_SRC
+
+
+#+DESCRIPTION: Literate Hammerspoon configuration
+
+#+PROPERTY:    header-args:sh :tangle no
+#+PROPERTY:    header-args:lua  :tangle ~/.hammerspoon/init.lua
+#+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
+
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
