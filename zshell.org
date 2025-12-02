@@ -218,6 +218,13 @@ The [[https://github.com/zsh-users/zsh-syntax-highlighting][ZShell Syntax Highli
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 #+END_SRC
 
+Using the =colorize= plugin (see [[Plugins][plugins section below]]), we customize with this variable setting:
+
+#+BEGIN_SRC zsh
+  export ZSH_COLORIZE_STYLE="coffee"
+#+END_SRC
+
+
 ** Language Support
 Anything special for particular languages.
 *** Python
@@ -446,7 +453,7 @@ Where be the =emacsclient=? It should, at this point, be in our path.
 And how should we call it?
 
 #+BEGIN_SRC zsh :tangle ~/.zshenv
-  export EMACS="emacsclient --socket-name personal"
+  export EMACS_SOCKET_NAME=personal
 #+END_SRC
 
 Which needs to be overwritten on my Work computer:
@@ -454,15 +461,15 @@ Which needs to be overwritten on my Work computer:
 #+BEGIN_SRC zsh :tangle ~/.zshenv
   if hostname | grep AL33 >/dev/null
   then
-    export EMACS="emacsclient --socket-name work"
+    export EMACS_SOCKET_NAME=work
   fi
 #+END_SRC
 
 The =EDITOR= variable that some programs use to edit files from the command line:
 
 #+BEGIN_SRC zsh :tangle ~/.zshenv
-  export EDITOR="$EMACS --tty"
-  export VISUAL="$EMACS --create-frame"
+  export EDITOR="emacsclient --tty"
+  export VISUAL="emacsclient --create-frame"
 #+END_SRC
 
 With these variables defined, we can create simple aliases:
@@ -470,8 +477,8 @@ With these variables defined, we can create simple aliases:
 #+BEGIN_SRC zsh
   alias e="$EDITOR"
   alias te="$EDITOR"
-  alias ee="$EMACS --create-frame"
-  alias eee="$EMACS --create-frame --no-wait"
+  alias ee="emacsclient --create-frame"
+  alias eee="emacsclient --create-frame --no-wait"
 #+END_SRC
 
 ** Vterm
