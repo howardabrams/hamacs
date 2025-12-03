@@ -81,11 +81,11 @@ To create special key bindings, I can:
   end)
 #+END_SRC
 * Zoom
-To use the Zoom spoon, clone it:
+Library extensions to Hammerspoon are called /spoons/, and most of these are a simple Lua script, =init.lua= stored in the =Spoons= subdirectory. We grab these with a =git clone=, typically. To use the Zoom spoon, clone it:
+
 #+BEGIN_SRC sh :dir ~/.hammerspoon/Spoons :tangle no :results silent
   git clone https://github.com/jpf/Zoom.spoon.git
 #+END_SRC
-
 
 I noticed that it does its works by calling Zoom’s menus, and with the latest version of Zoom, they changed the /case/ of the menu, meaning that I needed to create a pull request.
 
@@ -122,9 +122,7 @@ Now we can load, instantiate it, as well as create a callback loop to call =upda
 And bind a key to the mute ability that works good for both keyboards:
 
 #+BEGIN_SRC lua
-  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "M", function()
-        spoon.Zoom:toggleMute()
-  end)
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "M", spoon.Zoom:toggleMute)
 
   hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", function()
         spoon.Zoom:toggleMute()
@@ -149,59 +147,39 @@ Leaving my home office and hopping on the train can be socially awkward when my 
       newSSID = hs.wifi.currentNetwork()
 
       if newSSID == homeSSID and lastSSID ~= homeSSID then
-          -- We just joined our home WiFi network
+          -- joined our home WiFi network
           hs.audiodevice.defaultOutputDevice():setVolume(25)
       elseif newSSID == workSSID and lastSSID ~= workSSID then
-          -- We just joined our work WiFi network
+          -- joined our work WiFi network
           hs.audiodevice.defaultOutputDevice():setVolume(0)
       elseif newSSID == hotspotSSID and lastSSID ~= hotspotSSID then
-          -- We just joined our hotspot WiFi network
+          -- joined our hotspot WiFi network
           hs.audiodevice.defaultOutputDevice():setVolume(0)
       elseif newSSID ~= homeSSID and lastSSID == homeSSID then
-          -- We just departed our home WiFi network
+          -- departed our home WiFi network
           hs.audiodevice.defaultOutputDevice():setVolume(0)
       end
 
       lastSSID = newSSID
   end
 
-  wifiWatcher = hs.wifi.watcher.new(ssidChangedCallback)
-  wifiWatcher:start()
+  hs.wifi.watcher.new(ssidChangedCallback):start()
 #+END_SRC
 
 Why yes, I’m /looking for features/ to use Hammerspoon.
 * Clocking out a Task
-I want to use Org’s task clocking ability, but I often forget to /clock out/. This code allows me to clock out whenever my computer goes to sleep:
+I want to use Org’s task clocking ability, but I often forget to /clock out/. This code allows me to clock out whenever my computer goes to sleep … which works well when closing the laptop lid:
 
 #+BEGIN_SRC lua
-  function logfile(msg)
-     -- Define the file path
-     local home = os.getenv("HOME")
-     local filePath = home .. "/.hammerspoon.log"
-
-     -- Open the file in append mode
-     local file, err = io.open(filePath, "a")
-     if file then
-        file:write(msg)
-        file:write("\n")
-        file:close()
-     end
-  end
-
   function sleepWatch(eventType)
      if (eventType == hs.caffeinate.watcher.systemWillSleep) then
-        logfile("Sleep called.")
-        if hs.application.find(appName) then
-           logfile("Calling emacs")
-           hs.execute("emacsclient --eval '(ha-clock-out)' --no-wait")
-        else
-           logfile("No emacs running?")
+        if hs.application.find("Emacs") then
+           hs.execute("/opt/homebrew/bin/emacsclient --socket work --eval '(ha-clock-out)'")
         end
      end
   end
 
-  local sleepWatcher = hs.caffeinate.watcher.new(sleepWatch)
-  sleepWatcher:start()
+  hs.caffeinate.watcher.new(sleepWatch):start()
 #+END_SRC
 
 Not that we could also do something for Wake:
@@ -212,32 +190,7 @@ Not that we could also do something for Wake:
   end
 #+END_SRC
 
-I’m curious about putting the current clocked in task (or something similar) on the menubar:
-
-#+BEGIN_SRC lua :tangle no
-  ----------------------------------------------------------------------
-  -- Interesting use of a Menubar
-
-  caffeine = hs.menubar.new()
-
-  function setCaffeineDisplay(state)
-      if state then
-          caffeine:setTitle("AWAKE")
-      else
-          caffeine:setTitle("SLEEPY")
-      end
-  end
-
-  function caffeineClicked()
-      setCaffeineDisplay(hs.caffeinate.toggle("displayIdle"))
-  end
-
-  if caffeine then
-      caffeine:setClickCallback(caffeineClicked)
-      setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
-  end
-#+END_SRC
-* Work Stuff
+* Monitors
 My company gave me a nice monitor … maybe a little too nice, as I don’t care to shift my neck to the extreme sides (serious first-world problem), so here I can /center/ a window Keeping it my field of view:
 
 #+BEGIN_SRC lua
@@ -294,7 +247,7 @@ Whenever my configuration file is altered (or with a ~Meh-R~ key), I reload the 
       end
   end
 
-  myWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+  hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
 #+END_SRC
 
 * Technical Artifacts                                :noexport:
