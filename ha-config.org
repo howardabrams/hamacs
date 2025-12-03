@@ -1048,13 +1048,13 @@ And some shortcut keys from the =general= project:
 I want to quickly jump, by the number shown on the tab, to that grouping. The following two functions create leader sequences with the name of the tab group:
 
 #+BEGIN_SRC emacs-lisp
-  (defun ha-tab-bar-update-names ()
+  (defun ha-tab-bar-update-names (&optional changed-tab)
     "Create normal-mode keybindings for the tab groupings.
   This creates `SPC TAB 1' to jump to the first tab, etc."
     (interactive)
     ;; Remove all previously created keybindings:
     (ignore-errors
-      (dolist (indx (number-sequence 1 9))
+      (dolist (indx (number-sequence 0 9))
         (general-nmap :prefix "SPC" (format "<tab> %d" indx) nil)))
 
     ;; Loop through the existing tabs, create keys for each:
@@ -1063,11 +1063,14 @@ I want to quickly jump, by the number shown on the tab, to that grouping. The fo
   (defun ha-tab-bar-update-tab-keybinding (tab-deets indx)
     "Create a keybinding to jump to tab described by TAB-DEETS.
   The key sequence, `SPC' `TAB' then INDX."
-    (let ((name (alist-get 'name tab-deets)))
-      (general-nmap :prefix "SPC"
-        (format "<tab> %d" (1+ indx))
-        `(,name .
-              (lambda () (interactive) (tab-bar-select-tab ,(1+ indx)))))))
+    (when (< indx 10)
+      (let ((name (alist-get 'name tab-deets)))
+        (general-nmap :prefix "SPC"
+          ;; As indx is starts with 0, we need to create keybindings to
+          ;; match the tab labels by incrementing it by one ... unless,
+          ;; we are at 10, where we use 0 instead:
+          (format "<tab> %d" (if (= indx 9) 0 (1+ indx)))
+          `(,name . (lambda () (interactive) (tab-bar-select-tab ,(1+ indx))))))))
 #+END_SRC
 
 Any time I create or delete a new tab, we can call =ha-tab-bar-update-names=:
