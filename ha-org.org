@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-07-01 Tue]
+#+lastmod: [2025-12-02 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -245,6 +245,32 @@ And I would like to have cute little icons for those states:
                               ("^ +\\([-*]\\) "
                                (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 #+end_src
+
+What was
+
+#+BEGIN_SRC emacs-lisp
+(defun display-latest-clocked-task ()
+  "Display the name of the latest task that was clocked in."
+  (interactive)
+  (let ((latest-task (car (org-clock-get-clock-string))))
+    (if latest-task
+        (message "Latest clocked task: %s" latest-task)
+      (message "No task is currently clocked in."))))
+
+#+END_SRC
+
+Need to be able to clock out of a task even if no /clock-in/ has occurred.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-clock-out ()
+    "Safely clock out of the current task.
+  This will not throw an error if not active clock exists."
+    (interactive)
+    (ignore-errors
+      (org-clock-out)
+      (message "Clocked out.")))
+#+END_SRC
+
 ** Meetings
 I've notice that while showing a screen while taking meeting notes, I don't always like showing other windows, so I created this function to remove distractions during a meeting.
 
