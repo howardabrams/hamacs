@@ -292,7 +292,7 @@ For the sake of my demonstrations, I use =ha-shell= to start a terminal with a p
                                                         default-directory)))
            (buf-name (format "*%s*" win-name)))
       (setq ha-latest-ssh-window-name buf-name)
-      (ha-make-term win-name ha-shell)))  ; Lisp-2 FTW!?
+      (ha-make-term win-name)))  ; Lisp-2 FTW!?
 #+end_src
 
 Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ send commands to the running terminal, e.g. =(ha-shell-send "ls *.py")= I would really like to be able to send and execute a command in a terminal from a script.
@@ -317,8 +317,6 @@ Now that Emacs can /host/ a Terminal shell, I would like to /programmatically/ s
        (t (progn
             (insert command)
             (term-send-input))))))
-
-  (ha-shell-send "exit")
 #+end_src
 
 Let's have a quick way to bugger out of the terminal:
