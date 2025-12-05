@@ -193,12 +193,29 @@ I am not a long term VI user, and don’t have much need for any of its control 
       ;; I have better window control:
       (kbd "C-w") 'sp-kill-region))
 #+end_src
+
+** Evil Escape
+I find that myself not noticing I’m in /insert/ mode, and start typing =j= repeatedly to go down a line, and end up typing something like: =jjjjjjjjjjjj=.
+
+To remedy this, I’m using the [[https://www.emacswiki.org/emacs/KeyChord][KeyChord]] code:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package key-chord
+    :config
+    (setq key-chord-two-keys-delay 0.1)
+
+    (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
+    (key-chord-define evil-insert-state-map "jj" 'evil-normal-state)
+    (key-chord-define evil-insert-state-map "kk" 'evil-normal-state)
+
+    (key-chord-mode 1))
+#+END_SRC
 ** Evil Text Object Line
 Delete a line, ~d d~ is in basic VI. Since some commands use text objects, and the basic text object doesn’t include lines,  the [[https://github.com/emacsorphanage/evil-textobj-line][evil-textobj-line]] project adds that:
 #+begin_src emacs-lisp
   (use-package evil-textobj-line)
 #+end_src
-Now ~v i l~ and ~v a l~ works as you’d expect, but does this improve on ~S-v~?
+Now ~v i l~ selects the line without initial/trailing whitespace, and ~v a l~ selects the line with spaces, and ~S-v~ selects the line with the final carriage return. Is this much of an improvement? Well, wrapping a line in parenthesis, is just ~y s i l )~
 ** Text Objects based on Indentation
 The [[https://github.com/TheBB/evil-indent-plus][evil-indent-plus]] project creates text objects based on the indentation level, similar to how the ~b~ works with “blocks” of code.
 #+begin_src emacs-lisp
