@@ -122,7 +122,9 @@ Now we can load, instantiate it, as well as create a callback loop to call =upda
 And bind a key to the mute ability that works good for both keyboards:
 
 #+BEGIN_SRC lua
-  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "M", spoon.Zoom:toggleMute)
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "M", function()
+        spoon.Zoom:toggleMute()
+  end)
 
   hs.hotkey.bind({"cmd", "alt", "ctrl"}, "M", function()
         spoon.Zoom:toggleMute()
@@ -188,6 +190,14 @@ Not that we could also do something for Wake:
   if (eventType == hs.caffeinate.watcher.systemDidWake) then
     ...
   end
+#+END_SRC
+
+Oh, and here is a helper for [[file:laptop_keyboard.kbd][kanata]] to put the display to sleep:
+
+#+BEGIN_SRC lua
+  hs.hotkey.bind({}, "F16", function()
+        hs.execute("pmset displaysleepnow")
+  end)
 #+END_SRC
 
 * Monitors

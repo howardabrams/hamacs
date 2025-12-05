@@ -54,7 +54,7 @@
 )
 
 (deflayer SYMBOLS
-  esc   🔅    🔆    F3   F4  f5    f6    ◀◀    ▶⏸    ▶▶    🔇    🔉    🔊
+  esc   🔅    🔆    F3   F4  f5    f16    ◀◀    ▶⏸    ▶▶    🔇    🔉    🔊
   _  f11   f12   f13   f14   f15   f16   f17   f18   f19    f20   _ _ _
   _  S-1  S-2  {    }    S-\  F16  F17  F18  F19   pgup _ _ _
   _  S-3  S-4  S-9  S-0  `    left down up   right pgdn _ _
