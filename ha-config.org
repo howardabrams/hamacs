@@ -585,12 +585,42 @@ Each programming environment might need some particular love. For instance:
 #+END_SRC
 
 
+*** Company
+The [[http://company-mode.github.io/][company project]] for completion back-ends work well with LSP.
+
+Do I want it to display whenever there is a pause in the conversation (set =company-minimum-prefix-length= to a large number, or set =company-idle-delay=), or do I want it to only show when I push the =TAB= or other key (see =company-indent-or-complete-common=).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :custom
+    (company-minimum-prefix-length 3) ; default
+    (company-idle-delay 0.5)
+    (company-tooltip-align-annotations t)
+    (company-tooltip-limit 9)
+    (company-tooltip-flip-when-above t)
+    (company-show-quick-access 'left)
+
+    :bind (("M-/" . company-complete)
+           :map company-mode-map
+           ("M-/" . company-other-backend))
+
+    :config
+    (add-to-list 'company-backends 'company-yasnippet)
+
+    (set-face-attribute 'company-tooltip nil
+                        :family "Cascadia Code NF"
+                        :height 120)
+
+    :hook (after-init . global-company-mode))
+#+END_SRC
+
+Another idea, is I can trigger the company with a M-/ but then view /other backends/ by re-hitting that keybinding.
 *** Corfu
 The default completion system either inserts the first option directly in the text (without cycling, so let’s hope it gets it right the first time), or presents choices in another buffer (who wants to hop to it to select an expansion).
 
 After using  [[http://company-mode.github.io/][company]] for my completion back-end, I switched to [[https://github.com/minad/corfu][corfu]] as it works with the variable-spaced font of my org files (also see [[https://takeonrules.com/2022/01/17/switching-from-company-to-corfu-for-emacs-completion/][this essay]] for my initial motivation).
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package corfu
     :custom
     (corfu-cycle t)
