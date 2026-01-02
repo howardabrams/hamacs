@@ -598,6 +598,7 @@ After using  [[http://company-mode.github.io/][company]] for my completion back-
     :init
     (global-corfu-mode))
 #+end_src
+
 *** Snippets
 Using [[https://github.com/joaotavora/yasnippet][yasnippet]] to expand templates into text:
 
@@ -1036,7 +1037,8 @@ And some shortcut keys from the =general= project:
     "<tab> p" '("new project" . ha-tab-bar-new-project)
     "<tab> n" '("new space" . ha-tab-bar-new)
     "<tab> u" '("update names" . ha-tab-bar-update-names)
-    "<tab> d" '("delete space" . ha-tab-bar-delete))
+    "<tab> d" '("delete space" . ha-tab-bar-delete)
+    "<tab> `" '("recent" . tab-bar-switch-to-recent-tab))
 
   (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
   (global-set-key (kbd "s-C-[") 'tab-bar-switch-to-prev-tab)
@@ -1070,7 +1072,11 @@ I want to quickly jump, by the number shown on the tab, to that grouping. The fo
           ;; match the tab labels by incrementing it by one ... unless,
           ;; we are at 10, where we use 0 instead:
           (format "<tab> %d" (if (= indx 9) 0 (1+ indx)))
-          `(,name . (lambda () (interactive) (tab-bar-select-tab ,(1+ indx))))))))
+          `(,name . (lambda () (interactive)
+                      "Switch to a tab-bar by number"
+                      (setq ha-tab-bar-previous
+                            (tab-bar-tab-name-current))
+                      (tab-bar-select-tab ,(1+ indx))))))))
 #+END_SRC
 
 Any time I create or delete a new tab, we can call =ha-tab-bar-update-names=:
