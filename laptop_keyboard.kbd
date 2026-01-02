@@ -1,34 +1,46 @@
+;; -*- mode:lisp; -*-
 ;; Here is a keyboard setup for an Apple Macbook keyboard to work with
 ;; "home row mods" where holding down keys on the home row can act like a
 ;; modifier, so holding down `d` and hitting `p` results in `P` being
 ;; entered.
+;;
+;; Installation:
+;;     brew install kanata
+;;
+;; Running:
+;;     sudo kanata --cfg ~/src/hamacs/laptop_keyboard.kbd
 
 (deflocalkeys-macos
-  ì 13
-)
+  ì 13)
 
-;; Also includes a symbol layer accessible while holding down either
-;; the `h' or `g' keys.
+;; While this works on both my Macbook running MacOS and Linux, I have
+;; yet to figure out how to get the same file to work in both, as I
+;; have to modify the code in the `defcfg' section below.
 
 (defcfg
- macos-dev-names-include ("Apple Internal Keyboard / Trackpad")
-  ;; linux-dev-names-include (
-  ;;   "Microsoft Surface 045E:091C Keyboard"
-  ;; )
-)
+    ;; linux-dev-names-include ("Apple Internal Keyboard / Trackpad")
+    macos-dev-names-include ("Apple Internal Keyboard / Trackpad"))
+
+;; What keys are we re-defining? This is my Macbook Pro layouts, as
+;; both laptops are this hardware.
+;;
+;; Notice lmet/rmet = Apple's Command Key
+;;        lalt/ralt = Option, or a real meta key
+
 (defsrc
-  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9    f10   f11   f12
+  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   `    1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
   caps a    s    d    f    g    h    j    k    l    ;    '    ret
   lsft z    x    c    v    b    n    m    ,    .    /    rsft
-  fn lctl lalt lmet      spc           rmet ralt
-)
+  fn   lctl lalt lmet      spc            rmet ralt)
 
 (defvar
   tap-time 200
-  hold-time 200
-)
+  hold-time 200)
+
+;; Also includes a symbol layer accessible while holding down either
+;; the `h' or `g' keys.
 
 (defalias
   a (tap-hold $tap-time $hold-time a lmet)
@@ -41,23 +53,27 @@
   k (tap-hold $tap-time $hold-time k rsft)
   l (tap-hold $tap-time $hold-time l rctl)
   ; (tap-hold $tap-time $hold-time ; rmet)
-  caps (tap-hold $tap-time $hold-time esc lctl)
-)
+  caps (tap-hold $tap-time $hold-time esc lctl))
+
+;; The base layer is fairly normal, except we all out aliases defined
+;; above, os the @a is both a `tap-hold' feature as well as a regular
+;; `a` key:
 
 (deflayer base
-  esc  F1 F2 f3   f4   f5   f6   f7   f8   f9    f10   f11   f12
-  `  1    2    3    4    5    6    7    8    9    0    -    =    bspc
-  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
-  @caps @a   @s   @d   @f   @g   @h    @j   @k   @l   @;   '    ret
-  lsft z    x    c    v    b    n    m    ,    .    /    rsft
-  @h lctl lalt lmet    spc           rmet ralt
-)
+  esc   f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  `     1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab   q    w    e    r    t    y    u    i    o    p    [    ]    \
+  @caps @a   @s   @d   @f   @g   @h   @j   @k   @l   @;   '    ret
+  lsft  z    x    c    v    b    n    m    ,    .    /    rsft
+  @h    lctl lalt lmet    spc           rmet ralt)
+
+;; The other layer is our `symbols' which allows me to hold down the
+;; `g' key to invoke a magical VI-like h/j/k/l arrow keys:
 
 (deflayer SYMBOLS
-  esc   🔅    🔆    F3   F4  f5    f16    ◀◀    ▶⏸    ▶▶    🔇    🔉    🔊
-  _  f11   f12   f13   f14   f15   f16   f17   f18   f19    f20   _ _ _
-  _  S-1  S-2  {    }    S-\  F16  F17  F18  F19   pgup _ _ _
-  _  S-3  S-4  S-9  S-0  `    left down up   right pgdn _ _
-  _  S-5  S-6  [    ]    S-`  F11  F12  F13  F14   F15  _
-  _  _  _    _          _        _    _
-)
+  esc  🔅   🔆   F3   F4  f5    f16   ◀◀    ▶⏸   ▶▶     🔇    🔉    🔊
+  _    f11  f12  f13  f14  f15  f16   f17   f18   f19   f20   _ _ _
+  _    S-1  S-2  {    }    S-\  F16   F17   F18   F19   pgup  _ _ _
+  _    S-3  S-4  S-9  S-0  `    left  down  up    right pgdn  _ _
+  _    S-5  S-6  [    ]    S-`  F11   F12   F13   F14   F15   _
+  _    _  _    _          _        _    _)
