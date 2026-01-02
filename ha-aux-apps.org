@@ -53,7 +53,7 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
 
     (use-package major-mode-hydra
       :config
-      (major-mode-hydra-define mastodon-mode nil
+      (major-mode-hydra-define mastodon-mode (:quit-key "q")
         ("Timelines"
          (("u" mastodon-tl-update "update")
           ("F" mastodon-tl-get-federated-timeline "Federated")

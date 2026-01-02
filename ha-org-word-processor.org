@@ -27,7 +27,6 @@ A literate programming file for making Org file more readable.
 #+end_src
 * Introduction
 I like having org-mode files look more like a word processor than having it look like programming code. But that is me. The end results:
-
 [[file:screenshots/org-as-word-processor.png]]
 * General Org Settings
 Since I use ellipsis in my writing… to /change/ how org renders a collapsed heading.
@@ -102,7 +101,7 @@ And hook this function to Org:
 The list of things to try:
 
 #+BEGIN_SRC emacs-lisp
-  (setq org-hide-leading-stars nil) ; or t
+  (setq org-hide-leading-stars t) ; or t
 #+END_SRC
 
 ** Markup View
