@@ -670,26 +670,26 @@ Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I donâ
 
     :config
     (global-set-key (kbd "s-m") 'lsp)
-    (ha-local-leader :keymaps 'prog-mode-map
-      "w"  '(:ignore t :which-key "lsp")
-      "l"  '(:ignore t :which-key "lsp")
-      "ws" '("start" . lsp))
+    ;; (ha-local-leader :keymaps 'prog-mode-map
+    ;;   "w"  '(:ignore t :which-key "lsp")
+    ;;   "l"  '(:ignore t :which-key "lsp")
+    ;;   "ws" '("start" . lsp))
 
-    ;; The following leader-like keys, are only available when I have
-    ;; started LSP, and is an alternate to Command-m:
-    :general
-    (:states 'normal :keymaps 'lsp-mode-map
-             ", w r" '("restart"  . lsp-reconnect)
-             ", w b" '("events"   . lsp-events-buffer)
-             ", w e" '("errors"   . lsp-stderr-buffer)
-             ", w q" '("quit"     . lsp-shutdown)
-             ", w Q" '("quit all" . lsp-shutdown-all)
+    ;; ;; The following leader-like keys, are only available when I have
+    ;; ;; started LSP, and is an alternate to Command-m:
+    ;; :general
+    ;; (:states 'normal :keymaps 'lsp-mode-map
+    ;;          ", w r" '("restart"  . lsp-reconnect)
+    ;;          ", w b" '("events"   . lsp-events-buffer)
+    ;;          ", w e" '("errors"   . lsp-stderr-buffer)
+    ;;          ", w q" '("quit"     . lsp-shutdown)
+    ;;          ", w Q" '("quit all" . lsp-shutdown-all)
 
-             ", l r" '("rename"   . lsp-rename)
-             ", l f" '("format"   . lsp-format)
-             ", l a" '("actions"  . lsp-code-actions)
-             ", l i" '("imports"  . lsp-code-action-organize-imports)
-             ", l d" '("doc"      . lsp-lookup-documentation))
+    ;;          ", l r" '("rename"   . lsp-rename)
+    ;;          ", l f" '("format"   . lsp-format)
+    ;;          ", l a" '("actions"  . lsp-code-actions)
+    ;;          ", l i" '("imports"  . lsp-code-action-organize-imports)
+    ;;          ", l d" '("doc"      . lsp-lookup-documentation))
 
    :hook ((lsp-mode . lsp-enable-which-key-integration)))
 #+end_src

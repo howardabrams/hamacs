@@ -136,7 +136,14 @@ Next, after reading David Vujic’s [[https://davidvujic.blogspot.com/2025/03/ar
   # c.InteractiveShellApp.exec_lines = ['%autoreload 2']
 #+END_SRC
 
-** Virtual Environment
+** Isolated Python Environments
+While the Python community (and my work at my company) had difficulty transitioning from Python 2 to 3, I often run into issues needing a particular Python version and modules. After playing around with different approaches, I’m finding:
+  * Docker environments are nicely isolated, but annoying to work from outside the container
+  * The Builtin =venv= is works well for different library modules, but not for different versions
+  * The =pyenv= deals with different Python versions, but is overkill for library isolation
+
+While the [[https://github.com/marcwebbie/auto-virtualenv][auto-virtualenv]] project attempts to resolve this, I’m using the [[file:ha-programming.org::*Virtual Environments with direnv][direnv project]] abstraction for situations where I need project-specific isolation in more than just Python.
+*** Virtual Environments
 Use the built-in module, venv, to create isolated Python environments for specific projects, enabling you to manage dependencies separately.
 
 Create a virtual environment, either in the project’s directory, or in a global spot:
@@ -160,8 +167,8 @@ Now, do what you need to do with this isolation:
 #+BEGIN_SRC sh :tangle no
   pip install -r test-requirements.txt
 #+END_SRC
-** Virtual Environment with new Python Version
-Pyenv is a tool for managing multiple versions of Python on your machine, allowing you to switch between them easily. On a Mac, installed it via Homebrew:
+*** Managing Python Versions
+[[https://github.com/pyenv/pyenv][Pyenv]] is a tool for managing multiple versions of Python on your machine, allowing you to switch between them easily (see [[https://realpython.com/intro-to-pyenv/][this essay]]). On a Mac, installed it via Homebrew:
 
 #+BEGIN_SRC sh
   brew install readline xz
@@ -213,16 +220,55 @@ Also, you need the following in your =~/.config/direnv/direnvrc= file (which I h
     fi
   }
 #+end_src
-** Editing Python Code
-Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
-#+begin_src emacs-lisp
-  (when (fboundp 'evil-define-text-object)
-    (use-package evil-text-object-python
-      :hook (python-mode . evil-text-object-python-add-bindings)))
-#+end_src
-This allows me to delete a Python “block” using ~dal~.
-** Docker Environment
-Docker really allows you to isolate your project's environment. The downside is that you are using Docker and probably a bloated container. On my work laptop, a Mac, this creates a behemoth virtual machine that immediately spins the fans like a wind tunnel.
+
+Tell Emacs about [[https://github.com/pythonic-emacs/pyenv-mode][pyenv-mode]]:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pyenv-mode
+    :config
+    (defun setup-pyenv ()
+      "Pyenv."
+      (setenv "WORKON_HOME" "~/.pyenv/versions")
+      (pyenv-mode +1)))
+#+END_SRC
+
+Now specify the =pyenv= Python version by calling [[help:pyenv-mode-set][pyenv-mode-set]]:
+
+#+begin_example
+  M-x pyenv-mode-set
+#+end_example
+
+When you run inferior Python processes (like =run-python=), the process will start inside the specified Python installation. You can unset the current version with:
+
+#+begin_example
+  M-x pyenv-mode-unset
+#+end_example
+
+Or, we can do it automatically when we get into a project (if the project has a =.python-version= file):
+
+#+BEGIN_SRC emacs-lisp
+  (use-package pyenv-mode
+    :config
+    (defun project-pyenv-mode-set (&rest _)
+      "Set pyenv version matching project name."
+      (let* ((filename (thread-first
+                         (project-current)
+                         (project-root)
+                         (file-name-concat ".python-version")))
+             (version (when (file-exists-p filename)
+                        (with-temp-buffer
+                          (insert-file-contents filename)
+                          (buffer-string)))))
+        (when version
+          (pyenv-mode-set version)
+          (pyenv-mode-unset))))
+
+    ;; Either set/unset the pyenv version whenever changing tabs:
+    (add-hook 'tab-bar-tab-post-select-functions 'project-pyenv-mode-set))
+#+END_SRC
+
+*** Docker Environment
+Docker allows you to isolate your project's environment. The downside is that you are using Docker and probably a bloated container. On my work laptop, a Mac, this creates a behemoth virtual machine that immediately spins the fans like a wind tunnel.
 
 But, but... think of the dependencies!
 
@@ -236,6 +282,14 @@ Your project's =.envrc= file would contain something like:
 
   container_layout
 #+end_src
+** Editing Python Code
+Let’s integrate this [[https://github.com/wbolster/evil-text-object-python][Python support for evil-text-object]] project:
+#+begin_src emacs-lisp
+  (when (fboundp 'evil-define-text-object)
+    (use-package evil-text-object-python
+      :hook (python-mode . evil-text-object-python-add-bindings)))
+#+end_src
+This allows me to delete a Python “block” using ~dal~.
 ** Unit Tests
 #+begin_src emacs-lisp
   (use-package python-pytest
@@ -267,9 +321,22 @@ The [[https://elpy.readthedocs.io/en/latest/introduction.html][Elpy Project]] ex
 
 #+BEGIN_SRC emacs-lisp
   (use-package elpy
-    :ensure t
     :init
-    (elpy-enable))
+    (advice-add 'python-mode :before 'elpy-enable)
+    :config
+    ;; (elpy-enable)
+    (setq elpy-test-runner 'elpy-test-pytest-runner)
+    (setq elpy-formatter 'black)
+    (setq elpy-shell-echo-input nil)
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules)))
+#+END_SRC
+
+After we’ve loaded the Company section, we can add jedi to the list of completions:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package elpy
+    :after company-mode
+    :config (add-to-list 'company-backends 'company-jedi))
 #+END_SRC
 
 Let’s expand our =major-mode-hydra= with some extras:

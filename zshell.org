@@ -416,15 +416,25 @@ Favorite feature is the [[https://iterm2.com/documentation-status-bar.html][Stat
 Currently, I show the currently defined Kube namespace.
 
 #+BEGIN_SRC zsh
+  function iterm2_python_version() {
+      echo $(pyenv version-name):$(echo "$VIRTUAL_ENV" | sed "
+                      s|^$HOME|~|
+                      s|^~/src/wpc-gerrit.inday.io/||
+                      s|^~/work/||
+                      s|^~/.venv/||
+                      s|/\.venv$||
+                      s|\.venv$||")
+  }
+
   function iterm2_print_user_vars() {
-    # iterm2_set_user_var kubecontext $($ yq '.users[0].name' ~/.kube/config):$(kubectl config view --minify --output 'jsonpath={..namespace}')
+      # iterm2_set_user_var kubecontext $($ yq '.users[0].name' ~/.kube/config):$(kubectl config view --minify --output 'jsonpath={..namespace}')
 
-    # Correct version:
-    # iterm2_set_user_var kubecontext $(kubectl config current-context):$(kubectl config view --minify --output 'jsonpath={..namespace}')
-    # Faster version:
-    iterm2_set_user_var kubecontext $(awk '/^current-context:/{print $2;exit;}' <~/.kube/config)
+      # Correct version:
+      # iterm2_set_user_var kubecontext $(kubectl config current-context):$(kubectl config view --minify --output 'jsonpath={..namespace}')
+      # Faster version:
+      iterm2_set_user_var kubecontext $(awk '/^current-context:/{print $2;exit;}' <~/.kube/config)
 
-    iterm2_set_user_var pycontext "$(pyenv version-name):$(echo $VIRTUAL_ENV | sed 's/.*.venv\///')"
+      iterm2_set_user_var pycontext $(iterm2_python_version)
   }
 #+END_SRC
 
