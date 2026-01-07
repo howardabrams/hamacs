@@ -444,10 +444,15 @@ This replaces the /title generator/ for [[file:ha-config.org::*Leader Sequences]
 #+BEGIN_SRC emacs-lisp
   (setq major-mode-hydra-title-generator
         '(lambda (&optional mode)
-           (let ((title (major-mode-hydra-title mode)))
-             (s-concat                  ; (s-repeat 5 " ")
-              (nerd-icons-icon-for-mode (or mode major-mode) :v-adjust 0.05)
-              " " title " Commands"))))
+           (unless mode (setq mode major-mode))
+           (let ((title (major-mode-hydra-title mode))
+                 (default (nerd-icons-mdicon "nf-md-apple_keyboard_command"
+                                           :v-adjust 0.05))
+                 (icon (nerd-icons-icon-for-mode (or mode major-mode)
+                                               :v-adjust 0.05)))
+
+             (concat (if (eq icon mode) default icon)
+                     " " title " Commands"))))
 #+END_SRC
 
 Transition:
