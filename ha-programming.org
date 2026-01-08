@@ -28,6 +28,32 @@ A literate programming file for helping me program.
 Configuration for programming interfaces and workflows that behave similarly.
 * General
 The following work for all programming languages.
+** Virtual Environments with Mise
+The [[https://github.com/eki3z/mise.el][mise.el]] project overcomes the [[https://mise.jdx.dev/ide-integration.html#emacs][need for shims]] and other hoops when working with [[https://mise.jdx.dev/walkthrough.html][Mise]].
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mise
+    :straight (:type git :host github :repo "eki3z/mise.el")
+    :hook (after-init . global-mise-mode))
+#+END_SRC
+
+Now, per project, create a =mise.toml= that contains tools, environment variables, etc.
+
+#+BEGIN_SRC toml
+[env]
+AWS_DEFAULT_REGION = "us-gov-east-1"
+
+[tools]
+python = {version='3', virtualenv='~/.venv/govcloud_lambda'}
+#+END_SRC
+
+Or create the entries by using CLI commands:
+
+#+BEGIN_SRC sh :tangle no
+mise set AWS_DEFAULT_REGION=us-gov-east-1
+#+END_SRC
+
+
 ** Virtual Environments with direnv
 Farm off commands into /virtual environments/:
 #+begin_src emacs-lisp

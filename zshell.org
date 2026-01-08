@@ -246,6 +246,7 @@ Configure the plugins, making sure to not use =git=, as the aliases are a pain t
 
   - [[https://github.com/hsienjan/colorize][colorize]] :: syntax-highlight file contents, so install [[https://pygments.org/download/][Pygments]] first. Then call =ccat= and =cless= (see [[Aliases]]).
   - [[https://github.com/ptavares/zsh-direnv][direnv]] :: to support the [[https://direnv.net/][direnv]] virtual environment project.
+  - [[https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/mise/mise.plugin.zsh][mise]] :: to support the [[https://mise.jdx.dev/getting-started.html][mise]] virtual environment and tool project (instead of direnv). See the [[https://mise.jdx.dev/walkthrough.html][walk-through]].
   - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/gnu-utils][gnu-utils]] :: bind the GNU flavor for standard utils, like =gfind= to the normal version, e.g. =find=.
   - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/iterm2][iterm2]] :: while fully configured below, configures the interaction with the MacOS application, [[https://www.iterm2.com/][iTerm2]].
   - [[https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/macos][macos]] :: adds new functions that work better with MacOS terminals and the Finder. I like:
@@ -258,7 +259,7 @@ Configure the plugins, making sure to not use =git=, as the aliases are a pain t
 To have a plugin /install/, add its name to the =plugins= array variable /before/ we =source= the OMZ script:
 
 #+begin_SRC zsh
-  plugins=(colorize direnv gnu-utils iterm2 macos virtualenv zbell zsh-syntax-highlighting)
+  plugins=(colorize direnv gnu-utils iterm2 macos mise virtualenv zbell zsh-syntax-highlighting)
 #+END_SRC
 
 Notice the =iterm2= plugin as well as the =macos= plugins that would be nice to figure out how to make them optionally added (although I believe they check themselves).

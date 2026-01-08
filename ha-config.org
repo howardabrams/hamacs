@@ -1116,7 +1116,7 @@ Any time I create or delete a new tab, we can call =ha-tab-bar-update-names=:
   (advice-add #'tab-bar-close-tab :after #'ha-tab-bar-update-names)
   (advice-add #'tab-bar-close-other-tabs :after #'ha-tab-bar-update-names)
 
-  (add-hook desktop-after-read-hook #'ha-tab-bar-update-names)
+  (add-hook #'desktop-after-read-hook #'ha-tab-bar-update-names)
 #+END_SRC
 *** Add Numbers ot Tab Bar Mode
 Christian Tietze had a [[https://christiantietze.de/posts/2022/02/emacs-tab-bar-numbered-tabs/][great idea]] for making the tab-bar numbers more distinguished from the labels on the tabs (he has a [[https://christiantietze.de/posts/2022/12/sf-symbols-emacs-tab-numbers/][follow up essay]] about using a different font, but since I need the portability of Unicode for Linux, I may need to synthesize both).
