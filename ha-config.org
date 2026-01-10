@@ -1119,22 +1119,59 @@ Any time I create or delete a new tab, we can call =ha-tab-bar-update-names=:
   (add-hook desktop-after-read-hook #'ha-tab-bar-update-names)
 #+END_SRC
 *** Add Numbers ot Tab Bar Mode
-Christian Tietze had a [[https://christiantietze.de/posts/2022/02/emacs-tab-bar-numbered-tabs/][great idea]] for making the tab-bar numbers more distinguished from the labels on the tabs (he has a [[https://christiantietze.de/posts/2022/12/sf-symbols-emacs-tab-numbers/][follow up essay]] about using a different font, Unicode is more portable and looks fine).
+Christian Tietze had a [[https://christiantietze.de/posts/2022/02/emacs-tab-bar-numbered-tabs/][great idea]] for making the tab-bar numbers more distinguished from the labels on the tabs (he has a [[https://christiantietze.de/posts/2022/12/sf-symbols-emacs-tab-numbers/][follow up essay]] about using a different font, but since I need the portability of Unicode for Linux, I may need to synthesize both).
+
+#+BEGIN_SRC emacs-lisp
+  (defface ha/tab-bar-numbers
+    (if (ha-running-on-macos?)
+        '((t
+           :inherit tab-bar-tab-face
+           :family "SF Compact"
+           :weight light))
+      ;; On Linux, we use the dingbat unicode with default font:
+      '((t
+           :inherit tab-bar-tab-face
+           :weight light)))
+   "Face for tab numbers in both active and inactive tabs.")
+#+END_SRC
 
 First, create a variable that contains the Unicode values for the numbers. I am using the negative versions of the circle numbers from the Unicode dingbats collection:
 
 #+BEGIN_SRC emacs-lisp
   (defvar ha/circle-numbers-alist
-    '((0 . "🄌")
-      (1 . "➊")
-      (2 . "➋")
-      (3 . "➌")
-      (4 . "➍")
-      (5 . "➎")
-      (6 . "➏")
-      (7 . "➐")
-      (8 . "➑")
-      (9 . "➒"))
+    (if (ha-running-on-macos?)
+        '((0 . "􀃈")
+          (1 . "􀃊")
+          (2 . "􀃌")
+          (3 . "􀃎")
+          (4 . "􀘙")
+          (5 . "􀃒")
+          (6 . "􀑵")
+          (7 . "􀃖")
+          (8 . "􀃘")
+          (9 . "􀑷")
+          (10 . "􀃈"))
+      ;; Keeping these around for the Mac just in case.
+      ;; '((0 . "⓿")
+      ;;   (1 . "❶")
+      ;;   (2 . "❷")
+      ;;   (3 . "❸")
+      ;;   (4 . "❹")
+      ;;   (5 . "❺")
+      ;;   (6 . "❻")
+      ;;   (7 . "❼")
+      ;;   (8 . "❽")
+      ;;   (9 . "❾"))
+      '((0 . "🄌")
+        (1 . "➊")
+        (2 . "➋")
+        (3 . "➌")
+        (4 . "➍")
+        (5 . "➎")
+        (6 . "➏")
+        (7 . "➐")
+        (8 . "➑")
+        (9 . "➒")))
     "Alist of integers to strings of circled unicode numbers.")
 #+END_SRC
 
@@ -1142,6 +1179,8 @@ And then use this function to replace the standard  =tab-bar-tab-name-format-fun
 
 #+BEGIN_SRC emacs-lisp
   (defun ha/tab-bar-tab-name-format-default (tab i)
+    "Replacement for `tab-bar-tab-name-format-function'.
+    Places a special symbol for the initial digit."
     (let ((current-p (eq (car tab) 'current-tab))
           (tab-num (if (and tab-bar-tab-hints (< i 10))
                        (alist-get i ha/circle-numbers-alist) "")))
@@ -1156,6 +1195,28 @@ And then use this function to replace the standard  =tab-bar-tab-name-format-fun
                    "")
                " ")
        'face (funcall tab-bar-tab-face-function tab))))
+
+  (defun ha/tab-bar-tab-name-format-default (tab i)
+    "Replacement for `tab-bar-tab-name-format-function'.
+    Places a special symbol for the initial digit."
+    (let ((current-p (eq (car tab) 'current-tab)))
+      (concat
+       ;; First, add the tab number with a custom face
+       (propertize
+        (if (and tab-bar-tab-hints (< i 10)) (alist-get i ha/circle-numbers-alist) "")
+        'face 'ha/tab-bar-numbers)
+       ;; Add tab name with the face returned by tab-bar-tab-face-function
+       (propertize
+        (concat
+         " " ; Add initial space
+         (alist-get 'name tab)
+         (or (and tab-bar-close-button-show
+                  (not (eq tab-bar-close-button-show
+                           (if current-p 'non-selected 'selected)))
+                  tab-bar-close-button)
+             "")
+         " ")
+        'face (funcall tab-bar-tab-face-function tab)))))
 
   (setq tab-bar-tab-name-format-function
         #'ha/tab-bar-tab-name-format-default)

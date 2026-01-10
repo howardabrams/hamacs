@@ -311,7 +311,6 @@ Can we *see* our colors?
 #+END_SRC
 
 * Dark Theme
-
 Let’s make a /theme/:
 
 #+BEGIN_SRC emacs-lisp
@@ -334,7 +333,7 @@ Let’s make a /theme/:
      `(tab-bar ((t :foreground ,default-fg :background ,default-bg)))
      `(tab-line ((t :foreground ,default-fg :background ,default-bg)))
      `(tab-bar-tab ((t (:inherit variable-pitch :background ,active))))
-     `(tab-bar-tab-inactive ((t (:inherit variable-pitch :background ,inactive))))
+     `(tab-bar-tab-inactive ((t (:inherit variable-pitch :background ,default-bg))))
 
      `(doom-modeline-buffer-path ((t (:foreground ,almond))))
      `(doom-modeline-buffer-file ((t (:foreground "white" :weight bold))))
@@ -457,7 +456,24 @@ Let’s make a /theme/:
      `(elfeed-search-tag-face ((t (:foreground ,slate))))))
 #+END_SRC
 
+
 [[file:ha-theme-results.png]]
+
+To update a feature live with all attributes, do something like:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (set-face-attribute 'tab-bar-tab-inactive nil
+     :inherit variable-pitch
+     :background "#462200")
+#+END_SRC
+
+Or, you can use the helper functions to change a feature directly:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (set-face-background 'tab-bar-tab-inactive "#462200")
+#+END_SRC
+
+
 * Technical Artifacts                          :noexport:
 
 Let's =provide= a name so we can =require= this file:
