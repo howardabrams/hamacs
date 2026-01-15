@@ -330,10 +330,10 @@ Let’s make a /theme/:
      `(mode-line-active ((t (:background ,active))))
      `(mode-line-inactive ((t (:background ,inactive))))
 
-     `(tab-bar ((t :foreground ,default-fg :background ,default-bg)))
-     `(tab-line ((t :foreground ,default-fg :background ,default-bg)))
+     `(tab-bar ((t :foreground ,default-fg :background ,inactive)))
+     `(tab-line ((t :foreground ,default-fg :background ,inactive)))
      `(tab-bar-tab ((t (:inherit variable-pitch :background ,active))))
-     `(tab-bar-tab-inactive ((t (:inherit variable-pitch :background ,default-bg))))
+     `(tab-bar-tab-inactive ((t (:inherit variable-pitch :background ,inactive))))
 
      `(doom-modeline-buffer-path ((t (:foreground ,almond))))
      `(doom-modeline-buffer-file ((t (:foreground "white" :weight bold))))
