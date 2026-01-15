@@ -1,0 +1,105 @@
+#+title:  Tmux Configuration
+#+author: Howard X. Abrams
+#+date:   2026-01-15
+#+filetags: emacs hamacs
+#+lastmod: [2026-01-15 Thu]
+
+I use [[https://github.com/tmux/tmux/wiki][tmux]] infrequently as I'm usually running a bunch of Terminals from within Emacs. Laugh all you want, but Emacs is my terminal multiplexer. That said, frequent network connectivity and long-running jobs make a =tmux= helpful on a remote server.
+
+* Remote Installation
+  Log in an install =tmux= on a RedHat-based system with a =yum= command:
+
+  #+BEGIN_SRC sh :dir /ssh:docker:
+    sudo yum install -y tmux
+  #+END_SRC
+
+And on my Ubuntu systems:
+
+  #+BEGIN_SRC sh :dir /ssh:docker:
+    sudo dpkg install tmux
+  #+END_SRC
+* Remote Configuration
+Copy the following to =$HOME/~/.tmux.conf=:
+
+#+BEGIN_SRC conf :tangle /ssh:docker:/home/vagrant/.tmux.conf
+    set-option -g prefix C-`
+
+    set -g status-right "| docker "
+    set-option -g allow-rename off
+
+    # Start windows and panes at 1, not 0
+    set -g base-index 1
+    set -g pane-base-index 1
+
+    # Bind function keys.
+    bind -n F1 select-window -t 1
+    bind -n F2 select-window -t 2
+    bind -n F3 select-window -t 3
+    bind -n F4 select-window -t 4
+    bind -n F5 select-window -t 5
+    bind -n F6 select-window -t 6
+    bind -n F7 select-window -t 7
+    bind -n F8 select-window -t 8
+    bind -n F9 select-window -t 9
+    bind -n F10 select-window -t 10
+#+END_SRC
+
+Not sure why =screen= and =tmux= chose such awful prefix keybindings as ~C-a~ and ~C-b~, so I change this to ~C-`~.
+
+I'm not a tmux power user, as changing windows is about all I do, so I bind the function keys to change tabs.
+
+The following =~/.bash_aliases= enhance tmux:
+
+#+BEGIN_SRC sh :tangle /ssh:docker:/home/vagrant/.bash_aliases
+  #!/bin/sh
+  # The following aliases have been installed on this machine.
+  # - `nw` to create a new Tmux window. Give ‘er a command.
+  alias nw='tmux new-window'
+
+  # - `root` for a TMUX window as the root user.
+  alias root='nw -n root "sudo su -" '
+#+END_SRC
+
+When using Docker sessions on the remote system, the =go= and =logs= opens a new window:
+
+#+BEGIN_SRC sh
+  # - `go` to connect to a docker container
+  function go {
+      nw -n "$1" "sudo docker exec -it $1 bash"
+  }
+
+  # - `logs` for displaying the logs from a container
+  function logs {
+      nw -n $1-logs "sudo docker logs -f $*"
+  }
+#+END_SRC
+
+After writing a number of helper aliases, I find it helpful to see those aliases when I roll into a remote server, so put this in the =.bashrc= file:
+
+#+BEGIN_SRC sh
+  if [ "$HOME/.bash_aliases" ]
+  then
+      source "$HOME/.bash_aliases"
+      grep '^# ' "$HOME/.bash_aliases" | sed 's/^# *//'
+      echo
+  fi
+#+END_SRC
+
+Note: this can interfere with Tramp.
+* Local Access
+For a collection of long-running and highly verbose programs (like a remote Anisble run), I use iTerm on a MacOS with a special binding to create Mac-widgets in tmux.
+
+#+BEGIN_SRC sh
+  ssh -t laptop 'tmux -CC attach || tmux -CC'
+#+END_SRC
+
+
+#+DESCRIPTION: Code to be used for configuring Tmux.
+
+#+PROPERTY:    header-args:sh :tangle no
+#+PROPERTY:    header-args:emacs-lisp  :tangle yes
+#+PROPERTY:    header-args    :results none :eval no-export :comments no mkdirp yes
+
+#+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
+#+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
+#+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

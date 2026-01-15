@@ -251,17 +251,18 @@ Or, we can do it automatically when we get into a project (if the project has a 
     :config
     (defun project-pyenv-mode-set (&rest _)
       "Set pyenv version matching project name."
-      (let* ((filename (thread-first
-                         (project-current)
-                         (project-root)
-                         (file-name-concat ".python-version")))
-             (version (when (file-exists-p filename)
-                        (with-temp-buffer
-                          (insert-file-contents filename)
-                          (buffer-string)))))
-        (when version
-          (pyenv-mode-set version)
-          (pyenv-mode-unset))))
+      (ignore-errors
+        (let* ((filename (thread-first
+                           (project-current)
+                           (project-root)
+                           (file-name-concat ".python-version")))
+               (version (when (file-exists-p filename)
+                          (with-temp-buffer
+                            (insert-file-contents filename)
+                            (buffer-string)))))
+          (when version
+            (pyenv-mode-set version)
+            (pyenv-mode-unset)))))
 
     ;; Either set/unset the pyenv version whenever changing tabs:
     (add-hook 'tab-bar-tab-post-select-functions 'project-pyenv-mode-set))
