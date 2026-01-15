@@ -47,6 +47,8 @@ At the beginning of the year, I choose a theme, and make a list for the upcoming
   (defvar sprint-nicknames sprint-names
     "List of 26 Sprint Nicknames from A to Z.")
 #+end_src
+** 2026
+Drunk animals? Everyday AI?
 ** 2025
 This year is the animals representing corporate slogans:
 
@@ -283,75 +285,39 @@ Emacs have an internal rep of a time.
 Each year, specify the first day of the first sprint of the year:
 
 #+BEGIN_SRC emacs-lisp
-  (defvar sprint-start-date (get-date-time "2025-01-14")
+  ;; CHANGEME Each year as this should update:
+  (defvar sprint-start-date (get-date-time "2026-01-13")
     "The date of the first day of the first sprint of the year.
   See `sprint-range'.")
   #+END_SRC
 
-My Sprint starts on Tuesday, but this sometimes changed, so let's make this a variable:
-#+begin_src emacs-lisp
-  (defvar sprint-starting-day 2 "The day of the week the sprint begins, where 0 is Sunday.")
-#+end_src
-
-We seem to never start our Sprints correctly, and we seem to like offsets:
-#+begin_src emacs-lisp
-  ;; CHANGEME Each year as this never matches:
-  (defvar sprint-offset-value 1 "The number of the first sprint.")
-#+end_src
-
-We label our sprint based on the week number that it starts. Note that on a Monday, I want to consider that we are still numbering from last week.
-#+begin_src emacs-lisp
-  (defun sprint-week-num (&optional date)
-    "Return the week of the current year (or DATE), but starting
-  the week at Tuesday to Monday."
-    (let* ((d (get-date-time date))
-           (dow (nth 6 (decode-time d)))    ; Day of the week 0=Sunday
-           (week (thread-last d             ; Week number in the year
-                              (format-time-string "%U")
-                              string-to-number)))
-      (if (>= dow sprint-starting-day)
-          (1+ week)
-        week)))
-#+end_src
-
-Let's have these tests to make of this /weekly/ perspective:
-#+begin_src emacs-lisp :tangle no
-  (ert-deftest sprint-week-num-test ()
-    (should (= (sprint-week-num "2025-01-13") 2))  ; Monday previous week
-    (should (= (sprint-week-num "2025-01-14") 3))  ; Monday previous week
-
-    (should (= (sprint-week-num "2024-01-01") 0))  ; Monday previous week
-    (should (= (sprint-week-num "2024-01-02") 1))  ; Tuesday ... this week
-    (should (= (sprint-week-num "2024-01-09") 2))  ; Monday, next week, part of last
-    (should (= (sprint-week-num "2024-01-10") 3))) ; Tuesday next week
-#+end_src
-
-My company has sprints two weeks long, we could be see that on even week numbers, the /sprint/ is actually the previous week's number.
-
-This year, my PM decided to start the sprints sequentially starting with 11, so I’ve decided to follow my own naming convention for my filenames.
+My company has sprints two weeks long that we can calculate from
 
 #+begin_src emacs-lisp
-  (defun sprint-number (&optional date)
-    "Return the current sprint number, with some assumptions that
-  each sprint is two weeks long, starting on Tuesday."
-    (let* ((num (sprint-week-num date))
-           ;; Depending on how late we wait to start the sprint, the
-           ;; new sprint may be on an oddp or evenp week:
-           (bucket (if (cl-oddp num) num (1- num))))
-      (thread-first bucket
-                    ;; Make 2 week sprints sequential:
-                    (/ 2)
-                    ;; Sprint offset number:
-                    (- sprint-offset-value))))
+  (defvar sprint-length (* 14 24 60 60)
+    "The length of a sprint, in seconds. This is 2 weeks long")
+#+end_src
+
+The number of the sprint comes from the number of /bi-weeks/ (14 day increments) from the =sprint-start-date=. We can calculate the number of seconds from this /start date/ and divide it by the =sprint-length=:
+
+#+begin_src emacs-lisp
+  (defun sprint-number (date)
+    "Return the number of 14-day intervals since SPRINT-START-DATE to DATE.
+  DATE is a string in YYYY-MM-DD format."
+    (let* ((end-time (get-date-time date))
+           (diff-seconds (float-time (time-subtract end-time sprint-start-date))))
+
+      ;; After calculating the number of 'bi-weeks' (2 week sprint increments),
+      ;; we add one to return the correct sprint:
+      (1+ (floor (/ diff-seconds sprint-length)))))
 #+end_src
 
 And some tests to verify that:
 #+begin_src emacs-lisp :tangle no
   (ert-deftest sprint-number-test ()
-    (should (= (sprint-number "2025-01-13") 0))
-    (should (= (sprint-number "2025-01-14") 0))
-    (should (= (sprint-number "2025-01-27") 0))
-    (should (= (sprint-number "2025-01-29") 1)))
+    (should (= (sprint-number "2026-01-12") 0))
+    (should (= (sprint-number "2026-01-13") 1))
+    (should (= (sprint-number "2026-01-20") 1)))
 #+end_src
 ** Sprint File Name
 I create my org-file notes based on the Sprint number.
