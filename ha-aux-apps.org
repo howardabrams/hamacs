@@ -227,18 +227,40 @@ And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]
 #+end_src
 The project is interesting, and I should record a tutorial how to use it.
 * Playing Music
-Why not? Let’s see if the [[https://github.com/isamert/empv.el][empv]] project is sufficient. First install =mpv=, as in:
-#+begin_src sh
-  brew install mpv
-#+end_src
-What else?
-#+begin_src emacs-lisp
-  (use-package empv
-    :straight (:host github :repo "isamert/empv.el")
-    :general (ha-leader
-               "a p" '(empv-map :wk "play music")))
-#+end_src
+After building a NAS out of a Raspberry Pi to hold my /ripped/ CD collection, let’s control my playlists from Emacs.
+A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] project is [[https://github.com/xenodium/ready-player][ready-player]]. First install [[https://mpv.io/][mpv]]:
 
+#+BEGIN_SRC sh
+  brew install mpv
+#+END_SRC
+
+And then the configuration:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ready-player
+    :straight (:type git :host github :repo "xenodium/ready-player")
+    :config
+    (when (eq system-type 'darwin)
+      (set-fontset-font t nil "SF Pro Display" nil 'append)
+      (ready-player-macos-use-sf-symbols))
+
+    (ready-player-mode +1)
+    (setq ready-player-my-media-collection-location "/Volumes/music"))
+#+END_SRC
+
+Since ready-player doesn’t support [[https://github.com/xenodium/ready-player/issues/36][adjusting the volume]], I can, at least, set the /default volume/ low enough that my speaker adjustment affects it:
+
+#+BEGIN_SRC conf :tangle ~/.config/mpv/mpv.conf
+volume=20
+#+END_SRC
+
+Keep in mind, that if I can dig into the code to figure out the socket name, perhaps we could do something like:
+
+#+BEGIN_SRC sh
+  echo '{ "command": ["set", "volume", <volume_value>] }' | socat - /tmp/mpvsocket
+#+END_SRC
+
+Another option for the volume is to use *vlc*, as it brings up an separate UI that would allow adjusting the volume.
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 
