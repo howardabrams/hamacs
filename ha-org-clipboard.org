@@ -166,10 +166,10 @@ And define the same interface for Linux. Keep in mind, we need the exit code fro
 (defun ha-get-linux-clipboard ()
   "Return the clipbaard for a Unix-based system. See `ha-get-clipboard'."
   (cl-destructuring-bind (exit-code contents)
-      (shell-command-with-exit-code "xclip" "-o" "-t" "text/html")
+      (shell-command-with-exit-code "wl-paste" "--type" "text/html")
     (if (= 0 exit-code)
         (list :html contents)
-      (list :text (shell-command-to-string "xclip -o")))))
+      (list :text (shell-command-to-string "wl-paste")))))
 
 (defun shell-command-with-exit-code (program &rest args)
   "Run PROGRAM with ARGS and return the exit code and output in a list."
