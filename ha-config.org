@@ -956,7 +956,6 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
     :config
     (ha-leader
       "p"  '(:ignore t :which-key "projects")
-      "p W" '("initialize workspace" . ha-workspace-initialize)
       "p p" '("switch project" . ha-tab-bar-new-project)
 
       "p !" '("run cmd in project root" . project-shell-command)
@@ -1007,8 +1006,8 @@ New workspace is a tab with a specific name that opens up a specific buffer or a
 #+begin_src emacs-lisp
   (defun ha-tab-bar-new (name &optional bff)
     "Create a new tab with a NAME.
-  With a non-nil IFF, call IFF as a function or switch
-  to the IFF buffer or  the files listed."
+  With a non-nil BFF, call BFF as a function or switch
+  to the BFF buffer or the files listed."
     (interactive "sWorkspace Name: ")
     (tab-bar-switch-to-tab name)
     (when bff
@@ -1058,6 +1057,15 @@ If we close a tab that is a project, we want to close all the buffers associated
                 (buffer-list)))
 #+end_src
 
+And let’s make one tab to be /special/:
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-switch-to-special ()
+    "Change the perspective to the Sprint/Notes project."
+    (interactive)
+    (tab-bar-switch-to-tab "main"))
+#+END_SRC
+
 And some shortcut keys from the =general= project:
 
 #+BEGIN_SRC emacs-lisp
@@ -1068,6 +1076,7 @@ And some shortcut keys from the =general= project:
     "<tab> n" '("new space" . ha-tab-bar-new)
     "<tab> u" '("update names" . ha-tab-bar-update-names)
     "<tab> d" '("delete space" . ha-tab-bar-delete)
+    "<tab> w" '("special space" . ha-switch-to-special)
     "<tab> `" '("recent" . tab-bar-switch-to-recent-tab))
 
   (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
