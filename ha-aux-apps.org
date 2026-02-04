@@ -234,6 +234,19 @@ A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] p
   brew install mpv
 #+END_SRC
 
+And make sure we can play it:
+
+#+BEGIN_SRC sh
+  mpv "/Volumes/music/Steely Dan/Aja/01 Black Cow.mp3"
+#+END_SRC
+
+And stream my favorite local Jazz radio station:
+
+#+BEGIN_SRC sh
+  mpv --terminal --force-window=no --no-resume-playback \
+      'https://ais-sa3.cdnstream1.com/2442_128.aac/playlist.m3u8'
+#+END_SRC
+
 And then the configuration:
 
 #+BEGIN_SRC emacs-lisp
@@ -244,23 +257,31 @@ And then the configuration:
       (set-fontset-font t nil "SF Pro Display" nil 'append)
       (ready-player-macos-use-sf-symbols))
 
-    (ready-player-mode +1)
-    (setq ready-player-my-media-collection-location "/Volumes/music"))
+    (setq ready-player-my-media-collection-location "/Volumes/music")
+
+    (defun ha-ready-player-load-playlist ()
+      "Open a playlist in the correct location."
+      (interactive)
+      (let ((default-directory
+             (expand-file-name "Playlists/"
+                               ready-player-my-media-collection-location)))
+        (setq ready-player-shuffle t)
+        (call-interactively 'ready-player-load-m3u-playlist)))
+
+    (transient-append-suffix 'ready-player-menu "?"
+      '("P" "Load Playlist" ha-ready-player-load-playlist))
+
+    (ha-leader "a r" '("ready player"  . ready-player-menu))
+    (ready-player-mode +1))
 #+END_SRC
 
 Since ready-player doesn’t support [[https://github.com/xenodium/ready-player/issues/36][adjusting the volume]], I can, at least, set the /default volume/ low enough that my speaker adjustment affects it:
 
 #+BEGIN_SRC conf :tangle ~/.config/mpv/mpv.conf
-volume=20
+  volume=50
 #+END_SRC
 
-Keep in mind, that if I can dig into the code to figure out the socket name, perhaps we could do something like:
 
-#+BEGIN_SRC sh
-  echo '{ "command": ["set", "volume", <volume_value>] }' | socat - /tmp/mpvsocket
-#+END_SRC
-
-Another option for the volume is to use *vlc*, as it brings up an separate UI that would allow adjusting the volume.
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
 

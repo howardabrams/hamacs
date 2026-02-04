@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2025-12-02 Tue]
+#+lastmod: [2026-02-04 Wed]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -78,6 +78,11 @@ To create special key bindings, I can:
 
   hs.hotkey.bind({"alt", "ctrl", "shift"}, "M", function()
         hs.execute("~/bin/emacs-capture-meeting")
+  end)
+
+  -- Current music system is actually in Emacs:
+  hs.hotkey.bind({"alt", "ctrl", "shift"}, "R", function()
+        hs.execute("/opt/homebrew/bin/emacsclient -s work -e '(ready-player-toggle-play-stop)'")
   end)
 #+END_SRC
 * Zoom
