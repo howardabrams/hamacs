@@ -244,7 +244,7 @@ And stream my favorite local Jazz radio station:
 
 #+BEGIN_SRC sh
   mpv --terminal --force-window=no --no-resume-playback \
-      'https://ais-sa3.cdnstream1.com/2442_128.aac/playlist.m3u8'
+      'https://ais-sa3.cdnstream1.com/2442_128.aac/playlist.m3u8' &
 #+END_SRC
 
 And then the configuration:
@@ -271,6 +271,17 @@ And then the configuration:
     (transient-append-suffix 'ready-player-menu "?"
       '("P" "Load Playlist" ha-ready-player-load-playlist))
 
+    (defun ha-ready-player-load-directory ()
+      "Open a directory in the correct location."
+      (interactive)
+      (let ((default-directory
+             (file-name-as-directory ready-player-my-media-collection-location)))
+        (setq ready-player-shuffle nil)
+        (call-interactively 'ready-player-load-directory)))
+
+    (transient-append-suffix 'ready-player-menu "d"
+      '("A" "Play Album" ha-ready-player-load-directory))
+
     (ha-leader "a r" '("ready player"  . ready-player-menu))
     (ready-player-mode +1))
 #+END_SRC
@@ -278,7 +289,7 @@ And then the configuration:
 Since ready-player doesn’t support [[https://github.com/xenodium/ready-player/issues/36][adjusting the volume]], I can, at least, set the /default volume/ low enough that my speaker adjustment affects it:
 
 #+BEGIN_SRC conf :tangle ~/.config/mpv/mpv.conf
-  volume=50
+  volume=70
 #+END_SRC
 
 
