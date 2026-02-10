@@ -50,16 +50,19 @@ Will Schenk has [[https://willschenk.com/articles/2020/tramp_tricks/][a simple e
                         (tramp-remote-shell-args ("-i") ("-c"))))
           tramp-methods)
 
-    (defadvice tramp-completion-handle-file-name-all-completions
-        (around dotemacs-completion-docker activate)
-      "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\" returns
-      a list of active Docker container names, followed by colons."
-      (if (equal (ad-get-arg 1) "/docker:")
+    (defun ha-tramp-completion-docker (orig-fun &rest args)
+      "Advice for `tramp-completion-handle-file-name-all-completions`.
+  Return active Docker container names when completing for `/docker:`."
+      (if (equal (nth 1 args) "/docker:")
           (let* ((command "docker ps --format '{{.Names}}:'")
                  (dockernames-raw (shell-command-to-string command))
-                 (dockernames (split-string dockernames-raw "\n")))
-            (setq ad-return-value dockernames))
-        ad-do-it)))
+                 (dockernames (split-string dockernames-raw "\n" t)))
+            dockernames)
+        ;; Call the original function
+        (apply orig-fun args)))
+
+    (advice-add 'tramp-completion-handle-file-name-all-completions
+                :around #'ha-tramp-completion-docker)
 #+end_src
 
 Keep in mind you need to /name/ your Docker session, with the =—name= option. I actually do more docker work on remote systems (as Docker seems to make my fans levitate my laptop over the desk). Granted, the =URL= is a bit lengthy, for instance:

@@ -33,8 +33,9 @@ While Emacs supplies a Python editing environment, we’ll still use =use-packag
 #+begin_src emacs-lisp
   (use-package python
     :after flycheck
-    :mode ("[./]flake8\\'" . conf-mode)
-    :mode ("/Pipfile\\'" . conf-mode)
+    :mode (((rx ".flake8" eol) . conf-mode)
+           ((rx "Pipfile" eol) . conf-mode)
+           ((rx ".wsgi" eol)   . python-mode))
     :init
     (setq python-indent-guess-indent-offset-verbose nil
           flycheck-flake8-maximum-line-length 120)
