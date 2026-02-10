@@ -26,6 +26,34 @@ A literate programming file configuring critical applications.
   #+end_src
 
 Can we call the following /applications/? I guess.
+* Agentic Interface
+Ethic issues aside, I’m [[https://technobabble.bearblog.dev/fine-ill-try-ai/][trying AI]] … primarily because my company requires my participation. I appreciate the approaches from my fellow Emacsians, for while VSCode may be a fine editor, it can’t compete with my creation here.
+** Agent Shell
+Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]], requires installing the ACP libraries:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package acp
+    :straight (:type git :host github :repo "xenodium/acp.el"))
+
+  (use-package agent-shell
+    :straight (:type git :host github :repo "xenodium/agent-shell")
+    :after acp
+
+    :config
+    (ha-leader "a i" '("agent chat"  . agent-shell)))
+
+    ;; Evil state-specific RET behavior: insert mode = newline, normal mode = send
+    (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
+    (evil-define-key 'insert agent-shell-mode-map (kbd "C-RET") #'agent-shell-submit)
+    (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input)
+
+    ;; Configure *agent-shell-diff* buffers to start in Emacs state
+    (add-hook 'diff-mode-hook
+              (lambda ()
+                (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
+                  (evil-emacs-state)))))
+#+END_SRC
+
 * Git and Magit
 Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I stole the bulk of this work from Doom Emacs.
 #+begin_src emacs-lisp
@@ -315,7 +343,7 @@ The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. 
 
 ** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package forge
     :after magit
     :config
@@ -905,4 +933,5 @@ Let's provide a name so that the file can be required:
 
 # Local Variables:
 # eval: (add-hook 'after-save-hook #'org-babel-tangle t t)
+# jinx-local-words: "Emacsians VSCode"
 # End:
