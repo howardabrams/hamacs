@@ -1069,21 +1069,23 @@ And let’s make one tab to be /special/:
 And some shortcut keys from the =general= project:
 
 #+BEGIN_SRC emacs-lisp
-  (general-nmap :prefix "SPC"
-    "<tab>"  '(:ignore t :which-key "workspaces")
-    "<tab> <tab>" '("switch" . tab-switch)
-    "<tab> p" '("new project" . ha-tab-bar-new-project)
-    "<tab> n" '("new space" . ha-tab-bar-new)
-    "<tab> u" '("update names" . ha-tab-bar-update-names)
-    "<tab> d" '("delete space" . ha-tab-bar-delete)
-    "<tab> w" '("special space" . ha-switch-to-special)
-    "<tab> `" '("recent" . tab-bar-switch-to-recent-tab))
+  (use-package emacs
+    :config
+    (general-nmap :prefix "SPC"
+      "<tab>"  '(:ignore t :which-key "workspaces")
+      "<tab> <tab>" '("switch" . tab-switch)
+      "<tab> p" '("new project" . ha-tab-bar-new-project)
+      "<tab> n" '("new space" . ha-tab-bar-new)
+      "<tab> u" '("update names" . ha-tab-bar-update-names)
+      "<tab> d" '("delete space" . ha-tab-bar-delete)
+      "<tab> w" '("special space" . ha-switch-to-special)
+      "<tab> `" '("recent" . tab-bar-switch-to-recent-tab))
 
-  (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
-  (global-set-key (kbd "s-C-[") 'tab-bar-switch-to-prev-tab)
-  (global-set-key (kbd "s-C-]") 'tab-bar-switch-to-next-tab)
+    (global-set-key (kbd "s-C-t") 'ha-tab-bar-new)
+    (global-set-key (kbd "s-C-[") 'tab-bar-switch-to-prev-tab)
+    (global-set-key (kbd "s-C-]") 'tab-bar-switch-to-next-tab)
 
-  (tab-bar-mode 1)
+    (tab-bar-mode 1))
 #+END_SRC
 
 I want to quickly jump, by the number shown on the tab, to that grouping. The following two functions create leader sequences with the name of the tab group:
