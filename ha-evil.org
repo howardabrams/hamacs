@@ -54,9 +54,7 @@ I split the configuration of Evil mode into sections. First, global settings:
           evil-want-keybinding nil      ; work with evil-collection
           evil-want-integration t
           evil-want-C-u-scroll nil
-          evil-want-C-i-jump nil
-          evil-escape-key-sequence "jk"
-          evil-escape-unordered-key-sequence t))
+          evil-want-C-i-jump nil))
 #+end_src
 
 The Escape key act like ~C-g~ and always go back to normal mode?
@@ -199,7 +197,7 @@ I find that myself not noticing I’m in /insert/ mode, and start typing =j= rep
 
 To remedy this, I’m using the [[https://www.emacswiki.org/emacs/KeyChord][KeyChord]] code:
 
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
   (use-package key-chord
     :config
     (setq key-chord-two-keys-delay 0.1)
