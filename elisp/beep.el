@@ -15,16 +15,21 @@
 ;;; Code:
 
 (defvar beep-alert-sound-file
-  (expand-file-name "~/other/hamacs/beep-notify.wav")
+  (expand-file-name "~/src/hamacs/beep-notify.wav")
   "A WAV or AU file used at the completion of a function.")
 
 ;; My replacement in case we can't play internal sounds:
 (defun beep-beep (&rest _)
   "Play a default notification sound file.
 Customize the variable, `beep-alert-sound-file' to adjust the sound."
-  (if (fboundp 'play-sound-internal)
+  (condition-case err
       (play-sound-file beep-alert-sound-file)
-    (call-process-shell-command (format "afplay %s &" beep-alert-sound-file) nil 0)))
+    (error
+     (cond
+      ((= (call-process-shell-command "type aplay") 0)
+       (call-process-shell-command (format "aplay %s &" beep-alert-sound-file) nil 0))
+      ((= (call-process-shell-command "type afplay") 0)
+       (call-process-shell-command (format "afplay %s &" beep-alert-sound-file) nil 0))))))
 
 (defvar beep-speech-executable "say %s"
   "An OS-dependent shell string to speak. Replaces `%s' with a phrase.")
