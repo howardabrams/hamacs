@@ -40,7 +40,7 @@ Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]]
     :after acp
 
     :config
-    (ha-leader "a i" '("agent chat"  . agent-shell)))
+    (ha-leader "a i" '("agent chat"  . agent-shell))
 
     ;; Evil state-specific RET behavior: insert mode = newline, normal mode = send
     (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
@@ -343,7 +343,7 @@ The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. 
 
 ** Forge
 Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for working with Github and Gitlab:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package forge
     :after magit
     :config
@@ -370,15 +370,51 @@ Let's extend Magit with [[https://github.com/magit/forge][Magit Forge]] for work
 Every /so often/, pop over to the following URLs and generate a new token where the *Note* is =forge=, and then copy that into the [[file:~/.authinfo.gpg][~/.authinfo.gpg]]:
   - [[https://gitlab.com/-/user_settings/personal_access_tokens][Gitlab]]
   - [[https://github.com/settings/tokens][Github]]
-    and make sure this works:
 
-  #+begin_src emacs-lisp :tangle no :results replace
+Make sure this works:
+
+#+begin_src emacs-lisp :tangle no :results replace
     (ghub-request "GET" "/user" nil
                   :forge 'github
                   :host "api.github.com"
                   :username "howardabrams"
                   :auth 'forge)
-  #+end_src
+
+#+end_src
+
+** Magit Github
+Jonathan Chu’s [[https://github.com/jonathanchu/magit-gh][magit-gh]] project is /simpler/ than [[#Forge][Forge]] (see [[https://jonathanchu.is/posts/introducing-magit-gh/][this essay]] for details).
+
+First, install and configure the [[https://github.com/cli/cli/blob/trunk/docs/install_macos.md#homebrew][Github CLI]] program.
+#+BEGIN_SRC sh
+  brew install gh
+#+END_SRC
+
+Create a =GITHUB_TOKEN= under =/settings/tokens=.
+The required scopes are =repo=, =read:org=, =admin:public_key=.
+Also, these don’t last long, so return and regenerate routinely.
+
+Next, [[https://cli.github.com/manual/gh_auth_login][configure it]] with:
+#+BEGIN_SRC sh
+  gh auth login --hostname ${GH_HOST:-github.com}
+#+END_SRC
+
+And pass in the =GITHUB_TOKEN= environment variable.
+
+Verify that this works:
+#+BEGIN_SRC sh
+  gh pr list
+#+END_SRC
+
+With the =gh= CLI working, we can install and use this project:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package magit-gh
+    :after magit
+    :straight (:type git :host github :repo "jonathanchu/magit-gh"))
+#+END_SRC
+
+
 ** Pushing is Bad
 Pushing directly to the upstream branch is /bad form/, as one should create a pull request, etc. To prevent an accidental push, we /double-check/ first:
 
@@ -392,10 +428,11 @@ Pushing directly to the upstream branch is /bad form/, as one should create a pu
                                        (magit-get "branch" branch "remote"))))
         (user-error "Push to upstream aborted by user"))))
 #+end_src
+
 ** Github Search?
 Wanna see an example of how other’s use a particular function?
 #+begin_src emacs-lisp
-  (defun my-github-search(&optional search)
+  (defun ha-github-code-search(&optional search)
     (interactive (list (read-string "Search: " (thing-at-point 'symbol))))
     (let* ((language (cond ((eq major-mode 'python-mode) "Python")
                            ((eq major-mode 'emacs-lisp-mode) "Emacs Lisp")
