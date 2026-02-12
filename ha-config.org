@@ -164,16 +164,20 @@ I’ve often called =imenu= to easily jump to a function definition in a file (o
 #+begin_src emacs-lisp
   (defun ha-imenu-setup ()
     "Set up the imenu customization. Use in hooks."
-    (ignore-errors
-      (imenu-add-menubar-index)
+    (condition-case err
+        (imenu-add-menubar-index)
       (setq-local imenu-auto-rescan t)
       (when (derived-mode-p 'prog-mode)
-        (setq-local imenu-sort-function 'imenu--sort-by-name))))
+        (setq-local imenu-sort-function 'imenu--sort-by-name))
+
+      (imenu-unavailable
+       (let ((inhibit-message t))
+         (message "Warning: %s" (error-message-string err))))))
 
   (add-hook 'org-mode-hook 'ha-imenu-setup)
   (add-hook 'markdown-mode-hook 'ha-imenu-setup)
-  (add-hook 'prog-mode-hook 'ha-imenu-setup)
   (add-hook 'makefile-mode-hook 'ha-imenu-setup)
+  (add-hook 'prog-mode-hook 'ha-imenu-setup)
 #+end_src
 ** File Access
 *** Remote Files
