@@ -809,6 +809,37 @@ If you hit the following keys /before/ you select a target, you get special acti
   - ~z~ :: =zap-to-char= … kill from current point to the target
 I’m not thinking of ideas of what would be useful, e.g. ~v~ to highlight from cursor to target, etc.
 
+What is missing is copying the entire line:
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :config
+    (defun avy-action-copy-whole-line (pt)
+      (save-excursion
+        (goto-char pt)
+        (cl-destructuring-bind (start . end)
+            (bounds-of-thing-at-point 'line)
+          (copy-region-as-kill start end)))
+      (select-window
+       (cdr
+        (ring-ref avy-ring 0)))
+      t)
+
+    (defun avy-action-copy-rest-line (pt)
+      (save-excursion
+        (goto-char pt)
+        (let ((start pt)
+              (end (line-end-position)))
+          (copy-region-as-kill start end)))
+      (select-window
+       (cdr
+        (ring-ref avy-ring 0)))
+      t)
+
+    (setf (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+          (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+          (alist-get ?N avy-dispatch-alist) 'avy-action-copy-rest-line))
+#+END_SRC
+
 Want to know something amazing. In a Terminal, like =vterm= or =eshell=, I run ~s-g~ and pinpoint the UUID in the output of a long command. Then type ~y~ and then ~C-y~ to paste that ID without even moving the mouse.
 *** Link Hint, the Link Jumper
 The [[info:emacs#Goto Address mode][Goto Address]] mode (see this [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Goto-Address-mode.html][online link]]) turns URLs into clickable links. Nice feature and built into Emacs, but it requires using the mouse or moving to the URL and hitting ~Return~ (if you like this idea, check out [[https://xenodium.com/actionable-urls-in-emacs-buffers/][Álvaro Ramírez's configuration]] for this).
