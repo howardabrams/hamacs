@@ -1022,9 +1022,8 @@ Couple notes:
         tab-bar-close-button-show nil        ; hide tab close / X button
         tab-bar-new-tab-choice "*dashboard*" ; buffer to show in new tabs
         tab-bar-tab-hints t                  ; show tab numbers
-
+        tab-bar-separator "   "
         tab-bar-button-relief 0
-        tab-bar-button-margin '(40 . 1)
 
         ;; Jump to a tab by numbers (see the keybindings set later):
         tab-bar-select-tab-modifiers '(super control))
@@ -1227,34 +1226,18 @@ And then use this function to replace the standard  =tab-bar-tab-name-format-fun
   (defun ha/tab-bar-tab-name-format-default (tab i)
     "Replacement for `tab-bar-tab-name-format-function'.
     Places a special symbol for the initial digit."
-    (let ((current-p (eq (car tab) 'current-tab))
-          (tab-num (if (and tab-bar-tab-hints (< i 10))
-                       (alist-get i ha/circle-numbers-alist) "")))
-      (propertize
-       (concat tab-num
-               " "
-               (alist-get 'name tab)
-               (or (and tab-bar-close-button-show
-                        (not (eq tab-bar-close-button-show
-                                 (if current-p 'non-selected 'selected)))
-                        tab-bar-close-button)
-                   "")
-               " ")
-       'face (funcall tab-bar-tab-face-function tab))))
-
-  (defun ha/tab-bar-tab-name-format-default (tab i)
-    "Replacement for `tab-bar-tab-name-format-function'.
-    Places a special symbol for the initial digit."
     (let ((current-p (eq (car tab) 'current-tab)))
       (concat
        ;; First, add the tab number with a custom face
        (propertize
         (if (and tab-bar-tab-hints (< i 10)) (alist-get i ha/circle-numbers-alist) "")
         'face 'ha/tab-bar-numbers)
+       ;; Fixed-width gap so active (variable-pitch) and inactive tabs match
+       (propertize " " 'face 'tab-bar)
        ;; Add tab name with the face returned by tab-bar-tab-face-function
        (propertize
         (concat
-         " " ; Add initial space
+         " "
          (alist-get 'name tab)
          (or (and tab-bar-close-button-show
                   (not (eq tab-bar-close-button-show
