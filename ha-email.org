@@ -131,8 +131,11 @@ Also, let's do some basic configuration of Emacs' mail system:
 #+end_src
 
 Create a special mail perspective:
-#+begin_src emacs-lisp :tangle no
-  (ha-leader "a M" `("mail" . ,(ha-tab-bar-new "mail" #'notmuch)))
+#+begin_src emacs-lisp
+  (ha-leader
+    "<tab> N" `("notmuch mail" .
+                ,(lambda () (interactive)
+                   (ha-tab-bar-new "mail" #'notmuch))))
 #+end_src
 * Configuration
 Do I want to sign messages by default? Nope.

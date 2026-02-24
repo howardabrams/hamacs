@@ -1268,7 +1268,8 @@ Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need t
     (auth-source-cache-expiry nil)
 
     :config
-    (setenv "GPG_AGENT_INFO" nil)
+    ;; Set this to nil if you are not running gpg-agent service
+    ;; (setenv "GPG_AGENT_INFO" nil)
     (ignore-error (epa-file-enable)))
 #+end_src
 

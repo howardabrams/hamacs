@@ -15,6 +15,9 @@
 ;;
 ;; Running:
 ;;     sudo kanata --cfg ~/src/hamacs/laptop_keyboard.kbd
+;; Or:
+;;     sudo ~/.local/bin/kanata --cfg ~/src/hamacs/laptop_keyboard.kbd
+
 
 (deflocalkeys-macos
   ì 13)
@@ -24,8 +27,8 @@
 ;; have to modify the code in the `defcfg' section below.
 
 (defcfg
-    ;; linux-dev-names-include ("Apple Internal Keyboard / Trackpad")
-    macos-dev-names-include ("Apple Internal Keyboard / Trackpad"))
+    ;; macos-dev-names-include ("Apple Internal Keyboard / Trackpad")
+    linux-dev-names-include ("Apple Inc. Apple Internal Keyboard / Trackpad"))
 
 ;; What keys are we re-defining? This is my Macbook Pro layouts, as
 ;; both laptops are this hardware.
@@ -39,7 +42,7 @@
   tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
   caps a    s    d    f    g    h    j    k    l    ;    '    ret
   lsft z    x    c    v    b    n    m    ,    .    /    rsft
-  fn   lctl lalt lmet      spc            rmet ralt)
+  menu   lctl lalt lmet      spc            rmet ralt)
 
 (defvar
   tap-time 200

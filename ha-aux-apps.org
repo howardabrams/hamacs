@@ -40,7 +40,7 @@ I would like a dedicate perspective to Mastodon, and I would like a leader key s
 #+begin_src emacs-lisp
   (use-package mastodon
     :config
-    (ha-leader "a m" `("mastodon" . ,(lambda () (interactive) (ha-tab-bar-new "mastodon" #'mastodon))))
+    (ha-leader "<tab> M" `("mastodon" . ,(lambda () (interactive) (ha-tab-bar-new "mastodon" #'mastodon))))
 
     (defun ha-mastodon-scroll-or-more ()
       "Scroll a window, and at the end, get more entries in timeline."
@@ -160,7 +160,9 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
     (when (fboundp 'evil-insert-state)
       (add-hook 'telega-chat-mode-hook 'evil-insert-state))
 
-    (ha-leader "a t" `("telega" . ,(lambda () (interactive) (ha-tab-bar-new "telega" #'telega)))))
+    (ha-leader "<tab> T" `("telega" .
+                           ,(lambda () (interactive)
+                              (ha-tab-bar-new "telega" #'telega)))))
 #+end_src
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 
@@ -216,10 +218,24 @@ And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]
 The project is interesting, and I should record a tutorial how to use it.
 * Playing Music
 After building a NAS out of a Raspberry Pi to hold my /ripped/ CD collection, let’s control my playlists from Emacs.
-A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] project is ⁨Álvaro’s [[https://github.com/xenodium/ready-player][ready-player]]. First install [[https://mpv.io/][mpv]]:
+
+A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] project is [[https://github.com/xenodium/ready-player][ready-player]]. First install [[https://mpv.io/][mpv]]:
 
 #+BEGIN_SRC sh
   brew install mpv
+#+END_SRC
+
+The =mpv= executable comes on my Linux, but I need to installed the requisite apps in order to mount my library:
+
+#+BEGIN_SRC sh
+  sudo apt install cifs-utils -y
+#+END_SRC
+
+And create the mount points:
+
+And update our [[/sudo:/etc/fstab][/etc/fstab]] file with:
+#+BEGIN_SRC conf
+  //myserver/myshare /mnt/smbshare cifs credentials=/root/.smbcredentials,iocharset=utf8,file_mode=0777,dir_mode=0777 0 0
 #+END_SRC
 
 And make sure we can play it:
