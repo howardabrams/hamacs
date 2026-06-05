@@ -333,6 +333,13 @@ The [[https://elpy.readthedocs.io/en/latest/introduction.html][Elpy Project]] ex
     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules)))
 #+END_SRC
 
+Elpy uses its *own* virtual environment for its backend process (jedi, rope, etc.), keeping elpy's own dependencies out of your project venvs. While there is a [[help:elpy-rpc-reinstall-virtualenv][elpy-rpc-reinstall-virtualenv]] function, I find it doesn’t seem to install everything correctly, and I need to do this by hand:
+
+#+BEGIN_SRC sh
+  source ~/.emacs.d/elpy/rpc-venv/bin/activate
+  pip install jedi black flake8 ipython
+#+END_SRC
+
 After we’ve loaded the Company section, we can add jedi to the list of completions:
 
 #+BEGIN_SRC emacs-lisp

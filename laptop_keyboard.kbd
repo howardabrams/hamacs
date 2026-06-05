@@ -1,8 +1,14 @@
 ;; -*- mode:lisp; -*-
+;;
 ;; Here is a keyboard setup for an Apple Macbook keyboard to work with
-;; "home row mods" where holding down keys on the home row can act like a
-;; modifier, so holding down `d` and hitting `p` results in `P` being
-;; entered.
+;; "home row mods" where holding down keys on the home row can act
+;; like a modifier, so holding down `d` and hitting `p` results in a
+;; capital `P` being entered.
+;;
+;; This also includes a dedicated Hyper and Mega modifier layers,
+;; where holding down the `m' key and striking `a' creates a
+;; Control+Shift+Option+a key combination. This is useful for fancy
+;; hotkeys for Hammerspoon and the like.
 ;;
 ;; Installation:
 ;;     brew install kanata
@@ -43,6 +49,7 @@
 ;; the `h' or `g' keys.
 
 (defalias
+    ;; Home row mods
   a (tap-hold $tap-time $hold-time a lmet)
   s (tap-hold $tap-time $hold-time s lctl)
   d (tap-hold $tap-time $hold-time d lsft)
@@ -53,7 +60,34 @@
   k (tap-hold $tap-time $hold-time k rsft)
   l (tap-hold $tap-time $hold-time l rctl)
   ; (tap-hold $tap-time $hold-time ; rmet)
-  caps (tap-hold $tap-time $hold-time esc lctl))
+  caps (tap-hold $tap-time $hold-time esc lctl)
+
+  ;; ----------------------------------------------------
+  ;; HYPER ALIASES (Shift + Ctrl + Option)
+  ;; ----------------------------------------------------
+  hq (multi lsft lctl lalt q) hw (multi lsft lctl lalt w) he (multi lsft lctl lalt e) hr (multi lsft lctl lalt r) ht (multi lsft lctl lalt t)
+  hy (multi lsft lctl lalt y) hu (multi lsft lctl lalt u) hi (multi lsft lctl lalt i) ho (multi lsft lctl lalt o) hp (multi lsft lctl lalt p)
+
+  ha (multi lsft lctl lalt a) hs (multi lsft lctl lalt s) hd (multi lsft lctl lalt d) hf (multi lsft lctl lalt f) hg (multi lsft lctl lalt g)
+  hh (multi lsft lctl lalt h) hj (multi lsft lctl lalt j) hk (multi lsft lctl lalt k) hl (multi lsft lctl lalt l) h; (multi lsft lctl lalt ;)
+
+  hz (multi lsft lctl lalt z) hx (multi lsft lctl lalt x) hc (multi lsft lctl lalt c) hv (multi lsft lctl lalt v) hb (multi lsft lctl lalt b)
+  hn (multi lsft lctl lalt n) hm (multi lsft lctl lalt m) h, (multi lsft lctl lalt ,) h. (multi lsft lctl lalt .) h/ (multi lsft lctl lalt /)
+
+  ;; ----------------------------------------------------
+  ;; MEGA ALIASES (Shift + Ctrl + Option + Cmd)
+  ;; ----------------------------------------------------
+  mq (multi lsft lctl lalt lmet q) mw (multi lsft lctl lalt lmet w) me (multi lsft lctl lalt lmet e) mr (multi lsft lctl lalt lmet r) mt (multi lsft lctl lalt lmet t)
+  my (multi lsft lctl lalt lmet y) mu (multi lsft lctl lalt lmet u) mi (multi lsft lctl lalt lmet i) mo (multi lsft lctl lalt lmet o) mp (multi lsft lctl lalt lmet p)
+
+  ma (multi lsft lctl lalt lmet a) ms (multi lsft lctl lalt lmet s) md (multi lsft lctl lalt lmet d) mf (multi lsft lctl lalt lmet f) mg (multi lsft lctl lalt lmet g)
+  mh (multi lsft lctl lalt lmet h) mj (multi lsft lctl lalt lmet j) mk (multi lsft lctl lalt lmet k) ml (multi lsft lctl lalt lmet l) m; (multi lsft lctl lalt lmet ;)
+
+  mz (multi lsft lctl lalt lmet z) mx (multi lsft lctl lalt lmet x) mc (multi lsft lctl lalt lmet c) mv (multi lsft lctl lalt lmet v) mb (multi lsft lctl lalt lmet b)
+  mn (multi lsft lctl lalt lmet n) mm (multi lsft lctl lalt lmet m) m, (multi lsft lctl lalt lmet ,) m. (multi lsft lctl lalt lmet .) m/ (multi lsft lctl lalt lmet /)
+
+  m (tap-hold $tap-time $hold-time m (layer-while-held HYPER))
+  c (tap-hold $tap-time $hold-time c (layer-while-held MEGA)))
 
 ;; The base layer is fairly normal, except we all out aliases defined
 ;; above, os the @a is both a `tap-hold' feature as well as a regular
@@ -64,7 +98,7 @@
   `     1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab   q    w    e    r    t    y    u    i    o    p    [    ]    \
   @caps @a   @s   @d   @f   @g   @h   @j   @k   @l   @;   '    ret
-  lsft  z    x    c    v    b    n    m    ,    .    /    rsft
+  lsft  z    x    @c    v    b    n    @m    ,    .    /    rsft
   @h    lctl lalt lmet    spc           rmet ralt)
 
 ;; The other layer is our `symbols' which allows me to hold down the
@@ -77,3 +111,22 @@
   _    S-3  S-4  S-9  S-0  `    left  down  up    right pgdn  _ _
   _    S-5  S-6  [    ]    S-`  F11   F12   F13   F14   F15   _
   _    _  _    _          _        _    _)
+
+;; The other layer is our `magic' which allows me to hold down the
+;; `m' key to invoke a magical VI-like h/j/k/l arrow keys:
+
+(deflayer HYPER
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    @hq  @hw  @he  @hr  @ht  @hy  @hu  @hi  @ho  @hp  _    _    _
+  _    @ha  @hs  @hd  @hf  @hg  @hh  @hj  @hk  @hl  @h;  _    _
+  _    @hz  @hx  @hc  @hv  @hb  @hn  @hm  _    _    _    _
+  _    _    _    _          _               _    _)
+
+(deflayer MEGA
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    @mq  @mw  @me  @mr  @mt  @my  @mu  @mi  @mo  @mp  _    _    _
+  _    @ma  @ms  @md  @mf  @mg  @mh  @mj  @mk  @ml  @m;  _    _
+  _    @mz  @mx  @mc  @mv  @mb  @mn  @mm  _    _    _    _
+  _    _    _    _          _               _    _)
