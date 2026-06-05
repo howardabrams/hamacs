@@ -1112,6 +1112,7 @@ And some shortcut keys from the =general= project:
       "<tab> n" '("new space" . ha-tab-bar-new)
       "<tab> u" '("update names" . ha-tab-bar-update-names)
       "<tab> d" '("delete space" . ha-tab-bar-delete)
+      "<tab> t" '("toggle tab-bar" . tab-bar-mode)
       "<tab> w" '("special space" . ha-switch-to-special)
       "<tab> `" '("recent" . tab-bar-switch-to-recent-tab))
 

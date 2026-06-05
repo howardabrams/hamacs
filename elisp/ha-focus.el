@@ -33,7 +33,7 @@ start some music to indicate we are working, and set a timer.
 Call `ha-focus-break' when finished."
   (interactive)
   (ha-focus-countdown-timer 25 'ha-focus-break)
-  (ha-focus--command "tell application \"Spotify\" to play")
+  (ha-focus--command "tell application \"VLC\" to play")
   (if (eq major-mode 'org-mode)
       (org-clock-in)
     (org-clock-in-last))
@@ -47,7 +47,7 @@ This also starts another break timer, that calls
 `ha-focus-break-over' when finished."
   (interactive)
   (run-with-idle-timer 30 nil 'ha-focus-capture)
-  (ha-focus--command "tell application \"Spotify\" to pause")
+  (ha-focus--command "tell application \"VLC\" to pause")
   (ha-focus-countdown-timer 5 'ha-focus-break-over)
   (message "🍅 Time to take a break."))
 

@@ -19,7 +19,7 @@
   "A WAV or AU file used at the completion of a function.")
 
 ;; My replacement in case we can't play internal sounds:
-(defun beep-beep ()
+(defun beep-beep (&rest _)
   "Play a default notification sound file.
 Customize the variable, `beep-alert-sound-file' to adjust the sound."
   (if (fboundp 'play-sound-internal)

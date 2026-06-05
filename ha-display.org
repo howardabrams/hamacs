@@ -76,8 +76,7 @@ To make the active window /more noticeable/, we /dim/ the in-active windows with
 As an interesting alternative, check out the [[https://www.emacs.dyerdwelling.family/emacs/20240208164549-emacs-selected-window-accent-mode-now-on-melpa/][selected-window-accent]] project.
 ** Ultra Scroll
 
-The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows smoother scrolling of text and images. While this splits text at the top/bottom of buffer windows, we no longer work within a 80x24 text matrix. Large images would
-either be "there or not" which resulted large jumps and large distractions.
+The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows smoother scrolling of text and images. While this splits text at the top/bottom of buffer windows, we no longer work within a 80x24 text matrix. Large images would either be "there or not" which resulted large jumps and large distractions.
 
 #+BEGIN_SRC emacs-lisp
   (use-package ultra-scroll
@@ -89,16 +88,45 @@ either be "there or not" which resulted large jumps and large distractions.
     (ultra-scroll-mode 1))
 #+END_SRC
 ** Find the Bloody Cursor
-Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
+Large screen, lots of windows, so where is the cursor? While I used to use =hl-line+=, Sacha Chua’s [[https://fediscience.org/@ericsfraga/116279043710841253][suggestion]] solves the problem of the built-in =hl-line= that /highlights paragraphs/ in Org with a single function:
+
+#+BEGIN_SRC emacs-lisp
+  (defun get-visual-line-range ()
+    "Identify current visual line (for highlighting mostly)
+
+  Use the visual line functions to define the range in the buffer
+  that should be highlighted when ~hl-line-mode~ is enabled. By
+  default, the whole line in the file is highlighted. This is not
+  particularly useful in org files where I have whole paragraphs in a
+  single file line."
+    (let (b e)
+      (save-excursion
+        (beginning-of-visual-line)
+        (setq b (point))
+        (end-of-visual-line)
+        (setq e (point)))
+      (cons b e)))
+
+  (setq hl-line-range-function #'get-visual-line-range)
+
+  (global-hl-line-mode 1)
+#+END_SRC
+
+The real trick should /visually/ highlight the current line without being too light and interfering with seeing the text or being too obnoxious (see my [[file:ha-theme.org::*Dark Theme][Dark Theme]]).
+
+I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[https://protesilaos.com/codelog/2022-03-14-emacs-pulsar-demo/][introduced his Pulsar project]] is just what I need. Specifically, I might /loose the cursor/ and need to have it highlighted (using ~F8~), but also, this automatically highlights the cursor line with specific /actions/ , like changing windows.
 
 #+begin_src emacs-lisp
   (use-package pulsar
     :straight (:host github :repo "protesilaos/pulsar")
+    :after winum ace-window
     :custom
     (pulsar-face 'pulsar-generic)
     (pulsar-delay 0.15)
 
     :config
+    (set-face-attribute 'pulsar-generic nil :background "orange")
+
     (dolist (built-in-function '(recenter-top-bottom move-to-window-line-top-bottom reposition-window
                                  bookmark-jump other-window delete-window delete-other-windows
                                  forward-page backward-page scroll-up-command scroll-down-command

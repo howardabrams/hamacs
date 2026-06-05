@@ -325,6 +325,7 @@ Let’s make a /theme/:
      `(window-divider ((t :foreground "black")))
      `(cursor ((t (:foreground ,gray-10 :background ,cursor))))
      `(region ((t (:background ,region))))
+     `(hl-line ((t (:background ,gray-20))))
 
      `(mode-line ((t (:background ,active :foreground "white"))))
      `(mode-line-active ((t (:background ,active))))

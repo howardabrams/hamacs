@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2025-12-02 Tue]
+#+lastmod: [2026-04-08 Wed]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -1022,8 +1022,8 @@ Next, create a configuration file, =~/.config/proselint/config= file, to turn on
   }
 #+end_src
 
-And tell [[https://www.flycheck.org/][flycheck]] to use this:
-#+begin_src emacs-lisp
+And tell [[https://www.flycheck.org/][flycheck]] to use Proselint:
+#+begin_src emacs-lisp :tangle no
   (use-package flycheck
     :config
     (add-to-list 'flycheck-checkers 'proselint)
