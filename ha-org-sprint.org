@@ -286,7 +286,7 @@ Each year, specify the first day of the first sprint of the year:
 
 #+BEGIN_SRC emacs-lisp
   ;; CHANGEME Each year as this should update:
-  (defvar sprint-start-date (get-date-time "2026-01-13")
+  (defvar sprint-start-date (get-date-time "2026-01-06")
     "The date of the first day of the first sprint of the year.
   See `sprint-range'.")
   #+END_SRC
@@ -301,15 +301,20 @@ My company has sprints two weeks long that we can calculate from
 The number of the sprint comes from the number of /bi-weeks/ (14 day increments) from the =sprint-start-date=. We can calculate the number of seconds from this /start date/ and divide it by the =sprint-length=:
 
 #+begin_src emacs-lisp
-  (defun sprint-number (date)
+  (defun sprint-number (&optional date)
     "Return the number of 14-day intervals since SPRINT-START-DATE to DATE.
   DATE is a string in YYYY-MM-DD format."
+    (unless date
+      (setq date (format-time-string "%Y-%m-%d")))
+
     (let* ((end-time (get-date-time date))
            (diff-seconds (float-time (time-subtract end-time sprint-start-date))))
 
       ;; After calculating the number of 'bi-weeks' (2 week sprint increments),
-      ;; we add one to return the correct sprint:
-      (1+ (floor (/ diff-seconds sprint-length)))))
+      ;; we add one to return the correct sprint for the networking team:
+      ;;      (1+ (floor (/ diff-seconds sprint-length)))
+      ;; Or for the platform storage team:
+      (1+ (* 2 (floor (/ diff-seconds sprint-length))))))
 #+end_src
 
 And some tests to verify that:
