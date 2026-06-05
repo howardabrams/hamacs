@@ -215,7 +215,7 @@ And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]
 The project is interesting, and I should record a tutorial how to use it.
 * Playing Music
 After building a NAS out of a Raspberry Pi to hold my /ripped/ CD collection, let’s control my playlists from Emacs.
-A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] project is [[https://github.com/xenodium/ready-player][ready-player]]. First install [[https://mpv.io/][mpv]]:
+A more /rich/ experience than the [[https://github.com/isamert/empv.el][empv]] project is ⁨Álvaro’s [[https://github.com/xenodium/ready-player][ready-player]]. First install [[https://mpv.io/][mpv]]:
 
 #+BEGIN_SRC sh
   brew install mpv
@@ -276,9 +276,27 @@ And then the configuration:
 Since ready-player doesn’t support [[https://github.com/xenodium/ready-player/issues/36][adjusting the volume]], I can, at least, set the /default volume/ low enough that my speaker adjustment affects it:
 
 #+BEGIN_SRC conf :tangle ~/.config/mpv/mpv.conf
-  volume=70
+  volume=60
 #+END_SRC
 
+Would love to have the /playing/ media in a particular tab-bar and in a particular location.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun ha-ready-player-switch ()
+    "Switch to the buffer window of the ready-player."
+    (interactive)
+    (let* ((buf-list
+            (seq-filter (lambda (buf)
+                          (string-match (rx string-start "ready-player: "
+                                            (+ (not "*")) string-end)
+                                        (buffer-name buf)))
+                        (buffer-list)))
+           (buffer (car buf-list))
+           (tab    (tab-bar-get-buffer-tab (buffer-name buffer) t)))
+      (if tab
+          (tab-bar-switch-to-tab (alist-get 'name tab))
+        (tab-bar-switch-to-tab "main"))))
+#+END_SRC
 
 * Technical Artifacts                                :noexport:
 Let's =provide= a name so we can =require= this file:
