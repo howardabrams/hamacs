@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2026-02-04 Wed]
+#+lastmod: [2026-06-15 Mon]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -21,69 +21,65 @@ I’ve created left and right ~Meh~ keys on my Moonlanders:
 
 To create special key bindings, I can:
 #+BEGIN_SRC lua
-  ----------------------------------------------------------------------
-  -- Launcher replaces iCanHazShortcuts
+    ----------------------------------------------------------------------
+    -- Launcher replaces iCanHazShortcuts
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "T", function()
-        hs.application.launchOrFocus("iTerm")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "T", function()
+          hs.application.launchOrFocus("iTerm")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "S", function()
-        hs.application.launchOrFocus("Slack")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "S", function()
+          hs.application.launchOrFocus("Slack")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "W", function()
-        hs.application.launchOrFocus("Spotify")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "F", function()
+          hs.application.launchOrFocus("Safari")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "F", function()
-        hs.application.launchOrFocus("Firefox")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "C", function()
+          -- hs.osascript.applescriptFromFile("~/bin/chrome.scr")
+          hs.execute("~/bin/chrome.scr")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "C", function()
-        -- hs.osascript.applescriptFromFile("~/bin/chrome.scr")
-        hs.execute("~/bin/chrome.scr")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "B", function()
+          hs.application.launchOrFocus("Microsoft Outlook")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "B", function()
-        hs.application.launchOrFocus("Microsoft Outlook")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "Z", function()
+          hs.application.launchOrFocus("zoom.us")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "Z", function()
-        hs.application.launchOrFocus("zoom.us")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "Q", function()
+          hs.application.launchOrFocus("KeepassXC")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "A", function()
-        hs.application.launchOrFocus("Cursor")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "W", function()
+          hs.application.launchOrFocus("VLC")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "Q", function()
-        hs.application.launchOrFocus("KeepassXC")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "E", function()
+          hs.execute("FOR_WORK=yes open -a /Applications/Emacs.app")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "E", function()
-        hs.execute("FOR_WORK=yes open -a /Applications/Emacs.app")
-  end)
+    -- Special Emacs Guys
+    -- Right Meh key:
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "X", function()
+          hs.execute("~/bin/emacs-capture")
+    end)
 
-  -- Special Emacs Guys
-  -- Right Meh key:
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "X", function()
-        hs.execute("~/bin/emacs-capture")
-  end)
+    -- Left Meh key:
+    hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "X", function()
+          hs.execute("~/bin/emacs-capture-clock")
+    end)
 
-  -- Left Meh key:
-  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "X", function()
-        hs.execute("~/bin/emacs-capture-clock")
-  end)
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "M", function()
+          hs.execute("~/bin/emacs-capture-meeting")
+    end)
 
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "M", function()
-        hs.execute("~/bin/emacs-capture-meeting")
-  end)
-
-  -- Current music system is actually in Emacs:
-  hs.hotkey.bind({"alt", "ctrl", "shift"}, "R", function()
-        hs.execute("/opt/homebrew/bin/emacsclient -s work -e '(ready-player-toggle-play-stop)'")
-  end)
+    -- Current music system is actually in Emacs:
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "R", function()
+          hs.execute("/opt/homebrew/bin/emacsclient -s work -e '(ready-player-toggle-play-stop)'")
+    end)
 #+END_SRC
 * Zoom
 Library extensions to Hammerspoon are called /spoons/, and most of these are a simple Lua script, =init.lua= stored in the =Spoons= subdirectory. We grab these with a =git clone=, typically. To use the Zoom spoon, clone it:
@@ -213,26 +209,35 @@ My company gave me a nice monitor … maybe a little too nice, as I don’t care
   -- Centering a window on the large monitors at Work:
 
   function centerWindow()
-        local win = hs.window.focusedWindow()
-        local app = win:application()
-        local f = win:frame()
+     local win = hs.window.focusedWindow()
+     if not win then return end -- Safety check in case no window is focused
 
-        -- Magic numbers figured out by trial and error:
-        f.x = 600
-        f.y = 30
-        f.w = 2200
-        f.h = 1470
+     local app = win:application()
+     local screen = hs.screen.find("DELL P3424WE")
+     local maxBounds = screen:frame() -- This gets the absolute coordinates of that specific monitor
 
-        if app then
-          local name = app:name()
-          -- If the application is Slack, adjust the height
-          if name == "Slack" or name == "iTerm2" then
-            f.h = 1200
-          end
+     -- 2. Define your desired size
+     local desiredW = 2200
+     local desiredH = 1470
+
+     if app then
+        local name = app:name()
+        if name == "Slack" or name == "iTerm2" then
+           desiredH = 1200
         end
+     end
 
-        win:setFrame(f)
-        hs.alert.show("Centered Window")
+     -- 3. Calculate relative position based on the external monitor's bounds
+     -- This centers the window perfectly on the target screen
+     local f = {
+        x = maxBounds.x + ((maxBounds.w - desiredW) / 2),
+        y = maxBounds.y, -- + ((maxBounds.h - desiredH) / 2),
+        w = desiredW,
+        h = desiredH
+     }
+
+     win:setFrame(f)
+     hs.alert.show("Centered Window")
   end
 
   hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Y", centerWindow)
