@@ -108,6 +108,17 @@ The configuration for [[https://github.com/zackattackz/agent-shell-notifications
     ;; While that code is _supposed_ to do this, I seem to need to do this manually:
     (require 'agent-shell-notifications-knockknock))
 #+END_SRC
+
+I might switch to [[https://github.com/cxa/agent-shell-macext#start-of-content][agent-shell-macext]] if I can’t get KnockKnock to work well on my Linux system.
+*** Agent Skills
+The following pulls in [[https://github.com/xenodium/emacs-skills][emacs-skills]], a Claude Agent skills for Emacs:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package emacs-skills
+    :straight (:type git :host github :repo "xenodium/emacs-skills"))
+#+END_SRC
+
+The most helpful is =/open= that you run afterwards to pull the changes into buffers for complete review. Use the =/highlight= variation to see the changes highlighted.
 *** Agent Sidebar
 Using the [[https://github.com/cmacrae/agent-shell-sidebar][agent-shell-sidebar]] project, we can easily open/close the Agent buffer window:
 
