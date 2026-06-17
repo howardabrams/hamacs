@@ -29,15 +29,21 @@ Can we call the following /applications/? I guess.
 * Agentic Interface
 Ethic issues aside, I’m [[https://technobabble.bearblog.dev/fine-ill-try-ai/][trying AI]] … primarily because my company requires my participation. I appreciate the approaches from my fellow Emacsians, for while VSCode may be a fine editor, it can’t compete with my creation here.
 ** Agent Shell
-Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]], requires installing the ACP libraries:
+Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]], requires his [[https://github.com/xenodium/acp.el][ACP package]] for accessing the installed [[https://agentclientprotocol.com/][ACP libraries]], and his [[https://github.com/xenodium/shell-maker][shell-maker]] package.
 
 #+BEGIN_SRC emacs-lisp
   (use-package acp
     :straight (:type git :host github :repo "xenodium/acp.el"))
 
+  (use-package shell-maker
+    :straight (:type git :host github :repo "xenodium/shell-maker"))
+
   (use-package agent-shell
     :straight (:type git :host github :repo "xenodium/agent-shell")
     :after acp
+
+    :custom
+    (agent-shell-display-action '(display-buffer-in-previous-window))
 
     :config
     (ha-leader "a i" '("agent chat"  . agent-shell))
@@ -52,6 +58,168 @@ Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]]
               (lambda ()
                 (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
                   (evil-emacs-state)))))
+#+END_SRC
+*** Notifications
+When my /artificial intern/ completes a task, I have long since nipped out to the kitchen, put the kettle on ... buttering scones... and getting crumbs and bits of food out of those round brown straw mats that the teapot goes on.
+
+I would like the /intern/ to notify me when it needs attention, so I noticed the [[https://github.com/zackattackz/agent-shell-notifications/][agent-shell-notifications]] project can connect the =agent-shell= project with the [[https://github.com/konrad1977/knockknock/][knock-knock]] project (which is similar to my [[https://howardism.org/Technical/Emacs/beep-for-emacs.html][beep project]]).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package knockknock
+    :straight (knockknock :type git :host github :repo "konrad1977/knockknock")
+    :init
+    (setq knockknock-border-color "brown")
+    (setq knockknock-border-width 2)
+    (setq knockknock-default-duration 4)
+    :config
+    (advice-add 'knockknock-notify :after #'beep-beep))
+#+END_SRC
+
+Testing it out:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (knockknock-notify :title "Attention"
+                     :message "Claude needs attention"
+                     :icon "nf-md-robot_confused")
+#+END_SRC
+
+The configuration for [[https://github.com/zackattackz/agent-shell-notifications/][agent-shell-notifications]] and hook it to the =agent-shell-notifications-provider=:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package agent-shell-notifications
+    :straight (agent-shell-notifications
+               :type git
+               :host github
+               :repo "zackattackz/agent-shell-notifications")
+    :hook
+    ;; Enable notifications in each agent-shell buffer
+    (agent-shell-mode . agent-shell-notifications-mode)
+
+    :config
+    ;; Notification display timeout in seconds (0 = never expire (the default), -1 = backend default)
+    ;; (setq agent-shell-notifications-timeout 5)
+
+    ;; Seconds to wait before notifying when the shell is already visible (default: 10)
+    ;; (setq agent-shell-notifications-idle-timeout 30)
+
+    ;; Use the knockknock backend instead of the default libnotify
+    (setq agent-shell-notifications-provider 'agent-shell-notifications-knockknock)
+
+    ;; While that code is _supposed_ to do this, I seem to need to do this manually:
+    (require 'agent-shell-notifications-knockknock))
+#+END_SRC
+*** Agent Sidebar
+Using the [[https://github.com/cmacrae/agent-shell-sidebar][agent-shell-sidebar]] project, we can easily open/close the Agent buffer window:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package agent-shell-sidebar
+    :after agent-shell
+    :straight (:host github :repo "cmacrae/agent-shell-sidebar")
+    :bind (("s-i" . agent-shell-sidebar-toggle-focus)
+           ("s-I" . agent-shell-sidebar-toggle)))
+#+END_SRC
+*** Claude Code
+To begin install the dependencies:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package agent-shell
+    :ensure-system-package
+    ((claude . "brew install claude-code")
+     (claude-agent-acp . "npm install -g @agentclientprotocol/claude-agent-acp")))
+#+END_SRC
+
+And point Emacs to it:
+
+#+BEGIN_SRC emacs-lisp
+  (use-package agent-shell
+    :config
+    (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
+          agent-shell-anthropic-claude-acp-command
+          `,(file-expand-wildcards "/opt/homebrew/Cellar/node/*/bin/claude-agent-acp")))
+  ;; /opt/homebrew/Cellar/node/26.0.0/bin/claude-agent-acp
+#+END_SRC
+
+*** Cursor
+Cursor, through ACP constantly drops its token on the floor. This annoyance makes me want to use something else.
+
+The Cursor interface requires installing the ACP libraries, and a suggestion to install the [[https://github.com/blowmage/cursor-agent-acp-npm][cursor-agent-acp]] project:
+
+#+BEGIN_SRC sh
+  npm install -g @blowmage/cursor-agent-acp
+#+END_SRC
+
+Appears we need to install the [[https://github.com/zalab-inc/cursor_agent][cursor-agent]] CLI as well. Install it with this command:
+
+#+BEGIN_SRC sh
+  curl https://cursor.com/install -fsSL | bash
+#+END_SRC
+
+Or can we do both of these through Emacs:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package agent-shell
+    :ensure-system-package
+    ((cursor-agent . "brew install cursor-cli")
+     (claude-agent-acp . "npm install -g @blowmage/cursor-agent-acp")))
+#+END_SRC
+
+Change the *default browser* to Workday’s favorite, Chrome, and login:
+
+#+BEGIN_SRC sh
+  cursor-agent login
+#+END_SRC
+
+Now the Emacs configuration:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package agent-shell
+    :custom
+    (agent-shell-cursor-command `,(file-expand-wildcards "/opt/homebrew/Cellar/node/*/bin/cursor-agent-acp"))
+
+    :config
+    (setq agent-shell-preferred-agent-config (agent-shell-cursor-make-agent-config)))
+#+END_SRC
+*** Gemini
+First install the [[https://github.com/google-gemini/gemini-cli][gemini-cli]]:
+#+BEGIN_SRC sh
+  brew install gemini-cli
+#+END_SRC
+
+And let’s make that the default now:
+
+#+BEGIN_SRC emacs-lisp :tangle no
+  (use-package agent-shell
+    :config
+    (setq agent-shell-preferred-agent-config (agent-shell-google-make-gemini-config)))
+#+END_SRC
+** AI Code Interface
+While the =agent-shell= offers a /vibe-codey/ interface to Chatbots, the [[https://github.com/tninja/ai-code-interface.el][ai-code-interface]] offers a more /programmatic/ interface.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package ai-code
+    :straight (:host github :repo "tninja/ai-code-interface.el")
+    :config
+    ;; use codex as backend, other options are 'claude-code, 'gemini,
+    ;; 'github-copilot-cli, 'opencode, 'grok, 'cursor, 'kiro,
+    ;; 'codebuddy, 'aider, 'eca, 'agent-shell, 'claude-code-ide,
+    ;; 'claude-code-el
+    (ai-code-set-backend 'gemini)
+
+    ;; Enable global keybinding for the main menu
+    (global-set-key (kbd "C-c a") #'ai-code-menu)
+
+    ;; Optional: Enable @ file completion in comments and AI sessions
+    (ai-code-prompt-filepath-completion-mode 1)
+
+    ;; Optional: Ask AI to run test after code changes, for a tighter build-test loop
+    ;; (setq ai-code-auto-test-type 'ask-me)
+
+    ;; Optional: In AI session buffers, SPC in Evil normal state triggers the prompt-enter UI
+    ;; (with-eval-after-load 'evil (ai-code-backends-infra-evil-setup))
+
+    ;; Optional: Set up Magit integration for AI commands in Magit popups
+    (with-eval-after-load 'magit
+      (ai-code-magit-setup-transients)))
 #+END_SRC
 
 * Git and Magit
