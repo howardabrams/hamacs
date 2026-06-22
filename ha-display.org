@@ -58,6 +58,42 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
           doom-modeline-percent-position nil)
     (doom-modeline-mode 1))
 #+end_src
+
+After reading [[https://blog.davep.org/2026/06/12/simplifying-my-mode-line.html][this essay]], I decided to try
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mood-line
+    :ensure t
+    :custom
+    ;; (mood-line-format mood-line-format-default)
+    (setq mood-line-glyph-alist mood-line-glyphs-fira-code)
+
+    :config
+    (mood-line-mode 1)
+    (setq mood-line-format
+         (mood-line-defformat
+          :padding ""
+          :left
+          (((mood-line-segment-modal)         . " ")
+           ((mood-line-segment-anzu)          . " ")
+           ((mood-line-segment-buffer-status) . " ")
+           ((mood-line-segment-buffer-name)   . " ")
+           " ")
+          :right
+          (((mood-line-segment-process)       . " ")
+           ((mood-line-segment-major-mode)    . " ")
+           ((mood-line-segment-misc-info)     . " ")
+           ((mood-line-segment-vc)            . " ")
+           ((mood-line-segment-checker)       . " "))))
+
+    (setq mood-line-segment-modal-evil-state-alist
+          `((normal  ,(nerd-icons-mdicon "nf-md-alpha_n_circle") . font-lock-keyword-face)
+            (insert  ,(nerd-icons-mdicon "nf-md-alpha_i_circle") . font-lock-variable-name-face)
+            (visual  ,(nerd-icons-mdicon "nf-md-alpha_v_circle") . font-lock-string-face)
+            (replace ,(nerd-icons-mdicon "nf-md-alpha_r_circle") . font-lock-type-face)
+            (motion  ,(nerd-icons-mdicon "nf-md-alpha_m_circle") . font-lock-constant-face)
+            (emacs   ,(nerd-icons-mdicon "nf-md-alpha_r_circle") . font-lock-constant-face))))
+#+END_SRC
 * Window Dimmer
 To make the active window /more noticeable/, we /dim/ the in-active windows with the [[https://github.com/gonewest818/dimmer.el][dimmer project]].
 

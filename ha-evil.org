@@ -355,6 +355,16 @@ And the keybindings:
 
 Why not use ~f~? I’m reserving the ~f~ for a tree-sitter version that is not always available for all modes… yet.
 * Evil Extensions
+** Anzu
+[[https://github.com/emacsorphanage/anzu][Anzu]] provides a minor mode which displays current match and total matches information in the mode-line in various search modes.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package anzu
+    :ensure t
+    :config
+    (global-anzu-mode +1))
+#+END_SRC
+
 ** Evil Exchange
 I often use the Emacs commands, ~M-t~ and whatnot to exchange words and whatnot, but this requires a drop out of normal state mode. The [[https://github.com/Dewdrops/evil-exchange][evil-exchange]] project attempts to do something similar, but in a VI-way, and the /objects/ do not need to be adjacent.
 

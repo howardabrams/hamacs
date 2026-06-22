@@ -113,9 +113,15 @@ I might switch to [[https://github.com/cxa/agent-shell-macext#start-of-content][
 *** Agent Skills
 The following pulls in [[https://github.com/xenodium/emacs-skills][emacs-skills]], a Claude Agent skills for Emacs:
 
-#+BEGIN_SRC emacs-lisp
-  (use-package emacs-skills
-    :straight (:type git :host github :repo "xenodium/emacs-skills"))
+#+BEGIN_SRC sh
+  claude plugin marketplace add xenodium/emacs-skills
+  claude plugin install emacs-skills@xenodium-emacs-skills
+#+END_SRC
+
+Often update with:
+
+#+BEGIN_SRC sh
+  claude plugin marketplace update xenodium-emacs-skills
 #+END_SRC
 
 The most helpful is =/open= that you run afterwards to pull the changes into buffers for complete review. Use the =/highlight= variation to see the changes highlighted.
