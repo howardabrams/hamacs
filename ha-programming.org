@@ -722,7 +722,7 @@ Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I donâ
 I will want to start adding commands under my =,= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~âŒ˜-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
 
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package doom-modeline
     :config
     (setq doom-modeline-lsp t

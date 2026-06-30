@@ -121,7 +121,7 @@ And a quick shortcuts to call it:
 #+end_src
 * Display Configuration
 Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq doom-modeline-irc t
         doom-modeline-irc-stylize 'identity)
 #+end_src
