@@ -318,85 +318,6 @@ This allows me to delete a Python “block” using ~dal~.
         ("Misc"
          (("t" python-tests/body "Tests..."))))))
 #+end_src
-* Elpy
-The [[https://elpy.readthedocs.io/en/latest/introduction.html][Elpy Project]] expands on the =python-mode=.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elpy
-    :init
-    (advice-add 'python-mode :before 'elpy-enable)
-    :config
-    ;; (elpy-enable)
-    (setq elpy-test-runner 'elpy-test-pytest-runner)
-    (setq elpy-formatter 'black)
-    (setq elpy-shell-echo-input nil)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules)))
-#+END_SRC
-
-Elpy uses its *own* virtual environment for its backend process (jedi, rope, etc.), keeping elpy's own dependencies out of your project venvs. While there is a [[help:elpy-rpc-reinstall-virtualenv][elpy-rpc-reinstall-virtualenv]] function, I find it doesn’t seem to install everything correctly, and I need to do this by hand:
-
-#+BEGIN_SRC sh
-  source ~/.emacs.d/elpy/rpc-venv/bin/activate
-  pip install jedi black flake8 ipython
-#+END_SRC
-
-After we’ve loaded the Company section, we can add jedi to the list of completions:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package elpy
-    :after company-mode
-    :config (add-to-list 'company-backends 'company-jedi))
-#+END_SRC
-
-Let’s expand our =major-mode-hydra= with some extras:
-
-#+begin_src emacs-lisp
-  (use-package major-mode-hydra
-    :after elpy
-    :config
-
-    (pretty-hydra-define python-evaluate (:color blue :quit-key "q"
-                                          :title ha-python-eval-title)
-      ("Section"
-       (("F" elpy-shell-send-defun "Function")
-        ("E" elpy-shell-send-statement "Statement")
-        (";" python-shell-send-string "Expression"))
-       "Entirety"
-       (("B" elpy-shell-send-buffer "Buffer")
-        ("r" elpy-shell-send-region-or-buffer "region"))
-       "And Step..."
-       (("f" elpy-shell-send-defun-and-step "Function" :color pink)
-        ("e" elpy-shell-send-statement-and-step "Statement" :color pink))))
-
-    (pretty-hydra-define+ python-refactor nil
-      ("Elpy"
-       (("r" elpy-refactor-rename "Rename")
-        ("i" elpy-refactor-inline "Inline var")
-        ("v" elpy-refactor-extract-variable "To variable")
-        ("f" elpy-refactor-extract-function "To function")
-        ("a" elpy-refactor-mode "All..."))))
-
-    (major-mode-hydra-define+ python-mode (:quit-key "q" :color blue)
-      ("Server"
-       (("s" elpy-shell-switch-to-shell "Go to Server")
-        ("C" elpy-config "Config Elpy"))
-       "Edit"
-       (("f" elpy-black-fix-code "Fix/format code"))
-       "Docs"
-       (("d" elpy-eldoc-documentation "Describe Symbol")
-        ("D" elpy-doc "Docs Symbol")))))
-#+end_src
-
-* Anaconda
-The [[https://github.com/pythonic-emacs/anaconda-mode][anaconda-mode project]] seems as good as Elpy, but also include Evil keybindings.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-    (use-mode anaconda-mode
-      :hook ((python-mode . anaconda-mode)
-             (python-mode ../ anaconda-eldoc-mode)))
-#+END_SRC
-
-Since we are using
 * LSP Integration of Python
 ** Dependencies
 Each Python project's =requirements-dev.txt= file would reference the [[https://pypi.org/project/python-lsp-server/][python-lsp-server]] (not the /unmaintained/ project, =python-language-server=):
@@ -422,100 +343,60 @@ Each Python project's =requirements-dev.txt= file would reference the [[https://
   # ...
 #+end_src
 ** Pyright
-I’m using the Microsoft-supported [[https://github.com/Microsoft/pyright][pyright]] package instead. Adding this to my =requirements.txt= files:
+I’m using the Microsoft-supported [[https://github.com/Microsoft/pyright][pyright]] package instead, adding it to the global Python scope.
+
 #+begin_src conf :tangle no
   pyright
 #+end_src
 
-The [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP.
+While the [[https://github.com/emacs-lsp/lsp-pyright][pyright package]] works with LSP, this isn’t needed, as =eglot= works directly with it.
+** eglot
+The built-in Eglot package natively supports [[https://github.com/Microsoft/pyright][pyright]] via =eglot-server-programs= (no extra package needed):
 
-#+begin_src emacs-lisp :tangle no
-  (use-package lsp-pyright
-      :hook (python-mode . (lambda () (require 'lsp-pyright)))
-      :init (when (executable-find "python3")
-                (setq lsp-pyright-python-executable-cmd "python3")))
+#+begin_src emacs-lisp
+  (use-package eglot
+    :straight nil
+    :after python
+    :defer t
+    :hook (python-mode . eglot-ensure)
+    :config
+    (add-to-list 'eglot-server-programs
+                 '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio"))))
 #+end_src
-*** Keybindings
-Now that the [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP Integration]] is complete, we can stitch the two projects together, by calling =lsp=. I oscillate between automatically turning on LSP mode with every Python file, but I sometimes run into issues when starting, so I conditionally turn it on.
+
+Keybindings for the eglot-based LSP sub-menu, wired into the existing =python-mode= hydra:
 
 #+begin_src emacs-lisp
   (defvar ha-python-lsp-title (font-icons 'faicon "python" :title "Python LSP"))
 
-  (defun ha-setup-python-lsp ()
-    "Configure the keybindings for LSP in Python."
-    (interactive)
-
+  (use-package eglot
+    :straight nil
+    :after major-mode-hydra
+    :config
     (pretty-hydra-define python-lsp (:color blue :quit-key "q"
                                      :title ha-python-lsp-title)
       ("Server"
-       (("D" lsp-disconnect "Disconnect")
-        ("R" lsp-workspace-restart "Restart")
-        ("S" lsp-workspace-shutdown "Shutdown")
-        ("?" lsp-describe-session "Describe"))
+       (("D" eglot-shutdown "Disconnect")
+        ("R" eglot-reconnect "Reconnect")
+        ("?" eglot-show-workspace-configuration "Describe"))
        "Refactoring"
-       (("a" lsp-execute-code-action "Code Actions")
-        ("o" lsp-organize-imports "Organize Imports")
-        ("l" lsp-avy-lens "Avy Lens"))
-       "Toggles"
-       (("b" lsp-headerline-breadcrumb-mode "Breadcrumbs")
-        ("d" lsp-ui-doc-mode "Documentation Popups")
-        ("m" lsp-modeline-diagnostics-mode "Modeline Diagnostics")
-        ("s" lsp-ui-sideline-mode "Sideline Mode"))
-       ""
-       (("t" lsp-toggle-on-type-formatting "Type Formatting")
-        ("h" lsp-toggle-symbol-highlight "Symbol Highlighting")
-        ("L" lsp-toggle-trace-io "Log I/O"))))
-
-    (pretty-hydra-define+ python-goto (:quit-key "q")
-      ("LSP"
-       (("g" lsp-find-definition "Definition")
-        ("d" lsp-find-declaration "Declaration")
-        ("r" lsp-find-references "References")
-        ("t" lsp-find-type-definition "Type Definition"))
-       "Peek"
-       (("D" lsp-ui-peek-find-definitions "Definitions")
-        ("I" lsp-ui-peek-find-implementation "Implementations")
-        ("R" lsp-ui-peek-find-references "References")
-        ("S" lsp-ui-peek-find-workspace-symbol "Symbols"))
-       "LSP+"
-       (("u" lsp-ui-imenu "UI Menu")
-        ("i" lsp-find-implementation "Implementations")
-        ("h" lsp-treemacs-call-hierarchy "Hierarchy")
-        ("E" lsp-treemacs-errors-list "Error List"))))
-
-    (major-mode-hydra-define+ python-mode nil
-      ("Server"
-       (("l" python-lsp/body "LSP..."))
-       "Edit"
-       (("=" lsp-format-region "Format"))
-       "Navigate"
-       (("A" lsp-workspace-folders-add "Add Folder")
-        ("R" lsp-workspace-folders-remove "Remove Folder"))
+       (("a" eglot-code-actions "Code Actions")
+        ("o" eglot-code-action-organize-imports "Organize Imports")
+        ("r" eglot-rename "Rename"))
+       "Navigation"
+       (("." xref-find-definitions "Definition")
+        ("/" xref-find-references "References")
+        ("t" eglot-find-typeDefinition "Type Definition")
+        ("i" eglot-find-implementation "Implementation"))
        "Docs"
-       (("D" lsp-describe-thing-at-point "Describe LSP Symbol")
-        ("h" lsp-ui-doc-glance "Glance Help")
-        ("H" lsp-document-highlight "Highlight"))))
+       (("d" eldoc-doc-buffer "Eldoc Buffer")
+        ("h" eglot-inlay-hints-mode "Inlay Hints")
+        ("=" eglot-format-buffer "Format Buffer"))))
 
-    (call-interactively 'lsp))
-
-  (use-package lsp-mode
-    :config
     (major-mode-hydra-define+ python-mode (:quit-key "q")
       ("Server"
-       (("L" ha-setup-python-lsp "Start LSP Server")))))
-
-  ;; ----------------------------------------------------------------------
-  ;; Missing Symbols to be integrated?
-  ;; "0" '("treemacs" . lsp-treemacs-symbols)
-  ;; "/" '("complete" . completion-at-point)
-  ;; "k" '("check code" . python-check)
-  ;; "Fb" '("un-blacklist folder" . lsp-workspace-blacklist-remove)
-  ;; "hs" '("signature help" . lsp-signature-activate)
-  ;; "tT" '("toggle treemacs integration" . lsp-treemacs-sync-mode)
-  ;; "ta" '("toggle modeline code actions" . lsp-modeline-code-actions-mode)
-  ;; "th" '("toggle highlighting" . lsp-toggle-symbol-highlight)
-  ;; "tl" '("toggle lenses" . lsp-lens-mode)
-  ;; "ts" '("toggle signature" . lsp-toggle-signature-auto-activate)
+       ( ;; ("L" eglot-ensure "Start eglot") --> Not needed with eglot-ensure
+        ("l" python-lsp/body "LSP...")))))
 #+end_src
 * Project Configuration
 I work with a lot of projects with my team where I need to /configure/ the project such that LSP and my Emacs setup works. Let's suppose I could point a function at a project directory, and have it /set it up/:
@@ -541,17 +422,9 @@ I work with a lot of projects with my team where I need to /configure/ the proje
         (shell-command "pipconf --local")
         (shell-command "pip install --upgrade pip"))
 
-      (message "Configuring pip for LSP")
+      (message "Configuring pip for eglot/pyright")
       (with-temp-file "requirements-dev.txt"
-        (insert "python-lsp-server[all]\n")
-
-        ;; Let's install these extra packages individually ...
-        (insert "pyls-flake8\n")
-        ;; (insert "pylsp-mypy")
-        ;; (insert "pyls-isort")
-        ;; (insert "python-lsp-black")
-        ;; (insert "pyls-memestra")
-        (insert "pylsp-rope\n"))
+        (insert "pyright\n"))
       (shell-command "pip install -r requirements-dev.txt")))
 #+end_src
 * Major Mode Hydra

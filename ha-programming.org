@@ -683,86 +683,21 @@ I have two different /jumping/ systems, the [[info:emacs#Xref][Xref interface]] 
 The [[https://microsoft.github.io/language-server-protocol/][LSP]] is a way to connect /editors/ (like Emacs) to /languages/ (like Lisp)… wait, no. While originally designed for VS Code and probably Python, we can abstract away [[https://github.com/davidhalter/jedi][Jedi]] and the [[http://tkf.github.io/emacs-jedi/latest/][Emacs integration to Jedi]] (and duplicate everything for Ruby, and Clojure, and…).
 
 Emacs has two LSP projects, and while I have used [[LSP Mode]], but since I don’t have heavy IDE requirements, I am finding that [[eglot]] to be simpler.
-*** LSP
+
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :init
-    ;; Let's make lsp-doctor happy with these settings:
-    (setq gc-cons-threshold (* 100 1024 1024)
-          read-process-output-max (* 1024 1024)
-          company-idle-delay 0.0 ; Are thing fast enough to do this?
-          lsp-keymap-prefix "s-m")
-
+  (use-package eglot
+    :straight nil
+    :commands eglot-ensure
     :config
-    (global-set-key (kbd "s-m") 'lsp)
-    ;; (ha-local-leader :keymaps 'prog-mode-map
-    ;;   "w"  '(:ignore t :which-key "lsp")
-    ;;   "l"  '(:ignore t :which-key "lsp")
-    ;;   "ws" '("start" . lsp))
-
-    ;; ;; The following leader-like keys, are only available when I have
-    ;; ;; started LSP, and is an alternate to Command-m:
-    ;; :general
-    ;; (:states 'normal :keymaps 'lsp-mode-map
-    ;;          ", w r" '("restart"  . lsp-reconnect)
-    ;;          ", w b" '("events"   . lsp-events-buffer)
-    ;;          ", w e" '("errors"   . lsp-stderr-buffer)
-    ;;          ", w q" '("quit"     . lsp-shutdown)
-    ;;          ", w Q" '("quit all" . lsp-shutdown-all)
-
-    ;;          ", l r" '("rename"   . lsp-rename)
-    ;;          ", l f" '("format"   . lsp-format)
-    ;;          ", l a" '("actions"  . lsp-code-actions)
-    ;;          ", l i" '("imports"  . lsp-code-action-organize-imports)
-    ;;          ", l d" '("doc"      . lsp-lookup-documentation))
-
-   :hook ((lsp-mode . lsp-enable-which-key-integration)))
+    (setq eglot-autoshutdown t))
 #+end_src
-I will want to start adding commands under my =,= mode-specific key sequence leader, but in the meantime, all LSP-related keybindings are available under ~⌘-m~.  See [[https://emacs-lsp.github.io/lsp-mode/page/keybindings/][this page]] for the default keybindings.
 
-Using the [[https://github.com/seagle0128/doom-modeline][Doom Modeline]] to add notifications:
-#+begin_src emacs-lisp :tangle no
-  (use-package doom-modeline
-    :config
-    (setq doom-modeline-lsp t
-          doom-modeline-env-version t))
-#+end_src
-**** UI
-The [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]] project offers much of the display and interface to LSP. Seems to make the screen cluttered.
+The [[https://github.com/flycheck/flycheck-eglot][flycheck-eglot]] package bridges eglot diagnostics into flycheck, so existing checkers and keybindings continue to work unchanged:
 #+begin_src emacs-lisp
-  (use-package lsp-ui
-    :commands lsp-ui-mode
+  (use-package flycheck-eglot
+    :after (flycheck eglot)
     :config
-    (setq lsp-ui-sideline-ignore-duplicate t
-          lsp-ui-sideline-show-hover t
-          lsp-ui-sideline-show-diagnostics t)
-    :hook (lsp-mode . lsp-ui-mode))
-#+end_src
-*** Company Completion
-The [[https://github.com/tigersoldier/company-lsp][company-lsp]] offers a [[http://company-mode.github.io/][company]] completion backend for [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]:
-
-#+begin_src emacs-lisp :tangle no
-  (use-package company-lsp
-    :config
-    (push 'company-lsp company-backends))
-#+end_src
-To options that might be interesting:
-  - =company-lsp-async=: When set to non-nil, fetch completion candidates asynchronously.
-  - =company-lsp-enable-snippet=: Set it to non-nil if you want to enable snippet expansion on completion. Set it to nil to disable this feature.
-
-*** LSP iMenu
-The [[https://github.com/emacs-lsp/lsp-ui/blob/master/lsp-ui-imenu.el][lsp-imenu]] project offers a =lsp-ui-imenu= function for jumping to functions:
-
-#+begin_src emacs-lisp :tangle no
-  (use-package lsp-ui-imenu
-      :straight nil
-      :after lsp-ui
-      :config
-      (ha-local-leader :keymaps 'prog-mode-map
-        "g"  '(:ignore t :which-key "goto")
-        "g m" '("imenu" . lsp-ui-imenu))
-      (add-hook 'lsp-after-open-hook 'lsp-enable-imenu))
+    (global-flycheck-eglot-mode 1))
 #+end_src
 ** General Code Editing
 *** iEdit

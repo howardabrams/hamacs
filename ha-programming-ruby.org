@@ -229,37 +229,6 @@ The [[https://github.com/r0man/ruby-test-mode][ruby-test-mode]] project aims a r
       "t A" '("test all" . ruby-test-run)
       "t a" '("retest" . ruby-test-rerun)))
 #+end_src
-** Robe
-The [[https://github.com/dgutov/robe][Robe project]] can be used instead of [[file:ha-programming.org::*Language Server Protocol (LSP) Integration][LSP]].
-#+begin_src emacs-lisp
-  (use-package robe
-
-    :config
-    (ha-local-leader 'ruby-mode-map
-     "w"  '(:ignore t :which-key "robe")
-     "ws" '("start" . robe-start))
-
-    ;; The following leader-like keys, are only available when I have
-    ;; started LSP, and is an alternate to Command-m:
-    :general
-    (:states 'normal :keymaps 'robe-mode-map
-             ", w r" '("restart"  . lsp-reconnect)
-             ", w b" '("events"   . lsp-events-buffer)
-             ", w e" '("errors"   . lsp-stderr-buffer)
-             ", w q" '("quit"     . lsp-shutdown)
-             ", w l" '("load file" . ruby-load-file)
-
-             ", l r" '("rename"   . lsp-rename)
-             ", l f" '("format"   . lsp-format)
-             ", l a" '("actions"  . lsp-code-actions)
-             ", l i" '("imports"  . lsp-code-action-organize-imports)
-             ", l d" '("doc"      . lsp-lookup-documentation)))
-#+end_src
-
-Do we want to load Robe /automatically/?
-#+begin_src emacs-lisp
-  (use-package robe :hook (ruby-mode . robe-mode))
-#+end_src
 ** Bundler
 The [[https://github.com/endofunky/bundler.el][Bundler project]] integrates [[https://bundler.io/][bundler]] to install a projects Gems.
 
@@ -295,6 +264,34 @@ Seems that to understand and edit Cucumber /feature/ definitions, you need [[htt
 ** RSpec
 https://github.com/pezra/rspec-mode
 * LSP
+The built-in Eglot package natively supports [[https://github.com/castwide/solargraph][Solargraph]] via =eglot-server-programs= (no extra package needed):
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :straight nil
+    :after ruby-mode
+    :defer t
+    :hook (ruby-mode . eglot-ensure))
+#+end_src
+
+Keybindings for the eglot-based LSP sub-menu, wired into the =ruby-mode= local leader:
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :straight nil
+    :after ruby-mode
+    :config
+    (ha-local-leader 'ruby-mode-map
+      "w"  '(:ignore t :which-key "eglot")
+      "wD" '("disconnect" . eglot-shutdown)
+      "wR" '("reconnect" . eglot-reconnect)
+      "w?" '("describe" . eglot-show-workspace-configuration)
+      "wa" '("code actions" . eglot-code-actions)
+      "wo" '("organize imports" . eglot-code-action-organize-imports)
+      "wr" '("rename" . eglot-rename)
+      "w=" '("format buffer" . eglot-format-buffer)))
+#+end_src
+
 Need to install [[https://github.com/castwide/solargraph][Solargraph]] for the LSP server experience:
 #+begin_src sh
   gem install solargraph
@@ -303,29 +300,7 @@ Or add it to your =Gemfile=:
 #+begin_src ruby
   gem 'solargraph', group: :development
 #+end_src
-* XRef Interface with GNU Global
-The [[http://www.gnu.org/software/global/][GNU Global]] has the ability to generate a tags file for large, multi-project Ruby code bases.
-
-First, issue these two:
-#+begin_src sh :dir ~/work/gourmet
-  find . -name .git | while read DOTGIT
-  do
-    REPO=$(dirname $DOTGIT)
-    (cd $REPO && git pull origin master)
-  done
-
-  find . -name "*.rb" > gtags.files
-  gtags --gtagslabel=new-ctags --file gtags.files
-#+end_src
-
-And now we need the GNU Global for Emacs, we are using the most up-to-date version of [[https://github.com/leoliu/ggtags][ggtags]].
-
-#+begin_src emacs-lisp
-  (use-package ggtags
-    :hook ((ruby-mode . #'ggtags-mode)))
-#+end_src
-
-Careful observers will note that
+Once installed, [[*eglot][eglot]] finds and talks to =solargraph= automatically; no further Emacs configuration is needed.
 * Technical Artifacts                                :noexport:
 
 Let's =provide= a name so we can =require= this file:

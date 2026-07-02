@@ -31,7 +31,7 @@ cat > "$HAMACS_DEST/early-init.el" <<EOF
 ;;   ███    █▄  ███   ███   ███  ███    ███ ███    █▄         ███
 ;;   ███    ███ ███   ███   ███  ███    ███ ███    ███  ▄█    ███
 ;;   ██████████  ▀█   ███   █▀   ███    █▀  ████████▀ ▄████████▀
-;;  
+;;
 ;;; Commentary:
 ;;
 ;; This is my early Emacs configuration file. See init.el for the real
@@ -85,7 +85,7 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 ;;   +#+        +#+       +#+ +#+     +#+ +#+               +#+
 ;;   #+#        #+#       #+# #+#     #+# #+#    #+# #+#    #+#
 ;;   ########## ###       ### ###     ###  ########   ########
-;;   
+;;
 ;;; Commentary:
 ;;
 ;; This is my Emacs Bootloader. Simply put, I initialize the package
@@ -135,7 +135,16 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 ;; While that enables the :straight t extension to use-package, let's just have that be the default:
 (use-package straight
   :custom (straight-use-package-by-default t
-           straight-default-vc 'git))
+           straight-default-vc 'git)
+
+  :init
+  ;; Eglot and its dependencies ship with Emacs.  Tell straight to treat them as
+  ;; built-in so nothing (e.g. flycheck-eglot's dependency header) re-pulls the
+  ;; GNU-ELPA copies, which would shadow the built-ins and trip eglot's
+  ;; `require-with-check' ("Feature `project' is now provided by a different file").
+  (setq straight-built-in-pseudo-packages
+        (append '(eglot project flymake xref jsonrpc external-completion eldoc)
+                straight-built-in-pseudo-packages)))
 
 ;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
 

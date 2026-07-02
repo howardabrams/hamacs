@@ -330,6 +330,7 @@ Let’s make a /theme/:
      `(mode-line ((t (:background ,active :foreground "white"))))
      `(mode-line-active ((t (:background ,active))))
      `(mode-line-inactive ((t (:background ,inactive))))
+     `(which-func ((t (:foreground ,orange-lt))))
 
      `(tab-bar ((t :foreground ,default-fg :background ,inactive :inherit variable-pitch)))
      `(tab-line ((t :foreground ,default-fg :background ,inactive)))
