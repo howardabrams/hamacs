@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-04-08 Wed]
+#+lastmod: [2026-07-15 Wed]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -65,6 +65,7 @@ Begin by initializing these org variables:
         org-edit-src-content-indentation 2 ; Doom Emacs sets this to 0,
                                           ; but uses a trick to make it
                                           ; appear indented.
+        org-use-sub-superscripts '{}
 
         org-imenu-depth 4
         sentence-end-double-space nil   ; I jump around by sentences, but seldom have two spaces.

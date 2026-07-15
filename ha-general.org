@@ -360,10 +360,15 @@ And the collection of useful operations:
     "b C-g" '(keyboard-escape-quit :which-key t))
 #+end_src
 * Bookmarks
-Expand on my [[file:ha-config.org::*Bookmarks][Bookmarks]] with the following key sequences:
+The built-in behavior of bookmarks doesn’t honor either /projects/ or /perspectives/, but the [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package makes =project=-specific bookmarks.
+
+This expands on my global [[file:ha-config.org::*Bookmarks][Bookmarks]]:
 
 #+begin_src emacs-lisp
   (use-package bookmark-in-project
+    :bindd
+    (("C-x r m" . bookmark-in-project-toggle)
+     ("C-x r M" . ha-bookmark-set))
     :config
     (ha-leader
       ;; Set or delete a bookmark associated with project:
@@ -375,6 +380,31 @@ Expand on my [[file:ha-config.org::*Bookmarks][Bookmarks]] with the following ke
       "b <down>" '("next mark"   . bookmark-in-project-jump-next)
       "b <up>" '("previous mark" . bookmark-in-project-jump-previous)))
 #+end_src
+** Annotations
+Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" displayed /inline/ with the buffer.
+
+#+begin_src emacs-lisp
+  (use-package annotate
+    :config
+    (ha-leader
+      "t A" '("annotations" . annotate-mode)
+
+      "n"   '(:ignore t :which-key "notes")
+      "n a" '("toggle mode" . annotate-mode)
+      "n n" '("annotate"    . annotate-annotate)
+      "n d" '("delete"      . annotate-delete-annotation)
+
+      ;; Can't seem to get anything useful out of this function:
+      "n s" '("summary"     . annotate-show-annotation-summary)
+
+      ;; The next and previous only work for the current file:
+      "n j" '("next"        . annotate-goto-next-annotation)
+      "n k" '("prev"        . annotate-goto-previous-annotation)))
+#+end_src
+
+Keep the annotations simple, almost /tag-like/, and then the summary doesn’t wrap. For longer notes, see my [[file:ha-capturing-notes.org::*Code Notes][Code Notes]] section.
+
+The annotations are stored as s-expressions in the file, =~/.emacs.d/annotations=. Let’s see how well this scales.
 * Centering
 After reading [[https://mbork.pl/2024-04-15_Improving_recenter-top-bottom_and_reposition-window][this essay]], I got to thinking that it would be nice to position the text in a buffer /near the top/, but show context based on some specific, textual /things/. My thought is to have a function that prompts for the thing (like the current paragraph, function, etc), but also create thing-specific functions.
 

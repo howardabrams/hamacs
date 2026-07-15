@@ -957,16 +957,6 @@ I like the idea of dropping returnable bookmarks, but with /good defaults/ for t
       (bookmark-set label)))
 #+END_SRC
 
-The built-in behavior doesn’t honor either /projects/ or /perspectives/, but I use [[https://codeberg.org/ideasman42/emacs-bookmark-in-project][bookmark-in-project]] package to make a =project=-specific bookmarks and use that to jump to only bookmarks in the current project.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package bookmark-in-project
-    :bind
-    (("C-x r m" . bookmark-in-project-toggle)
-     ("C-x r M" . ha-bookmark-set)))
-#+END_SRC
-
-
 ** Minor Keybinding Annoys
 I like ~C-a~ to go to the beginning of the line, but what about getting to the beginning of text on that line? In Evil, you have ~^~ for beginning of line, and ~0~ for first text. Why not have ~C-a~ toggle between them both:
 

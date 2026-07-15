@@ -1053,28 +1053,6 @@ I do want to change a couple of bindings, as ~j~ to pull up a =completing-read= 
   (define-key dired-mode-map (kbd "n") 'evil-search-next)
   (define-key dired-mode-map (kbd ",") 'major-mode-hydras/dired-mode/body)
 #+end_src
-* Annotations
-Let's try [[https://github.com/bastibe/annotate.el][annotate-mode]], which allows you to drop "notes" and then move to them (yes, serious overlap with bookmarks, which we will return to).
-
-#+begin_src emacs-lisp
-  (use-package annotate
-    :config
-    (ha-leader
-      "t A" '("annotations" . annotate-mode)
-
-      "n"   '(:ignore t :which-key "notes")
-      "n a" '("toggle mode" . annotate-mode)
-      "n n" '("annotate"    . annotate-annotate)
-      "n d" '("delete"      . annotate-delete)
-      "n s" '("summary"     . annotate-show-annotation-summary)
-      "n j" '("next"        . annotate-goto-next-annotation)
-      "n k" '("prev"        . annotate-goto-previous-annotation)
-
-      ;; If a shift binding isn't set, it defaults to non-shift version
-      ;; Use SPC N N to jump to the next error:
-      "n N" '("next error"  . flycheck-next-error)))
-#+end_src
-Keep the annotations simple, almost /tag-like/, and then the summary allows you to display them.
 * Keepass
 Use the [[https://github.com/ifosch/keepass-mode][keepass-mode]] to view a /read-only/ version of my Keepass file in Emacs:
 #+begin_src emacs-lisp
