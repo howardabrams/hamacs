@@ -36,7 +36,7 @@ Next type ~s~ to view and organize mail I've never seen before. We need to focus
   - ~P~ :: receipts go to this *Paper Trail*, which takes a *tag* as the name of the store
   - ~f~ :: mailing lists and other email that might be nice to read go to *The Feed*
 
-** Email Addresses
+* Email Addresses
 The configuration files below expect email addresses (I store passwords and other encrypted information elsewhere).  These email addresses are /not/ private, but I figured I would annoy any screenscraping spam-inducing crawlers out there, while still allowing others to follow my lead on configuring Emacs and Email.
 
 #+name: email-address-1
@@ -54,19 +54,18 @@ The configuration files below expect email addresses (I store passwords and othe
   (rot13-string "ubjneq@shmmlgbnfg.pbz")
 #+end_src
 
-To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance, the configuration for sending mail through the MUA in Emacs:
+To use these, we set the =:noweb yes= (to pull in the /name/ of the code block) but put a pair of parens after the name to have it evaluated. For instance, the configuration for sending mail through the MUA in Emacs. Note that port 465 requires implicit SSL/TLS (not STARTTLS), so we set =smtpmail-stream-type= to ~ssl~ and let =auth-source= (e.g. =~/.authinfo.gpg=) supply the credentials for =<<email-address-1>>=:
+
 #+begin_src emacs-lisp :noweb yes
   (setq send-mail-function 'smtpmail-send-it
         message-send-mail-function 'smtpmail-send-it
-        smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
-        smtpmail-auth-credentials `(("smtp.gmail.com" 587 ,<<email-address-1>> nil))
-        smtpmail-default-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-server "smtp.gmail.com"
-        smtpmail-smtp-service 587)
+        smtpmail-smtp-server "smtp.mailbox.org"
+        smtpmail-smtp-service 465
+        smtpmail-stream-type 'ssl)
 #+end_src
 * Sending Mail
 #+BEGIN_SRC emacs-lisp
-(require 'smtpmail)
+  (require 'smtpmail)
 #+END_SRC
 
 * Installation and Basic Configuration
@@ -173,6 +172,7 @@ There are global settings:
 #+begin_src conf :tangle ~/.mbsyncrc :noweb yes
   # Note: We now tangle this file from ~/src/hamacs/ha-email.org
   Create Both
+  Expunge Both
   SyncState *
   MaxMessages 100
   Sync All # New ReNew Flags
@@ -184,37 +184,41 @@ The file generally can have a =Pass= entry for the encrypted passcode, but to sh
 #+begin_src conf :tangle ~/.mbsyncrc :noweb yes
   # PERSONAL ACCOUNT
   IMAPAccount personal
-  Host imap.gmail.com
-  User <<email-address-1()>>  # Substitute your own email address here
-  PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
-  SSLType IMAPS
-  AuthMechs LOGIN
 
   IMAPStore personal-remote
   Account personal
+  Host imap.mailbox.org
+  User <<email-address-1()>>  # Substitute your own email address here
+  PassCmd "gpg --quiet --for-your-eyes-only --no-tty --decrypt ~/.mailpass-personal.gpg"
+  SSLType STARTTLS
 
   MaildirStore personal-local
   Path ~/.mail/personal/
   Inbox ~/.mail/personal/INBOX
-  Flatten .
+  SubFolders Verbatim
 
-  Channel personal-inbox
-  Far :personal-remote:
-  Near :personal-local:
-  Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
-  Expunge Both
-  # Patterns "inbox"
-  # ExpireUnread no
+  Channel mailbox
+  Master :mailbox-remote:
+  Slave :mailbox-local:
+  Patterns * !Archives
 
-  Channel personal-sent
-  Far :personal-remote:"[Gmail]/Sent Mail"
-  Near :personal-local:sent
-  ExpireUnread yes
-
-  Channel personal-trash
-  Far :personal-remote:"[Gmail]/Trash"
-  Near :personal-local:trash
-  ExpireUnread yes
+  ##  Channel personal-inbox
+  ##  Far :personal-remote:
+  ##  Near :personal-local:
+  ##  # Patterns * !"[Gmail]/Drafts" !"[Gmail]/Spam"
+  ##  Expunge Both
+  ##  # Patterns "inbox"
+  ##  # ExpireUnread no
+  ##
+  ##  Channel personal-sent
+  ##  # Far :personal-remote:"[Gmail]/Sent Mail"
+  ##  Near :personal-local:sent
+  ##  ExpireUnread yes
+  ##
+  ##  Channel personal-trash
+  ##  # Far :personal-remote:"[Gmail]/Trash"
+  ##  Near :personal-local:trash
+  ##  ExpireUnread yes
 #+end_src
 
 I have other email accounts that could use or ignore.
