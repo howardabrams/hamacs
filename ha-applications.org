@@ -152,7 +152,7 @@ And point Emacs to it:
     :config
     (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
           agent-shell-anthropic-claude-acp-command
-          `,(file-expand-wildcards "/opt/homebrew/Cellar/node/*/bin/claude-agent-acp")))
+          `,(file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp")))
   ;; /opt/homebrew/Cellar/node/26.0.0/bin/claude-agent-acp
 #+END_SRC
 

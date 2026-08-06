@@ -146,7 +146,7 @@ Perhaps we can make it more attractive:
 ** Telega
 I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be better than Bitlbee for Telegram communication.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package telega
     :config
     (setq telega-chat-show-avatars nil
@@ -167,7 +167,7 @@ I'm thinking the [[https://zevlg.github.io/telega.el/][Telega package]] would be
 For some reason, you need [[https://github.com/Fanael/rainbow-identifiers][rainbow-identifiers]] to work, oh, I guess the docs state this.
 
 In the Telega chat’s, let’s turn on non-fixed-width fonts:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package telega
      :hook (telega-chat-mode . mixed-pitch-mode))
 #+end_src

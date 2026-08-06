@@ -45,9 +45,9 @@ Let's turn off the menu and other settings:
 
 ** Mode Line
 Let's install and load some of packages from the [[https://github.com/hlissner/doom-emacs][Doom Emacs]] project, like [[https://github.com/seagle0128/doom-modeline][doom-modeline]] and maybe the themes:
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package doom-modeline
-    :init
+    :config
     (setq doom-modeline-minor-modes nil
           doom-modeline-buffer-encoding nil
           doom-modeline-major-mode-color-icon t
@@ -56,51 +56,12 @@ Let's install and load some of packages from the [[https://github.com/hlissner/d
           doom-modeline-modal 'evil
           doom-modeline-lsp-icon t
           doom-modeline-percent-position nil)
-    (doom-modeline-mode -1))
+
+    ;; Weird bug:
+    (defvar helm-ag-show-status-function nil "Workaround")
+
+    (doom-modeline-mode 1))
 #+end_src
-
-After reading [[https://blog.davep.org/2026/06/12/simplifying-my-mode-line.html][this essay]], I decided to try the lighter-weight [[https://github.com/emacsmirror/mood-line][mood-line]].
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mood-line
-    :ensure t
-    :init
-    (setq mood-line-glyph-alist mood-line-glyphs-fira-code
-
-          mood-line-format
-          (mood-line-defformat
-           :padding ""
-           :left
-           (((mood-line-segment-modal)         . " ")
-            ((mood-line-segment-anzu)          . " ")
-            ((mood-line-segment-buffer-status) . " ")
-            ((mood-line-segment-buffer-name)   . " ")
-            ((format #(":%d" 0 2 (face mood-line-unimportant)) (line-number-at-pos)) . " ")
-            " ")
-           :right
-           (((mood-line-segment-process)       . " ")
-            ((mood-line-segment-major-mode)    . " ")
-            ((mood-line-segment-misc-info)     . " ")
-            ((mood-line-segment-vc)            . " ")
-            ((mood-line-segment-checker)       . " "))))
-
-    (setq mood-line-segment-modal-evil-state-alist
-          `((normal  ,(nerd-icons-mdicon "nf-md-alpha_n_circle") . font-lock-keyword-face)
-            (insert  ,(nerd-icons-mdicon "nf-md-alpha_i_circle") . font-lock-variable-name-face)
-            (visual  ,(nerd-icons-mdicon "nf-md-alpha_v_circle") . font-lock-string-face)
-            (replace ,(nerd-icons-mdicon "nf-md-alpha_r_circle") . font-lock-type-face)
-            (motion  ,(nerd-icons-mdicon "nf-md-alpha_m_circle") . font-lock-constant-face)
-            (emacs   ,(nerd-icons-mdicon "nf-md-alpha_r_circle") . font-lock-constant-face))))
-#+END_SRC
-
-Now, we turn it on for all modes:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mood-line
-    :config
-    (mood-line-mode)
-    (which-function-mode))
-#+END_SRC
 
 * Window Dimmer
 To make the active window /more noticeable/, we /dim/ the in-active windows with the [[https://github.com/gonewest818/dimmer.el][dimmer project]].
