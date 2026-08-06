@@ -2,7 +2,7 @@
 #+author: Howard Abrams
 #+date:   2024-07-07
 #+filetags: emacs hamacs
-#+lastmod: [2025-02-20 Thu]
+#+lastmod: [2026-08-05 Wed]
 
 A literate programming file for literate programming in Emacs Org Files.
 
@@ -51,7 +51,7 @@ Since we are using Emacs, the downsides of using a literate approach (even for p
 ** Surround with Org Block
 This simple change allows me to highlight any text, and surround it in an org block. We
 
-#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/surround-org-block
+#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/surround-org-block :eval none
   # name: surround-org-block
   # --
   ,#+BEGIN_${1:SRC} ${2:emacs-lisp} $0
@@ -90,7 +90,7 @@ Actually, I probably want all the parameters (if any) to come along for the ride
 
 This allows us to now split a block into two parts:
 
-#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/split-org-block
+#+BEGIN_SRC snippet :tangle ~/.emacs.d/snippets/org-mode/split-org-block :eval none
   ,# -*- mode: snippet -*-
   ,# name: split-org-block
   ,# key: #split
@@ -712,7 +712,8 @@ Not every header should be a destination, as many of my org files have duplicate
             "Install"
             "Overview"
             "Summary"
-            "Technical Artifacts"))
+            "Technical Artifacts"
+            "[["))
     "Regular expression matching headers to purge.")
 #+end_src
 
@@ -777,12 +778,20 @@ Before we dive into the implementation of this function, let’s write a test to
              '("Somefile∷ Parent﹥ Subparent﹥ Deep Heading"
                "ha-somefile.org" 73)))
 
+    (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent" "Subby"))
+
+    (should (equal
+             (ha-hamacs-edit--process-entry
+              "ha-somefile.org:73:**** Deep Heading")
+             '("Somefile∷ Parent﹥ Subparent﹥ Subby﹥ Deep Heading"
+               "ha-somefile.org" 73)))
+
     (setq ha-hamacs-edit-prev-head-list '("Parent" "Subparent"
                                           "Subby" "Deepsubby"))
     (should (equal
              (ha-hamacs-edit--process-entry
               "ha-somefile.org:73:***** Deepest Heading")
-             '("Somefile∷ ... Deepest Heading"
+             '("Somefile∷ Parent﹥ Subparent﹥ Subby﹥ Deepsubby﹥ Deepest Heading"
                "ha-somefile.org" 73))))
 #+end_src
 
