@@ -338,11 +338,12 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
     (org-modern-table nil)
     (org-pretty-entities t)
     (setq org-modern-fold-stars '(("▸" . "▾")
-                             ("▹" . "▿")
-                             ("▸" . "▾")
-                             ("▹" . "▿")
-                             ("▸" . "▾")))
+                                  ("▹" . "▿")
+                                  ("▸" . "▾")
+                                  ("▹" . "▿")
+                                  ("▸" . "▾")))
     :config
+    (set-face-attribute 'org-modern-todo nil :inverse-video nil)
     (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil :underline nil)
     (set-face-attribute 'org-modern-symbol nil :family "Iosevka"))
 #+end_src
