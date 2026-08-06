@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-07-15 Wed]
+#+lastmod: [2026-08-06 Thu]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -1042,7 +1042,6 @@ The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as 
   sudo npm install -g textlint-rule-max-comma
   sudo npm install -g textlint-rule-no-start-duplicated-conjunction
   sudo npm install -g textlint-rule-period-in-list-item
-  sudo npm install -g textlint-rule-stop-words
   sudo npm install -g textlint-rule-terminology
   sudo npm install -g textlint-rule-unexpanded-acronym
 #+end_src
@@ -1059,7 +1058,7 @@ I create a configuration file in my home directory:
     "max-comma": true,
     "no-start-duplicated-conjunction": true,
     "period-in-list-item": true,
-    "stop-words": true,
+    "stop-words": false,
     "terminology": true,
     "unexpanded-acronym": true,
     "write-good": false
@@ -1075,38 +1074,6 @@ Add =textlint= to the /chain/ for Org files:
     (flycheck-add-next-checker 'proselint 'textlint t))
 #+end_src
 
-*** Language Tool
-Another flycheck feature is to use [[http://languagetool.org][LanguageTool]] connection to [[https://github.com/emacs-languagetool/flycheck-languagetool][flycheck-languagetool]]:
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flycheck-languagetool
-    :ensure t
-    :hook (text-mode . flycheck-languagetool-setup)
-    :init
-    (setq flycheck-languagetool-server-jar (expand-file-name "/opt/homebrew/Cellar/languagetool/6.6/libexec/languagetool-commandline.jar")
-          flycheck-languagetool-server-args (expand-file-name "~/.config/languagetool/config.properties")))
-#+END_SRC
-
-Where it can read: [[file:~/.config/languagetool/config.properties][config.properties]].
-
-And connect it to the chain:
-
-#+BEGIN_SRC emacs-lisp :tangle no
-  (use-package flycheck
-    :config (flycheck-add-next-checker 'textlint 'languagetool t)
-
-    ;; May have to specify a Java on one of my Mac machines:
-    (when (file-exists-p "/opt/homebrew/opt/openjdk")
-      (add-to-list 'exec-path "/opt/homebrew/opt/openjdk/bin")))
-#+END_SRC
-
-This check complains about whitespace in Org files (duh), so let’s create a configuration file where we can disable that rule (and any other we can require):
-
-#+BEGIN_SRC conf :tangle ~/.config/languagetool/config.properties :mkdirp ~/.config/languagetool
-  disabledRuleIds: WHITESPACE
-#+END_SRC
-
-Gotta admit that Language Tool doesn’t seem to help much. $ 100 ?
 ** Perfect Sentence
 Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] demonstrates the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. For instance, how org-mode edits blocks.
 

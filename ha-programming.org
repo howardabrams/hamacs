@@ -1374,12 +1374,19 @@ Note that =flycheck-define-checker= only /defines/ the checker; the =add-to-list
     (add-to-list 'flycheck-checkers 'markdown-remark t)
 
     ;; Structure first, then prose, in one report.
-    (flycheck-add-next-checker 'markdown-pymarkdown 'markdown-remark))
+    (flycheck-add-next-checker 'markdown-pymarkdown 'markdown-remark)
+
+    ;; Then terminology/consistency, since flycheck's built-in textlint
+    ;; checker already declares markdown-mode/gfm-mode and picks the
+    ;; @textlint/markdown plugin for them -- no new checker needed.
+    (flycheck-add-next-checker 'markdown-remark 'textlint t))
 #+end_src
 
 Naming =markdown-remark= as a plain symbol, rather than a =(level . checker)= cons cell, means the prose check runs whatever PyMarkdown found. Were it written =(warning . markdown-remark)=, a single formatting error would swallow the prose report along with it.
 
 Since remark now runs =write-good= over the prose (and more carefully, as it skips the code), the [[file:ha-org.org::*Writegood][write-good]] checker no longer lists =markdown-mode= among its modes, and the two do not double up.
+
+[[file:ha-org.org::*Textlint][Textlint]] runs last in the chain. Its bundled Markdown plugin parses the AST itself, so it skips fenced code without any =ignore-code.js=-style help, and =flycheck-textlint-plugin-alist= already maps =markdown-mode=/=gfm-mode= to =@textlint/markdown=.
 
 *** Markdown and Polymode
 Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to Markdown code blocks similar to what we do with Org:
