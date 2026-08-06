@@ -1011,9 +1011,8 @@ So many configuration files to track:
            ("\\.setup.*\\'"  . conf-space-mode)))
 #+end_src
 ** JSON
-While interested in the [[https://github.com/emacs-tree-sitter/tree-sitter-langs][tree-sitter]] extensions for JSON, e.g. =json-ts-mode=, that comes with Emacs 29, I’ll deal with what is bundled now.
+I’m interested in the [[https://github.com/emacs-tree-sitter/tree-sitter-langs][tree-sitter]] extensions for JSON, e.g. =json-ts-mode=, that comes with Emacs 29, but instead of /searching/ for particular data in a JSON buffer, what about whittling that data with [[https://jqlang.github.io/jq/][jq]]?
 
-However, what about taking a buffer of JSON data, and whittling it down with [[https://jqlang.github.io/jq/][jq]]?
 #+begin_src emacs-lisp
   (defun ha-json-buffer-to-jq (query)
     "Runs JSON buffer with QUERY through an external `jq' program.
@@ -1094,12 +1093,14 @@ I can type, ~, j~ and then type =.data.timeout.seconds= and end up with:
   300
 #+end_src
 ** Markdown
-Most project =README= files and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]]. Note that the /preview/ is based on =multimarkdown=, when needs to be /pre-installed/, for instance:
+Most projects’ =README= files and other documentation use [[https://jblevins.org/projects/markdown-mode/][markdown-mode]]. Note that the /preview/ uses =multimarkdown=, which should be /pre-installed/. For instance:
+
 #+begin_src sh
   brew install multimarkdown
 #+end_src
 
-Also, I like Markdown is look like a word processor, similarly to my org files:
+Also, I like Markdown to look like a word processor, similarly to my org files:
+
 #+begin_src emacs-lisp
   (use-package markdown-mode
     :mode ((rx ".md" string-end) . gfm-mode)
@@ -1124,51 +1125,8 @@ Also, I like Markdown is look like a word processor, similarly to my org files:
 
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
 
-Let’s make sure that [[https://www.flycheck.org/en/latest/languages.html#markdown][markdown]] is proper using [[https://pypi.org/project/pymarkdownlnt/][PyMarkdown]]. First, get the script installed globally:
-
-#+begin_src sh
-  pip install pymarkdown
-#+end_src
-
-And then we can use it. For some reason, the =pymarkdown= (which I need to use from work) doesn’t seem to be part of the version of Flycheck available on Melpa, so…
-
-#+begin_src emacs-lisp
-  (use-package markdown-mode
-    :after flycheck
-    :config
-    (setq flycheck-markdown-pymarkdown-config
-          (expand-file-name ".pymarkdown.yml" (getenv "HOME")))
-    (flycheck-may-enable-checker 'markdown-pymarkdown))
-#+end_src
-
-Ugh
-
-#+begin_src emacs-lisp
-  (flycheck-def-config-file-var flycheck-markdown-pymarkdown-config
-      markdown-pymarkdown nil
-    :package-version '(flycheck . "34"))
-
-  (flycheck-define-checker markdown-pymarkdown
-    "Markdown checker using PyMarkdown.
-
-  See URL `https://pypi.org/project/pymarkdownlnt/'."
-    :command ("pymarkdown"
-              (config-file "--config" flycheck-markdown-pymarkdown-config)
-              "scan"
-              source)
-    :error-patterns
-    ((error line-start
-            (file-name) ":" line
-            (? ":" column) ": " (id (one-or-more alnum))
-            ": " (message) line-end))
-    :error-filter
-    (lambda (errors)
-      (flycheck-sanitize-errors
-       (flycheck-remove-error-file-names "(string)" errors)))
-    :modes (markdown-mode gfm-mode))
-#+end_src
-
-Both the =markdown-command= and the =markdown-open-command= variables are called to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):
+*** Rendering with Pandoc
+We call both the =markdown-command= and the =markdown-open-command= variables to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):
 
 #+begin_src sh :tangle ~/bin/markdown :shebang "#!/usr/bin/env bash" :tangle-mode u+x
   pandoc --to=html --from=gfm $*
@@ -1187,6 +1145,243 @@ Both the =markdown-command= and the =markdown-open-command= variables are called
   fi
 #+end_src
 
+*** PyMarkdown
+My teams have standardized on “linting” markdown files using [[https://pypi.org/project/pymarkdownlnt/][PyMarkdown]], specifying a =.pymarkdown.yml= to configure what is allowed.  For instance:
+
+#+BEGIN_SRC yaml :tangle no
+---
+# Enable front-matter extensions, as Hugo needs them.
+extensions:
+  front-matter:
+    enabled: true
+plugins:
+  md013:
+    enabled: true
+    line_length: 80
+    heading_line_length: 80
+    code_block_line_length: 160
+#+END_SRC
+
+Flycheck ships the =markdown-pymarkdown= checker itself, so all it wants is the configuration file.
+
+Note that PyMarkdown does /not/ look for =.pymarkdown.yml= on its own — it only reads a configuration passed with =--config=. Naming the file without a directory hands the search to flycheck, whose =flycheck-locate-config-file-functions= walks the ancestor directories with =locate-dominating-file= and then falls back to my home directory. A repository that defines its own rules therefore gets them, and everything else gets my defaults:
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :config
+    (setq flycheck-markdown-pymarkdown-config ".pymarkdown.yml"))
+#+end_src
+
+*** Remark
+The [[https://github.com/remarkjs/remark][Remark]] project can transform markdown with plugins, evaluating and changing through its pipeline. This means I can apply [[file:ha-org.org::*Writegood][Writegood]] intelligently to a Markdown file, ignoring code blocks, etc. Prose is the /only/ job it has here, and [[*Remark and Flycheck][flycheck chains the two together]].
+
+The =remark= executable itself lives globally, since flycheck calls it by name:
+
+#+begin_src sh
+  npm install -g remark-cli
+#+end_src
+
+The /plugins/, however, can not. The configuration file below uses ESM =import= statements, and Node resolves those specifiers relative to /importing the file/, as globally installed packages are not on the path. The =~/.config/remark= directory has to be a self-contained package with its own =node_modules=, with a =package.json= file.
+
+Note the ="type": "module"= entry belongs here too, otherwise Node parses each =.js= file as CommonJS, fails, and re-parses it as a module while complaining:
+
+#+begin_src js :tangle ~/.config/remark/package.json :mkdirp yes
+  {
+    "name": "remark-config",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+      "remark-frontmatter": "^5.0.0",
+      "remark-lint-write-good": "^1.2.0",
+      "unist-util-visit": "^5.1.0"
+    }
+  }
+#+end_src
+
+After tangling that the above file, we install the plugins /into the =.config/remark= directory/:
+
+#+begin_src sh :dir ~/.config/remark
+  npm install
+#+end_src
+
+Let’s create a /code-stripping/ plugin that removes all text but the prose of a Markdown document. We can then validate the prose with =write-good= on the results:
+
+#+begin_src js :tangle ~/.config/remark/ignore-code.js :mkdirp yes
+  import { visit } from 'unist-util-visit';
+
+  // Bare URLs and autolinks land in `text` nodes, where write-good
+  // grades the path segments as if they were prose. A `[label](url)`
+  // needs no help here, since the url of a link node never reaches
+  // the prose checker anyway.
+  const URL_PATTERN = /\b(?:https?:\/\/|www\.)[^\s<>()[\]{}'"]+/gi;
+
+  /** Spaces of equal length, so line numbers and offsets survive. */
+  const blank = (text) => ' '.repeat(text.length);
+
+  export default function remarkIgnoreCode() {
+    return (tree) => {
+      visit(tree, ['code', 'inlineCode'], (node) => {
+        // Replaces code block and backtick content with spaces of
+        // equal length. This silences linters while preserving line
+        // numbers and offsets.
+        node.value = blank(node.value);
+      });
+
+      visit(tree, 'text', (node) => {
+        node.value = node.value.replace(URL_PATTERN, (match) => {
+          // Trailing punctuation stays, so sentence boundaries are
+          // not merged.
+          const url = match.replace(/[.,;:!?]+$/, '');
+          return blank(url) + match.slice(url.length);
+        });
+      });
+    };
+  }
+#+end_src
+
+A path like =/a/very/long/= reads as weasel words to =write-good=, so blanking the URL is what keeps =very= and =obviously= out of the report. The =[label](url)= form is left alone deliberately: its label /is/ prose worth grading, and its url was never visited. Trailing punctuation survives so that =…/foo.= still ends a sentence, rather than running it into the next one.
+
+**** Configuring the pipeline
+The other plugins have been made, so Remark’s configuration file (=.config/remark/remarkrc.js=) pulls them in, and creates an ordered plugin pipeline. Note the absence of any =remark-preset-lint-*= entry: those presets check structure, which is PyMarkdown’s half of the work, and they disagree with it often enough to be worth leaving out. Left in, they wanted every ATX heading rewritten as setext:
+
+#+begin_src js :tangle ~/.config/remark/.remarkrc.js
+  import remarkFrontmatter from 'remark-frontmatter';
+  import remarkWriteGood from 'remark-lint-write-good';
+  import remarkIgnoreCode from './ignore-code.js';
+
+  export default {
+      plugins: [
+          // 1. Recognise YAML front matter, so its metadata is not
+          //    read as prose
+          remarkFrontmatter,
+
+          // 2. Erase backticks/code blocks before the prose check
+          remarkIgnoreCode,
+
+          // 3. Check English writing quality, the sole
+          //    job remark has, since PyMarkdown already covers
+          //    structure and formatting.
+          remarkWriteGood
+      ]
+  };
+#+end_src
+
+The order matters, since plugins run as transformers in sequence: =remarkIgnoreCode= has to blank the code out before =remarkWriteGood= gets a look at what is left.
+
+And =remarkFrontmatter= earns its place, rather than being tidiness. Without it, a =---= delimiter usually turns the metadata into a setext heading, which =write-good= happens to skip — but only by luck. Put a blank line in the front matter and the first key becomes an ordinary paragraph, at which point =title:= gets graded as prose:
+
+#+begin_src markdown :tangle no
+  ---
+  title: This value is very obviously scanned as prose
+
+  description: short
+  ---
+#+end_src
+
+Worth knowing what =write-good= looks at, since it only visits =paragraph= nodes: headings are never checked, and blockquotes are skipped on purpose, on the reasoning that quoted words are somebody else’s.
+
+Verify on the command line using the =rc-path= parameter:
+
+#+begin_src sh :tangle no
+  remark --rc-path ~/.config/remark/.remarkrc.js README.md
+#+end_src
+**** Remark and Flycheck
+Remark’s default report groups messages under a file name header and gives each one a =line:column-line:column= range, which takes more regular expression than I care to write. Instead, let’s hand it a [[https://github.com/vfile/vfile-reporter][vfile reporter]] of our own that prints one message per line in a shape flycheck parses with a single pattern:
+
+#+begin_src js :tangle ~/.config/remark/flycheck-reporter.js
+  /**
+   * A vfile reporter that emits one message per line in a format that is
+   * trivial for Emacs' flycheck to parse with a single regular expression:
+   *
+   *     LINE:COLUMN:SEVERITY:[ruleId] reason
+   *
+   * The file name is deliberately omitted; flycheck lints one buffer at a
+   * time and attributes patterns without a file name to that buffer, which
+   * avoids the mismatch between the buffer's directory and remark's cwd.
+   */
+  export default function flycheckReporter(files) {
+    const lines = [];
+
+    for (const file of [files].flat()) {
+      for (const message of file.messages) {
+        // `fatal` is true for errors, false for warnings, null/undefined for info.
+        const severity =
+          message.fatal === true
+            ? 'error'
+            : message.fatal === false
+              ? 'warning'
+              : 'info';
+        const rule = message.ruleId || message.source || 'remark';
+        // Newlines would break the one-message-per-line contract.
+        const reason = String(message.reason).replace(/\s*\n\s*/g, ' ');
+
+        lines.push(
+          `${message.line || 1}:${message.column || 1}:${severity}:[${rule}] ${reason}`
+        );
+      }
+    }
+
+    return lines.join('\n');
+  }
+#+end_src
+
+Which we can check by hand:
+
+#+begin_src sh
+  remark --no-color --no-stdout \
+         --rc-path ~/.config/remark/.remarkrc.js \
+         --report ~/.config/remark/flycheck-reporter.js README.md
+#+end_src
+
+Two flags there earn their keep. Remark writes the /transformed/ document to standard output by default, and since =remarkIgnoreCode= replaces code with whitespace, that output is a mangled copy of the file. The =--no-stdout= parameter throws it away, guaranteeing a stray =--output= can never overwrite the real file with it. Also =--no-color= keeps ANSI escapes out of what flycheck has to parse.
+
+Note that both paths are absolute. Remark resolves a /reporter/ relative to the current directory, but a configuration file relative to the file being linted, so neither would be found from an arbitrary project directory.
+
+Note that =flycheck-define-checker= only /defines/ the checker; the =add-to-list= is what puts it in rotation. The trailing =t= appends rather than prepends, which is the whole trick to chaining: flycheck picks the /first/ checker in =flycheck-checkers= that claims the buffer, so leaving =markdown-remark= behind the built-in =markdown-pymarkdown= lets PyMarkdown go first and remark follow it.
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :config
+    (flycheck-def-config-file-var flycheck-markdown-remark-config markdown-remark
+        (expand-file-name ".remarkrc.js" "~/.config/remark")
+      :package-version '(flycheck . "34"))
+
+    (defcustom flycheck-markdown-remark-reporter
+      (expand-file-name "flycheck-reporter.js" "~/.config/remark")
+      "Path to the vfile reporter that formats remark messages for flycheck."
+      :type 'string
+      :group 'flycheck)
+
+    (flycheck-define-checker markdown-remark
+      "A Markdown prose checker using remark and write-good.
+
+  See URL `https://github.com/remarkjs/remark'."
+      :command ("remark"
+                "--no-color"
+                "--no-stdout"
+                (config-file "--rc-path" flycheck-markdown-remark-config)
+                "--report" (eval flycheck-markdown-remark-reporter)
+                source)
+      :error-patterns
+      ((error line-start line ":" column ":error:["
+              (id (one-or-more (not (any "]")))) "] " (message) line-end)
+       (warning line-start line ":" column ":warning:["
+                (id (one-or-more (not (any "]")))) "] " (message) line-end)
+       (info line-start line ":" column ":info:["
+             (id (one-or-more (not (any "]")))) "] " (message) line-end))
+      :modes (markdown-mode gfm-mode))
+
+    (add-to-list 'flycheck-checkers 'markdown-remark t)
+
+    ;; Structure first, then prose, in one report.
+    (flycheck-add-next-checker 'markdown-pymarkdown 'markdown-remark))
+#+end_src
+
+Naming =markdown-remark= as a plain symbol, rather than a =(level . checker)= cons cell, means the prose check runs whatever PyMarkdown found. Were it written =(warning . markdown-remark)=, a single formatting error would swallow the prose report along with it.
+
+Since remark now runs =write-good= over the prose (and more carefully, as it skips the code), the [[file:ha-org.org::*Writegood][write-good]] checker no longer lists =markdown-mode= among its modes, and the two do not double up.
+
+*** Markdown and Polymode
 Using [[https://polymode.github.io/][polymode]], let’s add syntax coloring to Markdown code blocks similar to what we do with Org:
 
 #+begin_src emacs-lisp

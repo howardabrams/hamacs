@@ -988,7 +988,7 @@ And check that the following works:
   write-good --text="So it is what it is."
 #+end_src
 
-Now, let’s connect it to flycheck:
+Now, let’s connect it to flycheck. Note that =markdown-mode= is absent from the list of modes, as Markdown files go through [[file:ha-programming.org::*Remark][Remark]] instead, which runs =write-good= over the prose while ignoring the code blocks:
 #+begin_src emacs-lisp
   (use-package flycheck
     :config
@@ -998,7 +998,7 @@ Now, let’s connect it to flycheck:
                              :standard-input nil
                              :error-patterns
                              ((warning line-start (file-name) ":" line ":" column ":" (message) line-end))
-                             :modes (markdown-mode org-mode text-mode))
+                             :modes (org-mode text-mode))
 
     (add-to-list 'flycheck-checkers 'write-good))
 #+end_src
