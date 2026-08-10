@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-08-06 Thu]
+#+lastmod: [2026-08-10 Mon]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -154,7 +154,7 @@ What should we do if we are at the end of a line?
   - In a table? Create a new row.
   - In a list, create a new item.
 
-I should break this function into smaller bits ...
+I should break this function into smaller bits:
 
 #+begin_src emacs-lisp
   (defun ha-org-special-return (&optional ignore)
@@ -180,7 +180,7 @@ I should break this function into smaller bits ...
         (org-return)))))
 #+end_src
 
-How do we know if we are in a list item? Lists end with two blank lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with one blank line.
+How do we know if we are in a list item? Lists end with two empty lines, so we need to make sure we are also not at the beginning of a line to avoid a loop where a new entry gets created with one empty line.
 #+begin_src emacs-lisp
   (defun org-really-in-item-p ()
     "Return item beginning position when in a plain list, nil otherwise.
@@ -224,10 +224,11 @@ I need to add a /blocked/ state, and wouldn’t /doing/ be better than /in progr
 
   (add-hook 'org-after-todo-state-change-hook 'ha-org-clock-todo-change)
 #+end_src
+
 And I would like to have cute little icons for those states:
 
 #+name: org-font-lock
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (dolist (m '(org-mode org-journal-mode))
     (font-lock-add-keywords m                        ; A bit silly but my headers are now
                             `(("^\\*+ \\(TODO\\) "   ; shorter, and that is nice canceled
@@ -436,8 +437,9 @@ And let’s see how it works:
   User-Agent: ${user-agent}
 #+end_src
 
-#+results:
-#+begin_src js
+Results in:
+
+#+begin_src js :tangle no
 {
   "Emacs Lisp": 15327,
   "Shell": 139
@@ -458,8 +460,9 @@ And let’s try this:
   User-Agent: ${user-agent}
 #+end_src
 
-#+results:
-#+begin_src js
+Results in the same output:
+
+#+begin_src js :tangle no
 {
   "Emacs Lisp": 15327,
   "Shell": 139
@@ -838,7 +841,7 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
      ("s-<f12>" . ha-focus-timer-left)))
 #+end_src
 ** Spell Checking
-Let's hook some spell-checking into org files, and actually all text files. I’m making this particularly delicious.
+Let's hook some spell checking into org files, and actually all text files. I’m making this particularly delicious.
 
 *** abbrev
 First, we turn on =abbrev-mode=. While this package comes with Emacs, check out [[https://masteringemacs.org/article/correcting-typos-misspellings-abbrev][Mickey Petersen's overview]] of using this package for auto-correcting typos.
@@ -858,7 +861,7 @@ The idea is that you can correct a typo /and remember/ it. Perhaps calling [[hel
 *** jinx
 Once upon a time, I used [[https://www.emacswiki.org/emacs/FlySpell][flyspell]] mode to highlight the misspelled words, and the venerable [[https://www.emacswiki.org/emacs/InteractiveSpell][ispell]] for correcting. To be able to correct spelling mistakes /from a distance/, without navigation, I wrote a function that took advantage of Evil’s [[help:evil-prev-flyspell-error][evil-prev-flyspell-error]] to jump back to the last spelling mistake.
 
-Now, I’m using [[https://github.com/minad/jinx][jinx]], as it is the /complete basket/. It spellchecks based on the fontlock face and uses an external [[https://github.com/AbiWord/enchant][enchant program]] (to make spell-checking fast and asynchronous). Like =flymake=, Jinx does on-the-fly spellchecking of code comments and strings.
+Now, I’m using [[https://github.com/minad/jinx][jinx]], as it is the /complete basket/. It spellchecks based on the fontlock face and uses an external [[https://github.com/AbiWord/enchant][enchant program]] (to make spell checking fast and asynchronous). Like =flymake=, Jinx does on-the-fly spell checking of code comments and strings.
 
 I keep =jinx-correct= bound to ~C-;~ à la flyspell because it is so darn helpful. Supports checking documents with mixed languages.
 
@@ -964,21 +967,103 @@ Once in the dictionary buffer, acquiesce these keybindings:
 
     Also note that the dictionary has links to other pages, so ~n~ and ~TAB~ jumps to the next link and ~RET~ opens that link.
 ** Grammar and Prose Linting
-Flagging cliches, weak phrasing and other poor grammar choices.
+Flagging clichés, weak phrasing and other poor grammar choices.
 
-We are trying a lot of checkers, so we need to /chain/ them with a call to =flycheck-add-next-checker=:
+We are trying a lot of checkers, as each have their specialties. To do this, we /chain/ them with a call to =flycheck-add-next-checker=:
 
-   =write-good= —> =proselint= —> =textlint= —> =languagetool=?
-*** Writegood
-The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive and weasel words.
+   =write-good= —> =proselint= —> =textlint= —> =jinx= (for spell checking)
+*** Ignoring Code Blocks
+None of these checkers understand Org, so each one grades my source blocks as if they were English. This becomes especially problematic when a Lisp quote turns off =proselint= for the rest of the file. I solved this issue in Markdown with [[file:ha-programming.org::*Remark][Remark]] and a code-stripping plugin, but the Org checkers have no such pipeline.
+
+/Every/ checker gets the buffer through one of two functions: =flycheck-process-send-buffer= for the ones reading standard input, and =flycheck-save-buffer-to-file= for the ones handed a temporary file. Both work on whatever buffer happens to be current, so rather than wrap all three tools, I =advise= the pair to cover every checker in the chain, including any I add later.
+
+The blanking replaces each character with a space instead of deleting it. Line numbers, columns, and character offsets all survive, so the positions the checkers report still line up with the real buffer:
+
 #+begin_src emacs-lisp
-  (use-package writegood-mode)
+  (defcustom ha-org-prose-ignored-blocks '("src" "example" "export")
+    "Org block types whose contents the prose checkers should never see.
+  Note the absence of `quote' and `verse', as those hold prose worth
+  grading."
+    :type '(repeat string)
+    :group 'flycheck)
+
+  (defun ha-org--blank-region (start end)
+    "Replace each non-newline character between START and END with a space.
+
+  To keep the line number positions correct, I can't just delete a code block,
+  but need to replace the code block contents with innocuous spaces, but keep
+  the newline characters."
+    (save-excursion
+      (goto-char start)
+      (while (< (point) end)
+        (let ((eol (min end (line-end-position))))
+          (unless (= eol (point))
+            (let ((len (- eol (point))))
+              (delete-region (point) eol)
+              (insert (make-string len ?\s)))))
+        (forward-line 1))))
+
+  (defun ha-org--blank-inline-code ()
+    "Blank inline verbatim and code markup in the current buffer.
+Only group 2 of `org-verbatim-re', the markup and its delimiters,
+gets blanked, leaving the surrounding punctuation it also matches."
+    (goto-char (point-min))
+    (while (re-search-forward org-verbatim-re nil t)
+      (ha-org--blank-region (match-beginning 2) (match-end 2))
+      ;; Stop short of the trailing character, since it doubles as the
+      ;; leading character of whatever construct comes next.
+      (goto-char (match-end 2))))
+
+  (defun ha-org-prose-only-text ()
+    "Return this buffer's text with code blocks and inline code blanked."
+    (let ((text (buffer-substring-no-properties (point-min) (point-max))))
+      (with-temp-buffer
+        (insert text)
+        (goto-char (point-min))
+        (let* ((case-fold-search t)
+               (types (regexp-opt ha-org-prose-ignored-blocks t))
+               (start-re (concat "^[ \t]*#\\+begin_" types "\\b")))
+          (while (re-search-forward start-re nil t)
+            (let ((type (match-string 1))
+                  (start (match-beginning 0)))
+              (when (re-search-forward
+                     (concat "^[ \t]*#\\+end_" (regexp-quote type) "\\b.*$") nil t)
+                (ha-org--blank-region start (point))))))
+        ;; After the blocks, since their contents no longer contain markup.
+        (ha-org--blank-inline-code)
+        (buffer-string))))
 #+end_src
-And it reports obnoxious messages.
 
-Note: Instead of hooking the =writegood-mode= to Org files, I will hook it to =flycheck= instead.
+Another issue I encounter (again solved differently for Markdown files using [[file:ha-programming.org::*Remark][Remark]]) involves ignoring these grammar and /proselinters/ for verbatim-formatted code. This allows me to write about =just= as a program, and not have it flagged.
 
-We install the =write-good= NPM:
+Both advised functions read the current buffer, so the trick is to make a scratch buffer current that holds the blanked text. The =derived-mode-p= test happens /before/ the temporary buffer exists, since that buffer is in =fundamental-mode=:
+
+#+begin_src emacs-lisp
+  (defun ha-flycheck--org-prose-only (orig &rest args)
+    "Call ORIG with code blocks blanked, when checking an Org buffer."
+    (if (derived-mode-p 'org-mode)
+        (let ((text (ha-org-prose-only-text)))
+          (with-temp-buffer
+            (insert text)
+            (apply orig args)))
+      (apply orig args)))
+
+  (advice-add 'flycheck-process-send-buffer :around #'ha-flycheck--org-prose-only)
+  (advice-add 'flycheck-save-buffer-to-file :around #'ha-flycheck--org-prose-only)
+#+end_src
+
+This matters more than tidiness for =proselint=. Since version 0.16, it pairs quote characters across the whole document and silently discards any complaint landing between a pair. Lisp is full of quoted symbols and strings, so those pairings run wild: 80% of this file counts as “quoted”, and the warnings in it never appear. Blanking the code drops that figure to a fraction of a percent.
+*** Writegood
+The [[https://github.com/bnbeckwith/writegood-mode][writegood-mode]] is effective at highlighting passive voice and weasel words.
+
+For instance:
+
+#+begin_quote
+The cake was eaten by the children.
+#+end_quote
+
+We install the =write-good= npm:
+
 #+begin_src shell
   npm install -g write-good
 #+end_src
@@ -988,7 +1073,9 @@ And check that the following works:
   write-good --text="So it is what it is."
 #+end_src
 
-Now, let’s connect it to flycheck. Note that =markdown-mode= is absent from the list of modes, as Markdown files go through [[file:ha-programming.org::*Remark][Remark]] instead, which runs =write-good= over the prose while ignoring the code blocks:
+Instead of hooking the =writegood-mode= to Org files, I =hook= it to =flycheck= instead.
+Note that =markdown-mode= is absent from the list of modes, as Markdown files go through [[file:ha-programming.org::*Remark][Remark]] instead, which runs =write-good= over the prose while ignoring the code blocks:
+
 #+begin_src emacs-lisp
   (use-package flycheck
     :config
@@ -1003,16 +1090,26 @@ Now, let’s connect it to flycheck. Note that =markdown-mode= is absent from th
     (add-to-list 'flycheck-checkers 'write-good))
 #+end_src
 *** Proselint
-With overlapping goals to =write-good=, the [[https://github.com/amperser/proselint/][proselint]] project, once installed, can check for some English phrasings. I like =write-good= better, but I want this available for its level of /pedantic-ness/.
+The [[https://github.com/amperser/proselint/][proselint]] project checks for poor English phrasings, clichés, and corporate-speak. For instance:
+
+#+begin_quote
+Let's touch base and circle back.
+#+end_quote
+
+Install it on a Mac via:
+
 #+begin_src sh
   brew install proselint
 #+end_src
+
 And on Linux:
+
 #+BEGIN_SRC sh
   sudo apt install python3-proselint
 #+END_SRC
 
 Next, create a configuration file, =~/.config/proselint/config= file, to turn on/off checks:
+
 #+begin_src js :tangle ~/.config/proselint/config.json :mkdirp yes
   {
     "checks": {
@@ -1024,17 +1121,28 @@ Next, create a configuration file, =~/.config/proselint/config= file, to turn on
 #+end_src
 
 And tell [[https://www.flycheck.org/][flycheck]] to use Proselint:
-#+begin_src emacs-lisp :tangle no
+
+#+begin_src emacs-lisp
   (use-package flycheck
     :config
     (add-to-list 'flycheck-checkers 'proselint)
     ;; And create the chain of checkers so that both work:
     (flycheck-add-next-checker 'write-good 'proselint))
 #+end_src
+
+Without this block tangling, =write-good= has no /next/ checker, and since it sits at the front of =flycheck-checkers=, it becomes the one Org buffers select. Flycheck then stops there, and every checker chained behind it never runs.
 *** Textlint
-The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as long as there is an executable:
+The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, and flags undefined acronyms (which annoyingly display at the beginning of the file), using the wrong punctuation, and “profane” words. For instance:
+
+#+begin_quote
+NASA launched a new rocket ball’s deep to the moon.
+#+end_quote
+
+This requires an executable:
+
 #+begin_src sh :results silent
   sudo npm install -g textlint
+
   # And all the rules
   sudo npm install -g textlint-rule-alex
   sudo npm install -g textlint-rule-diacritics
@@ -1045,39 +1153,109 @@ The [[https://textlint.github.io/][textlint]] project comes with =flycheck=, as 
   sudo npm install -g textlint-rule-terminology
   sudo npm install -g textlint-rule-unexpanded-acronym
 #+end_src
+
 I create a configuration file in my home directory:
+
 #+begin_src js :tangle ~/.textlintrc
 {
   "filters": {},
   "rules": {
     "abbr-within-parentheses": false,
-    "alex": true,
+    "alex": { "severity": "warning" },
     "common-misspellings": false,
-    "diacritics": true,
-    "en-max-word-count": true,
-    "max-comma": true,
-    "no-start-duplicated-conjunction": true,
-    "period-in-list-item": true,
+    "diacritics": { "severity": "warning" },
+    "en-max-word-count": { "severity": "warning" },
+    "max-comma": { "severity": "warning" },
+    "no-start-duplicated-conjunction": { "severity": "warning" },
+    "period-in-list-item": { "severity": "warning" },
     "stop-words": false,
-    "terminology": true,
-    "unexpanded-acronym": true,
+    "terminology": { "severity": "warning" },
+    "unexpanded-acronym": { "severity": "warning" },
     "write-good": false
   }
 }
 #+end_src
 
-Add =textlint= to the /chain/ for Org files:
+Every rule carries an explicit =severity=, as textlint defaults each one to /error/, and =flycheck-parse-eslint= turns that into an Emacs error. Left alone, a quibble over a hyphen would outrank a misspelling. Note the /object/ form: a rule set to =true= takes no options, so the severity has to replace that value rather than sit beside it.
+
+Add =textlint= to the /chain/ for Org files. The built-in checker hands textlint a temporary file named after the buffer, and textlint /silently skips/ any file whose extension it does not know. Since =.org= is not on that list, it reports nothing and exits successfully, which looks identical to a clean buffer…ugh.
+
+Piping the buffer in under a name textlint accepts avoids that. The =stdin.txt= name is cosmetic, as =flycheck-parse-eslint= overwrites it with the real buffer’s file name:
+
 #+begin_src emacs-lisp
   (use-package flycheck
     :config
     (setq flycheck-textlint-config (format "%s/.textlintrc" (getenv "HOME")))
-    (flycheck-add-next-checker 'proselint 'textlint t))
+
+    (flycheck-define-checker org-textlint
+      "A prose checker for Org files using textlint.
+
+  Textlint skips files whose extension it does not know, and `.org' is
+  not among them, so the buffer arrives on standard input under a name
+  the text plugin accepts."
+      :command ("textlint"
+                (config-file "--config" flycheck-textlint-config)
+                "--format" "json"
+                "--plugin" "@textlint/text"
+                "--stdin" "--stdin-filename" "stdin.txt")
+      :standard-input t
+      :error-parser flycheck-parse-eslint
+      :modes (org-mode))
+
+    (add-to-list 'flycheck-checkers 'org-textlint t)
+    (flycheck-add-next-checker 'proselint 'org-textlint t))
 #+end_src
 
-** Perfect Sentence
-Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] demonstrates the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. For instance, how org-mode edits blocks.
+Note: The text plugin has no notion of Org, but that no longer matters, since [[*Ignoring Code Blocks][the advice above]] hands it prose with the code already blanked.
+*** Spelling
+I like correcting spelling through the [[*jinx][jinx]] interface, but would also like to jump through misspellings using the =flycheck= UI.
+Note: Since =flycheck= only /reports/ problems (like a misspelling), I still require =jinx-correct= to repair the problem.
 
-Malorana based this idea on Jordan Peterson's writing app, [[https://essay.app/guide][Essay]]. Thought I might work on it, but I want my version more resilient and not as dependent on the context.
+Jinx already does the work and leaves an overlay on each misspelling, so the checker collects them:
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :after jinx
+    :config
+    (defun ha-jinx--flycheck-errors (checker)
+      "Return a `flycheck-error' for each misspelling jinx finds."
+      ;; Jinx separates prose from code by font-lock face, and font-lock
+      ;; only fontifies what has been displayed. Without this, the rest of
+      ;; the buffer arrives faceless and every symbol reads as misspelled.
+      (font-lock-ensure)
+      (jinx--check-region (point-min) (point-max))
+      (mapcar (lambda (ov)
+                (let ((start (overlay-start ov))
+                      (end (overlay-end ov)))
+                  (flycheck-error-new-at-pos
+                   start 'error
+                   (format "Misspelled: %s"
+                           (buffer-substring-no-properties start end))
+                   :id "jinx"
+                   :checker checker
+                   :end-pos end)))
+              (jinx--get-overlays (point-min) (point-max))))
+
+    (flycheck-define-generic-checker 'jinx
+      "A spell checker reporting what jinx and enchant already found."
+      :start (lambda (checker callback)
+               (condition-case err
+                   (funcall callback 'finished (ha-jinx--flycheck-errors checker))
+                 (error (funcall callback 'errored (error-message-string err)))))
+      ;; Without jinx enabled there are no dictionaries to ask.
+      :predicate (lambda () (bound-and-true-p jinx-mode))
+      :modes '(org-mode text-mode markdown-mode gfm-mode))
+
+    (add-to-list 'flycheck-checkers 'jinx t)
+    (flycheck-add-next-checker 'org-textlint 'jinx t))
+#+end_src
+
+Note that jinx underlining the words itself, /on top of/ what flycheck now draws. Turning that off would mean would apply that everywhere — including the programming buffers where this prose-chain never runs, and I would need jinx’s flagging. In other words, the doubled underline seems the smaller cost.
+
+** Perfect Sentence
+Jordan Peterson's writing app, [[https://essay.app/guide][Essay]], inspired Chris Malorana’s [[https://www.youtube.com/watch?v=E-yk_V5TnNU][video tutorial]] showing the ability to extrude a single sentence into another buffer, edit different versions of that sentence, and replace one version into the original buffer. Similar to how org-mode edits blocks.
+
+Thought I might work on it, but I want my version more resilient and not as dependent on the context.
 
 When we create a new buffer, we set the following /buffer-local/ variables, so we know where to return:
 
@@ -1160,9 +1338,11 @@ In that case, we need to select the text before hitting the ~C-c C-c~ sequence. 
         (delete-region orig-start orig-end) ; Or call `kill-region' to put on clipboard?
         (insert chosen-sentence))))
 #+end_src
-The [[help:kill-region][kill-region]] function takes the original text and places it on the [[help:kill-ring][kill-ring]] (the clipboard). But since we already copied that when we created the buffer, we call [[help:delete-region][delete-region]] instead. Especially since if we felt like we made a mistake, we could just undo the changes.
 
-With my limited experience, I seldom enter completely difference sentences. Instead, I want to /copy/ the sentence and work on that. Let’s make a function to duplicate it.
+The [[help:kill-region][kill-region]] function takes the original text and places it on the [[help:kill-ring][kill-ring]] (the clipboard). But since we already copied that when we created the buffer, we call [[help:delete-region][delete-region]] instead. If we felt like we made a mistake, we can undo the changes.
+
+With my limited experience, I seldom replace the sentence. Instead, I want to /copy/ the sentence and work on that:
+
 #+begin_src emacs-lisp
   (defun ha-sentence-duplicate ()
     (interactive)
@@ -1174,7 +1354,7 @@ With my limited experience, I seldom enter completely difference sentences. Inst
         (goto-char starting-point))))
 #+end_src
 
-When creating this new editing buffer, we need keybindings that exist only for this buffer, in other words, a [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Minor-Modes.html][minor mode]]:
+When creating this new editing buffer, we need keybindings that exist for this buffer, in other words, a [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Minor-Modes.html][minor mode]]:
 #+begin_src emacs-lisp
   (defvar ha-sentence-buffer-mode-map (make-sparse-keymap) "Keymap for `my-mode'.")
   (define-key ha-sentence-buffer-mode-map (kbd "C-c C-c") #'ha-sentence-choose)
@@ -1206,7 +1386,9 @@ And something else while in Evil mode:
 #+begin_src emacs-lisp
   (ha-leader "x b" '("edit sentence" . ha-sentence-break))
 #+end_src
-Perhaps he might get around to turning [[https://git.chrismaiorana.com/?p=sentinel.git;a=blob;f=sentin.el;h=2738eff6ac2b0877576bafe88878683a7eff3125;hb=refs/heads/master][his code]] into a package. Features needed include:
+
+While Malorana might get around to turning [[https://git.chrismaiorana.com/?p=sentinel.git;a=blob;f=sentin.el;h=2738eff6ac2b0877576bafe88878683a7eff3125;hb=refs/heads/master][his code]] into a package, new features need to include:
+
   - Adding an overlay to the original text,  help:org-src--make-source-overlay
 
 ** Distraction-Free Writing
@@ -1287,5 +1469,5 @@ Before you can build this on a new system, make sure that you put the cursor ove
 #+infojs_opt:  view:nil toc:t ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
 
 # Local Variables:
-# jinx-local-words: "Braganza Graphviz Malorana’s Proselint Somers Textlint Writegood flycheck flyspell fontlock"
+# jinx-local-words: "Braganza Graphviz Malorana Malorana’s Proselint Somers Textlint Writegood flycheck flyspell fontlock"
 # End:
