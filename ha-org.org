@@ -248,31 +248,6 @@ And I would like to have cute little icons for those states:
                                (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 #+end_src
 
-What was
-
-#+BEGIN_SRC emacs-lisp
-(defun display-latest-clocked-task ()
-  "Display the name of the latest task that was clocked in."
-  (interactive)
-  (let ((latest-task (car (org-clock-get-clock-string))))
-    (if latest-task
-        (message "Latest clocked task: %s" latest-task)
-      (message "No task is currently clocked in."))))
-
-#+END_SRC
-
-Need to be able to clock out of a task even if no /clock-in/ has occurred.
-
-#+BEGIN_SRC emacs-lisp
-  (defun ha-clock-out ()
-    "Safely clock out of the current task.
-  This will not throw an error if not active clock exists."
-    (interactive)
-    (ignore-errors
-      (org-clock-out)
-      (message "Clocked out.")))
-#+END_SRC
-
 ** Meetings
 I've notice that while showing a screen while taking meeting notes, I don't always like showing other windows, so I created this function to remove distractions during a meeting.
 
@@ -821,9 +796,6 @@ Splitting out HTML snippets is often a way that I can transfer org-formatted con
                      hard-newline))))))
 #+end_src
 ** Focused Work
-:LOGBOOK:
-CLOCK: [2022-02-11 Fri 11:05]--[2022-02-11 Fri 11:21] =>  0:16
-:END:
 I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-work.html][approach to focused work]],
 
 #+begin_src emacs-lisp
@@ -840,6 +812,47 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
      ("S-<f12>" . ha-focus-interrupt)
      ("s-<f12>" . ha-focus-timer-left)))
 #+end_src
+
+
+Need to be able to clock out of a task even if no /clock-in/ has occurred.
+
+#+begin_src emacs-lisp
+  (defun ha-clock-out ()
+    "Safely clock out of the current task.
+  This will not throw an error if no active clock exists."
+    (interactive)
+    (ignore-errors
+      (org-clock-out)
+      (message "Clocked out.")))
+#+end_src
+
+I call this function from [[file:hammerspoon.org::*Clocking out a Task][my Hammerspoon configuration]] to clock out of a task when I close my laptop.
+
+What was I working on? Opening the laptop after a break seldom answers that, so this reports whatever clock is still running, and when none is, the one I stopped last, which is the more likely question after a break.
+
+#+begin_src emacs-lisp
+  (defun ha-display-latest-clocked-task ()
+    "Display the task clocked in now, or the one most recently clocked out."
+    (interactive)
+    (cond
+     ((org-clocking-p)
+      (message "Currently clocked in: %s"
+               (substring-no-properties (org-clock-get-clock-string))))
+
+     ((and org-clock-out-time
+           (stringp org-clock-heading)
+           (not (string-empty-p org-clock-heading)))
+      (let ((seconds (float-time (time-subtract nil org-clock-out-time))))
+        (message "Clocked out of \"%s\" %s ago" org-clock-heading
+                 (if (< seconds 60)
+                     "less than a minute"
+                   (format-seconds "%D %H %M%z" seconds)))))
+
+     (t (message "No task is currently clocked in."))))
+#+end_src
+
+The =%z= at the /end/ of the format drops the larger units while they read zero, turning =0 days 0 hours 25 minutes= into =25 minutes=. It has nothing to lean on when every unit is zero, so the first minute gets phrased by hand:
+
 ** Spell Checking
 Let's hook some spell checking into org files, and actually all text files. I’m making this particularly delicious.
 
@@ -920,7 +933,6 @@ The key-bindings, keystrokes, and key-connections work well with a hyper-command
   (use-package powerthesaurus
     :bind ("s-t" . powerthesaurus-lookup-dwim))
 #+END_SRC
-
 
 *** Definitions
 Since the /definitions/ do not work, so let's use the [[https://github.com/abo-abo/define-word][define-word]] project:

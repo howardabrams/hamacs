@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2026-06-15 Mon]
+#+lastmod: [2026-08-10 Mon]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -14,12 +14,59 @@ Simple to use. Use =hs.execute= to run a script, =ha.alert.show= to print a smal
   hs.notify.new({title="Hammerspoon", informativeText="Hello World"}):send()
 #+END_SRC
 
+** The Command Line
+The =hs= binary talks to a running Hammerspoon over a Mach port, and that port only exists while the =hs.ipc= module is loaded. Without this line, the tool answers every request with /can’t access Hammerspoon message port/, however well it is installed:
+
+#+BEGIN_SRC lua
+  require("hs.ipc")
+#+END_SRC
+
+For instance, using the [[*Zoom][Zoom spoon]], I can toggle the mute button from a script:
+
+#+BEGIN_SRC sh :tangle no
+  hs -c "spoon.Zoom:toggleMute()"     # your Zoom spoon, from anywhere
+#+END_SRC
+
+Or callable from Emacs.
+
+Other ideas:
+
+  1. Tail the Hammerspoon console in a terminal with =hs -C=, which shows anything called with =printf=.
+
+  2. While I already built out [[https://howardism.org/Technical/Emacs/beep-for-emacs.html][a notification system]], I could use Hammerspoon to replace =beep= CLI:
+     #+BEGIN_SRC sh
+       make build; hs -c 'hs.notify.new({title="Build", informativeText="done"}):send()'
+     #+END_SRC
+
+  3. Query Hammerspoon to query the system:
+     #+BEGIN_SRC bash :results replace raw output
+       hs -c 'return hs.wifi.currentNetwork()'
+     #+END_SRC
+     This should return =iTerm2=, or =Emacs= when running from my literate config:
+     #+BEGIN_SRC sh :results replace raw output
+       hs -c "return hs.application.frontmostApplication():name()"
+     #+END_SRC
+     Or screwing with my monitors:
+     #+BEGIN_SRC sh :results replace raw output
+       hs -c "return hs.screen.mainScreen():name()"
+     #+END_SRC
+     Or the volume level as a float value:
+     #+BEGIN_SRC sh :results replace raw output
+       hs -c "return hs.audiodevice.defaultOutputDevice():volume()"
+     #+END_SRC
+
+Flags worth knowing, from the binary's usage text:
+  * =-i= interactive REPL
+  * =-q= quiet (only the result, ideal for scripting)
+  * =-c= repeatable
+  * =-A= auto-launch Hammerspoon if not running, and a bare file path to run a =.lua= file.
+
 * Shortcut Keybindings
-I’ve created left and right ~Meh~ keys on my Moonlanders:
+I’ve created left and right ~Meh~ keys on my Moonlander keyboard:
   - Left Meh Key: ~C-M-S-s~ (Control Option/Meta Command Shift)
   - Right Meh Key: ~C-M-S~ (Control Option/Meta Shift)
 
-To create special key bindings, I can:
+To create specific key bindings for starting applications, I can:
 #+BEGIN_SRC lua
     ----------------------------------------------------------------------
     -- Launcher replaces iCanHazShortcuts
@@ -33,7 +80,7 @@ To create special key bindings, I can:
     end)
 
     hs.hotkey.bind({"alt", "ctrl", "shift"}, "F", function()
-          hs.application.launchOrFocus("Safari")
+          hs.application.launchOrFocus("Vivaldi")
     end)
 
     hs.hotkey.bind({"alt", "ctrl", "shift"}, "C", function()
@@ -51,6 +98,10 @@ To create special key bindings, I can:
 
     hs.hotkey.bind({"alt", "ctrl", "shift"}, "Q", function()
           hs.application.launchOrFocus("KeepassXC")
+    end)
+
+    hs.hotkey.bind({"alt", "ctrl", "shift"}, "G", function()
+          hs.application.launchOrFocus("Ghostty")
     end)
 
     hs.hotkey.bind({"alt", "ctrl", "shift"}, "W", function()
@@ -82,13 +133,13 @@ To create special key bindings, I can:
     end)
 #+END_SRC
 * Zoom
-Library extensions to Hammerspoon are called /spoons/, and most of these are a simple Lua script, =init.lua= stored in the =Spoons= subdirectory. We grab these with a =git clone=, typically. To use the Zoom spoon, clone it:
+/Spoons/ are library extensions to Hammerspoon: usally small Lua scripts, like =init.lua=, stored in the =Spoons= subdirectory. Installable from a =git clone=, typically. To use the Zoom spoon, clone it:
 
 #+BEGIN_SRC sh :dir ~/.hammerspoon/Spoons :tangle no :results silent
   git clone https://github.com/jpf/Zoom.spoon.git
 #+END_SRC
 
-I noticed that it does its works by calling Zoom’s menus, and with the latest version of Zoom, they changed the /case/ of the menu, meaning that I needed to create a pull request.
+I noticed that this library does most of its work by calling Zoom’s menus, and with the latest version of Zoom, they changed the /case/ of the menu, meaning that I needed to create a pull request.
 
 From this [[https://developer.okta.com/blog/2020/10/22/set-up-a-mute-indicator-light-for-zoom-with-hammerspoon][nice essay]], we create a menu bar item that shows the status, as well as allowing me to click it to toggle:
 
@@ -166,7 +217,8 @@ Leaving my home office and hopping on the train can be socially awkward when my 
       lastSSID = newSSID
   end
 
-  hs.wifi.watcher.new(ssidChangedCallback):start()
+  wifiWatcher = hs.wifi.watcher.new(ssidChangedCallback)
+  wifiWatcher:start()
 #+END_SRC
 
 Why yes, I’m /looking for features/ to use Hammerspoon.
@@ -182,10 +234,19 @@ I want to use Org’s task clocking ability, but I often forget to /clock out/. 
      end
   end
 
+  sleepWatcher = hs.caffeinate.watcher.new(sleepWatch)
+  sleepWatcher:start()
+#+END_SRC
+
+Discovered a subtle bug, solving it meant assigning the =watcher= to a variable, rather than starting it and dropping the value. For instance, if I call the =start= this way:
+
+#+BEGIN_SRC lua :tangle no
   hs.caffeinate.watcher.new(sleepWatch):start()
 #+END_SRC
 
-Not that we could also do something for Wake:
+Since nothing else refers to that object once the line finishes, Lua may collect it, and a collected watcher stops delivering events without a word about it.
+
+Note if I want to do something for Wake:
 
 #+BEGIN_SRC lua :tangle no
   if (eventType == hs.caffeinate.watcher.systemDidWake) then
@@ -267,8 +328,11 @@ Whenever my configuration file is altered (or with a ~Meh-R~ key), I reload the 
       end
   end
 
-  hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+  configWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
+  configWatcher:start()
 #+END_SRC
+
+Every watcher in this file now lives in a variable of its own, for the reason described under [[*Clocking out a Task][clocking out]]. This one failing is the quietest of the three, as a dead configuration watcher looks exactly like a file that saved without incident.
 
 * Technical Artifacts                                :noexport:
 #+BEGIN_SRC lua
@@ -285,3 +349,7 @@ Whenever my configuration file is altered (or with a ~Meh-R~ key), I reload the 
 #+OPTIONS:     num:nil toc:nil todo:nil tasks:nil tags:nil date:nil
 #+OPTIONS:     skip:nil author:nil email:nil creator:nil timestamp:nil
 #+INFOJS_OPT:  view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+
+# Local Variables:
+# jinx-local-words: "Lua"
+# End:
