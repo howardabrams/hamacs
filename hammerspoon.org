@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2026-08-10 Mon]
+#+lastmod: [2026-08-12 Wed]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -302,6 +302,24 @@ My company gave me a nice monitor … maybe a little too nice, as I don’t care
   end
 
   hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "Y", centerWindow)
+#+END_SRC
+
+Similarly, I sometimes want a window as large as possible, but flushed to the edges of the monitor (a maximized frame, not macOS' native /full screen/):
+
+#+BEGIN_SRC lua
+  ----------------------------------------------------------------------
+  -- Making a window as large as possible on its current monitor:
+
+  function fullWindow()
+     local win = hs.window.focusedWindow()
+     if not win then return end -- Safety check in case no window is focused
+
+     local screen = win:screen()
+     win:setFrame(screen:frame())
+     hs.alert.show("Full Window")
+  end
+
+  hs.hotkey.bind({"cmd", "alt", "ctrl", "shift"}, "U", fullWindow)
 #+END_SRC
 
 * Auto Reload Configuration

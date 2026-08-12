@@ -47,7 +47,7 @@ This also starts another break timer, that calls
 `ha-focus-break-over' when finished."
   (interactive)
   (run-with-idle-timer 30 nil 'ha-focus-capture)
-  (ha-focus--command "tell application \"VLC\" to pause")
+  (ha-focus--command "tell application \"VLC\" to stop")
   (ha-focus-countdown-timer 5 'ha-focus-break-over)
   (message "🍅 Time to take a break."))
 
