@@ -160,6 +160,7 @@ My main blog made up a collection of org files:
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Darol Allen"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "George Vanecek"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Rick Cooper"))
+                     (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Rick Sothern"))
                      (:meta (@ :http-equiv "X-Clacks-Overhead" :content "Terry Pratchett"))))))
 #+end_src
 
@@ -190,10 +191,64 @@ The RSS generation seems to be something I do /later/ once I have my site workin
            :include               ("index.org")))
 #+end_src
 
+Rather than maintain a hand-written =emacs.org= index, we auto-generate it. A helper formats each file as an RSS entry with the properties =org-rss= expects:
+#+begin_src emacs-lisp
+  (defun ha/org-rss-sitemap-format-entry (entry style project)
+    "Format ENTRY as an RSS item for the Emacs notes feed."
+    (let* ((title (org-publish-find-title entry project))
+           (date  (org-publish-find-date entry project))
+           (desc  (org-publish-find-property entry :description project))
+           (path  (concat "Technical/Emacs/"
+                          (file-name-sans-extension entry) ".html")))
+      (format "* [[https://www.howardism.org/%s][%s]]
+  :PROPERTIES:
+  :RSS_PERMALINK: %s
+  :PUBDATE: <%s>
+  :END:
+  %s\n"
+              path title path
+              (format-time-string "%Y-%m-%d %a" date)
+              (or desc ""))))
+#+end_src
+
+The auto-sitemap and the `:exclude'/`:include' filters share the same file list, so we need a separate project to scan all the files and write =emacs.org= — without actually publishing each file. A no-op publishing function handles that:
+#+begin_src emacs-lisp
+  (defun ha/org-publish-noop (_plist _filename _pub-dir)
+    "No-op publishing function, used only to trigger auto-sitemap generation.")
+
+  (add-to-list 'org-publish-project-alist
+   `("emacs-sitemap"
+           :base-directory        ,(concat org-mode-websrc-directory "/Technical/Emacs/")
+           :base-extension        "org"
+           :publishing-directory  ,(concat org-mode-websrc-directory "/Technical/Emacs/")
+           :publishing-function   ha/org-publish-noop
+           :auto-sitemap          t
+           :sitemap-filename      "emacs.org"
+           :sitemap-title         "Howard's Emacs Notes"
+           :sitemap-sort-files    anti-chronologically
+           :sitemap-format-entry  ha/org-rss-sitemap-format-entry))
+#+end_src
+
+Then the RSS project publishes the generated =emacs.org= as =emacs.xml= at the top level:
+#+begin_src emacs-lisp
+  (add-to-list 'org-publish-project-alist
+   `("emacs-rss"
+           :base-directory        ,(concat org-mode-websrc-directory "/Technical/Emacs/")
+           :base-extension        "org"
+           :rss-image-url         "https://howardism.org/img/dragon-head.png"
+           :publishing-directory  ,org-mode-publishing-directory
+           :publishing-function   (org-rss-publish-to-rss)
+           :html-link-home        "https://www.howardism.org/"
+           :html-link-use-abs-url t
+           :with-toc              nil
+           :exclude               ".*"
+           :include               ("emacs.org")))
+#+end_src
+
 And let’s make some blends of the individual projects:
 #+begin_src emacs-lisp
   (add-to-list 'org-publish-project-alist
-   `("blog" :components ("blog-content" "blog-static" "blog-rss")))
+   `("blog" :components ("blog-content" "blog-static" "blog-rss" "emacs-sitemap" "emacs-rss")))
 #+end_src
 ** Technical Notes
 I take notes on a variety of technical subjects, and since I can share these notes with others, I feel like I can publish those:
@@ -240,6 +295,7 @@ As above, we can separate the publishing of the  images and other static files:
            :recursive            t
            :publishing-function  org-publish-attachment))
 #+end_src
+
 ** Literate Emacs Configuration
 I’ve been committing my literate-style Emacs configuration for years now, and Github has rendered it well, but I felt I could publish this to my own web site as a /cleaner version/.
 #+begin_src emacs-lisp
