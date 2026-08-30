@@ -59,6 +59,9 @@ Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]]
                 (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
                   (evil-emacs-state)))))
 #+END_SRC
+
+This also requires installing some command line support utilities, as well as [[https://agentclientprotocol.com/get-started/introduction][ACP]].
+
 *** Notifications
 When my /artificial intern/ completes a task, I have long since nipped out to the kitchen, put the kettle on ... buttering scones... and getting crumbs and bits of food out of those round brown straw mats that the teapot goes on.
 
@@ -151,8 +154,17 @@ And point Emacs to it:
   (use-package agent-shell
     :config
     (setq agent-shell-preferred-agent-config (agent-shell-anthropic-make-claude-code-config)
-          agent-shell-anthropic-claude-acp-command
-          `,(file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp")))
+          agent-shell-anthropic-authentication (agent-shell-anthropic-make-authentication :login t))
+
+    (setq agent-shell-anthropic-claude-acp-command
+          (if (file-exists-p "/opt/homebrew")
+              (list (file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp"))
+             '("/usr/local/bin/claude-agent-acp")))
+
+    (when (file-exists-p "~/.zshenv-work")
+      (setq agent-shell-anthropic-claude-environment (agent-shell-make-environment-variables
+                                                      :load-env "~/.zshenv-work"))))
+
   ;; /opt/homebrew/Cellar/node/26.0.0/bin/claude-agent-acp
 #+END_SRC
 
@@ -200,6 +212,12 @@ Now the Emacs configuration:
 First install the [[https://github.com/google-gemini/gemini-cli][gemini-cli]]:
 #+BEGIN_SRC sh
   brew install gemini-cli
+#+END_SRC
+
+Or:
+
+#+BEGIN_SRC sh
+  npm install -g @google/gemini-cli
 #+END_SRC
 
 And let’s make that the default now:
