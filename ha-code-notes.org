@@ -494,9 +494,10 @@ A code file with an associated notes file is easy to forget about. Let's mark, i
           (org-map-entries
            (lambda ()
              (when (equal (org-get-property "XREF") orig-file)
-               (push (cons (org-entry-get nil "XREF_NAME" t)
-                           (string-to-number (org-entry-get nil "XREF_LINE")))
-                     notes)))))
+               (when-let ((line (org-entry-get nil "XREF_LINE")))
+                 (push (cons (org-entry-get nil "XREF_NAME" t)
+                             (string-to-number line))
+                       notes))))))
         (dolist (note notes)
           (save-excursion
             (ha-code-notes-location-goto nil (car note) (cdr note))
