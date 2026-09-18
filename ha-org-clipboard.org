@@ -145,7 +145,7 @@ Let's define the clipboard for a Mac. The challenge here is that we need to bina
         (shell-command-with-exit-code "osascript" "-e" "the clipboard as \"HTML\"")
       (if (= 0 exit-code)
           (list :html (ha-convert-applescript-to-html contents))
-        (list :text (shell-command-to-string "osascript -e 'the clipboard'")))))
+        (list :text (string-replace "\r" "\n" (shell-command-to-string "osascript -e 'the clipboard'"))))))
 
   (defun ha-convert-applescript-to-html (packed-contents)
     "Applescript's clipboard returns the contents in a packed array.

@@ -1125,6 +1125,12 @@ Also, I like Markdown to look like a word processor, similarly to my org files:
 
 Note that the markdown-specific commands use the ~C-c C-c~ and  ~C-c C-s~ prefixes.
 
+The [[https://github.com/Fanael/edit-indirect/blob/master/edit-indirect.el][edit-indirect]] code allows me to edit triple-backtick code in a separate buffer.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package edit-indirect)
+#+END_SRC
+
 *** Rendering with Pandoc
 We call both the =markdown-command= and the =markdown-open-command= variables to render (and preview) a Markdown file (~C-c C-c o~), and calls the following scripts (which in turn, call =pandoc= as I depend on this for other org-related features):
 
