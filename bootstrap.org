@@ -210,6 +210,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                              "ha-org-literate.org"
                              "ha-org-clipboard.org"
                              "ha-capturing-notes.org"
+                             "ha-code-notes.org"
                              "ha-agendas.org"
                              "ha-data.org"
                              "ha-passwords.org"
