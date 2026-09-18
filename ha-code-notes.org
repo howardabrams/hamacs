@@ -36,8 +36,8 @@ When I [[file:ha-capturing-notes.org][capture notes]] with a link to some source
   digraph G {
     rankdir=LR;
     // Make to icons side-by-side
-    code_file [shape=note, label="", fixedsize=true, width=1, height=1.5];
-    note_file [shape=note, label="", fixedsize=true, width=1, height=1.5];
+    code_file [shape=note, label="def square(x):\l  return x*x", fontname="Inconsolata", fixedsize=true, width=2.2, height=1, fontsize=10];
+    note_file [shape=note, label="* Square\lThoughts on function.\l", fixedsize=true, width=2.2, height=1];
 
     // Create a couple of label to live _below_ the icons:
     code_label [shape=plaintext, label="foobar.py"];
