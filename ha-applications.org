@@ -159,13 +159,7 @@ And point Emacs to it:
     (setq agent-shell-anthropic-claude-acp-command
           (if (file-exists-p "/opt/homebrew")
               (list (file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp"))
-             '("/usr/local/bin/claude-agent-acp")))
-
-    (when (file-exists-p "~/.zshenv-work")
-      (setq agent-shell-anthropic-claude-environment (agent-shell-make-environment-variables
-                                                      :load-env "~/.zshenv-work"))))
-
-  ;; /opt/homebrew/Cellar/node/26.0.0/bin/claude-agent-acp
+             '("/usr/local/bin/claude-agent-acp"))))
 #+END_SRC
 
 *** Cursor
