@@ -535,17 +535,18 @@ The nerd font package takes a popular font like "Iosevka" and jams a bunch of th
 
 ** Symbols and Emojis
 
-Display these two symbols as one character, as using [[Ligatures]] often stretches wider, and the following are nice to be collapsed:
+Display these two symbols as one character, as using [[Ligatures]] often stretches wider, and the following are nice to be collapsed into a single glyph:
 
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook (lambda ()
                               (dolist (pair '(("!?" . "‽")
-                                              ("ae" . "æ")
-                                              ("..." . "…")  ; ??
                                               ("??" . "⁇")
-                                              ;; ("<<" . "«")
-                                              ;; (">>" . "»")
-                                              ("AE" . "Æ")))
+                                              ("<<" . "«")
+                                              (">>" . "»")
+                                              (":-)" . "🙂")
+                                              (":-D" . "😃")
+                                              (";-)" . "😉")
+                                              ("..." . "…")))
                                 (push pair prettify-symbols-alist))))
 #+end_src
 
