@@ -6,7 +6,7 @@
 A literate programming file for bootstraping my Emacs Configuration.
 
 #+begin_src emacs-lisp :exports none
-  ;;; bootstrap.el --- file for bootstraping my Emacs Configuration
+  ;;; bootstrap.el --- file for bootstraping my Emacs Configuration -*- lexical-binding: t; -*-
   ;;
   ;;    ██████████
   ;;    ░░███░░░░░█
@@ -51,7 +51,7 @@ Limit garbage collection before startup and then go back to the default value (8
 
   (add-hook 'emacs-startup-hook
             (lambda ()
-              (setq gc-cons-threshold (* 100 1024 1024))))
+              (setq gc-cons-threshold (* 200 1024 1024))))
 #+END_SRC
 
 ** OS Path and Native Compilation
@@ -167,7 +167,7 @@ Much of my more complicated code comes from my website essays and other projects
 #+end_src
 
 * Emacs Server Control
-I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like LSP), and my personal instance has other packages running (like IRC and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
+I actually run two instances of Emacs on some systems, where one instance has all my work-related projects, perspectives, and packages installed (like the Language Server Protocol, LSP), and my personal instance has other packages running (like the Internet Relay Chat, IRC, and Mail). I need a function that can make that distinction, and based on that, it will set =server-start= appropriately, so that =emacsclient= can call into the correct one.
 #+begin_src emacs-lisp
   (defun ha-emacs-for-work? ()
     "Return non-nil when the Emacs instance is for work.

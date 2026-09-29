@@ -1498,16 +1498,6 @@ Integration with the [[https://github.com/bash-lsp/bash-language-server][Bash LS
 #+begin_src sh
   brew install bash-language-server
 #+end_src
-*** Fish Shell
-I think the [[https://fishshell.com/][fish shell]] is an interesting experiment (and I appreciate the basics that come with [[https://github.com/emacsmirror/fish-mode][fish-mode]]).
-#+begin_src emacs-lisp
-  (use-package fish-mode
-    :mode (rx ".fish" eol)
-    :config
-    (ha-auto-insert-file (rx ".fish") "fish-mode.sh")
-    :hook
-    (fish-mode . (lambda () (add-hook 'before-save-hook 'fish_indent-before-save))))
-#+end_src
 * Technical Artifacts                                :noexport:
 Provide a name to =require= this code.
 #+begin_src emacs-lisp :exports none

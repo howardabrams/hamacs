@@ -366,7 +366,7 @@ This expands on my global [[file:ha-config.org::*Bookmarks][Bookmarks]]:
 
 #+begin_src emacs-lisp
   (use-package bookmark-in-project
-    :bindd
+    :bind
     (("C-x r m" . bookmark-in-project-toggle)
      ("C-x r M" . ha-bookmark-set))
     :config

@@ -115,6 +115,8 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 (add-to-list 'package-archives
              '("elpa-dev" . "https://elpa.gnu.org/devel/"))
 
+(setq package-enable-at-startup nil)
+
 ;; Configure straight https://github.com/raxod502/straight.el#getting-started
 
 (defvar bootstrap-version)
