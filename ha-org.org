@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-08-10 Mon]
+#+lastmod: [2026-10-09 Fri]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -940,7 +940,7 @@ Since the /definitions/ do not work, so let's use the [[https://github.com/abo-a
 #+begin_src emacs-lisp
   (use-package define-word
     :config
-    (ha-leader :keymaps 'text-mode-map
+    (ha-leader
       "s d"  '(:ignore t :which-key "dictionary")
       "s d d" '("define this word" . define-word-at-point)
       "s d a" '("define any word" . define-word)))
@@ -1183,7 +1183,8 @@ I create a configuration file in my home directory:
     "stop-words": false,
     "terminology": { "severity": "warning" },
     "unexpanded-acronym": { "severity": "warning" },
-    "write-good": false
+    "write-good": false,
+    "unexpanded-acronym": false
   }
 }
 #+end_src

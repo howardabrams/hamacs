@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2026-09-11 Fri]
+#+lastmod: [2026-10-09 Fri]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -76,7 +76,7 @@ To create specific key bindings for starting applications, I can:
   end)
 
   hs.hotkey.bind({"alt", "ctrl", "shift"}, "F", function()
-        hs.application.launchOrFocus("Firefox")
+          hs.application.launchOrFocus("Vivaldi")
   end)
 
   hs.hotkey.bind({"alt", "ctrl", "shift"}, "C", function()

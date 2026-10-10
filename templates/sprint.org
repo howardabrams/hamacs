@@ -8,9 +8,6 @@
 * Work Issues
 $0
 
-* Onboarding Work
-See [[file:Onboarding-Work.org][Onboard-Work]] for all details.
-
 * Distractions and Support
 Anything that doesn't fit the above goes here.
 

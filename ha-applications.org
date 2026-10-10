@@ -23,7 +23,7 @@ A literate programming file configuring critical applications.
   ;;       And tangle the file to recreate this one.
   ;;
   ;;; Code:
-  #+end_src
+#+end_src
 
 Can we call the following /applications/? I guess.
 * Agentic Interface
@@ -221,36 +221,6 @@ And let’s make that the default now:
     :config
     (setq agent-shell-preferred-agent-config (agent-shell-google-make-gemini-config)))
 #+END_SRC
-** AI Code Interface
-While the =agent-shell= offers a /vibe-codey/ interface to Chatbots, the [[https://github.com/tninja/ai-code-interface.el][ai-code-interface]] offers a more /programmatic/ interface.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package ai-code
-    :straight (:host github :repo "tninja/ai-code-interface.el")
-    :config
-    ;; use codex as backend, other options are 'claude-code, 'gemini,
-    ;; 'github-copilot-cli, 'opencode, 'grok, 'cursor, 'kiro,
-    ;; 'codebuddy, 'aider, 'eca, 'agent-shell, 'claude-code-ide,
-    ;; 'claude-code-el
-    (ai-code-set-backend 'gemini)
-
-    ;; Enable global keybinding for the main menu
-    (global-set-key (kbd "C-c a") #'ai-code-menu)
-
-    ;; Optional: Enable @ file completion in comments and AI sessions
-    (ai-code-prompt-filepath-completion-mode 1)
-
-    ;; Optional: Ask AI to run test after code changes, for a tighter build-test loop
-    ;; (setq ai-code-auto-test-type 'ask-me)
-
-    ;; Optional: In AI session buffers, SPC in Evil normal state triggers the prompt-enter UI
-    ;; (with-eval-after-load 'evil (ai-code-backends-infra-evil-setup))
-
-    ;; Optional: Set up Magit integration for AI commands in Magit popups
-    (with-eval-after-load 'magit
-      (ai-code-magit-setup-transients)))
-#+END_SRC
-
 * Git and Magit
 Can not live without [[https://magit.vc/][Magit]], a Git porcelain for Emacs. I stole the bulk of this work from Doom Emacs.
 #+begin_src emacs-lisp
