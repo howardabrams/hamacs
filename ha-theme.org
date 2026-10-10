@@ -438,6 +438,20 @@ Let’s make a /theme/:
      `(term-color-bright-yellow ((t (:foreground ,yellow))))
      `(term-color-bright-cyan ((t (:foreground ,slate))))
 
+     `(ansi-color-red ((t (:foreground ,red2-lt :background nil))))
+     `(ansi-color-green ((t (:foreground ,green-lt :background nil))))
+     `(ansi-color-blue ((t (:foreground ,blue-lt :background nil))))
+     `(ansi-color-magenta ((t (:foreground ,purple-lt :background nil))))
+     `(ansi-color-yellow ((t (:foreground ,yellow-lt :background nil))))
+     `(ansi-color-cyan ((t (:foreground ,slate :background nil))))
+     `(ansi-color-bright-red ((t (:foreground ,red2 :background nil))))
+     `(ansi-color-bright-green ((t (:foreground ,green :background nil))))
+     `(ansi-color-bright-blue ((t (:foreground ,blue :background nil))))
+     `(ansi-color-bright-magenta ((t (:foreground ,purple :background nil))))
+     `(ansi-color-bright-yellow ((t (:foreground ,yellow :background nil))))
+     `(ansi-color-bright-cyan ((t (:foreground ,slate :background nil))))
+     `(ansi-color-bright-black ((t (:foreground ,gray-50 :background nil))))
+
      `(sh-heredoc ((t (:foreground ,almond))))
      `(sh-quoted-exec ((t (:foreground ,orange2-lt))))
 
