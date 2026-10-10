@@ -158,7 +158,7 @@ And point Emacs to it:
 
     (setq agent-shell-anthropic-claude-acp-command
           (if (file-exists-p "/opt/homebrew")
-              (list (file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp"))
+              (file-expand-wildcards "/opt/homebrew/bin/claude-agent-acp")
              '("/usr/local/bin/claude-agent-acp"))))
 #+END_SRC
 

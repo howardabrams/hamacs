@@ -63,6 +63,22 @@ This allows me to /wax poetic/ with a parallel, but separate org file. Of course
 
 If this isn’t good for you, check out [[https://github.com/agoodman42/montag][Montag]]. Same project, different approach using a single directory for all notes with [[https://www.orgroam.com/][org-roam]].
 
+Let’s create a pattern for what a notes file is, and how to recognize them:
+
+#+BEGIN_SRC emacs-lisp
+  (defconst ha-code-notes-rx (rx (optional "/")
+                                 "." (one-or-more (not "/")) "-notes.org" string-end))
+
+  (defun ha-code-notes-file (file &optional parent)
+    "Return a FILE's 'code notes' filename.
+    Prepend the PARENT if given."
+    (cond
+     ((and parent (string-match-p (rx "/" string-end) parent))
+             (format "%s.%s-notes.org" parent file))
+     (parent (format "%s/.%s-notes.org" parent file))
+     (t      (format ".%s-notes.org" file))))
+#+END_SRC
+
 Another feature when looking at the notes in the org buffer, is to hit the same key to return to the source code file referencing the notes.
 
 # TODO Create custom settings to override default behavior.
@@ -109,17 +125,18 @@ This was far gnarlier than I originally thought, since IMenu only wants to /inte
 
     (file qualified-name offset)"
     (let* ((here  (point))
-           (entry (thread-last (imenu--make-index-alist t)
-                               ;; Flatten hierarchy labels with dot separators:
-                               (ha-code-notes-location--flatten-index)
-                               ;; Filter to only entries that occur after point:
-                               (seq-filter (lambda (e) (<= (cdr e) here)))
-                               ;; Sort the remaining entries by position
-                               ;; (since out flatten-index function
-                               ;; doesn't guarantee the order):
-                               (seq-sort-by #'cdr #'>)
-                               ;; And the first entry on the list is our goal:
-                               car)))
+           (entry (ignore-errors
+                    (thread-last (imenu--make-index-alist t)
+                                 ;; Flatten hierarchy labels with dot separators:
+                                 (ha-code-notes-location--flatten-index)
+                                 ;; Filter to only entries that occur after point:
+                                 (seq-filter (lambda (e) (<= (cdr e) here)))
+                                 ;; Sort the remaining entries by position
+                                 ;; (since out flatten-index function
+                                 ;; doesn't guarantee the order):
+                                 (seq-sort-by #'cdr #'>)
+                                 ;; And the first entry on the list is our goal:
+                                 car))))
       (unless entry
         (error "No enclosing definition found for point"))
       (list (buffer-file-name)
@@ -131,8 +148,8 @@ The needed /trick/ is to flatten this IMenu hierarchy using this recursive beaut
 
 #+BEGIN_SRC emacs-lisp
   (defun ha-code-notes-location--flatten-index (alist &optional prefix)
-    "Flatten imenu ALIST into a list of (QUALIFIED-NAME . POSITION).
-  Where the qualified-name matches what which-function/imenu expect.
+    "Flatten imenu ALIST into a list of (NAME . POSITION).
+  Where the name matches what which-function/imenu expect.
 
   For instance:
 
@@ -142,27 +159,86 @@ The needed /trick/ is to flatten this IMenu hierarchy using this recursive beaut
 
      ((\"foo_class.method_one\" ...) (\"foo_class.method_two\" ...)...)
 
-  This is called recursively, so PREFIX could be a class name, or
-  other higher abstraction."
-    ;; Like `mapconcat' but lets us concat into something other than a string.
-    ;; Note that `mapcan' uses `nconc' which _mutates_ the `alist'.
-    ;; This is fine as a parameter that we then return:
+  Called recursively, where PREFIX could be a class name, or other higher
+  abstraction when the nesting represents a real outline (Org, Markdown).
+
+  Entries tagged with `imenu-kind' or `breadcrumb-kind' property (as Eglot
+  nests a function's local variables for Python) are already a flat
+  namespace of functions/variables/constants, so their own names are kept
+  bare and not qualified by an enclosing function's name."
     (mapcan
      (lambda (entry)
-       ;; Some imenu backends (e.g. python.el) annotate names with their
-       ;; category, e.g. "Pair (class)" or "sum (def)". Strip that so
-       ;; names match what `which-function'/`add-log-current-defun'
-       ;; produce, and what gets stored as XREF_NAME in notes files.
-       (let* ((name (replace-regexp-in-string
-                     (rx space "(" (one-or-more alpha) ")" string-end)
-                     "" (car entry)))
-              (value (cdr entry))
-              (qualified (if prefix (format "%s.%s" prefix name) name)))
-         (if (listp value)
-             (ha-code-notes-location--flatten-index value qualified)
-           (list (cons qualified (if (markerp value) (marker-position value) value))))))
+       (unless (or (null entry) (atom entry))
+         (let* ((raw-name (car entry))
+                (kind (and (stringp raw-name)
+                           (or (get-text-property 0 'imenu-kind raw-name)
+                               (get-text-property 0 'breadcrumb-kind raw-name))))
+                (name (if (stringp raw-name)
+                          (replace-regexp-in-string
+                           (rx space "(" (one-or-more alpha) ")" string-end)
+                           "" (substring-no-properties raw-name))
+                        (format "%s" raw-name)))
+                (value (cdr entry))
+                (qualified (if (and prefix (not kind)) (format "%s.%s" prefix name) name)))
+           (cond
+            ;; Case 1: Nested submenu (list of alist entries). Eglot
+            ;; never gives the container itself a position among its
+            ;; children, as Org does; it stashes it in the
+            ;; `imenu-region' text property instead, so recover it
+            ;; here. Children only inherit QUALIFIED as their prefix
+            ;; when this entry has no `imenu-kind' of its own -- i.e.
+            ;; when the nesting is a real outline, not Eglot's flat
+            ;; function/variable/constant tagging.
+            ((and (listp value) (consp (car value)))
+             (append
+              (let ((region (and (stringp raw-name)
+                                  (get-text-property 0 'imenu-region raw-name))))
+                (when region (list (cons qualified (car region)))))
+              (ha-code-notes-location--flatten-index value (unless kind qualified))))
+
+            ;; Case 2: Direct marker or integer position
+            ((integer-or-marker-p value)
+             (list (cons qualified (if (markerp value) (marker-position value) value))))
+
+            ;; Case 3: Overlay or element containing a position in car/cdr
+            ((overlayp value)
+             (list (cons qualified (overlay-start value))))
+
+            ((and (consp value) (integer-or-marker-p (car value)))
+             (list (cons qualified (if (markerp (car value))
+                                       (marker-position (car value))
+                                     (car value)))))
+
+            ;; Fallback: ignore non-positional Imenu metadata entries
+            (t nil)))))
      alist))
 #+END_SRC
+
+This flatten feature has been a pain in my side. An org-mode formatted file works well, for instance, running the following on this document:
+#+BEGIN_SRC emacs-lisp :tangle no :results replace value raw :export both :wrap example
+  (ha-code-notes-location--flatten-index (imenu--make-index-alist t))
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+((*Rescan* . -99) (Introduction . 946) (Helper Functions.Relative Code Locations . 3719) (Helper Functions.Org Properties . 13220) (Helper Functions . 3592) (Write a Note.Return to Source Code . 22408) (Write a Note.Fringe Indicators for Notes . 24001) (Write a Note . 17005) (Technical Artifacts . 27464))
+#+end_example
+
+But running the same expression on a Python file (via Eglot) nests the local variables and parameters of each function as children in the index, each tagged with an =imenu-kind= text property on its name, e.g. a function like this:
+
+#+begin_example
+(#("parse_args" 0 10 (imenu-region (1245 . 1627) imenu-kind "Function" breadcrumb-region (1245 . 1627) breadcrumb-kind "Function"))
+ (#("argv" 0 4 (imenu-region (1260 . 1289) imenu-kind "Variable" ...)) . 1260)
+ (#("parser" 0 6 (imenu-region (1365 . 1371) imenu-kind "Variable" ...)) . 1365))
+#+end_example
+
+Naively flattening this treats =argv= and =parser= as if they were nested methods, producing useless entries like ~parse_args.argv~. Worse, the function itself never had its own position among its children (unlike Org, which gives a parent headline a self-pointing entry), so there was no way to jump straight to ~parse_args~ at all.
+
+The fix: the presence of an =imenu-kind=/=breadcrumb-kind= property means the nesting is Eglot's flat function/variable/constant tagging, not a real outline -- so a child's name is never qualified by its parent's. When recursing into a nested submenu, the container's own position is recovered from its =imenu-region= text property, and the name is stripped of text properties. That turns the above into clean, bare entries for every name -- function, variable, and constant alike:
+
+#+begin_example
+((parse_args . 1245) (argv . 1260) (parser . 1365) (registry_credentials . 1630) ...)
+#+end_example
 
 Once inside a source file, we can jump to one of these /relative locations/:
 
@@ -170,19 +246,28 @@ Once inside a source file, we can jump to one of these /relative locations/:
   (defun ha-code-notes-location-goto (file name offset)
     "Move point to the position described by relative location.
 
-  FILE is the filename to load, may be nil to use current buffer.
-  NAME is a function name or other definition, e.g. ClassName.method
-  OFFSET is the number of lines below NAME to position the point."
+    FILE is the filename to load, may be nil to use current buffer.
+    NAME is a function name or other definition, e.g. ClassName.method
+    OFFSET is the number of lines below NAME to position the point."
     (when (and file (not (equal file (buffer-file-name))))
       (find-file-other-window file))
 
+    (condition-case t
+        (ha-code-notes--location-goto name offset)
+      (message "Definition `%s' no longer found in %s" name file))
+
+    (ignore-errors
+      ))
+
+  (defun ha-code-notes--location-goto (name &optional offset)
+    "Use `imenu' interface to goto NAME location.
+  If OFFSET given, move that many lines below."
     (let* ((index (ha-code-notes-location--flatten-index (imenu--make-index-alist t)))
            (entry (assoc name index)))
-      (if (not entry)
-          (message "Definition `%s' no longer found in %s" name file)
+      (when entry
         (goto-char (cdr entry))
         (when offset
-          (forward-line offset)))))
+            (forward-line offset)))))
 #+END_SRC
 
 To verify that this works:
@@ -297,8 +382,7 @@ This function defines what the notes filename should look like, loads it in a si
 
            ;; Keep in mind the `orig-parent' has a final slash, so the
            ;; initial . here marks it as hidden:
-           (note-file   (format "%s.%s-notes.org"
-                                orig-parent orig-base))
+           (note-file   (ha-code-notes-file orig-base orig-parent))
            (header      (which-function))
            (offset      (ha-code-notes-defun-rel-line)))
 
@@ -322,7 +406,7 @@ Use the builtin autoinsert feature to inject a basic template at the beginning o
     (use-package autoinsert
       :config
       (define-auto-insert
-        (cons (rx "/." (one-or-more (not "/")) "-notes.org" string-end) "Org Notes Template")
+        (cons ha-code-notes-rx "Org Notes Template")
          '("Short description: "
            "#+TITLE: "
            (s-titleized-words (s-replace-regexp (rx (any "-" "_")) " "
@@ -435,10 +519,7 @@ And give us keybinding that will either go to the notes (if we are in some code)
     "Open the notes buffer, or return to the code."
     (interactive)
     (when (buffer-file-name)
-      (if (string-match (rx "/." ; A hidden file
-                            (one-or-more (not "/"))
-                            "-notes.org" string-end)
-                        (buffer-file-name))
+      (if (string-match ha-code-notes-rx (buffer-file-name))
           (ha-code-notes-return)
         (ha-code-notes))))
 
@@ -472,22 +553,27 @@ A code file with an associated notes file is easy to forget about. Let's mark, i
 
   (defun ha-code-notes--fringe ()
     "Mark, in the fringe, every line in this buffer that has a note.
-  Notes live in the paired `.BASE-notes.org' file (see
-  `ha-code-notes') as headings whose XREF property matches this
-  file, XREF_NAME names the function (inherited by subheadings from
-  their parent), and XREF_LINE is a line offset from that function's
-  start, computed by `ha-code-notes-defun-rel-line'. We resolve each
-  pair back to an absolute line via `ha-code-notes-location-goto', since the function
-  may have moved since the note was taken."
+    Notes live in the paired `.BASE-notes.org' file (see
+    `ha-code-notes') as headings whose XREF property matches this
+    file, XREF_NAME names the function (inherited by subheadings from
+    their parent), and XREF_LINE is a line offset from that function's
+    start, computed by `ha-code-notes-defun-rel-line'. We resolve each
+    pair back to an absolute line via `ha-code-notes-location-goto', since the function
+    may have moved since the note was taken."
     (mapc #'delete-overlay ha-code-notes--fringe-overlays)
+
     (setq ha-code-notes--fringe-overlays nil)
     (let* ((orig-file (buffer-file-name))
            (note-file (and orig-file
-                           (format "%s.%s-notes.org"
-                                   (file-name-directory orig-file)
-                                   (file-name-base orig-file))))
+                           (ha-code-notes-file
+                            (file-name-directory orig-file)
+                            (file-name-base orig-file))))
            notes)
-      (when (and note-file (file-exists-p note-file))
+      ;; Only run if this is an actual file AND its notes file exists:
+      (when (and orig-file
+                 note-file
+                 (file-exists-p note-file)
+                 (not (string-match-p ha-code-notes-rx orig-file)))
         (with-temp-buffer
           (insert-file-contents note-file)
           (org-mode)
@@ -516,7 +602,7 @@ New notes and edited notes should refresh the markers too, so we hook into savin
 #+BEGIN_SRC emacs-lisp
   (defun ha-code-notes--fringe-notes-refresh-all ()
     "Refresh fringe note markers in every buffer after saving a notes file."
-    (when (string-match (rx "-notes.org" string-end) (buffer-file-name))
+    (when (string-match ha-code-notes-rx (buffer-file-name))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when buffer-file-name

@@ -210,7 +210,6 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                              "ha-org-literate.org"
                              "ha-org-clipboard.org"
                              "ha-capturing-notes.org"
-                             "ha-code-notes.org"
                              "ha-agendas.org"
                              "ha-data.org"
                              "ha-passwords.org"
@@ -230,6 +229,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                                   "ha-org-publishing.org"
                                   "ha-email.org"
                                   "ha-aux-apps.org"))
+                             "ha-code-notes.org"
                              "ha-dashboard.org"))
     "List of org files that complete the hamacs project.")
 #+end_src
@@ -241,7 +241,7 @@ The list of /hamacs/ org-formatted files stored in =ha-hamacs-files= is selectiv
     (if (not all)
         ha-hamacs-files
 
-      (thread-last (rx ".org" string-end)
+      (thread-last (rx (not ".") (+? any) ".org" string-end)
                    (directory-files hamacs-source-dir nil)
                    (append ha-hamacs-files)
                    (--filter (not (string-match (rx "README") it)))
