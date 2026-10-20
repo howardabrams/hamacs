@@ -355,7 +355,7 @@ The built-in Eglot package natively supports [[https://github.com/Microsoft/pyri
 
 #+begin_src emacs-lisp
   (use-package eglot
-    :straight nil
+    :ensure nil
     :after python
     :defer t
     :hook (python-mode . eglot-ensure)
@@ -370,7 +370,7 @@ Keybindings for the eglot-based LSP sub-menu, wired into the existing =python-mo
   (defvar ha-python-lsp-title (font-icons 'faicon "python" :title "Python LSP"))
 
   (use-package eglot
-    :straight nil
+    :ensure nil
     :after major-mode-hydra
     :config
     (pretty-hydra-define python-lsp (:color blue :quit-key "q"

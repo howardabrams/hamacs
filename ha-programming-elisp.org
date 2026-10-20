@@ -126,35 +126,38 @@ I like the idea of [[https://github.com/abo-abo/lispy][lispy]] for making a Lisp
 My primary use-case is for its refactoring and other unique features. For instance, I love [[help:lispy-ace-paren][lispy-ace-paren]] that puts an /ace label/ on every parenthesis, allowing me to quickly jump to any s-expression.
 
 #+begin_src emacs-lisp
-    (use-package lispy
-      :config
-      (when (fboundp 'evil-define-key)
-        (evil-define-key '(normal visual) lispyville-mode-map
-          ;; Jump to interesting places:
-          "gf" '("ace paren"  . lispy-ace-paren)
-          "gF" '("ace symbol" . lispy-ace-symbol)
-          (kbd "M-v") '("mark s-exp" . lispy-mark)))   ; Mark entire s-expression
+  (use-package zoutline)
 
-      (pretty-hydra-define lispy-debug nil
-        ("Debug"
-         (("d" lispy-edebug "Start")
-          ("j" lispy-debug-step-in "Jump in")
-          ("r" lispy-eval-and-replace "Eval/Replace"))
-         "Instrument"
-         (("f" (eval-defun t) "Function"))
-         ))
+  (use-package lispy
+    :after zoutline
+    :config
+    (when (fboundp 'evil-define-key)
+      (evil-define-key '(normal visual) lispyville-mode-map
+        ;; Jump to interesting places:
+        "gf" '("ace paren"  . lispy-ace-paren)
+        "gF" '("ace symbol" . lispy-ace-symbol)
+        (kbd "M-v") '("mark s-exp" . lispy-mark)))   ; Mark entire s-expression
 
-      (pretty-hydra-define lisp-refactor nil
-        ("To"
-         (("i" lispy-to-ifs "cond→if")
-          ("c" lispy-to-cond "if→cond")
-          ("t" lispy-toggle-thread-last "to thread")
-          ("d" lispy-to-defun "λ→𝑓")
-          ("l" lispy-to-lambda "𝑓→λ"))
-         "Convert"
-         (("F" lispy-flatten "flatten")
-          ("b" lispy-bind-variable "bind var")
-          ("B" lispy-unbind-variable "unbind var")))))
+    (pretty-hydra-define lispy-debug nil
+      ("Debug"
+       (("d" lispy-edebug "Start")
+        ("j" lispy-debug-step-in "Jump in")
+        ("r" lispy-eval-and-replace "Eval/Replace"))
+       "Instrument"
+       (("f" (eval-defun t) "Function"))
+       ))
+
+    (pretty-hydra-define lisp-refactor nil
+      ("To"
+       (("i" lispy-to-ifs "cond→if")
+        ("c" lispy-to-cond "if→cond")
+        ("t" lispy-toggle-thread-last "to thread")
+        ("d" lispy-to-defun "λ→𝑓")
+        ("l" lispy-to-lambda "𝑓→λ"))
+       "Convert"
+       (("F" lispy-flatten "flatten")
+        ("b" lispy-bind-variable "bind var")
+        ("B" lispy-unbind-variable "unbind var")))))
 #+end_src
 ** Lispyville
 I want an Evil version of [[Lispy]]. The [[https://github.com/noctuid/lispyville][lispyville project]] builds on it to make it Evil. From the README:
@@ -280,7 +283,6 @@ These are all good, but the primary keys I need to figure out, are the s-express
 Wilfred’s [[https://github.com/Wilfred/emacs-refactor/tree/master#elisp][emacs-refactor]] package can be helpful if you turn on =context-menu-mode= and …
 #+begin_src emacs-lisp
   (use-package emr
-    ;; :straight (:host github :repo "Wilfred/emacs-refactor")
     :config
     (pretty-hydra-define+ lisp-refactor nil
       ("To 𝛌"

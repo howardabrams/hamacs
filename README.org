@@ -8,7 +8,9 @@ I’ve crafted my Emacs configuration, I cheekily call /hamacs/, in a literate p
 
 The advantage to rolling yer own is I tend to  /use/ what I add, leading to less bloat. In reality, this is more fun.
 
-Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration gives me an easy way to /share/ my code. Feel free to steal whatever you find interesting, as sharing makes our community great.  Notice that functions and features I have written begin with =ha-=, but everything else is either /stock Emacs/ or a /package/ I download using [[https://github.com/raxod502/straight.el][straight]] (see [[file:bootstrap.org][bootstrap]] for the details) and configure with [[https://github.com/jwiegley/use-package][use-package]] (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for those details)… meaning most blocks of code should work on its own.
+Using [[https://howardism.org/Technical/Emacs/literate-devops.html][literate programming]] for my Emacs configuration gives me an easy way to /share/ my code. Feel free to steal whatever you find interesting, as sharing makes our community great.  Notice that functions and features I have written begin with =ha-=, but everything else is either /stock Emacs/ or a /package/ I download (see [[file:bootstrap.org][bootstrap]] for the details) and configure with the [[https://github.com/jwiegley/use-package][use-package]] macro (see either [[https://ianyepan.github.io/posts/setting-up-use-package/][this introduction]] or [[https://www.emacswiki.org/emacs/UsePackage][this wiki page]] for those details)… meaning most blocks of code should work on its own.
+
+*Note:* I now require Emacs version 30, for a few packages can’t be automatically downloaded from an Emacs Package Archive (like ELPA or MELPA), and I take advantage of the new =:vc= feature of =use-package= to download those packages directly from their Git repository.
 
 I’ve separated my configuration into /chapters/ around particular subjects, applications and programming languages. This feature allows you, dear reader, to jump our to items of interest, but allows me to /selectively load/ individual chapters. For instance, if I’m not doing much with Ruby at work, I can remove that chapter from the list in my [[file:bootstrap.org::*Load the Rest][bootstrap]]. I also don’t load my [[file:ha-display.org][UI configuration]] when I am using the Terminal (doesn’t happen much, actually).
 
@@ -26,7 +28,7 @@ To create [[file:~/.emacs.d/init.el][~/.emacs.d/init.el]] which starts the proce
 
 [[file:screenshots/dashboard-small.png]]
 ** Core Configuration
-  - [[file:bootstrap.org][Bootstrap]] :: configures =straight= and loads basic libraries the rest of the code depends on. It then loads the following files in order.
+  - [[file:bootstrap.org][Bootstrap]] :: loads basic libraries the rest of the code depends on. It then loads the following files in order.
   - [[file:ha-config.org][Configuration]] :: contains /most/ of my configuration, setting up my sequence key menus, evil, etc.
   - [[file:ha-evil.org][Evilness]] :: configuration for using VI, er, ~vim~ keybindings in Emacs.
   - [[file:ha-general.org][Leader]] :: using the ~SPC~ to kick off a hierarchical order of functions.

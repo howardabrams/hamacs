@@ -35,11 +35,6 @@ A literate programming file for bootstraping my Emacs Configuration.
 #+end_src
 * Introduction
 This file contains all the variable definitions and library loading for the other files in my project.
-
-I'm installing everything using the [[https://github.com/raxod502/straight.el#getting-started][straight.el]] for package installation and management. This is initialization code configured in [[file:initialize][initialize]], and calls to =use-package= now accepts a =:straight= parameter that allows me to retrieve special versions of some packages.
-
-See the details in [[https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8][this essay]].
-
 * Initial Settings
 ** Garbage Collection Settings
 GC has always been a contentious subject in Emacs. Lot less of an issue now, but let’s not slow the startup (any more than I already do by checking all the packages to see if anything new needs to be downloaded).
@@ -107,7 +102,7 @@ Getting tired off all the packages that I load spewing a bunch of warnings that 
 The following packages come with Emacs, but seems like they still need loading:
 #+begin_src emacs-lisp
   (use-package cl-lib
-    :straight (:type built-in)
+    :ensure nil
     :init (defun first (elt) (car elt))
     :commands (first))
 

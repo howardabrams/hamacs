@@ -35,7 +35,6 @@ The obvious keybindings are ~M-h/j/k/l~ … but that is used … well, somewhat.
 
 #+begin_src emacs-lisp :tangle no
   (use-package spatial-navigate
-    :straight (:repo "https://codeberg.org/ideasman42/emacs-spatial-navigate")
     :config
     (pretty-hydra-define spatial-navigate (:color amaranth :quit-key "q")
       ("Box"
@@ -62,7 +61,6 @@ The [[https://github.com/antonj/Highlight-Indentation-for-Emacs][Highlight-Inden
 
 #+begin_src emacs-lisp
   (use-package highlight-indentation
-    :straight (:host github :repo "antonj/Highlight-Indentation-for-Emacs")
     :hook ((yaml-mode . highlight-indentation-mode)
            (python-mode . highlight-indentation-mode)))
 #+end_src
@@ -119,7 +117,6 @@ Allow this mode in Org blocks:
 And we hook
 #+begin_src emacs-lisp
   (use-package yaml-pro
-    :straight (:host github :repo "zkry/yaml-pro")
     :after yaml-mode
     :hook ((yaml-mode . yaml-pro-mode)))
 #+end_src
@@ -224,7 +221,6 @@ Do I consider all YAML files an Ansible file needing [[https://github.com/k1LoW/
 
 #+begin_src emacs-lisp
   (use-package ansible
-    :straight (:host gitlab :repo "emacs-ansible/emacs-ansible")
     ;; :mode ((rx (or "playbooks" "roles") (one-or-more any) ".y" (optional "a") "ml") . ansible-mode)
     :config
     (setq ansible-vault-password-file "~/.ansible-vault-passfile")
@@ -242,7 +238,6 @@ Since most Ansible files are a combination of YAML and Jinja, the [[https://gith
 
 #+BEGIN_SRC emacs-lisp
   (use-package poly-ansible
-    :straight (:host github :repo "emacsmirror/poly-ansible")
     :after ansible)
 #+END_SRC
 

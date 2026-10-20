@@ -40,7 +40,7 @@ Use your favorite way to install Emacs’ packages, for instance, with Emacs 30,
 
 #+BEGIN_SRC emacs-lisp :tangle no :eval no
   (use-package pud
-    :vc (:url "https://howardabrams.com/git/howard/pud")
+    :vc (:url "https://howardabrams.com/git/howard/pud" :rev :newest)
     :custom
     (pud-worlds
      '(["Remote Moss-n-Puddles" 'ssh "howardabrams.com" 4000 "george"]

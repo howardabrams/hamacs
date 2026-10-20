@@ -35,15 +35,15 @@ cat > "$HAMACS_DEST/early-init.el" <<EOF
 ;;; Commentary:
 ;;
 ;; This is my early Emacs configuration file. See init.el for the real
-;; boot process. Since we are using straight or elpaca, we just need to
-;; stop the normal package process.
+;; boot process. Since init.el calls package-initialize itself, we just
+;; need to stop the normal package process.
 ;;
 ;;; Code:
 
 ;; Need the package system near the front:
 (require 'package)
 
-;; We'll be using straight. So, we don't want duplicated package loading:
+;; init.el activates the packages, so we don't want duplicated package loading:
 (setq package-enable-at-startup nil)
 
 ;; While I would rather program my configurations, sometimes the Emacs
@@ -104,56 +104,25 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 
 (setq package-check-signature 'allow-unsigned)
 
-;; While using Straight with direct Github repos,
-;; adding Melpa and others isn't a bad idea:
+;; Packages come from Melpa and the GNU and NonGNU ELPAs (the latter
+;; two are Emacs defaults). The rest are installed straight from their
+;; repositories with the :vc keyword of use-package (Emacs 30+).
 
+(require 'package)
 (require 'use-package)
 
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 
-(add-to-list 'package-archives
-             '("elpa-dev" . "https://elpa.gnu.org/devel/"))
-
 (setq package-enable-at-startup nil)
+(package-initialize)
 
-;; Configure straight https://github.com/raxod502/straight.el#getting-started
+;; Install any missing package by default, so we don't need :ensure t.
+;; Use :ensure nil for libraries that ship with Emacs (or my own).
 
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+(setq use-package-always-ensure t)
 
-(straight-use-package 'use-package)
-
-;; While that enables the :straight t extension to use-package, let's just have that be the default:
-(use-package straight
-  :custom (straight-use-package-by-default t
-           straight-default-vc 'git)
-
-  :init
-  ;; Eglot and its dependencies ship with Emacs.  Tell straight to treat them as
-  ;; built-in so nothing (e.g. flycheck-eglot's dependency header) re-pulls the
-  ;; GNU-ELPA copies, which would shadow the built-ins and trip eglot's
-  ;; `require-with-check' ("Feature `project' is now provided by a different file").
-  (setq straight-built-in-pseudo-packages
-        (append '(eglot project flymake xref jsonrpc external-completion eldoc)
-                straight-built-in-pseudo-packages)))
-
-;; See the details in https://dev.to/jkreeftmeijer/emacs-package-management-with-straight-el-and-use-package-3oc8
-
-(use-package org
-  ;; TODO: Using the latest org-mode
-  ;; :straight (:type built-in)
-  )
+(use-package org)
 
 ;; Let's rock:
 (org-babel-load-file "$HAMACS_DIR/bootstrap.org")

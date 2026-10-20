@@ -145,8 +145,7 @@ And my copy of his code:
 After reading [[https://irreal.org/blog/?p=12139][Jon Sander’s essay]] as well as [[https://mbork.pl/2024-04-27_Emacs_everywhere][Marcin Borkowski's essay]], I decided to try out Tecosaur’s [[https://github.com/tecosaur/emacs-everywhere][Emacs Everywhere]] approach:
 
 #+begin_src emacs-lisp
-  (use-package emacs-everywhere
-    :straight (:host github :repo "tecosaur/emacs-everywhere"))
+  (use-package emacs-everywhere)
 #+end_src
 
 This package /called outside of Emacs/, so I bound a keybinding to iCanHazShortcut:
@@ -229,7 +228,7 @@ When I push changes to my files to Gerrit and other code review, I don’t want 
 The [[https://www.emacswiki.org/emacs/RecentFiles][recentf]] feature has been in Emacs for a long time, but it has a problem with Tramp, as we need to turn off the cleanup feature that attempts to =stat= all the files and remove them from the =recent= accessed list if they are readable. The requires recentf to open up a remote files which blocks Emacs at the most inopportune times… like when trying to reboot the machine.
 #+begin_src emacs-lisp
   (use-package recentf
-    :straight (:type built-in)
+    :ensure nil
     :config
     (setq recentf-auto-cleanup 'never) ;; disable before we start recentf!
     (recentf-mode 1))
@@ -343,7 +342,7 @@ The [[https://github.com/minad/vertico][vertico]] package puts the completing re
 My issue with Vertico is when calling =find-file=, the Return key opens =dired=, instead of inserting the directory at point. This package addresses this:
 #+begin_src emacs-lisp
   (use-package vertico-directory
-    :straight (el-patch :files ("~/.emacs.d/straight/repos/vertico/extensions/vertico-directory.el"))
+    :ensure nil
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
                 ("RET" . vertico-directory-enter)
@@ -384,7 +383,6 @@ How does it compare? Once upon a time, I enjoyed typing ~plp~ for =package-list-
 
 #+begin_src emacs-lisp
   (use-package fussy
-    ;; :straight (:host github :repo "jojojames/fussy")
     :config
     (push 'fussy completion-styles)
     (setq completion-category-defaults nil
@@ -575,7 +573,6 @@ The [[https://github.com/minad/cape][Cape project]] deliver particular [[help:co
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package cape
-    :straight (:host github :repo "minad/cape")
     :init
     (setq completion-at-point-functions (list #'cape-emoji)))
 #+END_SRC
@@ -708,7 +705,7 @@ As I've mentioned [[http://www.howardism.org/Technical/Emacs/beep-for-emacs.html
             'libnotify)))
 
   (use-package beep
-    :straight (:local-repo "~/src/hamacs/elisp")
+    :ensure nil
     :hook (after-init . ha-random-startup-message)
     :commands (beep-when-finished beep-when-run-too-long)
     :config
@@ -1258,7 +1255,7 @@ Also, as [[https://www.bytedude.com/gpg-in-emacs/][bytedude]] mentions, I need t
 
 #+begin_src emacs-lisp
   (use-package epa-file
-    :straight (:type built-in)
+    :ensure nil
     :custom
     (epg-debug t)
     (auth-source-debug t)

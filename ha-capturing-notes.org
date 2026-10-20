@@ -233,7 +233,6 @@ And for even quicker work, we can have special scripts tied to special keybindin
 The [[https://gitlab.com/aimebertrand/org-mac-link][org-mac-link]] project makes it easy to tell Emacs to retrieve information from other apps, e.g. the URL of the opened tab in Firefox.
 #+begin_src emacs-lisp
   (use-package org-mac-link
-    :straight (:host gitlab :repo "aimebertrand/org-mac-link")
     :config
     (ha-leader "i" '("insert app info" . org-mac-link-get-link)))
 #+end_src

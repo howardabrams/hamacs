@@ -360,7 +360,6 @@ Why not use ~f~? I’m reserving the ~f~ for a tree-sitter version that is not a
 
 #+BEGIN_SRC emacs-lisp
   (use-package anzu
-    :ensure t
     :config
     (global-anzu-mode +1))
 #+END_SRC
@@ -427,7 +426,7 @@ Where I like to align, is on variable assignments, e.g.
 If you press ~RETURN~ for the /character/ to align, =evil-lion= package simply calls the built-in [[help:align][align]] function. This function chooses a regular expression based on a list of /rules/, and aligning Lisp variables requires a complicated regular expression. Extend [[elisp:(describe-variable 'align-rules-list)][align-rules-list]]:
 #+begin_src emacs-lisp
   (use-package align
-    :straight (:type built-in)
+    :ensure nil
     :config
     (add-to-list 'align-rules-list
                  `("lisp-assignments"

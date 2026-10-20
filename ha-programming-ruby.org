@@ -268,7 +268,7 @@ The built-in Eglot package natively supports [[https://github.com/castwide/solar
 
 #+begin_src emacs-lisp
   (use-package eglot
-    :straight nil
+    :ensure nil
     :after ruby-mode
     :defer t
     :hook (ruby-mode . eglot-ensure))
@@ -278,7 +278,7 @@ Keybindings for the eglot-based LSP sub-menu, wired into the =ruby-mode= local l
 
 #+begin_src emacs-lisp
   (use-package eglot
-    :straight nil
+    :ensure nil
     :after ruby-mode
     :config
     (ha-local-leader 'ruby-mode-map

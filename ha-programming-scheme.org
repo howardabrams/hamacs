@@ -57,7 +57,7 @@ The [[https://www.nongnu.org/geiser/][geiser project]] attempts to be the interf
 Do we need a Scheme work for Org Babel? According to [[https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-scheme.html][this document]], we just need to make sure we add the =:session= variable to start the REPL.
 #+begin_src emacs-lisp
   (use-package ob-scheme
-    :straight (:type built-in)
+    :ensure nil
     :config
     (add-to-list 'org-babel-load-languages '(scheme . t)))
 
@@ -105,7 +105,7 @@ Still having difficulty getting the Scheme REPL to output the results back into 
 
 Normally, I would just [[info:SICP][read the book]], however, if we want to read the [[file:~/.emacs.d/straight/build/sicp/sicp.info][sicp.info]] file, we need this, at least, temporarily:
 #+begin_src emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.info\\'" . Info-mode))
+  (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-mode))
 #+end_src
 * Racket
 Actually, let’s do this with [[https://racket-lang.org/][Racket]]:
@@ -122,7 +122,7 @@ While Racket, as a Scheme, should work with Geiser (below), let’s also get [[h
 Can we get Racket working with Org?
 #+begin_src emacs-lisp
   (use-package ob-racket
-    :straight (:host github :repo "DEADB17/ob-racket")
+    :vc (:url "https://github.com/DEADB17/ob-racket" :rev :newest)
     :after org
     :config
     (add-to-list 'org-babel-load-languages '(racket . t)))

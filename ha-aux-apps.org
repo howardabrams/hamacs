@@ -31,7 +31,6 @@ The following applications are not needed. I alternate between trying to /stay i
 Glad to see the 2FA feature is working on the [[https://codeberg.org/martianh/mastodon.el][mastodon.el]] project, and even more glad to see the great birdland diaspora arrive in the land of the toots.
 #+begin_src emacs-lisp
   (use-package mastodon
-    :straight (:host codeberg :repo "martianh/mastodon.el")
     :init
     (setq mastodon-instance-url "https://pdx.social"
           mastodon-active-user "howard"))
@@ -95,7 +94,6 @@ Let’s turn on non-fixed-width fonts to make everything easier to read:
 Yet another encrypted chat/VoIP client-server, but unlike Signal and Telegram, [[matrix.org][Matrix]] is act ually open source. In other words, a project for nerds. We’ll be using Alphapapa’s latest [[https://github.com/alphapapa/ement.el][ement]] project.
 #+begin_src emacs-lisp
   (use-package ement
-    :straight (:host github :repo "alphapapa/ement.el")
     :after major-mode-hydra
     :config
     (major-mode-hydra-define ement-room-mode (:quit-key "q")
@@ -176,7 +174,8 @@ Been working on my [[https://gitlab.com/howardabrams/emacs-rpgdm][RPG DM project
 #+begin_src emacs-lisp :tangle no
   (when (f-directory? "~/src/emacs-rpgdm")
     (use-package rpgdm
-      :straight (:local-repo "~/src/emacs-rpgdm")
+      :ensure nil
+      :load-path "~/src/emacs-rpgdm"
       :commands (rpgdm-mode rpgdm-tables-load)
       :init (setq rpgdm-base (expand-file-name "~/src/emacs-rpgdm"))
       :config (ha-leader "t D" '("rpg dm" . rpgdm-mode))))
@@ -186,7 +185,8 @@ Working on my new replacement of my DM code:
 #+begin_src emacs-lisp
   (when (f-directory? "~/src/emacs-rpgtk")
     (use-package rpgtk
-      :straight (:local-repo "~/src/emacs-rpgtk")
+      :ensure nil
+      :load-path "~/src/emacs-rpgtk"
       :after hydra
       ;; :commands (rpgtk-mode rpgtk-tables-load rpgtk-dice rpgtk-message)
       :custom
@@ -204,7 +204,8 @@ And my [[https://gitlab.com/howardabrams/emacs-ironsworn][new Ironsworn project]
   (when (f-directory? "~/src/emacs-ironsworn")
     (use-package rpgdm-ironsworn
       :after rpgdm
-      :straight (:local-repo "~/src/emacs-ironsworn")
+      :ensure nil
+      :load-path "~/src/emacs-ironsworn"
       :init
       (setq rpgdm-ironsworn-project (expand-file-name "~/src/emacs-ironsworn")
             ;; Ignore org links that call my RPG functions:
@@ -238,7 +239,6 @@ And then the configuration:
 
 #+BEGIN_SRC emacs-lisp
   (use-package ready-player
-    :straight (:type git :host github :repo "xenodium/ready-player")
     :config
     (when (eq system-type 'darwin)
       (set-fontset-font t nil "SF Pro Display" nil 'append)

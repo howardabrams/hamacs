@@ -247,7 +247,7 @@ The /real problem/ is trying to remember all the [[https://github.com/clojure-em
 And of course, we want to put this with org blocks:
 #+begin_src emacs-lisp
   (use-package ob-clojure
-    :straight (:type built-in)
+    :ensure nil
     :custom
     (org-babel-clojure-backend 'cider)
     :config

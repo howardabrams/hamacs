@@ -32,14 +32,11 @@ Ethic issues aside, I’m [[https://technobabble.bearblog.dev/fine-ill-try-ai/][
 Installing Xenodium’s [[https://github.com/xenodium/agent-shell][agent-shell]], requires his [[https://github.com/xenodium/acp.el][ACP package]] for accessing the installed [[https://agentclientprotocol.com/][ACP libraries]], and his [[https://github.com/xenodium/shell-maker][shell-maker]] package.
 
 #+BEGIN_SRC emacs-lisp
-  (use-package acp
-    :straight (:type git :host github :repo "xenodium/acp.el"))
+  (use-package acp)
 
-  (use-package shell-maker
-    :straight (:type git :host github :repo "xenodium/shell-maker"))
+  (use-package shell-maker)
 
   (use-package agent-shell
-    :straight (:type git :host github :repo "xenodium/agent-shell")
     :after acp
 
     :custom
@@ -69,7 +66,7 @@ I would like the /intern/ to notify me when it needs attention, so I noticed the
 
 #+BEGIN_SRC emacs-lisp
   (use-package knockknock
-    :straight (knockknock :type git :host github :repo "konrad1977/knockknock")
+    :vc (:url "https://github.com/konrad1977/knockknock" :rev :newest)
     :init
     (setq knockknock-border-color "brown")
     (setq knockknock-border-width 2)
@@ -90,10 +87,8 @@ The configuration for [[https://github.com/zackattackz/agent-shell-notifications
 
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell-notifications
-    :straight (agent-shell-notifications
-               :type git
-               :host github
-               :repo "zackattackz/agent-shell-notifications")
+    :vc (:url "https://github.com/zackattackz/agent-shell-notifications" :rev :newest)
+    :after knockknock
     :hook
     ;; Enable notifications in each agent-shell buffer
     (agent-shell-mode . agent-shell-notifications-mode)
@@ -134,7 +129,7 @@ Using the [[https://github.com/cmacrae/agent-shell-sidebar][agent-shell-sidebar]
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell-sidebar
     :after agent-shell
-    :straight (:host github :repo "cmacrae/agent-shell-sidebar")
+    :vc (:url "https://github.com/cmacrae/agent-shell-sidebar" :rev :newest)
     :bind (("s-i" . agent-shell-sidebar-toggle-focus)
            ("s-I" . agent-shell-sidebar-toggle)))
 #+END_SRC
@@ -324,7 +319,6 @@ This project (and others) can use repeat mode, but
 The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses [[https://github.com/dandavison/delta][git-delta]] for colorized diffs.
 #+begin_src emacs-lisp
   (use-package magit-delta
-    :ensure t
     :hook (magit-mode . magit-delta-mode))
 #+end_src
 
@@ -408,8 +402,7 @@ The crucial parts of this helper function are that we "wash" the result using =a
 
 The functions below depend on [[help:magit-thing-at-point][magit-thing-at-point]], and this depends on the [[https://sr.ht/~pkal/compat/][compat]] library, so let’s grab that stuff:
 #+begin_src emacs-lisp :tangle no
-  (use-package compat
-    :straight (:host github :repo "emacs-straight/compat"))
+  (use-package compat)
 
   (use-package magit-section
     :commands magit-thing-at-point)
@@ -504,8 +497,7 @@ Using the [[https://github.com/emacsmirror/gist][gist package]] to write code sn
 
 The gist project depends on the [[https://github.com/sigma/gh.el][gh library]]. There seems to be a problem with it.
 #+begin_src emacs-lisp :tangle no
-  (use-package gh
-    :straight (:host github :repo "sigma/gh.el"))
+  (use-package gh)
 #+end_src
 
 ** Forge
@@ -577,8 +569,7 @@ With the =gh= CLI working, we can install and use this project:
 
 #+BEGIN_SRC emacs-lisp
   (use-package magit-gh
-    :after magit
-    :straight (:type git :host github :repo "jonathanchu/magit-gh"))
+    :after magit)
 #+END_SRC
 
 
@@ -738,7 +729,6 @@ Make my EWW browsers /look/ like an Org file with the [[https://github.com/cheny
 
 #+begin_src emacs-lisp
   (use-package shrface
-    :straight (:host github :repo "chenyanming/shrface")
     :config
     (shrface-basic)
     ;; (shrface-trial)
@@ -873,18 +863,18 @@ Instead I use Emacs' built-in directory lister (which accepts the standard, =dir
 
 #+begin_src emacs-lisp
   (use-package ls-lisp
-    :straight (:type built-in)
+    :ensure nil
     :config
     (setq ls-lisp-use-insert-directory-program nil
           dired-listing-switches
           "-l --almost-all --human-readable --group-directories-first --no-group"))
 #+end_src
 
-And [[https://www.masteringemacs.org/article/dired-shell-commands-find-xargs-replacement][this article by Mickey Petersen]] convinced me to turn on the built-in =dired-x= (just have to tell [[file:bootstrap.org::*Introduction][straight]] that knowledge):
+And [[https://www.masteringemacs.org/article/dired-shell-commands-find-xargs-replacement][this article by Mickey Petersen]] convinced me to turn on the built-in =dired-x=:
 
 #+begin_src emacs-lisp
   (use-package dired-x
-    :straight (:type built-in))
+    :ensure nil)
 #+end_src
 
 The advantage of =dired-x= is the ability to have [[https://www.emacswiki.org/emacs/DiredExtra#Dired_X][shell command guessing]] when selecting one or more files, and running a shell command on them with ~!~ or ~&~.
@@ -898,7 +888,6 @@ The [[https://github.com/alexluigit/dirvish][dirvish]] project aims to make a pr
 I’m beginning with dirvish to use the [[https://github.com/alexluigit/dirvish/blob/main/docs/CUSTOMIZING.org][sample configuration]] and change it:
 #+begin_src emacs-lisp :tangle no
   (use-package dirvish
-    :straight (:host github :repo "alexluigit/dirvish")
     :init (dirvish-override-dired-mode)
 
     :custom

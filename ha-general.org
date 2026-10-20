@@ -907,7 +907,7 @@ Remember these keys in the *Help* buffer:
 Let's make Info behave a little more VI-like:
 #+begin_src emacs-lisp
   (use-package info
-    :straight (:type built-in)
+    :ensure nil
     :general
     (:states 'normal :keymaps 'Info-mode-map
              "B" 'Info-bookmark-jump

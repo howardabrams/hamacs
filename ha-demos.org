@@ -44,8 +44,8 @@ Once I made demonstrations /within/ Emacs with my [[https://github.com/howardabr
 
 #+begin_src emacs-lisp :tangle no
     (use-package demo-it
-      :straight (:local-repo "~/src/demo-it")
-      ;; :straight (:host github :repo "howardabrams/demo-it")
+      :ensure nil
+      :load-path "~/src/demo-it"
       :commands (demo-it-create demo-it-start demo-it-hide-mode-line
                                 demo-it--presentation-display-set)
       :custom (demo-it--insert-test-speed :faster))
@@ -194,7 +194,6 @@ With some a startup bug that I haven’t been able to resolve, I’m not using i
 
 #+begin_src emacs-lisp :tangle no
   (use-package dslide
-    :straight (dslide :host github :repo "positron-solutions/dslide")
     :commands (dslide-deck-start dslide-deck-stop)
     :custom
     (dslide-start-from 'point)
@@ -244,7 +243,6 @@ Call the =ha-slide-notes-update= function automatically after updating a slide. 
 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package dslide
-    :straight (dslide :host github :repo "positron-solutions/dslide")
     :commands (dslide-narrow-hook)
     :hook (dslide-narrow . 'ha-slide-notes-update))
 #+END_SRC
@@ -255,9 +253,7 @@ The [[https://github.com/positron-solutions/moc][Master of Ceremonies]] package 
 #+BEGIN_SRC emacs-lisp :tangle no
   (use-package default-text-scale)
 
-  (use-package moc
-    :straight (:type git :host github
-               :repo "positron-solutions/moc"))
+  (use-package moc)
 #+END_SRC
 
 Select text, and call =moc-focus= (call =moc-focus-quit= to stop). Highlight more text, and call =moc-focus-highlight= to brighten it, or =moc-focus-obscure= to hide it.
@@ -271,8 +267,7 @@ An interesting approach for making presentations, that I’m not sure I will nee
 The [[https://github.com/trevorpogue/topspace][topspace]] project can pad the top of a buffer, to make the first line in the center of the window. Helpful for presentations:
 
 #+BEGIN_SRC emacs-lisp
-  (use-package topspace
-    :straight (:type git :host github :repo "trevorpogue/topspace"))
+  (use-package topspace)
     #+END_SRC
 
 *** Showing Something associated with a Headline
@@ -307,7 +302,6 @@ To do this, add =:DSLIDE_ACTIONS: dslide-action-highlight-paragraphs= to the pro
 
 #+begin_src elisp emacs-lisp :tangle no
   (use-package dslide
-    :straight (:host github :repo "positron-solutions/dslide")
     :config
     (defclass dslide-action-highlight-paragraphs (dslide-action)
       ((overlays :initform nil))

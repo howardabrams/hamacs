@@ -109,7 +109,6 @@ The variable, =org-hide-emphasis-markers=, is key to pretending that Emacs can b
 
 #+begin_src emacs-lisp
    (use-package org-appear
-     :straight (:type git :host github :repo "awth13/org-appear")
      :init (setq org-appear-trigger 'manual)
      :hook
      ((org-mode . (lambda ()
@@ -330,7 +329,6 @@ The [[https://github.com/minad/org-modern][org-modern]] project attempts to do a
 
 #+begin_src emacs-lisp
   (use-package org-modern
-    :straight (:host github :repo "minad/org-modern")
     :after org
     :hook ((org-mode . org-modern-mode)
            (org-agenda-finalize . org-modern-agenda))
@@ -367,7 +365,7 @@ According to an idea by [[https://jft.home.blog/2019/07/17/use-unicode-symbol-to
 The [[https://github.com/TonCherAmi/org-padding][org-padding]] project looks places extra space before and after headers and blocks (essentially leading), to create a more word-processor-y experience. Great idea, however, I have spent a lot of extra time entering blank lines before and after my headers and blocks:
 #+begin_src emacs-lisp
   (use-package org-padding
-    :straight (:host github :repo "TonCherAmi/org-padding")
+    :vc (:url "https://github.com/TonCherAmi/org-padding" :rev :newest)
     :hook (org-mode . org-padding-mode)
     :config
     (setq org-padding-block-begin-line-padding '(0.5 . 0.3)

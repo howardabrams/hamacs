@@ -60,7 +60,7 @@ The [[https://github.com/mihaimaruseac/hindent][hindent package]] looks interest
 * Haskell and Org
 #+begin_src emacs-lisp
   (use-package ob-haskell
-    :straight (:type built-in)
+    :ensure nil
     :config
     (add-to-list 'org-babel-load-languages '(haskell . t)))
 #+end_src

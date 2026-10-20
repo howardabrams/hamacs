@@ -30,8 +30,7 @@ While the Emacs community have a plethora of options for generating a static web
 The RSS needs UUIDs:
 
 #+BEGIN_SRC emacs-lisp results silent
-  (use-package uuidgen
-    :straight (:host github :repo "emacsmirror/uuidgen"))
+  (use-package uuidgen)
 
   (defun org-icalendar-create-uid (&rest ignored)
     "Returns a UUID."
@@ -41,8 +40,7 @@ The RSS needs UUIDs:
 While the following packages come with Emacs, they aren't necessarily loaded:
 
 #+begin_src emacs-lisp :results silent
-  (use-package ox-rss
-    :straight (:host github :repo "emacsmirror/ox-rss"))
+  (use-package ox-rss)
 
   (use-package org
     :config
@@ -64,7 +62,6 @@ Render my code with my font colors:
 Also, we need Jack, and his HTML prowess:
 #+begin_src emacs-lisp
   (use-package jack
-    :straight (:host github :repo "tonyaldon/jack")
     :commands (jack-html))
 #+end_src
 

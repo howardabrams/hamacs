@@ -85,7 +85,6 @@ The [[https://github.com/jdtsmith/ultra-scroll][ultra-scroll]] project allows sm
 
 #+BEGIN_SRC emacs-lisp
   (use-package ultra-scroll
-    :straight (:type git :host github :repo "jdtsmith/ultra-scroll")
     :config
     (setq scroll-conservatively 101 ; important!
           pixel-scroll-precision-interpolate-page t
@@ -123,7 +122,6 @@ I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[ht
 
 #+begin_src emacs-lisp
   (use-package pulsar
-    :straight (:host github :repo "protesilaos/pulsar")
     :after winum ace-window
     :custom
     (pulsar-face 'pulsar-generic)
@@ -188,7 +186,6 @@ Am I ever really ever satisfied with any font? I regularly change my font based 
 
 #+begin_src emacs-lisp
   (use-package mixed-pitch
-    ;; :straight (:host github :repo "jabranham/mixed-pitch")
     :config
     (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-property-value)
     (add-to-list 'mixed-pitch-fixed-pitch-faces 'org-special-keyword)
@@ -418,7 +415,6 @@ This project replaces [[https://github.com/domtronn/all-the-icons.el][all-the-ic
 
 #+BEGIN_SRC emacs-lisp
   (use-package nerd-icons
-    :straight (nerd-icons :type git :host github :repo "rainstormstudio/nerd-icons.el")
     :custom
     ;; The Nerd Font you want to use in GUI defaults to fixed-font:
     (nerd-icons-font-family ha-fixed-font))
@@ -673,7 +669,6 @@ In code, if you drop a specific /text/ labels, we can highlight them with [[http
 
 #+begin_src emacs-lisp
   (use-package hl-todo
-    :straight (:host github :repo "tarsius/hl-todo")
     :config
     (setq hl-todo-keyword-faces
       `(("TODO"   . ,(face-foreground 'warning))
@@ -689,7 +684,6 @@ Suggests to bind some keys to =hl-todo-next= in order to jump from tag to tag, b
 
 #+begin_src emacs-lisp
   (use-package consult-todo
-    :straight (:host github :repo "liuyinz/consult-todo")
     :init
     (defconst consult-todo--narrow
       '((?t . "TODO")

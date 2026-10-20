@@ -134,16 +134,11 @@ After Emacs is /kinda/ working, make sure you install *all* the fonts, that is:
 M-x nerd-icons-install-fonts
 #+end_example
 
-Everything golden?
+Everything golden? Great. Want to upgrade all the packages?
 #+begin_example
-M-x straight-freeze-versions
+M-x package-upgrade-all
 #+end_example
 
-Before we can build a Telegram server for [[file:ha-aux-apps.org::*Telega][Telega]], we need to install the /latest/ version:
-#+begin_src sh
-  brew unlink tdlib  # optional
-  brew install tdlib --HEAD
-#+end_src
 * Supporting Packages
 Now install all the extras:
 #+begin_src sh

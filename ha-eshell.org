@@ -27,10 +27,9 @@ A literate programming file for configuring the Emacs Shell.
 While I like [[https://github.com/akermu/emacs-libvterm][vterm]] for logging into [[file:ha-remoting.org][remote systems]], I find Emacs’ shell, =eshell=, an interesting alternative.
 If you find the documentation lacking, I [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][documented most features]], and you might find the following helpful.
 
-Tell straight to use the built-in =eshell=:
 #+begin_src emacs-lisp
   (use-package eshell
-    :straight (:type built-in)
+    :ensure nil
     :hook (eshell-mode . ha-eshell-setup))
 #+end_src
 
@@ -976,7 +975,6 @@ The problem with this trick is that =rx= outputs an Emacs-compatible regular exp
 The [[https://github.com/joddie/pcre2el][pcre2el]] project can convert from a Lisp regular expression to a [[http://www.pcre.org/][PCRE]] (Perl Compatible Regular Expression), acceptable by [[https://github.com/BurntSushi/ripgrep][ripgrep]].
   #+begin_src emacs-lisp
     (use-package pcre2el
-      :straight (:host github :repo "joddie/pcre2el")
       :config
       (defmacro prx (&rest expressions)
         "Convert the rx-compatible regular EXPRESSIONS to PCRE.
@@ -1378,7 +1376,6 @@ The [[https://codeberg.org/akib/emacs-eat][Emulate a Terminal]] project provides
 #+begin_src emacs-lisp :tangle no
   (use-package eat
     :after eshell
-    :straight (:repo "https://codeberg.org/akib/emacs-eat")
     :hook (eshell-load . eat-eshell-visual-command-mode))
 #+end_src
 
@@ -1787,7 +1784,7 @@ Sometimes you need to change something about the current file you are editing...
 Here is where we associate all the functions and their hooks with =eshell=, through the magic of =use-package=.
 #+begin_src emacs-lisp
   (use-package eshell
-    :straight (:type built-in)
+    :ensure nil
     :custom (eshell-banner-message '(ha-eshell-banner))
     :init
     (setq eshell-error-if-no-glob t

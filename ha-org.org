@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-10-09 Fri]
+#+lastmod: [2026-10-20 Tue]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -32,7 +32,6 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
 #+begin_src emacs-lisp :noweb yes
   (use-package org
     ;; TODO: Using the latest org-mode
-    ;; :straight (:type built-in)
     :mode (("\\.org" . org-mode))
     :init
     <<variables>>
@@ -281,7 +280,7 @@ Came up with a great way to search a project for Org-specific files, and wrote [
 
 #+begin_src emacs-lisp
   (use-package org-find-file
-    :straight nil
+    :ensure nil
     :config
     (ha-leader "f o" '("load org" . org-find-file)))
 #+end_src
@@ -495,7 +494,6 @@ Need to install and configure Emacs to work with [[https://plantuml.com/][PlantU
 After installing the [[https://github.com/skuro/plantuml-mode][plantuml-mode]], we need to reference the location:
 #+begin_src emacs-lisp
   (use-package plantuml-mode
-    :straight (:host github :repo "skuro/plantuml-mode")
     :init
     (setq org-plantuml-jar-path (expand-file-name "~/bin/plantuml.jar")))
 #+end_src
@@ -548,8 +546,8 @@ Of course, since we are dealing with Emacs, where we assimilate any good idea. J
 
 #+begin_src emacs-lisp
   (use-package pikchr-mode
-    :straight (:local-repo "~/src/pikchr-mode")
-    ;; :straight (:host github :repo "kljohann/pikchr-mode")
+    :ensure nil
+    :load-path "~/src/pikchr-mode"
     :custom
     (pikchr-executable "~/bin/pikchr"))
 #+end_src
@@ -737,7 +735,7 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
 #+begin_src emacs-lisp
   (use-package ox-confluence
     :after org
-    :straight nil   ; Located in my "elisp" directory
+    :ensure nil   ; Located in my "elisp" directory
     :config
     (ha-leader :keymaps 'org-mode-map
       "o E" '("to confluence"     . ox-export-to-confluence)))
@@ -748,7 +746,6 @@ I have a special version of tweaked [[file:elisp/ox-confluence.el][Confluence ex
 I’m not afraid of HTML, but I like the idea of doing my HTML work in a Lisp-like way using the [[https://github.com/tonyaldon/jack][jack-html project]]:
 #+begin_src emacs-lisp
   (use-package jack
-    :straight (:host github :repo "tonyaldon/jack")
     :commands (jack-html))
 #+end_src
 
@@ -802,7 +799,7 @@ I've been working on my own [[http://www.howardism.org/Technical/Emacs/focused-w
   (use-package async)
 
   (use-package ha-focus
-    :straight (:type built-in)
+    :ensure nil
     :config
     (ha-leader
      "o f" '("begin focus" . ha-focus-begin)
@@ -894,9 +891,9 @@ And the Emacs interface to that:
 
 #+begin_src emacs-lisp
   (use-package jinx
-    :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
     :hook (emacs-startup . global-jinx-mode)
-    :bind (("C-;" . jinx-correct-nearest)
+    :bind (("C-:" . jinx-correct-nearest)
+           ("s-:" . jinx-correct-nearest)
            ("s-;" . jinx-correct-nearest)
            ([remap ispell-word] . #'jinx-correct))
     :config
@@ -1439,7 +1436,6 @@ The [[https://github.com/rnkn/olivetti][olivetti project]] sets wide margins and
 Trying out [[https://protesilaos.com/][Protesilaos Stavrou]]’s [[https://protesilaos.com/emacs/logos][logos project]] as a replacement for [[https://github.com/joostkremers/writeroom-mode][Writeroom-mode]]:
 #+begin_src emacs-lisp
   (use-package logos
-    :straight (:host gitlab :repo "protesilaos/logos")
     :init
     (setq logos-outlines-are-pages t
           logos-outline-regexp-alist
