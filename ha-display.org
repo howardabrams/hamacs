@@ -401,7 +401,6 @@ And fixed-width are in code blocks:
 #+begin_example
   * I like arrows, like: <- -> and <->
   * Long arrows? --> and <--
-
 #+end_example
 ** Font Icons
 

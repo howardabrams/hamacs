@@ -631,6 +631,7 @@ Web pages look pretty good with EWW, but I'm having difficulty getting it to ren
 
 #+begin_src emacs-lisp
   (use-package eww
+    :ensure nil
     :init
     (setq browse-url-browser-function 'eww-browse-url
           browse-url-secondary-browser-function 'browse-url-default-browser

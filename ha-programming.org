@@ -72,6 +72,7 @@ For all programming languages, I would like to now default to absolute line numb
 
 #+begin_src emacs-lisp
   (use-package emacs
+    :ensure nil
     :config
     (defun ha-prog-mode-config ()
       "Configure the `prog-mode'"
@@ -343,6 +344,12 @@ I’m curious about the new [[https://emacs-tree-sitter.github.io/][Tree Sitter 
 Install the binary for the [[https://tree-sitter.github.io/][tree-sitter project]]. For instance:
 #+begin_src sh
   brew install tree-sitter npm # Since most support packages need that too.
+#+end_src
+
+On Linux, use =npm= to install it:
+
+#+begin_src sh
+  sudo npm install --global tree-sitter-cli
 #+end_src
 
 The tree-sitter project does not install any language grammars by default—after all, it would have no idea which particular languages to parse and analyze!
@@ -653,6 +660,7 @@ While I’m at it, let’s connect various ~g~ sequence keys to =xref-= interfac
 
 #+begin_src emacs-lisp
   (use-package emacs
+    :ensure nil
     :general
     (:states 'normal
              "g ." '("find def"       . xref-find-definitions)

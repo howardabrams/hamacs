@@ -144,7 +144,7 @@ And my copy of his code:
 ** Emacs Everywhere
 After reading [[https://irreal.org/blog/?p=12139][Jon Sander’s essay]] as well as [[https://mbork.pl/2024-04-27_Emacs_everywhere][Marcin Borkowski's essay]], I decided to try out Tecosaur’s [[https://github.com/tecosaur/emacs-everywhere][Emacs Everywhere]] approach:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package emacs-everywhere)
 #+end_src
 
@@ -975,6 +975,7 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
 
 #+begin_src emacs-lisp
   (use-package emacs
+    :ensure nil
     :config
     (ha-leader
       "p"  '(:ignore t :which-key "projects")
@@ -1091,6 +1092,7 @@ And some shortcut keys from the =general= project:
 
 #+BEGIN_SRC emacs-lisp
   (use-package emacs
+    :ensure nil
     :config
     (general-nmap :prefix "SPC"
       "<tab>"  '(:ignore t :which-key "workspaces")
