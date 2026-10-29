@@ -62,7 +62,7 @@ This also requires installing some command line support utilities, as well as [[
 *** Notifications
 When my /artificial intern/ completes a task, I have long since nipped out to the kitchen, put the kettle on ... buttering scones... and getting crumbs and bits of food out of those round brown straw mats that the teapot goes on.
 
-I would like the /intern/ to notify me when it needs attention, so I noticed the [[https://github.com/zackattackz/agent-shell-notifications/][agent-shell-notifications]] project can connect the =agent-shell= project with the [[https://github.com/konrad1977/knockknock/][knock-knock]] project (which is similar to my [[https://howardism.org/Technical/Emacs/beep-for-emacs.html][beep project]]).
+I would like the /intern/ to notify me when it needs attention, so I noticed the [[https://github.com/xenodium/agent-shell-knockknock][agent-shell-knockknock]] project can connect the =agent-shell= project with the [[https://github.com/konrad1977/knockknock/][knock-knock]] project (which is similar to my [[https://howardism.org/Technical/Emacs/beep-for-emacs.html][beep project]]).
 
 #+BEGIN_SRC emacs-lisp
   (use-package knockknock
@@ -86,25 +86,11 @@ Testing it out:
 The configuration for [[https://github.com/zackattackz/agent-shell-notifications/][agent-shell-notifications]] and hook it to the =agent-shell-notifications-provider=:
 
 #+BEGIN_SRC emacs-lisp
-  (use-package agent-shell-notifications
-    :vc (:url "https://github.com/zackattackz/agent-shell-notifications" :rev :newest)
-    :after knockknock
-    :hook
-    ;; Enable notifications in each agent-shell buffer
-    (agent-shell-mode . agent-shell-notifications-mode)
-
-    :config
-    ;; Notification display timeout in seconds (0 = never expire (the default), -1 = backend default)
-    ;; (setq agent-shell-notifications-timeout 5)
-
-    ;; Seconds to wait before notifying when the shell is already visible (default: 10)
-    ;; (setq agent-shell-notifications-idle-timeout 30)
-
-    ;; Use the knockknock backend instead of the default libnotify
-    (setq agent-shell-notifications-provider 'agent-shell-notifications-knockknock)
-
-    ;; While that code is _supposed_ to do this, I seem to need to do this manually:
-    (require 'agent-shell-notifications-knockknock))
+  (use-package agent-shell-knockknock
+    :vc (:url "https://github.com/xenodium/agent-shell-knockknock"
+         :rev :newest)
+    :after (agent-shell knockknock)
+    :hook (agent-shell-mode . agent-shell-knockknock-mode))
 #+END_SRC
 
 I might switch to [[https://github.com/cxa/agent-shell-macext#start-of-content][agent-shell-macext]] if I can’t get KnockKnock to work well on my Linux system.

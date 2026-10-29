@@ -114,7 +114,6 @@ cat > "$HAMACS_DEST/init.el" <<EOF
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 
-(setq package-enable-at-startup nil)
 (package-initialize)
 
 ;; Install any missing package by default, so we don't need :ensure t.
