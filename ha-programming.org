@@ -457,6 +457,7 @@ Note that Emacs already has the ability to download and install grammars, so fol
               ;; (julia      "https://github.com/tree-sitter/tree-sitter-julia" "master" "src")
               ;; (lua        "https://github.com/MunifTanjim/tree-sitter-lua" "main" "src")
               (make       "https://github.com/alemuller/tree-sitter-make")
+              (mermaid    "https://github.com/monaqa/tree-sitter-mermaid")
               ;; (markdown   "https://github.com/ikatyang/tree-sitter-markdown")
               ;; (meson      "https://github.com/Decodetalkers/tree-sitter-meson" "master" "src")
               ;; (python     "https://github.com/tree-sitter/tree-sitter-python")
@@ -467,11 +468,17 @@ Note that Emacs already has the ability to download and install grammars, so fol
               ;; (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
               (yaml       "https://github.com/tree-sitter-grammars/tree-sitter-yaml")))
 
-      (defun mp-setup-install-grammars ()
-        "Install Tree-sitter grammars if they are absent."
-        (interactive)
-        (sit-for 30)
-        (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist)))
+      (defun mp-setup-install-grammars (&optional force)
+        "Install Tree-sitter grammars if they are absent.
+Each grammar in `treesit-language-source-alist' is only cloned and
+compiled when `treesit-language-available-p' says it is missing, as
+installing one takes a second or two. With a prefix argument, FORCE
+reinstalls every grammar, which is how we pick up upstream changes."
+        (interactive "P")
+        (dolist (lang (mapcar #'car treesit-language-source-alist))
+          (when (or force (not (treesit-language-available-p lang)))
+            (message "Installing Tree-sitter grammar for `%s' ..." lang)
+            (treesit-install-language-grammar lang))))
 
         ;; Optional, but Mickey recommends. Tree-sitter enabled major
         ;; modes are distinct from their ordinary counterparts, however,
