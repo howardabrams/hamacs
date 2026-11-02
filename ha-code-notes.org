@@ -272,7 +272,7 @@ Once inside a source file, we can jump to one of these /relative locations/:
 
 To verify that this works:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (seq-let (file heading offset) (ha-code-notes-location)
     (ha-code-notes-location-goto file heading offset))
 #+END_SRC

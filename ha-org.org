@@ -3,7 +3,7 @@
 #+date:   2020-09-18
 #+tags: emacs org
 #+startup: inlineimages
-#+lastmod: [2026-10-20 Tue]
+#+lastmod: [2026-10-29 Thu]
 
 A literate programming file for configuring org-mode and those files.
 
@@ -38,8 +38,13 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     <<org-todo>>
     <<org-todo-clock>>
     <<ob-configuration>>
-    <<html-exporting>>
+    <<html-exporting>>)
+#+end_src
 
+Finding a subtle bug in some versions of =use-package=, where the macro can’t have a =:init= /and/ =:config= in the same macro call.
+
+#+BEGIN_SRC emacs-lisp :noweb yes
+  (use-package org
     :config
     <<ha-org-leader>>
     <<visual-hook>>
@@ -52,14 +57,15 @@ Org is a /large/ complex beast with a gazillion settings, so I discuss these lat
     <<org-return-key>>
     <<global-keybindings>>
     <<org-keybindings>>)
-#+end_src
+#+END_SRC
+
 * Initialization Section
 Begin by initializing these org variables:
 #+name: variables
 #+begin_src emacs-lisp :tangle no
   (setq org-return-follows-link t
         org-adapt-indentation nil   ; Don't physically change files
-        org-startup-indented t      ; Visually show paragraphs indented
+        org-startup-indented nil      ; Visually show paragraphs indented
         org-list-indent-offset 2
         org-edit-src-content-indentation 2 ; Doom Emacs sets this to 0,
                                           ; but uses a trick to make it
@@ -491,11 +497,24 @@ Need to install and configure Emacs to work with [[https://plantuml.com/][PlantU
   curl -o ~/bin/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2022.4/plantuml-1.2022.4.jar
 #+end_src
 
-After installing the [[https://github.com/skuro/plantuml-mode][plantuml-mode]], we need to reference the location:
+After installing the [[https://github.com/skuro/plantuml-mode][plantuml-mode]], we need to reference the location.
+
+Note the =plantuml-default-exec-mode=. It defaults to ='server=, and entering
+=plantuml-mode= calls =plantuml-init-once= to build its font-lock keywords by
+/downloading/ them from =https://www.plantuml.com/plantuml/language=,
+synchronously. Since =org-src-fontify-natively= puts a buffer into
+=plantuml-mode= just to colourise a =plantuml= block, and =desktop-save-mode=
+restores this very file at startup, that download lands squarely in the
+startup path. Asking the local executable for the same list avoids the
+round trip, and still works on a plane:
+
 #+begin_src emacs-lisp
   (use-package plantuml-mode
+    :defer t
     :init
-    (setq org-plantuml-jar-path (expand-file-name "~/bin/plantuml.jar")))
+    (setq plantuml-default-exec-mode 'executable
+          plantuml-jar-path     (expand-file-name "~/bin/plantuml.jar")
+          org-plantuml-jar-path (expand-file-name "~/bin/plantuml.jar")))
 #+end_src
 
 With some [[file:snippets/org-mode/plantuml][YASnippets]], I have =<p= to start a general diagram, and afterwards (while still in the org-mode file), type one of the following to expand as an example:
@@ -596,6 +615,7 @@ We can make Mermaid diagrams in Emacs Org files using [[https://github.com/arnm/
 
 #+BEGIN_SRC emacs-lisp
   (use-package ob-mermaid
+    :after mermaid-mode
     :config
     (setq ob-mermaid-cli-path mermaid-mmdc-location))
 #+END_SRC

@@ -519,12 +519,11 @@ Every /so often/, pop over to the following URLs and generate a new token where 
 Make sure this works:
 
 #+begin_src emacs-lisp :tangle no :results replace
-    (ghub-request "GET" "/user" nil
-                  :forge 'github
-                  :host "api.github.com"
-                  :username "howardabrams"
-                  :auth 'forge)
-
+  (ghub-request "GET" "/user" nil
+                :forge 'github
+                :host "api.github.com"
+                :username "howardabrams"
+                :auth 'forge)
 #+end_src
 
 ** Magit Github
@@ -1056,7 +1055,7 @@ The [[Evil Collection][evil-collection]] package adds the following keybindings:
 - ~o~ :: Table of contents (if available)
 
 I’d like write notes in org files that link to the PDFs (and maybe visa versa), using the [[https://github.com/weirdNox/org-noter][org-noter]] package:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package org-noter
     :config
     (major-mode-hydra-define org-noter-doc-mode-map nil

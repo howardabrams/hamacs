@@ -126,6 +126,12 @@ Manipulate file paths with the [[https://github.com/rejeep/f.el][f.el]] project:
   (use-package f)
 #+end_src
 
+The [[https://github.com/noctuid/general.el][general.el]] project supplies the =:general= keyword that many of my =use-package= declarations use, so the /library/ has to be loaded before any other file is *read*. See [[file:ha-general.org][ha-general]] for the complete definition before I convert to =ha-leader.org= for a more general solution:
+
+#+begin_src emacs-lisp
+  (use-package general :demand t)
+#+end_src
+
 The [[help:shell-command][shell-command]] function is useful, but having it split the output into a list is a helpful abstraction:
 #+begin_src emacs-lisp
   (defun shell-command-to-list (command)
@@ -191,13 +197,13 @@ The following /defines/ the rest of my org-mode literate files, that I load late
   (defvar ha-hamacs-files (flatten-list
                            `("ha-private.org"
                              ,(when (display-graphic-p)
-                                "ha-theme.org"
                                 "ha-display.org")
-                             "ha-config.org"
+                             "ha-evil.org"
                              ;; We need to replace ha-general (loaded in config) with:
                              ;; "ha-leader.org"
-                             "ha-evil.org"
+                             "ha-general.org"
                              ;; "ha-meow.org"
+                             "ha-config.org"
                              "ha-applications.org"
                              "ha-org.org"
                              ,(when (display-graphic-p)
@@ -252,7 +258,7 @@ With this function, we can test/debug/reload any individual file, via:
                                         (ha-hamacs-files :all))))
     (let ((full-file (expand-file-name file hamacs-source-dir)))
       (when (file-exists-p full-file)
-        (message ">>> %s" full-file)
+        ;;  (message ">>> %s" full-file)
         (if (called-interactively-p)
             (org-babel-load-file full-file)
           (ignore-errors (org-babel-load-file full-file))))))

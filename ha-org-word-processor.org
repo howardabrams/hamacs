@@ -101,7 +101,8 @@ And hook this function to Org:
 The list of things to try:
 
 #+BEGIN_SRC emacs-lisp
-  (setq org-hide-leading-stars t) ; or t
+  (setq org-hide-leading-stars t)
+  (org-indent-mode -1)
 #+END_SRC
 
 ** Markup View

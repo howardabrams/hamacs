@@ -122,7 +122,7 @@ I found that the prolific [[https://protesilaos.com/][Protesilaos Stavrou]] [[ht
 
 #+begin_src emacs-lisp
   (use-package pulsar
-    :after winum ace-window
+    :after (winum ace-window)
     :custom
     (pulsar-face 'pulsar-generic)
     (pulsar-delay 0.15)

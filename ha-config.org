@@ -438,12 +438,6 @@ The [[https://gitlab.com/ideasman42/emacs-undo-fu][undo-fu]] isn’t much to the
 While I generally use ~C-/~ for [[help:undo][undo]] (and ~C-?~ for [[help:undo-redo][redo]]), when I’m on the Mac, I need to cover my bases.
 
 ** Leader Sequences
-Pressing the ~SPACE~ can activate a /leader key sequence/ I define in my [[file:ha-leader.org][ha-leader]] file.
-#+begin_src emacs-lisp
-  (ha-hamacs-load "ha-general.org")
-#+end_src
-This extends the =use-package= to include a =:general= keybinding section.
-
 Since I seldom remember keybindings, or even function names, for major-modes, I pull them all together into a nice table using Jerry Peng’s  [[https://github.com/jerrypnz/major-mode-hydrajjj0.el][Major Mode Hydra]] project:
 
 #+begin_src emacs-lisp
