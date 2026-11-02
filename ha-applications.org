@@ -83,12 +83,11 @@ Testing it out:
                      :icon "nf-md-robot_confused")
 #+END_SRC
 
-The configuration for [[https://github.com/zackattackz/agent-shell-notifications/][agent-shell-notifications]] and hook it to the =agent-shell-notifications-provider=:
+The configuration for [[https://github.com/xenodium/agent-shell-knockknock][agent-shell-knockknock]] and hook it in:
 
 #+BEGIN_SRC emacs-lisp
   (use-package agent-shell-knockknock
-    :vc (:url "https://github.com/xenodium/agent-shell-knockknock"
-         :rev :newest)
+    :vc (:url "https://github.com/xenodium/agent-shell-knockknock" :rev :newest)
     :after (agent-shell knockknock)
     :hook (agent-shell-mode . agent-shell-knockknock-mode))
 #+END_SRC
