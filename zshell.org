@@ -279,7 +279,7 @@ The trick is to install some base-level plugins, and then, on my work computer, 
   fi
 #+END_SRC
 
-I would like to have a history /per project/, so that when I start a session for a project, my history has where I left off /for that project/ and not everything. I guess I’m not the only one who [[https://github.com/ivan-cukic/zsh-per-project-history][thought of this idea]].  We first need to add his plugin to the list of supplied plugins, so do this once:
+I would like to have a history /per project/, so that when I start a session for a project, my history has where I left off /for that project/ and not everything. I guess I’m not the only one who [[https://github.com/ivan-cukic/zsh-per-project-history][thought of this idea]]. We first need to add his plugin to the list of supplied plugins, so do this once:
 
 #+BEGIN_SRC zsh :tangle no
   git clone https://github.com/ivan-cukic/zsh-per-project-history ~/.oh-my-zsh/plugins/per-project-history
@@ -289,7 +289,7 @@ His idea is to have a variable array, =PER_PROJECT_HISTORY_TAGS= that lists file
 
 #+BEGIN_SRC zsh
   declare -a PER_PROJECT_HISTORY_TAGS
-  export PER_PROJECT_HISTORY_TAGS=(.envrc .git)
+  export PER_PROJECT_HISTORY_TAGS=(.git .envrc .mise.toml .dir-locals.el .project)
   declare -r PER_PROJECT_HISTORY_TAGS
 #+END_SRC
 
@@ -498,11 +498,37 @@ With these variables defined, we can create simple aliases:
       e() { emacsclient --eval "(find-file-other-window \"$1\")" }
       te() { emacsclient --eval "(find-file \"$1\")" }
   else
-      alias e="$EDITOR"
-      alias te="$EDITOR"
   fi
-  alias ee="emacsclient --create-frame"
-  alias eee="emacsclient --create-frame --no-wait"
+#+END_SRC
+
+** GhostEL and Emacs
+Extensions to connect Zshell with [[file:ha-remoting.org::*GhostEL with the Ghostty Library][GhostEL]] project.
+
+#+BEGIN_SRC zsh
+  if [[ "$INSIDE_EMACS" = 'ghostel' ]]
+  then
+      # Open a file in Emacs from the terminal
+      alias e="ghostel_cmd find-file"
+      alias ee="ghostel_cmd find-file-other-window"
+      alias eee="ghostel_cmd find-file-other-window"
+
+      # Open dired in another window
+      dow() { ghostel_cmd dired-other-window "$@" }
+
+      # Open magit for the current directory
+      gst() { ghostel_cmd magit-status-setup-buffer "$(pwd)"; }
+
+  elif [[ -n "$INSIDE_EMACS" ]]
+  then
+      # If we are already in Emacs, no need to stall the terminal:
+      e() { emacsclient --eval "(find-file \"$1\")" }
+      ee() { emacsclient --eval "(find-file-other-window \"$1\")" }
+      eee() { emacsclient --eval "(find-file-other-window \"$1\")" }
+  else
+      alias e="$EDITOR"
+      alias ee="emacsclient --create-frame"
+      alias eee="emacsclient --create-frame --no-wait"
+  fi
 #+END_SRC
 
 ** Vterm
@@ -596,6 +622,19 @@ And other ones that I use:
   alias k=kubectl
 #+END_SRC
 
+* Remote Servers
+How do I get a remote Zshell working from the above setup?
+
+#+BEGIN_SRC sh :tangle no :var HOST="gremlin"
+  scp ~/.zshrc $HOST:
+
+  # Get the Ghostty termcap running on the remote system:
+  infocmp -x xterm-ghostty | ssh $HOST -- tic -x -
+
+  # Clone these two plugins:
+  ssh $HOST git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/plugins/zsh-syntax-highlighting
+  ssh $HOST git clone https://github.com/ivan-cukic/zsh-per-project-history ~/.oh-my-zsh/plugins/per-project-history
+#+END_SRC
 * Final Message
 For sensitive work-related environment variables, store them elsewhere, and load them:
 

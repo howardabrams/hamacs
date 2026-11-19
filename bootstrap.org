@@ -215,6 +215,7 @@ The following /defines/ the rest of my org-mode literate files, that I load late
                              "ha-data.org"
                              "ha-passwords.org"
                              "ha-eshell.org"
+                             "ha-shell.org"
                              "ha-remoting.org"
                              "ha-programming.org"
                              "ha-programming-elisp.org"

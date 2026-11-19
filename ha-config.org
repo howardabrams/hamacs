@@ -971,6 +971,9 @@ Since I wasn’t using all the features that [[https://github.com/bbatsov/projec
   (use-package emacs
     :ensure nil
     :config
+    ;; Have this match Zshell's project history in ~/src/hamacs/zshell.org:
+    (setq project-vc-extra-root-markers '( ".envrc" ".mise.toml" ".dir-locals.el" ".project"))
+
     (ha-leader
       "p"  '(:ignore t :which-key "projects")
       "p p" '("switch project" . ha-tab-bar-new-project)
