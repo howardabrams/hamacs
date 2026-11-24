@@ -299,7 +299,179 @@ This project (and others) can use repeat mode, but
 #+BEGIN_SRC emacs-lisp
   (repeat-mode)
 #+END_SRC
+** Git Stacking
+How do you work fast, and leave a trail of PRs in your wake?
 
+While waiting for a review, but I still need to make changes to a code base, I can /stack/ the pull requests. In this scenario, I create a “branch” with a PR like normal (=branch-pr1=), While waiting for reviews, I make a new PR based on the work of this branch (=branch-pr2=).
+
+#+begin_example
+    ╭──────╮     ╭────────────╮     ╭────────────╮
+    │ main ├────→┤ branch-pr1 ├────→┤ branch-pr2 │
+    ╰──────╯     ╰────────────╯     ╰────────────╯
+#+end_example
+
+This assumes a regular approach to creating a branch, a change, and a PR#1, and our goal is to have a PR#2 as a review, before we’ve merged the first PR.
+
+This is a mulit-step process, and I can never trust myself to remember all the commands.
+Writing this both as a series of shell commands, /and/ Emacs functions (which might clarify both).
+Let’s have some environment variables represent the Git branches for each pull request:
+
+#+BEGIN_SRC sh
+export BRANCH_PR1="jira-7991-build-refactor"
+export BRANCH_PR2="jira-7992-build-implement"
+#+END_SRC
+
+To make the Emacs functions more clear, I have three helper functions:
+#+BEGIN_SRC emacs-lisp
+  (defun ha-confirm-shell-command (command)
+    "Confirm the running of COMMAND from the user."
+    (when (y-or-n-p (format "Execute: %s" command))
+      (shell-command command)))
+
+  (defun ha-git-choose-branch-commit ()
+    "Interactively choose a Git commit limited to those on current branch."
+    (completing-read "Choose commit: "
+                     (shell-command-to-list "git log --oneline --cherry-pick --right-only main...HEAD")))
+
+  (defun ha-git-show (&optional commit-id)
+    "Return a list consisting of the header and body of a Git commit.
+  If COMMIT-ID is nil, return the latest commit."
+    (interactive (list (ha-git-choose-branch-commit)))
+    (let* ((commit-msg  (shell-command-to-string (format "git log -1 --pretty=%%B %s"
+                                                         (unless nil ""))))
+           (line-pos    (string-search "\n" commit-msg))
+           (first-line  (substring commit-msg 0 line-pos))
+           (rest-commit (substring commit-msg (1+ line-pos))))
+      (if (interactive-p)
+          (message "%s%s"
+                   (propertize first-line 'face
+                               '(:foreground "goldenrod" :weight 'bold))
+                   (if (string-blank-p rest-commit) "" rest-commit))
+        (list first-line (string-trim rest-commit)))))
+
+  (defun ha-choose-git-branch (&optional prompt)
+    "Return a list of all branches in the current Git repo.
+  Moves the current branch to the first position in the list."
+    (unless prompt (setq prompt "Branch: "))
+    (let* ((last-str nil)
+           (base-rx (rx string-start "*" space (group (one-or-more any))))
+           (all-branches (thread-last "git branch"
+                                      (shell-command-to-list)
+                                      (seq-map #'string-trim)))
+           (base-branch (seq-find (lambda (s)
+                                    (setq last-str s)
+                                    (string-match base-rx s))
+                                  all-branches))
+           (base-br-name (match-string 1 last-str))
+           (other-branches (seq-remove (lambda (s) (string-equal s last-str))
+                                     all-branches)))
+      (completing-read prompt
+                       `(,base-br-name . ,other-branches)
+                       nil t nil nil
+                       base-br-name)))
+
+  (defun ha--git-parent-current-branches ()
+    "Return a list of the parent and current branches."
+    (list
+     ;; Parent branch:
+     (thread-first "git rev-parse --abbrev-ref @{-1}"
+                   (shell-command-to-string)
+                   (string-trim))
+     ;; Current branch:
+     (thread-first "git branch --show-current"
+                   (shell-command-to-string)
+                   (string-trim))))
+    #+END_SRC
+
+To begin, create and /switch/ to a new branch, making sure the /current branch/ is the :
+   #+BEGIN_SRC sh
+     git switch -c $BRANCH_PR2   # branching off $BRANCH_PR1
+   #+END_SRC
+
+This is a simple Emacs function that calls =shell-command=. Errors will show up in a side window, otherwise, you can just continue, and edit the code:
+
+    #+BEGIN_SRC emacs-lisp
+  (defun ha-git-stacking-pr (new-branch)
+    "Execute a `git switch' by creating NEW-BRANCH."
+    (interactive "sNew Branch Name: ")
+    (shell-command (format "git switch -c %s" new-branch)))
+    #+END_SRC
+
+With the completed code change, *open a new PR with its base set to =$BRANCH_PR1=, not =main=.* This is the part that makes stacking work, as the PR diff shows /only/ the changes on =$BRANCH_PR2=, so reviewers don't re-review the work in other pull request. You can pick any base branch in the PR UI, or we can do this on the command line with:
+
+   #+BEGIN_SRC sh
+     git push -u origin $BRANCH_PR2
+     gh pr create --base $BRANCH_PR1   # Works for me since GH_HOST is set in .mise.toml
+   #+END_SRC
+
+In my Emacs implementation, I need to make an /educated guess/ for the names of the two branches. While the current branch is easy, I’m using a little magic for guessing the parent. Instead of letting =gh= assume the title and body of the PR, I’m going to use the details from the /last/ commit made on the branch (not the first).
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-git-pull-request (&optional label milestone)
+    "Create a pull request with details from _latest_ commit.
+  If the previous branch was not main, stack the pull request
+  with a --base of the previous branch."
+    (interactive (list
+                  (completing-read "Label: " (shell-command-to-list "gh label list --json 'name' --jq '.[].name'"))
+                  (completing-read "Milestone: " (shell-command-to-list "gh api repos/{owner}/{repo}/milestones --jq '.[].title'"))))
+    (seq-let (parent current) (ha--git-parent-current-branches)
+      (ha-confirm-shell-command (format "git push -u origin %s" current))
+      (ha-confirm-shell-command (concat "gh pr create --fill-first --assignee @me"
+                                        (when label
+                                          (format " --label \"%s\"" label))
+                                        (when milestone
+                                          (format " --milestone \"%s\"" milestone))
+                                        (unless (string-equal parent "main")
+                                          (format " --base %s" parent))))))
+#+END_SRC
+
+Let’s not do this:
+#+BEGIN_SRC emacs-lisp :tangle no :eval none
+(seq-let (title body) (ha-git-show (ha-git-choose-branch-commit))
+      (setq body (string-replace "'" "\\'" body))
+      (ha-confirm-shell-command (concat "gh pr create "
+                                        "--title '" title "' "
+                                        "--body '" body "' "
+                                        "--assignee @me "
+                                        (unless (string-equal parent "main")
+                                          (format "--base %s" parent)))))
+#+END_SRC
+
+If I jump back to the first branch, make and push changes to the first PR, /and I need those changes on the second branch/, I need to =rebase= to pick up those changes:
+
+#+BEGIN_SRC sh
+  # git checkout $BRANCH_PR2
+  git rebase $BRANCH_PR1
+#+END_SRC
+
+Once the /first branch/ has merged, we need to /rebase and retarget/. Since GitHub only /auto-re-targets/ the child PR's base to =main= if the PR1 branch is /deleted/ on merge, so don't count on it. In my workflow, PR1 will be /squashed/ during the merge, so my second branch will carry the original multiple commits that now match nothing in main. The diff will balloon to include PR1's work again, plus conflicts. We then fix it with:
+
+   #+BEGIN_SRC sh
+     git fetch origin
+     git rebase --onto origin/main $BRANCH_PR1 $BRANCH_PR2
+     git push --force-with-lease origin $BRANCH_PR2   # always name the remote and branch
+     gh pr edit $BRANCH_PR2 --base main               # or change the base in the PR UI
+   #+END_SRC
+
+*Note:* The PR shows as "conflicting" until its base is changed to =main=, as GitHub merges the head into the /old/ base, and the merge base is the pre-squash commit.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-git-pull-request-retarget ()
+    "Retarget a _stacked pull request_ back to the `main' branch."
+    (interactive)
+    (seq-let (parent current) (ha--git-parent-current-branches)
+      (ha-confirm-shell-command "git fetch origin")
+      (ha-confirm-shell-command (format "git rebase --onto origin/main %s %s" parent current))
+      (ha-confirm-shell-command (format "git push --force-with-lease origin %s" current))
+      (ha-confirm-shell-command (format "gh pr edit %s --base main" current))))
+#+END_SRC
+
+Since each /potentially dangerous/ =git= or =gh= command is wrapped in a =ha-confirm-shell-command=, I can easily abort if I see something odd.
+
+Pitfalls:
+- Don't =git pull= =$BRANCH_PR2= after the rebase. With =rebase = true=, it re-applies the old remote history and silently undoes the rebase.
+- Don’t rebase or force-push =$BRANCH_PR1= itself, or you'll have to redo step 3 early.
+- Don't use a bare =git push --force-with-lease=. With =push.default = matching=, it tries to push every same-named branch, including a stale local =main=, and gets rejected. Set =git config --global push.default simple= or always name the remote and branch.
 ** Git Delta
 The [[https://scripter.co/using-git-delta-with-magit][magit-delta]] project uses [[https://github.com/dandavison/delta][git-delta]] for colorized diffs.
 #+begin_src emacs-lisp
