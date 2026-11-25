@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2025-11-24
 #+filetags: emacs hamacs
-#+lastmod: [2026-10-09 Fri]
+#+lastmod: [2026-11-23 Mon]
 
 A literate programming file for configuring Hammerspoon.
 
@@ -113,11 +113,11 @@ To create specific key bindings for starting applications, I can:
   end)
 
   hs.hotkey.bind({"alt", "ctrl", "shift"}, "T", function()
-        hs.application.launchOrFocus("iTerm")
+        hs.application.launchOrFocus("Ghostty")
   end)
 
   hs.hotkey.bind({"alt", "ctrl", "shift"}, "E", function()
-        hs.execute("FOR_WORK=yes open -a /Applications/Emacs.app")
+        hs.execute("cd ~/work/platstor/lorry ; export FOR_WORK=yes ; open -a /Applications/Emacs.app")
   end)
 
   -- Special Emacs Guys

@@ -2,7 +2,7 @@
 #+author: Howard X. Abrams
 #+date:   2026-11-13
 #+filetags: emacs hamacs
-#+lastmod: [2026-11-18 Wed]
+#+lastmod: [2026-11-24 Tue]
 
 A literate programming file for configuring terminal shells
 
@@ -84,17 +84,25 @@ Since I’m evil,  I use the [[https://melpa.org/#/evil-ghostel][evil-ghostel]] 
     :config
     (use-package ghostel
       :config
+      (defun ghostel-send-string (string)
+        "Send STRING to current terminal's PTY."
+        (ghostel--send-string string))
+
+      (defun ghostel-yank-string ()
+        "Send STRING to current terminal's PTY."
+        (interactive)
+        (ghostel--send-string (current-kill 0)))
+
       (defun ha/ghostel-send-C-k-and-kill ()
         "Send `C-k' to ghostel.
     Like normal Emacs `C-k'.  Kill to end of line and put content in kill-ring.
     Without this, C-k works as expected, but only in the Zsh shell."
         (interactive)
-        (message "Yoinks!")
         (kill-ring-save (point) (line-end-position))
         (ghostel-send-key "k" "ctrl")))
 
     (evil-define-key* 'insert evil-ghostel-mode-map
-      (kbd "C-y") #'ghostel-send-string
+      (kbd "C-y") #'ghostel-yank-string
       (kbd "C-s") #'consult-line
       (kbd "C-k") #'ha/ghostel-send-C-k-and-kill))
 #+END_SRC
@@ -211,7 +219,7 @@ So the following function may be a bit complicated in determining what is this /
     (interactive "P")
     (dolist (line (ha-shell-line-or-block prefix))
       (sit-for 0.25)
-      (ha-shell-send line t name))))
+      (ha-shell-send line t name)))
     #+END_SRC
 
 The =ha-shell-line-or-block= function converts some text in the current buffer to a list of command lines. For instance, the following code block contains a single “shell command”:
@@ -314,7 +322,7 @@ While in a Terminal window, I can use Avy and Embark to select a remote symbol (
 #+BEGIN_SRC emacs-lisp
   (advice-add 'yank :around '(lambda (orig-fun &rest args)
                                   (if (derived-mode-p 'ghostel-mode)
-                                      (ghostel-send-string (current-kill 0))
+                                      (ghostel--send-string (current-kill 0))
                                     (apply orig-fun args))))
 #+END_SRC
 
@@ -337,11 +345,42 @@ Bind these functions under a leader sequence:
     "a s t" '("local shell"         . ha-shell)
     "a s p" '("project shell"       . ha-shell-project)
     "p t"   '("project shell"       . ha-shell-project)
-    "a s l" '("send line→shell"     . ha-send-line-to-shell)
+    "a s l" '("send line→shell"     . ha-shell-send-line)
     "a s y" '("copy code lines"     . ha-shell-line-or-block)
     "a s x" '("close shell"         . ha-shell-exit)
     "a s L" '("send any line→shell" . ha-shell-send-avy-to-shell))
 #+END_SRC
+
+* Special Visual Apps
+The primary reason to use =ghosttyel= instead of =eshell=, is running terminal-intensive apps, called /visual apps/.
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-shell-exec (command)
+    "Run a particular COMMAND in a `ghostel` session."
+    (interactive "sCommand: ")
+    ;; We need to split command ...
+    (ghostel-exec ))
+    #+END_SRC
+
+Kubernetes-related work:
+kubectl get events -w --field-selector involvedObject.kind=Node
+watch -n 1 kubectl get pods
+watch -n 1 "kubectl get pod <POD_NAME> -o jsonpath='{range .status.containerStatuses[*]}{.name}{\"\t\"}{.state}{\"\n\"}{end}'"
+kubectl get events -w --field-selector involvedObject.name=<POD_NAME>
+
+#+BEGIN_SRC emacs-lisp
+  (defun ha-kubernetes-watch ()
+    "Display Kubernetes cluster using `k9s'."
+    (interactive)
+    (let* ((name "kubectl-watch")
+           (buf (get-buffer-create name)))
+      (switch-to-buffer name)
+      (ghostel-exec buf "k9s" `("--splashless" "--logoless"
+                                "--kubeconfig" ,(format "%s/%s" (getenv "HOME")
+                                                        ".kube/svc-pdx-cedev-kubeconfig.yaml")
+                                "--namespace" "platstor-mktplace"))))
+    #+END_SRC
+
 
 * Technical Artifacts                                :noexport:
 

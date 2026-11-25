@@ -876,11 +876,25 @@ Magnar Sveen's [[https://github.com/magnars/expand-region.el][expand-region]] pr
              "-" 'er/contract-region))
 #+end_src
 *** iSearch
-The built-in =isearch= is fantastically simple and useful, bound to ~C-s~, but why not bind searching for the current symbol?
+The built-in =isearch= is fantastically simple and useful, bound to ~C-s~.  The submap, ~M-s~ calls =isearch=, but preloaded values. i like the =thing-at-point= feature, and feel that should be easier to get to:
 
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "M-s M-s") 'isearch-forward-thing-at-point)
 #+END_SRC
+
+And let’s add this to Evil’s normal mode too:
+
+#+BEGIN_SRC emacs-lisp
+  (evil-global-set-key 'normal (kbd "M-s") 'isearch-forward-thing-at-point)
+#+END_SRC
+
+And we need to be able to repeat this:
+
+#+BEGIN_SRC emacs-lisp
+  (define-key isearch-mode-map (kbd "M-s") 'isearch-repeat-forward)
+  (define-key isearch-mode-map (kbd "M-S") 'isearch-repeat-backward)
+#+END_SRC
+
 
 I like Charles Choi’s [[https://github.com/kickingvegas/casual][Casual Suite]], and his original [[https://github.com/kickingvegas/cc-isearch-menu][cc-isearch-menu]] was great at seeing the /buried/ features. I’ve duplicated the features using [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]. In the middle of a search, type ~⌘-s~ (Command-s), and menu of options I don’t remember appear.
 
